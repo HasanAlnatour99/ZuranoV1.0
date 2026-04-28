@@ -11058,11 +11058,23 @@ abstract class AppLocalizations {
   /// **'On break'**
   String get employeeTodayStatusOnBreak;
 
+  /// No description provided for @employeeTodayStatusBackFromBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Back from break'**
+  String get employeeTodayStatusBackFromBreak;
+
   /// No description provided for @employeeTodayStatusCheckedOut.
   ///
   /// In en, this message translates to:
   /// **'Checked out'**
   String get employeeTodayStatusCheckedOut;
+
+  /// No description provided for @employeeTodayStatusInvalidSequence.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid punch sequence'**
+  String get employeeTodayStatusInvalidSequence;
 
   /// No description provided for @employeeTodayZoneInside.
   ///
@@ -11297,6 +11309,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get employeeTodayLocationContextLabel;
+
+  /// No description provided for @employeeTodayShiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get employeeTodayShiftLabel;
+
+  /// No description provided for @employeeTodayGpsVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Verified'**
+  String get employeeTodayGpsVerified;
+
+  /// No description provided for @employeeTodayGpsLocating.
+  ///
+  /// In en, this message translates to:
+  /// **'Locating GPS'**
+  String get employeeTodayGpsLocating;
+
+  /// No description provided for @employeeTodayPunchNotAllowedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'This punch is not allowed now'**
+  String get employeeTodayPunchNotAllowedNow;
 
   /// No description provided for @employeeQuickActionsTitle.
   ///
@@ -13649,6 +13685,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Missing punch'**
   String get employeeTodayStatusMissingPunch;
+
+  /// No description provided for @employeeTodayStatusCheckedInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are currently on duty'**
+  String get employeeTodayStatusCheckedInSubtitle;
+
+  /// No description provided for @employeeTodayStatusOnBreakSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap back when your break ends'**
+  String get employeeTodayStatusOnBreakSubtitle;
+
+  /// No description provided for @employeeTodayStatusBackFromBreakSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can check out later'**
+  String get employeeTodayStatusBackFromBreakSubtitle;
+
+  /// No description provided for @employeeTodayStatusCheckedOutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you'**
+  String get employeeTodayStatusCheckedOutSubtitle;
+
+  /// No description provided for @employeeTodayStatusMissingPunchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please submit a correction request for the missing punch'**
+  String get employeeTodayStatusMissingPunchSubtitle;
+
+  /// No description provided for @employeeTodayStatusInvalidSequenceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please submit a correction request'**
+  String get employeeTodayStatusInvalidSequenceSubtitle;
 
   /// No description provided for @employeeTodayLastPunchAt.
   ///

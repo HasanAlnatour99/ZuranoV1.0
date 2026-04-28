@@ -126,6 +126,10 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly(allowed);
     }
 
+    function isValidPunchTypeValue(value) {
+      return value in ['punchIn', 'punchOut', 'breakOut', 'breakIn'];
+    }
+
     // Step 14: Guest booking create/cancel/reschedule/feedback moved to Cloud Functions
     // (`functions/src/customer/`). Admin SDK bypasses these rules.
 
@@ -428,12 +432,32 @@ service cloud.firestore {
         allow create: if isStaffOfSalon(salonId) &&
           isOwnAttendanceDocId(dayId) &&
           request.resource.data.employeeId == currentEmployeeId() &&
-          request.resource.data.salonId == salonId;
+          request.resource.data.salonId == salonId &&
+          request.resource.data.status in [
+            'notStarted',
+            'checkedIn',
+            'onBreak',
+            'backFromBreak',
+            'checkedOut',
+            'pendingCorrection',
+            'correctionApproved',
+            'correctionRejected'
+          ];
         allow update: if isSalonOwnerOrAdmin(salonId) ||
           (isStaffOfSalon(salonId) &&
             resource.data.employeeId == currentEmployeeId() &&
             request.resource.data.employeeId == resource.data.employeeId &&
-            request.resource.data.salonId == salonId);
+            request.resource.data.salonId == salonId &&
+            request.resource.data.status in [
+              'notStarted',
+              'checkedIn',
+              'onBreak',
+              'backFromBreak',
+              'checkedOut',
+              'pendingCorrection',
+              'correctionApproved',
+              'correctionRejected'
+            ]);
         allow delete: if isSalonOwnerOrAdmin(salonId);
 
         match /punches/{punchId} {
@@ -443,7 +467,8 @@ service cloud.firestore {
             isOwnAttendanceDocId(dayId) &&
             request.resource.data.employeeId == currentEmployeeId() &&
             request.resource.data.salonId == salonId &&
-            request.resource.data.type in ['punchIn', 'punchOut', 'breakOut', 'breakIn'];
+            isValidPunchTypeValue(request.resource.data.type) &&
+            request.resource.data.createdAt == request.time;
           allow update, delete: if false;
         }
       }

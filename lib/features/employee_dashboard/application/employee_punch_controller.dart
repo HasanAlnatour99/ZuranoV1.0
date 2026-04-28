@@ -13,21 +13,17 @@ import '../domain/services/attendance_location_service.dart';
 import 'employee_dashboard_providers.dart';
 import 'employee_today_attendance_ui_provider.dart';
 
-/// Busy state for punch submission from Today + quick actions.
-class EmployeePunchBusy {
-  const EmployeePunchBusy({this.type});
+final employeeTodayAttendanceControllerProvider = AsyncNotifierProvider.autoDispose<
+    EmployeeTodayAttendanceController,
+    AttendancePunchType?>(EmployeeTodayAttendanceController.new);
 
-  final AttendancePunchType? type;
-}
+@Deprecated('Use employeeTodayAttendanceControllerProvider')
+final employeePunchControllerProvider = employeeTodayAttendanceControllerProvider;
 
-final employeePunchControllerProvider =
-    NotifierProvider.autoDispose<EmployeePunchController, EmployeePunchBusy>(
-      EmployeePunchController.new,
-    );
-
-class EmployeePunchController extends Notifier<EmployeePunchBusy> {
+class EmployeeTodayAttendanceController
+    extends AsyncNotifier<AttendancePunchType?> {
   @override
-  EmployeePunchBusy build() => const EmployeePunchBusy();
+  Future<AttendancePunchType?> build() async => null;
 
   /// Submits a punch; surfaces user-facing messages via [onMessage] / [onSuccess].
   Future<void> submitPunch(
@@ -51,7 +47,7 @@ class EmployeePunchController extends Notifier<EmployeePunchBusy> {
 
     final settings = await ref.read(etAttendanceSettingsProvider.future);
 
-    state = EmployeePunchBusy(type: type);
+    state = AsyncData(type);
     final location = AttendanceLocationService();
     try {
       Position? pos;
@@ -72,7 +68,7 @@ class EmployeePunchController extends Notifier<EmployeePunchBusy> {
 
       await ref
           .read(employeeTodayAttendanceRepositoryProvider)
-          .createPunch(
+          .submitPunch(
             uid: user.uid,
             salonId: scope.salonId,
             employeeId: scope.employeeId,
@@ -84,6 +80,8 @@ class EmployeePunchController extends Notifier<EmployeePunchBusy> {
             settings: settings,
           );
 
+      ref.invalidate(etTodayAttendanceDayProvider);
+      ref.invalidate(employeeTodayAttendanceProvider);
       _invalidateAfterPunch();
       onSuccess?.call();
     } on AttendanceException catch (e) {
@@ -97,8 +95,16 @@ class EmployeePunchController extends Notifier<EmployeePunchBusy> {
       }
       onMessage(msg);
     } finally {
-      state = const EmployeePunchBusy();
+      state = const AsyncData(null);
     }
+  }
+
+  Future<void> loadTodayAttendance() async {
+    ref.invalidate(employeeTodayAttendanceProvider);
+  }
+
+  Future<void> submitCorrectionRequest() async {
+    ref.invalidate(etEmployeeCorrectionRequestsProvider);
   }
 
   void _invalidateAfterPunch() {

@@ -91,7 +91,7 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
                   return const SizedBox.shrink();
                 }
                 final type = vm.nextPunchType;
-                final enabled = vm.canPunch && type != null;
+                final enabled = vm.canPunchAny && type != null;
                 return _QuickActionTile(
                   icon: vm.primaryActionIcon,
                   title: vm.primaryActionLabel(l10n),
@@ -103,7 +103,10 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
                           final messenger = ScaffoldMessenger.of(context);
                           Navigator.of(context).pop();
                           await ref
-                              .read(employeePunchControllerProvider.notifier)
+                              .read(
+                                employeeTodayAttendanceControllerProvider
+                                    .notifier,
+                              )
                               .submitPunch(
                                 type,
                                 l10n,

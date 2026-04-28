@@ -157,7 +157,7 @@ Future<void> submitEmployeeAttendancePunch(
 
     await ref
         .read(employeeTodayAttendanceRepositoryProvider)
-        .createPunch(
+        .submitPunch(
           uid: user.uid,
           salonId: scope.salonId,
           employeeId: scope.employeeId,

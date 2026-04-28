@@ -6295,7 +6295,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeeTodayStatusOnBreak => 'On break';
 
   @override
+  String get employeeTodayStatusBackFromBreak => 'Back from break';
+
+  @override
   String get employeeTodayStatusCheckedOut => 'Checked out';
+
+  @override
+  String get employeeTodayStatusInvalidSequence => 'Invalid punch sequence';
 
   @override
   String get employeeTodayZoneInside => 'Inside salon zone';
@@ -6434,6 +6440,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get employeeTodayLocationContextLabel => 'Location';
+
+  @override
+  String get employeeTodayShiftLabel => 'Shift';
+
+  @override
+  String get employeeTodayGpsVerified => 'GPS Verified';
+
+  @override
+  String get employeeTodayGpsLocating => 'Locating GPS';
+
+  @override
+  String get employeeTodayPunchNotAllowedNow => 'This punch is not allowed now';
 
   @override
   String get employeeQuickActionsTitle => 'Quick actions';
@@ -7789,6 +7807,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get employeeTodayStatusMissingPunch => 'Missing punch';
+
+  @override
+  String get employeeTodayStatusCheckedInSubtitle =>
+      'You are currently on duty';
+
+  @override
+  String get employeeTodayStatusOnBreakSubtitle =>
+      'Tap back when your break ends';
+
+  @override
+  String get employeeTodayStatusBackFromBreakSubtitle =>
+      'You can check out later';
+
+  @override
+  String get employeeTodayStatusCheckedOutSubtitle => 'Thank you';
+
+  @override
+  String get employeeTodayStatusMissingPunchSubtitle =>
+      'Please submit a correction request for the missing punch';
+
+  @override
+  String get employeeTodayStatusInvalidSequenceSubtitle =>
+      'Please submit a correction request';
 
   @override
   String employeeTodayLastPunchAt(String time) {

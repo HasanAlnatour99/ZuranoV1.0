@@ -12,6 +12,7 @@ import '../models/et_attendance_punch.dart';
 import '../models/et_attendance_settings.dart';
 import '../models/et_correction_request.dart';
 import '../../domain/attendance_analysis_service.dart';
+import '../../domain/attendance_status.dart';
 import '../../domain/attendance_state_resolver.dart';
 
 class EmployeeTodayAttendanceRepository {
@@ -183,7 +184,7 @@ class EmployeeTodayAttendanceRepository {
     return q.docs.map(EtAttendanceDay.fromFirestore).toList(growable: false);
   }
 
-  Future<void> createPunch({
+  Future<void> submitPunch({
     required String uid,
     required String salonId,
     required String employeeId,
@@ -194,6 +195,9 @@ class EmployeeTodayAttendanceRepository {
     required Position? position,
     required EtAttendanceSettings settings,
   }) async {
+    if (uid.isEmpty) {
+      throw AttendanceException('You must be signed in to submit a punch.');
+    }
     if (!employeeActive) {
       throw AttendanceException('Your employee profile is inactive.');
     }
@@ -283,10 +287,20 @@ class EmployeeTodayAttendanceRepository {
         );
       }
 
+      if (sortedPunches.length >= settings.maxPunchesPerDay) {
+        throw AttendanceException('You reached today\'s maximum punches.');
+      }
+
       if (sortedPunches.isNotEmpty) {
         final last = sortedPunches.last;
-        if (last.type == type && _sameMinute(last.punchTime, punchTime)) {
-          throw AttendanceException('This punch sequence is not valid.');
+        final duplicateWindowSeconds = punchTime
+            .difference(last.punchTime)
+            .inSeconds
+            .abs();
+        if (last.type == type && duplicateWindowSeconds < 60) {
+          throw AttendanceException(
+            'Duplicate punch blocked. Try again after one minute.',
+          );
         }
       }
 
@@ -318,6 +332,51 @@ class EmployeeTodayAttendanceRepository {
       final newSeq = [...seq, type.name];
       final newPunchIds = [...punchIds, punchRef.id];
       final workDate = DateTime(punchTime.year, punchTime.month, punchTime.day);
+      final projectedPunches = <EtAttendancePunch>[
+        ...sortedPunches,
+        EtAttendancePunch(
+          id: punchRef.id,
+          salonId: salonId,
+          employeeId: employeeId,
+          attendanceDayId: dayId,
+          type: type,
+          punchTime: punchTime,
+          source: 'mobile',
+          insideZone: inside,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+          distanceFromSalonMeters: distance,
+          createdAt: null,
+          createdBy: uid,
+        ),
+      ];
+      final shiftEndAt = _shiftEndForDay(punchTime, settings.standardShiftEnd);
+      final calculatedStatus = calculateTodayStatus(
+        punches: projectedPunches,
+        now: now,
+        shiftEndAt: shiftEndAt,
+        maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
+        maxPunchesPerDay: settings.maxPunchesPerDay,
+      );
+      final missingReason = _missingPunchReason(
+        status: calculatedStatus,
+        punches: projectedPunches,
+        now: now,
+        shiftEndAt: shiftEndAt,
+        maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
+      );
+
+      _logAttendanceDebug(
+        employeeId: employeeId,
+        dayId: dayId,
+        currentPunchesCount: sortedPunches.length,
+        lastPunchType: seq.isEmpty ? null : seq.last,
+        requestedPunchType: type.name,
+        calculatedStatusBefore: daySnap.data()?['status']?.toString(),
+        calculatedStatusAfter: calculatedStatus.name,
+        isInsideSalonZone: inside,
+        distanceFromSalonMeters: distance,
+      );
 
       tx.set(punchRef, {
         'id': punchRef.id,
@@ -326,8 +385,10 @@ class EmployeeTodayAttendanceRepository {
         'attendanceDayId': dayId,
         'type': type.name,
         'punchTime': Timestamp.fromDate(punchTime),
-        'source': 'employee',
+        'punchedAt': Timestamp.fromDate(punchTime),
+        'source': 'mobile',
         'insideZone': inside,
+        'isInsideSalonZone': inside,
         'latitude': position?.latitude,
         'longitude': position?.longitude,
         'distanceFromSalonMeters': distance,
@@ -340,6 +401,7 @@ class EmployeeTodayAttendanceRepository {
         'salonId': salonId,
         'employeeId': employeeId,
         'employeeName': employeeName,
+        'workDate': '${punchTime.year.toString().padLeft(4, '0')}-${punchTime.month.toString().padLeft(2, '0')}-${punchTime.day.toString().padLeft(2, '0')}',
         'dateKey': dk,
         'date': Timestamp.fromDate(workDate),
         'punchSequence': newSeq,
@@ -349,6 +411,11 @@ class EmployeeTodayAttendanceRepository {
         'lastLatitude': position?.latitude,
         'lastLongitude': position?.longitude,
         'lastDistanceFromSalon': distance,
+        'status': calculatedStatus.firestoreValue,
+        'lastPunchType': type.name,
+        'lastPunchAt': Timestamp.fromDate(punchTime),
+        'missingPunchReason': missingReason,
+        'correctionRequestId': daySnap.data()?['correctionRequestId'],
         'updatedAt': FieldValue.serverTimestamp(),
         if (!daySnap.exists) 'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
@@ -362,12 +429,66 @@ class EmployeeTodayAttendanceRepository {
     );
   }
 
-  bool _sameMinute(DateTime a, DateTime b) =>
-      a.year == b.year &&
-      a.month == b.month &&
-      a.day == b.day &&
-      a.hour == b.hour &&
-      a.minute == b.minute;
+  DateTime? _shiftEndForDay(DateTime day, String? shiftEnd) {
+    if (shiftEnd == null || !shiftEnd.contains(':')) {
+      return null;
+    }
+    final parts = shiftEnd.split(':');
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) {
+      return null;
+    }
+    return DateTime(day.year, day.month, day.day, h, m);
+  }
+
+  String? _missingPunchReason({
+    required AttendanceStatus status,
+    required List<EtAttendancePunch> punches,
+    required DateTime now,
+    required DateTime? shiftEndAt,
+    required int maxBreakMinutesPerDay,
+  }) {
+    if (status == AttendanceStatus.invalidSequence) {
+      return 'invalidSequence';
+    }
+    if (status != AttendanceStatus.missingPunch || punches.isEmpty) {
+      return null;
+    }
+    final last = punches.last;
+    if (last.type == AttendancePunchType.punchIn &&
+        shiftEndAt != null &&
+        now.isAfter(shiftEndAt)) {
+      return 'missingPunchOutAfterShiftEnd';
+    }
+    if (last.type == AttendancePunchType.breakOut &&
+        now.difference(last.punchTime).inMinutes > maxBreakMinutesPerDay) {
+      return 'missingBreakInAfterBreakOut';
+    }
+    return 'missingPunch';
+  }
+
+  void _logAttendanceDebug({
+    required String employeeId,
+    required String dayId,
+    required int currentPunchesCount,
+    required String? lastPunchType,
+    required String requestedPunchType,
+    required String? calculatedStatusBefore,
+    required String calculatedStatusAfter,
+    required bool isInsideSalonZone,
+    required double? distanceFromSalonMeters,
+  }) {
+    debugPrint(
+      'ATTENDANCE_DEBUG: employeeId=$employeeId dayId=$dayId '
+      'currentPunchesCount=$currentPunchesCount lastPunchType=${lastPunchType ?? 'none'} '
+      'requestedPunchType=$requestedPunchType '
+      'calculatedStatusBefore=${calculatedStatusBefore ?? 'none'} '
+      'calculatedStatusAfter=$calculatedStatusAfter '
+      'isInsideSalonZone=$isInsideSalonZone '
+      'distanceFromSalonMeters=${distanceFromSalonMeters?.toStringAsFixed(2) ?? 'n/a'}',
+    );
+  }
 
   Future<void> _refreshDaySummary({
     required String salonId,
@@ -386,17 +507,33 @@ class EmployeeTodayAttendanceRepository {
       calendarDay: calendarDay,
     );
     final seq = punches.map((p) => p.type.name).toList();
+    final shiftEndAt = _shiftEndForDay(calendarDay, settings.standardShiftEnd);
+    final todayStatus = calculateTodayStatus(
+      punches: punches,
+      now: DateTime.now(),
+      shiftEndAt: shiftEndAt,
+      maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
+      maxPunchesPerDay: settings.maxPunchesPerDay,
+    );
+    final missingReason = _missingPunchReason(
+      status: todayStatus,
+      punches: punches,
+      now: DateTime.now(),
+      shiftEndAt: shiftEndAt,
+      maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
+    );
     await _dayRef(salonId, dayId).set({
       'punchSequence': seq,
       'punchIds': punches.map((p) => p.id).toList(),
-      'status': calc.status,
+      'status': todayStatus.firestoreValue,
       'workedMinutes': calc.workedMinutes,
       'breakMinutes': calc.breakMinutes,
       'lateMinutes': calc.lateMinutes,
       'earlyExitMinutes': calc.earlyExitMinutes,
       'isLateAfterGrace': calc.isLateAfterGrace,
       'isEarlyExitAfterGrace': calc.isEarlyExitAfterGrace,
-      'hasMissingPunch': calc.hasMissingPunch,
+      'hasMissingPunch': todayStatus == AttendanceStatus.missingPunch,
+      'missingPunchReason': missingReason,
       'totalBreaks': calc.totalBreaks,
       'firstPunchInAt': calc.firstPunchInAt != null
           ? Timestamp.fromDate(calc.firstPunchInAt!)

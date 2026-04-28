@@ -20,11 +20,9 @@ import '../../../employee_dashboard/presentation/widgets/employee_bottom_nav_bar
 import '../../../employee_dashboard/presentation/widgets/employee_quick_action_fab.dart';
 import '../../../employee_dashboard/presentation/widgets/today_activity_timeline.dart';
 import '../../../employee_dashboard/presentation/widgets/today_attendance_card.dart';
-import '../../data/models/employee_workplace_location_snapshot.dart';
 import '../../providers/employee_today_providers.dart';
 import '../employee_today_theme.dart';
 import '../widgets/attendance_request_card.dart';
-import '../widgets/employee_salon_zone_map_card.dart';
 import '../widgets/employee_today_section_error.dart';
 import '../widgets/employee_today_skeletons.dart';
 import '../widgets/employee_today_widgets.dart';
@@ -53,13 +51,11 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
   @override
   Widget build(BuildContext context) {
     final path = GoRouterState.of(context).uri.path;
-    final settingsAsync = ref.watch(etAttendanceSettingsProvider);
     final dayAsync = ref.watch(etTodayAttendanceDayProvider);
     final punchesAsync = ref.watch(etTodayPunchesProvider);
     final summaryAsync = ref.watch(employeeTodaySummaryProvider);
     final correctionsAsync = ref.watch(etEmployeeCorrectionRequestsProvider);
     final empAsync = ref.watch(workspaceEmployeeProvider);
-    final locationAsync = ref.watch(employeeWorkplaceLocationSnapshotProvider);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final media = MediaQuery.of(context);
@@ -115,26 +111,6 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: TodayAttendanceCard(onRetry: _invalidateTodayPage),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 0),
-                  child: settingsAsync.maybeWhen(
-                    data: (s) {
-                      final loc = locationAsync.maybeWhen(
-                        data: (v) => v,
-                        orElse: () =>
-                            const EmployeeWorkplaceLocationSnapshot.unresolved(),
-                      );
-                      return EmployeeSalonZoneMapCard(
-                        settings: s,
-                        location: loc,
-                        salonDisplayName: salonDisplayName,
-                      );
-                    },
-                    orElse: () => const SizedBox.shrink(),
-                  ),
                 ),
               ),
               SliverToBoxAdapter(

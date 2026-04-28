@@ -6291,13 +6291,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeeTodayStatusNotCheckedIn => 'لم يتم تسجيل الدخول';
 
   @override
-  String get employeeTodayStatusCheckedIn => 'تم تسجيل الدخول';
+  String get employeeTodayStatusCheckedIn => 'تم تسجيل الحضور';
 
   @override
-  String get employeeTodayStatusOnBreak => 'في استراحة';
+  String get employeeTodayStatusOnBreak => 'أنت في الاستراحة';
 
   @override
-  String get employeeTodayStatusCheckedOut => 'تم تسجيل الخروج';
+  String get employeeTodayStatusBackFromBreak => 'تم الرجوع من الاستراحة';
+
+  @override
+  String get employeeTodayStatusCheckedOut => 'تم إنهاء الدوام';
+
+  @override
+  String get employeeTodayStatusInvalidSequence => 'تسلسل بصمات غير صحيح';
 
   @override
   String get employeeTodayZoneInside => 'داخل نطاق الصالون';
@@ -6435,6 +6441,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get employeeTodayLocationContextLabel => 'الموقع';
+
+  @override
+  String get employeeTodayShiftLabel => 'الدوام';
+
+  @override
+  String get employeeTodayGpsVerified => 'تم التحقق من GPS';
+
+  @override
+  String get employeeTodayGpsLocating => 'جاري تحديد الموقع';
+
+  @override
+  String get employeeTodayPunchNotAllowedNow => 'هذه البصمة غير مسموح بها الآن';
 
   @override
   String get employeeQuickActionsTitle => 'إجراءات سريعة';
@@ -7763,6 +7781,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get employeeTodayStatusMissingPunch => 'بصمة ناقصة';
+
+  @override
+  String get employeeTodayStatusCheckedInSubtitle => 'أنت الآن داخل الدوام';
+
+  @override
+  String get employeeTodayStatusOnBreakSubtitle =>
+      'اضغط رجوع عند انتهاء الاستراحة';
+
+  @override
+  String get employeeTodayStatusBackFromBreakSubtitle =>
+      'يمكنك إنهاء الدوام لاحقاً';
+
+  @override
+  String get employeeTodayStatusCheckedOutSubtitle => 'شكراً لك';
+
+  @override
+  String get employeeTodayStatusMissingPunchSubtitle =>
+      'يرجى إرسال طلب تصحيح للبصمة الناقصة';
+
+  @override
+  String get employeeTodayStatusInvalidSequenceSubtitle =>
+      'يرجى إرسال طلب تصحيح';
 
   @override
   String employeeTodayLastPunchAt(String time) {

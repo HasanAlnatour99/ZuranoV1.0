@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../employee_today/data/models/et_attendance_day.dart';
 import '../../employee_today/data/models/et_attendance_punch.dart';
 import '../../employee_today/data/models/employee_workplace_location_snapshot.dart';
+import '../../employee_today/domain/attendance_status.dart';
 import '../../employee_today/domain/attendance_state_resolver.dart';
 import '../../employee_today/domain/employee_attendance_today_chips.dart';
 import '../../employees/data/models/employee.dart';
@@ -54,7 +56,11 @@ class EmployeeTodayAttendanceVm {
     required this.isInsideSalonZone,
     this.distanceFromSalonCenterMeters,
     this.nextPunchType,
-    required this.canPunch,
+    required this.canPunchAny,
+    required this.punchSequence,
+    required this.locationResolved,
+    this.shiftStartRaw,
+    this.shiftEndRaw,
     required this.primaryBlock,
     required this.showOutsideZoneChip,
     required this.showMissingPunchChip,
@@ -74,7 +80,9 @@ class EmployeeTodayAttendanceVm {
       isOnBreak: false,
       hasMissingPunch: false,
       isInsideSalonZone: true,
-      canPunch: false,
+      canPunchAny: false,
+      punchSequence: <String>[],
+      locationResolved: false,
       primaryBlock: EmployeeTodayPrimaryBlock.generic,
       showOutsideZoneChip: false,
       showMissingPunchChip: false,
@@ -115,9 +123,6 @@ class EmployeeTodayAttendanceVm {
       employeeAttendanceRequired: attendanceReq,
       location: location,
     );
-    final showMissing =
-        shouldShowMissingPunchChip(day) && (day?.status != 'incomplete');
-
     final completedDay = _completedForDay(day);
     final locationRowShowsOutside =
         showOutside && (completedDay || location.insideZone != true);
@@ -129,13 +134,15 @@ class EmployeeTodayAttendanceVm {
       }
     }
 
-    final dayStatusKey = day?.status ?? 'notStarted';
-    final status = dayStatusKey;
-    final isCheckedIn = status == 'checkedIn' || status == 'onBreak';
-    final isCheckedOut = status == 'checkedOut' || _completedForDay(day);
-    final isOnBreak = status == 'onBreak';
-
-    final hasMissing = day?.hasMissingPunch == true || status == 'incomplete';
+    final dayStatus = AttendanceStatus.fromFirestore(
+      day?.status ?? AttendanceStatus.notStarted.name,
+    );
+    final dayStatusKey = dayStatus.name;
+    final isCheckedIn = dayStatus == AttendanceStatus.checkedIn;
+    final isCheckedOut = dayStatus == AttendanceStatus.checkedOut;
+    final isOnBreak = dayStatus == AttendanceStatus.onBreak;
+    final hasMissing = dayStatus == AttendanceStatus.missingPunch;
+    final hasInvalid = dayStatus == AttendanceStatus.invalidSequence;
 
     final dist = location.distanceMeters ?? day?.lastDistanceFromSalon;
 
@@ -148,12 +155,16 @@ class EmployeeTodayAttendanceVm {
     );
     final next = resolution.nextType;
     final canPunch =
-        next != null && resolution.allowedTypes.contains(next) && !hasMissing;
+        next != null &&
+        resolution.allowedTypes.contains(next) &&
+        !hasMissing &&
+        !hasInvalid &&
+        !isCheckedOut;
     final block = _resolvePrimaryBlockFromMessage(resolution.blockMessage);
-    final validation = hasMissing
+    final validation = hasMissing || hasInvalid
         ? 'missingPunch'
         : (_validationMessageForBlock(block));
-    final showCorrectionAction = hasMissing || !canPunch || isCheckedOut;
+    final showCorrectionAction = hasMissing || hasInvalid;
     final splitActions = buildSplitPunchActions(
       nextPunchType: next,
       canPunch: canPunch && !hasMissing,
@@ -177,10 +188,16 @@ class EmployeeTodayAttendanceVm {
       isInsideSalonZone: !locationRowShowsOutside,
       distanceFromSalonCenterMeters: dist,
       nextPunchType: next,
-      canPunch: canPunch,
+      canPunchAny: canPunch,
+      punchSequence: seq,
+      locationResolved: location.resolved,
+      shiftStartRaw: settings.standardShiftStart,
+      shiftEndRaw: settings.standardShiftEnd,
       primaryBlock: block,
       showOutsideZoneChip: showOutside,
-      showMissingPunchChip: showMissing,
+      showMissingPunchChip:
+          dayStatus == AttendanceStatus.missingPunch ||
+          dayStatus == AttendanceStatus.invalidSequence,
       locationRowShowsOutside: locationRowShowsOutside,
       dayStatusKey: dayStatusKey,
       splitActions: splitActions,
@@ -200,7 +217,11 @@ class EmployeeTodayAttendanceVm {
   final bool isInsideSalonZone;
   final double? distanceFromSalonCenterMeters;
   final AttendancePunchType? nextPunchType;
-  final bool canPunch;
+  final bool canPunchAny;
+  final List<String> punchSequence;
+  final bool locationResolved;
+  final String? shiftStartRaw;
+  final String? shiftEndRaw;
   final EmployeeTodayPrimaryBlock primaryBlock;
   final bool showOutsideZoneChip;
   final bool showMissingPunchChip;
@@ -210,17 +231,40 @@ class EmployeeTodayAttendanceVm {
 
   String primaryStatusTitle(AppLocalizations l10n) {
     switch (dayStatusKey) {
+      case 'missingPunch':
+        return l10n.employeeTodayStatusMissingPunch;
+      case 'invalidSequence':
+        return l10n.employeeTodayStatusInvalidSequence;
+      case 'backFromBreak':
+        return l10n.employeeTodayStatusBackFromBreak;
       case 'checkedOut':
         return l10n.employeeTodayStatusCheckedOut;
       case 'onBreak':
         return l10n.employeeTodayStatusOnBreak;
       case 'notStarted':
         return l10n.employeeTodayStatusNotCheckedIn;
-      case 'incomplete':
-        return l10n.employeeTodayStatusMissingPunch;
       case 'checkedIn':
       default:
         return l10n.employeeTodayStatusCheckedIn;
+    }
+  }
+
+  String primaryStatusSubtitle(AppLocalizations l10n) {
+    switch (dayStatusKey) {
+      case 'checkedIn':
+        return l10n.employeeTodayStatusCheckedInSubtitle;
+      case 'onBreak':
+        return l10n.employeeTodayStatusOnBreakSubtitle;
+      case 'backFromBreak':
+        return l10n.employeeTodayStatusBackFromBreakSubtitle;
+      case 'checkedOut':
+        return l10n.employeeTodayStatusCheckedOutSubtitle;
+      case 'missingPunch':
+        return l10n.employeeTodayStatusMissingPunchSubtitle;
+      case 'invalidSequence':
+        return l10n.employeeTodayStatusInvalidSequenceSubtitle;
+      default:
+        return '';
     }
   }
 
@@ -284,6 +328,51 @@ class EmployeeTodayAttendanceVm {
     return l10n.employeeTodayZoneInside;
   }
 
+  bool canPunch(AttendancePunchType type) {
+    if (hasMissingPunch || dayStatusKey == 'invalidSequence') {
+      return false;
+    }
+    if (dayStatusKey == 'checkedOut') {
+      return false;
+    }
+
+    if (punchSequence.isEmpty) {
+      return type == AttendancePunchType.punchIn;
+    }
+
+    final last = punchSequence.last;
+    if (last == AttendancePunchType.punchIn.name) {
+      return type == AttendancePunchType.breakOut ||
+          type == AttendancePunchType.punchOut;
+    }
+    if (last == AttendancePunchType.breakOut.name) {
+      return type == AttendancePunchType.breakIn;
+    }
+    if (last == AttendancePunchType.breakIn.name) {
+      return type == AttendancePunchType.breakOut ||
+          type == AttendancePunchType.punchOut;
+    }
+    if (last == AttendancePunchType.punchOut.name) {
+      return false;
+    }
+    return false;
+  }
+
+  String shiftLabel(AppLocalizations l10n, Locale locale) {
+    final start = _parseShiftTime(shiftStartRaw);
+    final end = _parseShiftTime(shiftEndRaw);
+    if (start == null || end == null) {
+      return '${l10n.employeeTodayShiftLabel}: —';
+    }
+    final day = DateTime.now();
+    final startAt = DateTime(day.year, day.month, day.day, start.$1, start.$2);
+    final endAt = DateTime(day.year, day.month, day.day, end.$1, end.$2);
+    final fmt = DateFormat.jm(locale.toString());
+    return '${l10n.employeeTodayShiftLabel}: ${fmt.format(startAt)} - ${fmt.format(endAt)}';
+  }
+
+  bool get isGpsVerified => locationResolved && isInsideSalonZone;
+
   String? validationMessage(AppLocalizations l10n) {
     if (splitActions.validationMessage == 'missingPunch') {
       return l10n.employeeTodayPunchUnavailableMissingPunch;
@@ -337,6 +426,25 @@ class EmployeeTodayAttendanceVm {
       case AttendancePunchType.breakIn:
         return l10n.employeeTodayBreakIn;
     }
+  }
+
+  static (int, int)? _parseShiftTime(String? hhmm) {
+    if (hhmm == null || !hhmm.contains(':')) {
+      return null;
+    }
+    final parts = hhmm.split(':');
+    if (parts.length != 2) {
+      return null;
+    }
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) {
+      return null;
+    }
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return null;
+    }
+    return (hour, minute);
   }
 
   static SplitPunchActionsVm buildSplitPunchActions({

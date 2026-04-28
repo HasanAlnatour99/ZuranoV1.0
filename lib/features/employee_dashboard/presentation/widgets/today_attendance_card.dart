@@ -4,15 +4,13 @@ import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/zurano_error_state.dart';
-import '../../../employee_today/presentation/employee_today_theme.dart';
 import '../../../employee_today/presentation/widgets/attendance_policy_sheet.dart';
 import '../../../employee_today/presentation/widgets/employee_today_skeletons.dart';
 import '../../application/employee_punch_controller.dart';
 import '../../application/employee_today_attendance_ui_provider.dart';
 import '../../application/employee_today_attendance_vm.dart';
 import '../../domain/enums/attendance_punch_type.dart';
-import 'attendance_split_action_panel.dart';
-import 'attendance_status_chip.dart';
+import 'attendance_four_action_panel.dart';
 
 /// White attendance card with a single primary punch CTA.
 class TodayAttendanceCard extends ConsumerWidget {
@@ -56,42 +54,20 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
   final EmployeeTodayAttendanceVm vm;
   final Locale locale;
 
-  Color _primaryStatusColor() {
+  Color _statusColor() {
     switch (vm.dayStatusKey) {
-      case 'incomplete':
-      case 'notStarted':
+      case 'missingPunch':
+      case 'invalidSequence':
+        return const Color(0xFFF59E0B);
       case 'onBreak':
-        return EmployeeTodayColors.amber;
+        return const Color(0xFF0EA5E9);
       case 'checkedOut':
-        return EmployeeTodayColors.success;
+        return const Color(0xFFDC2626);
       case 'checkedIn':
+      case 'backFromBreak':
       default:
-        return EmployeeTodayColors.success;
+        return const Color(0xFF16A34A);
     }
-  }
-
-  IconData _primaryStatusIcon() {
-    switch (vm.dayStatusKey) {
-      case 'checkedOut':
-        return Icons.check_circle_rounded;
-      case 'onBreak':
-        return Icons.free_breakfast_rounded;
-      case 'incomplete':
-        return Icons.warning_amber_rounded;
-      case 'notStarted':
-        return Icons.schedule_rounded;
-      case 'checkedIn':
-      default:
-        return Icons.fact_check_rounded;
-    }
-  }
-
-  String? _lastPunchTimeTrailing() {
-    final t = vm.lastPunchAt;
-    if (t == null) {
-      return null;
-    }
-    return DateFormat.jm(locale.toString()).format(t);
   }
 
   void _openPolicySheet(BuildContext context) {
@@ -106,21 +82,18 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
   Future<void> _onPunch(
     BuildContext context,
     WidgetRef ref,
-    EmployeePunchActionType action,
+    AttendancePunchType type,
   ) async {
-    final type = action.toAttendancePunchType();
-    if (type == null || !vm.splitActions.primaryEnabled) {
-      final msg = vm.validationMessage(AppLocalizations.of(context)!);
-      if (msg != null && context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
-      }
+    final l10n = AppLocalizations.of(context)!;
+    if (!vm.canPunch(type)) {
+      final msg =
+          vm.validationMessage(l10n) ?? l10n.employeeTodayPunchNotAllowedNow;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
+
     await ref
-        .read(employeePunchControllerProvider.notifier)
+        .read(employeeTodayAttendanceControllerProvider.notifier)
         .submitPunch(
           type,
           l10n,
@@ -161,102 +134,107 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final busy = ref.watch(employeePunchControllerProvider).type;
-
-    final chips = <Widget>[
-      AttendanceStatusChip(
-        icon: _primaryStatusIcon(),
-        label: vm.primaryStatusTitle(l10n),
-        color: _primaryStatusColor(),
-        trailing: _lastPunchTimeTrailing(),
-      ),
-    ];
-
-    if (vm.showMissingPunchChip) {
-      chips.add(
-        AttendanceStatusChip(
-          icon: Icons.warning_amber_rounded,
-          label: l10n.employeeTodayStatusMissingPunch,
-          color: EmployeeTodayColors.amber,
-        ),
-      );
-    }
-
-    if (vm.showOutsideZoneChip) {
-      chips.add(
-        AttendanceStatusChip(
-          icon: Icons.location_off_outlined,
-          label: vm.locationStatusText(l10n),
-          color: vm.locationStatusColor(
-            EmployeeTodayColors.success,
-            EmployeeTodayColors.amber,
-          ),
-        ),
-      );
-    }
+    final busy = ref
+        .watch(employeeTodayAttendanceControllerProvider)
+        .asData
+        ?.value;
 
     final lastPunchAt = vm.lastPunchAt;
     final lastTime = lastPunchAt != null
         ? DateFormat.jm(locale.toString()).format(lastPunchAt)
         : '—';
-    final lastDate = lastPunchAt != null
-        ? DateFormat.yMMMEd(locale.toString()).format(lastPunchAt)
-        : '—';
-
-    final salonLabel = vm.salonName.isNotEmpty
-        ? vm.salonName
-        : l10n.employeeTodaySalonLabel;
+    final topStatusColor = _statusColor();
 
     return Container(
       margin: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-      padding: const EdgeInsetsDirectional.all(20),
+      padding: const EdgeInsetsDirectional.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(22),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
-        border: Border.all(color: EmployeeTodayColors.cardBorder),
+        border: Border.all(color: const Color(0xFFEEF0F6)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: topStatusColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  vm.primaryStatusTitle(l10n),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+              Text(
+                '•',
+                style: TextStyle(
+                  color: const Color(0xFF9CA3AF).withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                lastTime,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF4B5563),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Text(
-                      l10n.employeeTodayAttendanceTitle,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.45,
-                        height: 1.15,
-                        color: Color(0xFF0F172A),
+                    if (!vm.locationResolved)
+                      _statusChip(
+                        icon: Icons.gps_not_fixed_rounded,
+                        label: l10n.employeeTodayGpsLocating,
+                        color: const Color(0xFF6B7280),
+                      )
+                    else if (vm.isGpsVerified)
+                      _statusChip(
+                        icon: Icons.verified_rounded,
+                        label: l10n.employeeTodayGpsVerified,
+                        color: const Color(0xFF16A34A),
+                      )
+                    else
+                      _statusChip(
+                        icon: Icons.location_off_outlined,
+                        label: l10n.employeeTodayZoneOutside,
+                        color: const Color(0xFFF59E0B),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.employeeTodayAttendanceTagline,
-                      style: TextStyle(
-                        color: const Color(0xFF334155).withValues(alpha: 0.9),
-                        fontSize: 14,
-                        height: 1.35,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
                   ],
                 ),
               ),
               Material(
-                color: const Color(0xFFF5F3FF),
+                color: const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(999),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -268,16 +246,16 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
                       children: [
                         Icon(
                           Icons.shield_outlined,
-                          color: const Color(0xFF4C1D95),
-                          size: 18,
+                          color: const Color(0xFF374151),
+                          size: 16,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           l10n.employeeTodayViewPolicy,
                           style: TextStyle(
-                            color: const Color(0xFF4C1D95),
+                            color: const Color(0xFF374151),
                             fontWeight: FontWeight.w700,
-                            fontSize: 12.5,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -287,167 +265,73 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F5FF),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE9D5FF)),
-            ),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.employeeTodayAttendanceStatusLabel,
-                    style: TextStyle(
-                      color: const Color(0xFF334155),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(spacing: 8, runSpacing: 8, children: chips),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFF6B7280)),
+              const SizedBox(width: 6),
               Expanded(
-                child: _ContextColumn(
-                  icon: Icons.schedule_rounded,
-                  title: l10n.employeeTodayLastPunchLabel,
-                  line1: lastTime,
-                  line2: lastDate,
-                  iconColor: const Color(0xFF334155),
-                  line1Color: const Color(0xFF0F172A),
-                  line2Color: const Color(0xFF475569),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _ContextColumn(
-                  icon: Icons.location_on_outlined,
-                  title: l10n.employeeTodayLocationContextLabel,
-                  line1: vm.locationStatusText(l10n),
-                  line2: salonLabel,
-                  iconColor: const Color(0xFF334155),
-                  line1Color: vm.locationStatusColor(
-                    EmployeeTodayColors.success,
-                    EmployeeTodayColors.amber,
+                child: Text(
+                  vm.shiftLabel(l10n, locale),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF4B5563),
                   ),
-                  line2Color: const Color(0xFF475569),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          AttendanceSplitActionPanel(
+          const SizedBox(height: 14),
+          AttendanceFourActionPanel(
             vm: vm,
-            primarySubtitleOverride: vm.validationMessage(l10n),
-            primaryLoading:
-                busy == vm.splitActions.primaryAction.toAttendancePunchType(),
-            onPrimaryTap: busy != null
-                ? null
-                : () => _onPunch(context, ref, vm.splitActions.primaryAction),
-            onSecondaryTap: null,
+            busyType: busy,
+            onPunch: (type) => _onPunch(context, ref, type),
           ),
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 240),
-            opacity: vm.validationMessage(l10n) == null ? 0 : 1,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                top: 10,
-                start: 4,
-                end: 4,
-              ),
-              child: Text(
-                vm.validationMessage(l10n) ?? '',
-                style: TextStyle(
-                  color: const Color(0xFF7C2D12),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                ),
+          if (vm.showMissingPunchChip || vm.showOutsideZoneChip) ...[
+            const SizedBox(height: 10),
+            Text(
+              vm.validationMessage(l10n) ?? vm.primaryStatusSubtitle(l10n),
+              textAlign: TextAlign.start,
+              style: const TextStyle(
+                color: Color(0xFF92400E),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
-}
 
-class _ContextColumn extends StatelessWidget {
-  const _ContextColumn({
-    required this.icon,
-    required this.title,
-    required this.line1,
-    required this.line2,
-    required this.iconColor,
-    required this.line1Color,
-    required this.line2Color,
-  });
-
-  final IconData icon;
-  final String title;
-  final String line1;
-  final String line2;
-  final Color iconColor;
-  final Color line1Color;
-  final Color line2Color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 18, color: iconColor),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.78),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+  Widget _statusChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 5, 10, 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          line1,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: line1Color,
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          line2,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: line2Color,
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
