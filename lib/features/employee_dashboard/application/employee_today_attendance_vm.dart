@@ -57,6 +57,7 @@ class EmployeeTodayAttendanceVm {
     this.distanceFromSalonCenterMeters,
     this.nextPunchType,
     required this.canPunchAny,
+    required this.allowedPunchTypes,
     required this.punchSequence,
     required this.locationResolved,
     this.shiftStartRaw,
@@ -81,6 +82,7 @@ class EmployeeTodayAttendanceVm {
       hasMissingPunch: false,
       isInsideSalonZone: true,
       canPunchAny: false,
+      allowedPunchTypes: <AttendancePunchType>{},
       punchSequence: <String>[],
       locationResolved: false,
       primaryBlock: EmployeeTodayPrimaryBlock.generic,
@@ -154,9 +156,10 @@ class EmployeeTodayAttendanceVm {
       attendanceRequired: attendanceReq,
     );
     final next = resolution.nextType;
+    final allowedTypes = resolution.allowedTypes;
     final canPunch =
         next != null &&
-        resolution.allowedTypes.contains(next) &&
+        allowedTypes.contains(next) &&
         !hasMissing &&
         !hasInvalid &&
         !isCheckedOut;
@@ -189,6 +192,7 @@ class EmployeeTodayAttendanceVm {
       distanceFromSalonCenterMeters: dist,
       nextPunchType: next,
       canPunchAny: canPunch,
+      allowedPunchTypes: allowedTypes,
       punchSequence: seq,
       locationResolved: location.resolved,
       shiftStartRaw: settings.standardShiftStart,
@@ -218,6 +222,7 @@ class EmployeeTodayAttendanceVm {
   final double? distanceFromSalonCenterMeters;
   final AttendancePunchType? nextPunchType;
   final bool canPunchAny;
+  final Set<AttendancePunchType> allowedPunchTypes;
   final List<String> punchSequence;
   final bool locationResolved;
   final String? shiftStartRaw;
@@ -332,30 +337,7 @@ class EmployeeTodayAttendanceVm {
     if (hasMissingPunch || dayStatusKey == 'invalidSequence') {
       return false;
     }
-    if (dayStatusKey == 'checkedOut') {
-      return false;
-    }
-
-    if (punchSequence.isEmpty) {
-      return type == AttendancePunchType.punchIn;
-    }
-
-    final last = punchSequence.last;
-    if (last == AttendancePunchType.punchIn.name) {
-      return type == AttendancePunchType.breakOut ||
-          type == AttendancePunchType.punchOut;
-    }
-    if (last == AttendancePunchType.breakOut.name) {
-      return type == AttendancePunchType.breakIn;
-    }
-    if (last == AttendancePunchType.breakIn.name) {
-      return type == AttendancePunchType.breakOut ||
-          type == AttendancePunchType.punchOut;
-    }
-    if (last == AttendancePunchType.punchOut.name) {
-      return false;
-    }
-    return false;
+    return allowedPunchTypes.contains(type);
   }
 
   String shiftLabel(AppLocalizations l10n, Locale locale) {

@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/notification_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../sales/presentation/providers/employee_sales_providers.dart';
 import '../../../sales/presentation/widgets/employee_commission_card.dart';
 import '../../../sales/presentation/widgets/employee_recent_sales_list.dart';
-import '../../../sales/presentation/widgets/employee_sales_header.dart';
 import '../../../sales/presentation/widgets/employee_sales_hero_card.dart';
 import '../../../sales/presentation/widgets/employee_sales_kpi_grid.dart';
 import '../../../sales/presentation/widgets/employee_sales_period_selector.dart';
+import '../widgets/employee_shell_hero_header.dart';
 import '../../application/employee_dashboard_providers.dart';
 import '../widgets/employee_bottom_nav_bar.dart';
 import '../widgets/employee_quick_action_fab.dart';
@@ -29,6 +31,7 @@ class EmployeeSalesScreen extends ConsumerWidget {
     final summary = ref.watch(employeeSalesSummaryProvider);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
+    final unread = ref.watch(unreadNotificationCountProvider);
 
     if (scope == null || session == null) {
       return Scaffold(
@@ -76,9 +79,19 @@ class EmployeeSalesScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
-                  child: EmployeeSalesHeader(
-                    displayName: scope.displayName,
-                    photoUrl: session.photoUrl,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                    child: EmployeeShellHeroHeader(
+                      displayName: scope.displayName,
+                      photoUrl: session.photoUrl,
+                      salonDisplayName: salon?.name.trim().isNotEmpty == true
+                          ? salon!.name.trim()
+                          : l10n.employeeTodaySalonLabel,
+                      unreadCount: unread,
+                      onTapSettings: () => context.push(AppRoutes.settings),
+                      onTapNotifications: () =>
+                          context.push(AppRoutes.notifications),
+                    ),
                   ),
                 ),
                 const SliverToBoxAdapter(child: EmployeeSalesPeriodSelector()),

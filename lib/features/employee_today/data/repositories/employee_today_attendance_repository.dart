@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 
@@ -26,6 +25,16 @@ class EmployeeTodayAttendanceRepository {
   final AttendanceAnalysisService _analysis;
   static const _resolver = AttendanceStateResolver();
   static const _uuid = Uuid();
+
+  static int _effectiveMaxPunches(EtAttendanceSettings settings) {
+    final configured = settings.maxPunchesPerDay;
+    if (configured <= 0) {
+      return AttendanceStateResolver.maxPunchesPerDayDefault;
+    }
+    return configured > AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
+        ? AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
+        : configured;
+  }
 
   static String compactDateKey(DateTime d) {
     final y = d.year.toString().padLeft(4, '0');
@@ -255,10 +264,12 @@ class EmployeeTodayAttendanceRepository {
     final punchRef = punchesCol.doc();
     final punchTime = now;
 
+    final effectiveMaxPunches = _effectiveMaxPunches(settings);
+
     // Transaction.get() only accepts DocumentReference; read punch list first.
     final punchesSnapBeforeTx = await punchesCol
         .orderBy('punchTime', descending: false)
-        .limit(AttendanceStateResolver.maxPunchesPerDayHardLimit)
+        .limit(AttendanceStateResolver.maxPunchesPerDayAbsoluteCap)
         .get();
     final sortedPunchesBeforeTx = punchesSnapBeforeTx.docs
         .map(EtAttendancePunch.fromFirestore)
@@ -287,7 +298,7 @@ class EmployeeTodayAttendanceRepository {
         );
       }
 
-      if (sortedPunches.length >= settings.maxPunchesPerDay) {
+      if (sortedPunches.length >= effectiveMaxPunches) {
         throw AttendanceException('You reached today\'s maximum punches.');
       }
 
@@ -356,7 +367,7 @@ class EmployeeTodayAttendanceRepository {
         now: now,
         shiftEndAt: shiftEndAt,
         maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
-        maxPunchesPerDay: settings.maxPunchesPerDay,
+        maxPunchesPerDay: effectiveMaxPunches,
       );
       final missingReason = _missingPunchReason(
         status: calculatedStatus,
@@ -401,7 +412,8 @@ class EmployeeTodayAttendanceRepository {
         'salonId': salonId,
         'employeeId': employeeId,
         'employeeName': employeeName,
-        'workDate': '${punchTime.year.toString().padLeft(4, '0')}-${punchTime.month.toString().padLeft(2, '0')}-${punchTime.day.toString().padLeft(2, '0')}',
+        'workDate':
+            '${punchTime.year.toString().padLeft(4, '0')}-${punchTime.month.toString().padLeft(2, '0')}-${punchTime.day.toString().padLeft(2, '0')}',
         'dateKey': dk,
         'date': Timestamp.fromDate(workDate),
         'punchSequence': newSeq,
@@ -513,7 +525,7 @@ class EmployeeTodayAttendanceRepository {
       now: DateTime.now(),
       shiftEndAt: shiftEndAt,
       maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
-      maxPunchesPerDay: settings.maxPunchesPerDay,
+      maxPunchesPerDay: _effectiveMaxPunches(settings),
     );
     final missingReason = _missingPunchReason(
       status: todayStatus,
@@ -521,6 +533,17 @@ class EmployeeTodayAttendanceRepository {
       now: DateTime.now(),
       shiftEndAt: shiftEndAt,
       maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
+    );
+    final monthlyPolicy = await _computeMonthlyPolicySummary(
+      salonId: salonId,
+      employeeId: calc.firstPunchInAt == null && punches.isNotEmpty
+          ? punches.first.employeeId
+          : (punches.isNotEmpty ? punches.first.employeeId : null),
+      calendarDay: calendarDay,
+      isLateAfterGrace: calc.isLateAfterGrace,
+      isEarlyExitAfterGrace: calc.isEarlyExitAfterGrace,
+      missingReason: missingReason,
+      settings: settings,
     );
     await _dayRef(salonId, dayId).set({
       'punchSequence': seq,
@@ -534,6 +557,25 @@ class EmployeeTodayAttendanceRepository {
       'isEarlyExitAfterGrace': calc.isEarlyExitAfterGrace,
       'hasMissingPunch': todayStatus == AttendanceStatus.missingPunch,
       'missingPunchReason': missingReason,
+      'monthlyLateAfterGraceCount': monthlyPolicy.lateCount,
+      'monthlyEarlyExitAfterGraceCount': monthlyPolicy.earlyExitCount,
+      'monthlyMissingCheckoutCount': monthlyPolicy.missingCheckoutCount,
+      'remainingLateAllowance': monthlyPolicy.remainingLateAllowance,
+      'remainingEarlyExitAllowance': monthlyPolicy.remainingEarlyAllowance,
+      'remainingMissingCheckoutAllowance':
+          monthlyPolicy.remainingMissingCheckoutAllowance,
+      'lateAllowanceExceeded': monthlyPolicy.lateAllowanceExceeded,
+      'earlyExitAllowanceExceeded': monthlyPolicy.earlyAllowanceExceeded,
+      'missingCheckoutAllowanceExceeded':
+          monthlyPolicy.missingCheckoutAllowanceExceeded,
+      'applyLateDeduction': monthlyPolicy.applyLateDeduction,
+      'applyEarlyExitDeduction': monthlyPolicy.applyEarlyExitDeduction,
+      'applyMissingCheckoutDeduction':
+          monthlyPolicy.applyMissingCheckoutDeduction,
+      'lateDeductionPercent': settings.lateDeductionPercent,
+      'earlyExitDeductionPercent': settings.earlyExitDeductionPercent,
+      'missingCheckoutDeductionPercent':
+          settings.missingCheckoutDeductionPercent,
       'totalBreaks': calc.totalBreaks,
       'firstPunchInAt': calc.firstPunchInAt != null
           ? Timestamp.fromDate(calc.firstPunchInAt!)
@@ -543,6 +585,109 @@ class EmployeeTodayAttendanceRepository {
           : null,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<_MonthlyPolicySummary> _computeMonthlyPolicySummary({
+    required String salonId,
+    required String? employeeId,
+    required DateTime calendarDay,
+    required bool isLateAfterGrace,
+    required bool isEarlyExitAfterGrace,
+    required String? missingReason,
+    required EtAttendanceSettings settings,
+  }) async {
+    if (employeeId == null || employeeId.isEmpty) {
+      return _MonthlyPolicySummary.empty();
+    }
+
+    final monthStart = DateTime(calendarDay.year, calendarDay.month, 1);
+    final monthEnd = DateTime(
+      calendarDay.year,
+      calendarDay.month + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+    final days = await _firestore
+        .collection(FirestorePaths.salonAttendanceDays(salonId))
+        .where('employeeId', isEqualTo: employeeId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(monthStart))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(monthEnd))
+        .limit(62)
+        .get();
+
+    var lateCount = days.docs
+        .where((d) => d.data()['isLateAfterGrace'] == true)
+        .length;
+    var earlyCount = days.docs
+        .where((d) => d.data()['isEarlyExitAfterGrace'] == true)
+        .length;
+    var missingCheckoutCount = days.docs
+        .where(
+          (d) =>
+              d.data()['missingPunchReason']?.toString() ==
+              'missingPunchOutAfterShiftEnd',
+        )
+        .length;
+
+    final dayKey = compactDateKey(calendarDay);
+    final currentDayExists = days.docs.any(
+      (d) => d.data()['dateKey']?.toString() == dayKey,
+    );
+    if (!currentDayExists) {
+      if (isLateAfterGrace) {
+        lateCount += 1;
+      }
+      if (isEarlyExitAfterGrace) {
+        earlyCount += 1;
+      }
+      if (missingReason == 'missingPunchOutAfterShiftEnd') {
+        missingCheckoutCount += 1;
+      }
+    }
+
+    final remainingLate = (settings.allowedLateCountPerMonth - lateCount).clamp(
+      0,
+      1 << 30,
+    );
+    final remainingEarly = (settings.allowedEarlyExitCountPerMonth - earlyCount)
+        .clamp(0, 1 << 30);
+    final remainingMissing =
+        (settings.allowedMissingCheckoutCountPerMonth - missingCheckoutCount)
+            .clamp(0, 1 << 30);
+
+    final lateExceeded = lateCount > settings.allowedLateCountPerMonth;
+    final earlyExceeded = earlyCount > settings.allowedEarlyExitCountPerMonth;
+    final missingExceeded =
+        missingCheckoutCount > settings.allowedMissingCheckoutCountPerMonth;
+
+    return _MonthlyPolicySummary(
+      lateCount: lateCount,
+      earlyExitCount: earlyCount,
+      missingCheckoutCount: missingCheckoutCount,
+      remainingLateAllowance: remainingLate,
+      remainingEarlyAllowance: remainingEarly,
+      remainingMissingCheckoutAllowance: remainingMissing,
+      lateAllowanceExceeded: lateExceeded,
+      earlyAllowanceExceeded: earlyExceeded,
+      missingCheckoutAllowanceExceeded: missingExceeded,
+      applyLateDeduction:
+          settings.autoCreateViolations &&
+          isLateAfterGrace &&
+          lateExceeded &&
+          settings.lateDeductionPercent > 0,
+      applyEarlyExitDeduction:
+          settings.autoCreateViolations &&
+          isEarlyExitAfterGrace &&
+          earlyExceeded &&
+          settings.earlyExitDeductionPercent > 0,
+      applyMissingCheckoutDeduction:
+          settings.autoCreateViolations &&
+          missingReason == 'missingPunchOutAfterShiftEnd' &&
+          missingExceeded &&
+          settings.missingCheckoutDeductionPercent > 0,
+    );
   }
 
   Future<void> createCorrectionRequest({
@@ -585,7 +730,7 @@ class EmployeeTodayAttendanceRepository {
     }
 
     final merged = [...existingSequence, requestedType.name];
-    if (merged.length > settings.maxPunchesPerDay) {
+    if (merged.length > _effectiveMaxPunches(settings)) {
       throw AttendanceException(
         'This punch would exceed the daily punch limit.',
       );
@@ -632,10 +777,156 @@ class EmployeeTodayAttendanceRepository {
     required String reviewerName,
     String? reviewNote,
   }) async {
-    // Owner/admin app: implement in follow-up; placeholder keeps API surface.
-    if (kDebugMode) {
-      debugPrint('approveCorrectionRequest not yet wired: $requestId');
+    final reqRef = _correctionsCol(salonId).doc(requestId);
+    final reqSnap = await reqRef.get();
+    if (!reqSnap.exists) {
+      throw AttendanceException('Correction request not found.');
     }
+    final request = EtCorrectionRequest.fromFirestore(reqSnap);
+    if (request.status != 'pending') {
+      throw AttendanceException('This correction request is already reviewed.');
+    }
+
+    final settingsSnap = await _settingsRef(salonId).get();
+    final settings = settingsSnap.exists
+        ? EtAttendanceSettings.fromFirestore(salonId, settingsSnap)
+        : EtAttendanceSettings.defaults(salonId);
+
+    final dayRef = _dayRef(salonId, request.attendanceDayId);
+    final daySnap = await dayRef.get();
+    final punchesSnap = await _punchesCol(salonId, request.attendanceDayId)
+        .orderBy('punchTime', descending: false)
+        .limit(AttendanceStateResolver.maxPunchesPerDayAbsoluteCap)
+        .get();
+    final existingPunches = punchesSnap.docs
+        .map(EtAttendancePunch.fromFirestore)
+        .toList(growable: false);
+
+    final requestedType = AttendancePunchType.fromFirestoreString(
+      request.requestedPunchType,
+    );
+    final correctedPunch = EtAttendancePunch(
+      id: _punchesCol(salonId, request.attendanceDayId).doc().id,
+      salonId: salonId,
+      employeeId: request.employeeId,
+      attendanceDayId: request.attendanceDayId,
+      type: requestedType,
+      punchTime: request.requestedPunchTime,
+      source: 'correction_approved',
+      insideZone: true,
+      correctionRequestId: request.id,
+      createdBy: reviewerId,
+    );
+
+    final projectedPunches = _insertPunchSorted(
+      existingPunches,
+      correctedPunch,
+    );
+    final projectedTypes = projectedPunches.map((e) => e.type).toList();
+    if (!_isValidPunchOrder(projectedTypes)) {
+      throw AttendanceException(
+        'Approved correction creates an invalid punch sequence.',
+      );
+    }
+    if (projectedPunches.length > _effectiveMaxPunches(settings)) {
+      throw AttendanceException(
+        'This correction exceeds the daily punch limit.',
+      );
+    }
+
+    final breakCycles = projectedTypes
+        .where((e) => e == AttendancePunchType.breakOut)
+        .length;
+    if (breakCycles > settings.maxBreakCyclesPerDay) {
+      throw AttendanceException(
+        'This correction exceeds the daily break limit.',
+      );
+    }
+
+    final breakMinutes = _totalBreakMinutes(projectedPunches);
+    if (breakMinutes > settings.maxBreakMinutesPerDay) {
+      throw AttendanceException(
+        'This correction exceeds the allowed daily break time.',
+      );
+    }
+
+    final punchRef = _punchesCol(
+      salonId,
+      request.attendanceDayId,
+    ).doc(correctedPunch.id);
+    await _firestore.runTransaction((tx) async {
+      final txReq = await tx.get(reqRef);
+      if (!txReq.exists) {
+        throw AttendanceException('Correction request not found.');
+      }
+      if (txReq.data()?['status']?.toString() != 'pending') {
+        throw AttendanceException(
+          'This correction request is already reviewed.',
+        );
+      }
+
+      tx.set(punchRef, {
+        'id': punchRef.id,
+        'salonId': salonId,
+        'employeeId': request.employeeId,
+        'attendanceDayId': request.attendanceDayId,
+        'type': requestedType.name,
+        'punchTime': Timestamp.fromDate(request.requestedPunchTime),
+        'punchedAt': Timestamp.fromDate(request.requestedPunchTime),
+        'source': 'correction_approved',
+        'insideZone': true,
+        'isInsideSalonZone': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': reviewerId,
+        'correctionRequestId': request.id,
+      });
+
+      tx.set(dayRef, {
+        'id': request.attendanceDayId,
+        'salonId': salonId,
+        'employeeId': request.employeeId,
+        'employeeName': request.employeeName,
+        'dateKey': request.dateKey,
+        'hasPendingCorrectionRequest': false,
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (!daySnap.exists)
+          'date': Timestamp.fromDate(
+            DateTime(
+              request.requestedPunchTime.year,
+              request.requestedPunchTime.month,
+              request.requestedPunchTime.day,
+            ),
+          ),
+        if (!daySnap.exists) 'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      tx.set(reqRef, {
+        'status': 'approved',
+        'reviewedBy': reviewerId,
+        'reviewedByName': reviewerName,
+        'reviewedAt': FieldValue.serverTimestamp(),
+        'reviewNote': reviewNote?.trim(),
+        'createdPunchId': punchRef.id,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': reviewerId,
+      }, SetOptions(merge: true));
+    });
+
+    await _refreshDaySummary(
+      salonId: salonId,
+      dayId: request.attendanceDayId,
+      calendarDay: DateTime(
+        request.requestedPunchTime.year,
+        request.requestedPunchTime.month,
+        request.requestedPunchTime.day,
+      ),
+      settings: settings,
+    );
+
+    await _syncDayPendingCorrectionFlag(
+      salonId: salonId,
+      attendanceDayId: request.attendanceDayId,
+    );
   }
 
   Future<void> rejectCorrectionRequest({
@@ -645,8 +936,142 @@ class EmployeeTodayAttendanceRepository {
     required String reviewerName,
     required String reason,
   }) async {
-    if (kDebugMode) {
-      debugPrint('rejectCorrectionRequest not yet wired: $requestId');
+    final reqRef = _correctionsCol(salonId).doc(requestId);
+    final reqSnap = await reqRef.get();
+    if (!reqSnap.exists) {
+      throw AttendanceException('Correction request not found.');
     }
+    final request = EtCorrectionRequest.fromFirestore(reqSnap);
+    if (request.status != 'pending') {
+      throw AttendanceException('This correction request is already reviewed.');
+    }
+
+    await reqRef.set({
+      'status': 'rejected',
+      'reviewedBy': reviewerId,
+      'reviewedByName': reviewerName,
+      'reviewedAt': FieldValue.serverTimestamp(),
+      'reviewNote': reason.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedBy': reviewerId,
+    }, SetOptions(merge: true));
+
+    await _syncDayPendingCorrectionFlag(
+      salonId: salonId,
+      attendanceDayId: request.attendanceDayId,
+    );
   }
+
+  List<EtAttendancePunch> _insertPunchSorted(
+    List<EtAttendancePunch> punches,
+    EtAttendancePunch newPunch,
+  ) {
+    final all = [...punches, newPunch];
+    all.sort((a, b) => a.punchTime.compareTo(b.punchTime));
+    return all;
+  }
+
+  bool _isValidPunchOrder(List<AttendancePunchType> types) {
+    if (types.isEmpty || types.first != AttendancePunchType.punchIn) {
+      return false;
+    }
+    for (var i = 1; i < types.length; i++) {
+      final previous = types[i - 1];
+      final current = types[i];
+      final allowed = switch (previous) {
+        AttendancePunchType.punchIn => {
+          AttendancePunchType.breakOut,
+          AttendancePunchType.punchOut,
+        },
+        AttendancePunchType.breakOut => {AttendancePunchType.breakIn},
+        AttendancePunchType.breakIn => {
+          AttendancePunchType.breakOut,
+          AttendancePunchType.punchOut,
+        },
+        AttendancePunchType.punchOut => {AttendancePunchType.punchIn},
+      };
+      if (!allowed.contains(current)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  int _totalBreakMinutes(List<EtAttendancePunch> punches) {
+    var breakMs = 0;
+    DateTime? breakOpen;
+    for (final punch in punches) {
+      if (punch.type == AttendancePunchType.breakOut) {
+        breakOpen = punch.punchTime;
+        continue;
+      }
+      if (punch.type == AttendancePunchType.breakIn && breakOpen != null) {
+        breakMs += punch.punchTime.difference(breakOpen).inMilliseconds;
+        breakOpen = null;
+      }
+    }
+    return (breakMs / 60000).ceil();
+  }
+
+  Future<void> _syncDayPendingCorrectionFlag({
+    required String salonId,
+    required String attendanceDayId,
+  }) async {
+    final pending = await _correctionsCol(salonId)
+        .where('attendanceDayId', isEqualTo: attendanceDayId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1)
+        .get();
+    await _dayRef(salonId, attendanceDayId).set({
+      'hasPendingCorrectionRequest': pending.docs.isNotEmpty,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+}
+
+class _MonthlyPolicySummary {
+  const _MonthlyPolicySummary({
+    required this.lateCount,
+    required this.earlyExitCount,
+    required this.missingCheckoutCount,
+    required this.remainingLateAllowance,
+    required this.remainingEarlyAllowance,
+    required this.remainingMissingCheckoutAllowance,
+    required this.lateAllowanceExceeded,
+    required this.earlyAllowanceExceeded,
+    required this.missingCheckoutAllowanceExceeded,
+    required this.applyLateDeduction,
+    required this.applyEarlyExitDeduction,
+    required this.applyMissingCheckoutDeduction,
+  });
+
+  factory _MonthlyPolicySummary.empty() {
+    return const _MonthlyPolicySummary(
+      lateCount: 0,
+      earlyExitCount: 0,
+      missingCheckoutCount: 0,
+      remainingLateAllowance: 0,
+      remainingEarlyAllowance: 0,
+      remainingMissingCheckoutAllowance: 0,
+      lateAllowanceExceeded: false,
+      earlyAllowanceExceeded: false,
+      missingCheckoutAllowanceExceeded: false,
+      applyLateDeduction: false,
+      applyEarlyExitDeduction: false,
+      applyMissingCheckoutDeduction: false,
+    );
+  }
+
+  final int lateCount;
+  final int earlyExitCount;
+  final int missingCheckoutCount;
+  final int remainingLateAllowance;
+  final int remainingEarlyAllowance;
+  final int remainingMissingCheckoutAllowance;
+  final bool lateAllowanceExceeded;
+  final bool earlyAllowanceExceeded;
+  final bool missingCheckoutAllowanceExceeded;
+  final bool applyLateDeduction;
+  final bool applyEarlyExitDeduction;
+  final bool applyMissingCheckoutDeduction;
 }

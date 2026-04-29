@@ -29,15 +29,16 @@ class AttendanceValidationResult {
 class AttendanceStateResolver {
   const AttendanceStateResolver();
 
-  static const int maxPunchesPerDayHardLimit = 4;
+  static const int maxPunchesPerDayDefault = 4;
+  static const int maxPunchesPerDayAbsoluteCap = 20;
 
   int _effectiveMaxPunches(EtAttendanceSettings settings) {
     final configured = settings.maxPunchesPerDay;
     if (configured <= 0) {
-      return maxPunchesPerDayHardLimit;
+      return maxPunchesPerDayDefault;
     }
-    return configured > maxPunchesPerDayHardLimit
-        ? maxPunchesPerDayHardLimit
+    return configured > maxPunchesPerDayAbsoluteCap
+        ? maxPunchesPerDayAbsoluteCap
         : configured;
   }
 
@@ -89,14 +90,6 @@ class AttendanceStateResolver {
     }
 
     final last = punchSequence.last;
-    if (last == AttendancePunchType.punchOut.name) {
-      return const AttendanceResolution(
-        allowedTypes: {},
-        nextType: null,
-        blockMessage: 'You already completed your attendance for today.',
-      );
-    }
-
     if (last == AttendancePunchType.breakOut.name) {
       return const AttendanceResolution(
         allowedTypes: {AttendancePunchType.breakIn},
@@ -104,10 +97,17 @@ class AttendanceStateResolver {
       );
     }
 
-    final allowed = <AttendancePunchType>{
-      AttendancePunchType.punchOut,
-      AttendancePunchType.breakOut,
-    };
+    if (last == AttendancePunchType.punchOut.name) {
+      return const AttendanceResolution(
+        allowedTypes: {AttendancePunchType.punchIn},
+        nextType: AttendancePunchType.punchIn,
+      );
+    }
+
+    final allowed = <AttendancePunchType>{AttendancePunchType.punchOut};
+    if (settings.breaksEnabled) {
+      allowed.add(AttendancePunchType.breakOut);
+    }
     final breakOutCount = punchSequence
         .where((e) => e == AttendancePunchType.breakOut.name)
         .length;

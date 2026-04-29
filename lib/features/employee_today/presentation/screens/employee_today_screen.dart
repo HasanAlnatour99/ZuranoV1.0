@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' as intl;
 
 import '../../../../core/constants/app_routes.dart' show AppRoutes;
 import '../../../../core/formatting/app_money_format.dart';
-import '../../../../core/text/personalized_greeting.dart';
-import '../../../../core/widgets/app_notification_badge.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/notification_providers.dart';
@@ -18,6 +15,7 @@ import '../../../employee_dashboard/application/employee_today_attendance_ui_pro
 import '../../../employee_dashboard/data/models/attendance_event_model.dart';
 import '../../../employee_dashboard/presentation/widgets/employee_bottom_nav_bar.dart';
 import '../../../employee_dashboard/presentation/widgets/employee_quick_action_fab.dart';
+import '../../../employee_dashboard/presentation/widgets/employee_shell_hero_header.dart';
 import '../../../employee_dashboard/presentation/widgets/today_activity_timeline.dart';
 import '../../../employee_dashboard/presentation/widgets/today_attendance_card.dart';
 import '../../providers/employee_today_providers.dart';
@@ -99,7 +97,6 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
                         employeePhotoUrl: e?.avatarUrl,
                       ),
                       salonDisplayName: salonDisplayName,
-                      localeTag: locale.toString(),
                     ),
                     loading: () => const EtTodayHeaderSkeleton(),
                     error: (_, _) =>
@@ -434,166 +431,27 @@ String _resolveEmployeeHeaderPhotoUrl({
   return '';
 }
 
-String _employeeHeaderInitials(String name) {
-  final trimmed = name.trim();
-  if (trimmed.isEmpty) {
-    return '?';
-  }
-  final parts = trimmed.split(RegExp(r'\s+'));
-  if (parts.length == 1) {
-    return parts.first.substring(0, 1).toUpperCase();
-  }
-  final first = parts.first.isNotEmpty ? parts.first.substring(0, 1) : '';
-  final last = parts.last.isNotEmpty ? parts.last.substring(0, 1) : '';
-  final value = '$first$last'.trim();
-  return value.isNotEmpty ? value.toUpperCase() : '?';
-}
-
 class _EmployeeTodayHeroHeader extends ConsumerWidget {
   const _EmployeeTodayHeroHeader({
     required this.displayName,
     required this.photoUrl,
     required this.salonDisplayName,
-    required this.localeTag,
   });
 
   final String displayName;
   final String photoUrl;
   final String salonDisplayName;
-  final String localeTag;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
     final unread = ref.watch(unreadNotificationCountProvider);
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final align = isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    final textAlign = isRtl ? TextAlign.right : TextAlign.left;
-    final hasPhoto = photoUrl.isNotEmpty;
-    final greeting = '${getGreeting(l10n)}, $displayName';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF5B2BE0), Color(0xFF7B3FF2), Color(0xFFA77BFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: align,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: Colors.white.withValues(alpha: 0.22),
-                backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
-                child: hasPhoto
-                    ? null
-                    : Text(
-                        _employeeHeaderInitials(displayName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: align,
-                  children: [
-                    Text(
-                      greeting,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: textAlign,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      salonDisplayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: textAlign,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      intl.DateFormat.yMMMEd(localeTag).format(DateTime.now()),
-                      textAlign: textAlign,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.78),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () => context.push(AppRoutes.settings),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.settings_outlined,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () => context.push(AppRoutes.notifications),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Center(
-                    child: AppNotificationBadge(
-                      count: unread,
-                      child: const Icon(
-                        Icons.notifications_none_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return EmployeeShellHeroHeader(
+      displayName: displayName,
+      salonDisplayName: salonDisplayName,
+      photoUrl: photoUrl,
+      unreadCount: unread,
+      onTapSettings: () => context.push(AppRoutes.settings),
+      onTapNotifications: () => context.push(AppRoutes.notifications),
     );
   }
 }

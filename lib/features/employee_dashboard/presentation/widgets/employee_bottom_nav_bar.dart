@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 
-/// Notched bottom app bar for the employee shell (2 + FAB + 2).
+/// Employee shell bottom navigation styled like owner bar.
 class EmployeeBottomNavBar extends StatelessWidget {
   const EmployeeBottomNavBar({super.key, required this.currentPath});
 
@@ -36,53 +36,78 @@ class EmployeeBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    return BottomAppBar(
-      height: 86,
-      elevation: 0,
-      color: scheme.surfaceContainer,
-      surfaceTintColor: scheme.surfaceContainer,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 6,
-      clipBehavior: Clip.antiAlias,
-      child: SafeArea(
-        top: false,
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
+    const rowVerticalPadding = 10.0;
+    const rowMinHeight = 56.0;
+    final barTotalHeight = rowMinHeight + (rowVerticalPadding * 2) + bottomPad;
+
+    Widget tab({
+      required int index,
+      required IconData icon,
+      required String label,
+      required VoidCallback onTap,
+    }) {
+      return Expanded(
+        child: _BottomNavItem(
+          icon: icon,
+          label: label,
+          selected: _index == index,
+          onTap: onTap,
+        ),
+      );
+    }
+
+    final today = tab(
+      index: 0,
+      icon: Icons.calendar_today_rounded,
+      label: l10n.employeeBottomNavToday,
+      onTap: () => context.go(AppRoutes.employeeToday),
+    );
+    final sales = tab(
+      index: 1,
+      icon: Icons.payments_outlined,
+      label: l10n.employeeBottomNavSales,
+      onTap: () => context.go(AppRoutes.employeeSales),
+    );
+    final attendance = tab(
+      index: 2,
+      icon: Icons.schedule_rounded,
+      label: l10n.employeeBottomNavAttendance,
+      onTap: () => context.go(AppRoutes.employeeAttendance),
+    );
+    final profile = tab(
+      index: 3,
+      icon: Icons.person_outline_rounded,
+      label: l10n.employeeBottomNavProfile,
+      onTap: () => context.push(AppRoutes.settings),
+    );
+
+    return SizedBox(
+      height: barTotalHeight,
+      child: Material(
+        color: scheme.surfaceContainer,
+        surfaceTintColor: scheme.surfaceContainer,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 4, 10, 6),
+          padding: EdgeInsets.fromLTRB(
+            8,
+            rowVerticalPadding,
+            8,
+            rowVerticalPadding + bottomPad,
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.calendar_today_rounded,
-                  label: l10n.employeeBottomNavToday,
-                  selected: _index == 0,
-                  onTap: () => context.go(AppRoutes.employeeToday),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.payments_outlined,
-                  label: l10n.employeeBottomNavSales,
-                  selected: _index == 1,
-                  onTap: () => context.go(AppRoutes.employeeSales),
-                ),
-              ),
+              today,
+              sales,
               const SizedBox(width: 72),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.schedule_rounded,
-                  label: l10n.employeeBottomNavAttendance,
-                  selected: _index == 2,
-                  onTap: () => context.go(AppRoutes.employeeAttendance),
-                ),
-              ),
-              Expanded(
-                child: _BottomNavItem(
-                  icon: Icons.person_outline_rounded,
-                  label: l10n.employeeBottomNavProfile,
-                  selected: _index == 3,
-                  onTap: () => context.push(AppRoutes.settings),
-                ),
-              ),
+              attendance,
+              profile,
             ],
           ),
         ),

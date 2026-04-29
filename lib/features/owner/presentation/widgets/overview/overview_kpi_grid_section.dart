@@ -50,8 +50,8 @@ class OverviewKpiGridSection extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
-        // width/height; ~1.05–1.08 keeps cards ~150–160px tall with current type.
-        childAspectRatio: 1.06,
+        // Slightly taller cards to prevent text overflow in localized copy.
+        childAspectRatio: 1.0,
       ),
       children: [
         OverviewMetricCard(

@@ -270,110 +270,116 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
       builder: (sheetContext) {
         final theme = Theme.of(sheetContext);
         final scheme = theme.colorScheme;
+        final maxSheetHeight = MediaQuery.sizeOf(sheetContext).height * 0.82;
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.large),
-            child: analyticsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, _) => Text(l10n.genericError),
-              data: (data) => DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: scheme.outlineVariant.withValues(alpha: 0.65),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.shadow.withValues(alpha: 0.06),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxSheetHeight),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.large),
+              child: analyticsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => Text(l10n.genericError),
+                data: (data) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: scheme.outlineVariant.withValues(alpha: 0.65),
                     ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.medium),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                    boxShadow: [
+                      BoxShadow(
+                        color: scheme.shadow.withValues(alpha: 0.06),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.medium),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1ECFF),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              AppIcons.insights_outlined,
-                              color: Color(0xFF7C3AED),
-                              size: 22,
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1ECFF),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  AppIcons.insights_outlined,
+                                  color: Color(0xFF7C3AED),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  l10n.teamAnalyticsAction,
+                                  textAlign: TextAlign.start,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF5B2BE0),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Divider(height: 28, color: scheme.outlineVariant),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.groups_2_outlined,
+                            label: l10n.teamSummaryTotalMembers,
+                            value: '${data.totalMembers}',
+                          ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.how_to_reg_outlined,
+                            label: l10n.teamAnalyticsActiveInactiveLabel,
+                            value:
+                                '${data.activeMembers} / ${data.inactiveMembers}',
+                          ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.schedule_outlined,
+                            label: l10n.teamSummaryWorkingNow,
+                            value: '${data.workingNow}',
+                          ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.event_busy_outlined,
+                            label: l10n.teamSummaryAbsentToday,
+                            value: '${data.absentToday}',
+                          ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.payments_outlined,
+                            label: l10n.teamSalesRevenueMonth,
+                            value: formatAppMoney(
+                              data.totalRevenueThisMonth,
+                              currencyCode,
+                              locale,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              l10n.teamAnalyticsAction,
-                              textAlign: TextAlign.start,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF5B2BE0),
-                              ),
-                            ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.design_services_outlined,
+                            label: l10n.teamSalesServicesMonth,
+                            value: '${data.servicesThisMonth}',
+                          ),
+                          _analyticsSheetListTile(
+                            sheetContext,
+                            icon: AppIcons.workspace_premium_outlined,
+                            label: l10n.teamAnalyticsTopPerformerLabel,
+                            value: data.topPerformerName,
                           ),
                         ],
                       ),
-                      Divider(height: 28, color: scheme.outlineVariant),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.groups_2_outlined,
-                        label: l10n.teamSummaryTotalMembers,
-                        value: '${data.totalMembers}',
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.how_to_reg_outlined,
-                        label: l10n.teamAnalyticsActiveInactiveLabel,
-                        value:
-                            '${data.activeMembers} / ${data.inactiveMembers}',
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.schedule_outlined,
-                        label: l10n.teamSummaryWorkingNow,
-                        value: '${data.workingNow}',
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.event_busy_outlined,
-                        label: l10n.teamSummaryAbsentToday,
-                        value: '${data.absentToday}',
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.payments_outlined,
-                        label: l10n.teamSalesRevenueMonth,
-                        value: formatAppMoney(
-                          data.totalRevenueThisMonth,
-                          currencyCode,
-                          locale,
-                        ),
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.design_services_outlined,
-                        label: l10n.teamSalesServicesMonth,
-                        value: '${data.servicesThisMonth}',
-                      ),
-                      _analyticsSheetListTile(
-                        sheetContext,
-                        icon: AppIcons.workspace_premium_outlined,
-                        label: l10n.teamAnalyticsTopPerformerLabel,
-                        value: data.topPerformerName,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),

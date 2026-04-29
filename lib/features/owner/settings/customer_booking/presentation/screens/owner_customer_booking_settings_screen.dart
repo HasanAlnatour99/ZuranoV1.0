@@ -161,8 +161,10 @@ class _OwnerCustomerBookingSettingsScreenState
     final settingsAsync = ref.watch(customerBookingSettingsProvider(salonId));
 
     return ZuranoPageScaffold(
-      child: Column(
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          children: [
           ZuranoTopBar(
             title: l10n.ownerCustomerBookingTitle,
             onBack: () {
@@ -403,7 +405,8 @@ class _OwnerCustomerBookingSettingsScreenState
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
