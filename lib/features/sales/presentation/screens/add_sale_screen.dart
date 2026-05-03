@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/user_roles.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_fade_in.dart';
@@ -18,20 +18,21 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../customers/presentation/providers/customer_details_providers.dart';
+import '../../domain/add_sale_pos_tab.dart';
 import '../../domain/payment_method.dart';
 import '../../../owner/presentation/widgets/add_barber/add_barber_header.dart';
+import '../providers/add_sale_booking_flow_notifier.dart';
 import '../providers/add_sale_controller.dart';
 import '../providers/add_sale_entry_mode_notifier.dart';
+import '../providers/add_sale_pos_tab_provider.dart';
 import '../providers/add_sale_session_employee_provider.dart';
 import '../providers/salon_sales_settings_provider.dart';
-import '../widgets/add_sale_payment_split_fields.dart';
-import '../widgets/add_sale_receipt_section.dart';
-import '../widgets/barber_selector_tile.dart';
-import '../widgets/customer_selector_tile.dart';
-import '../widgets/order_summary_card.dart';
-import '../widgets/payment_method_selector.dart';
+import '../utils/add_sale_booking_error_l10n.dart';
+import '../widgets/add_sale_mode_selector.dart';
+import '../widgets/booking_code_sale_form.dart';
+import '../widgets/manual_sale_form.dart';
 import '../widgets/record_sale_bottom_bar.dart';
-import '../widgets/service_selection_card.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 /// Single Add Sale screen for the salon (owner / admin / barber entry modes).
@@ -49,27 +50,26 @@ class AddSaleScreen extends ConsumerStatefulWidget {
     this.initialBarberId,
     this.initialServiceId,
     this.initialCustomerId,
+    this.initialBookingCode,
   });
 
   final AddSaleEntryMode entryMode;
   final String? initialBarberId;
   final String? initialServiceId;
   final String? initialCustomerId;
+  final String? initialBookingCode;
 
   @override
   ConsumerState<AddSaleScreen> createState() => _AddSaleScreenState();
 }
 
 class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
-  late final ScrollController _serviceStripScrollController;
-
   @override
   void initState() {
     super.initState();
     if (kDebugMode) {
       debugPrint('[AddSaleScreen] opened (mode=${widget.entryMode.name})');
     }
-    _serviceStripScrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       ref.read(addSaleEntryModeProvider.notifier).setMode(widget.entryMode);
@@ -88,19 +88,29 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
         serviceId: widget.initialServiceId,
       );
       final cid = widget.initialCustomerId?.trim();
-      if (cid == null || cid.isEmpty) return;
-      final customer = await ref.read(customerByIdOnceProvider(cid).future);
-      if (!mounted) return;
-      if (customer != null) {
-        notifier.applyLinkedCustomer(customer);
+      if (cid != null && cid.isNotEmpty) {
+        final customer = await ref.read(customerByIdOnceProvider(cid).future);
+        if (!mounted) return;
+        if (customer != null) {
+          notifier.applyLinkedCustomer(customer);
+        }
+      }
+
+      final booking = widget.initialBookingCode?.trim();
+      if (booking != null && booking.isNotEmpty) {
+        ref.read(addSalePosTabProvider.notifier).state =
+            AddSalePosTab.fromBookingCode;
+        ref
+            .read(addSaleBookingFlowProvider.notifier)
+            .updateBookingCode(booking);
+        final sid = sessionUser?.salonId?.trim();
+        if (sid != null && sid.isNotEmpty) {
+          await ref
+              .read(addSaleBookingFlowProvider.notifier)
+              .retrieveBooking(sid);
+        }
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _serviceStripScrollController.dispose();
-    super.dispose();
   }
 
   Future<void> _pickBarber(
@@ -380,11 +390,11 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             entryMode: widget.entryMode,
             l10n: l10n,
             locale: locale,
-            serviceStripScrollController: _serviceStripScrollController,
             onPickBarber: _pickBarber,
             onCustomerNameDialog: _customerNameDialog,
             onDiscountDialog: _discountDialog,
             disabledReasonBuilder: _disabledReason,
+            salonId: user.salonId?.trim() ?? '',
           );
         },
       ),
@@ -398,18 +408,17 @@ class _AddSaleBody extends ConsumerWidget {
     required this.entryMode,
     required this.l10n,
     required this.locale,
-    required this.serviceStripScrollController,
     required this.onPickBarber,
     required this.onCustomerNameDialog,
     required this.onDiscountDialog,
     required this.disabledReasonBuilder,
+    required this.salonId,
   });
 
   final AppUser user;
   final AddSaleEntryMode entryMode;
   final AppLocalizations l10n;
   final Locale locale;
-  final ScrollController serviceStripScrollController;
   final Future<void> Function(BuildContext, List<Employee>) onPickBarber;
   final Future<void> Function() onCustomerNameDialog;
   final Future<void> Function() onDiscountDialog;
@@ -420,14 +429,16 @@ class _AddSaleBody extends ConsumerWidget {
     required bool receiptOk,
   })
   disabledReasonBuilder;
+  final String salonId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final posTab = ref.watch(addSalePosTabProvider);
+    final bookingFlow = ref.watch(addSaleBookingFlowProvider);
     final servicesAsync = ref.watch(servicesStreamProvider);
     final employeesAsync = entryMode == AddSaleEntryMode.employee
         ? const AsyncData<List<Employee>>(<Employee>[])
         : ref.watch(employeesStreamProvider);
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
     final addState = ref.watch(addSaleControllerProvider);
     final addNotifier = ref.read(addSaleControllerProvider.notifier);
     final settings =
@@ -524,7 +535,7 @@ class _AddSaleBody extends ConsumerWidget {
       }
     }
 
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final canPickBarber =
         (user.role == UserRoles.owner || user.role == UserRoles.admin) &&
         entryMode != AddSaleEntryMode.employee;
@@ -534,9 +545,6 @@ class _AddSaleBody extends ConsumerWidget {
       PosPaymentMethod.card,
       if (settings.allowMixedPayment) PosPaymentMethod.mixed,
     };
-    final showDiscountEditor =
-        entryMode != AddSaleEntryMode.employee ||
-        settings.allowEmployeeDiscount;
     final receiptOk = addState.receiptRequirementMet(
       settings: settings,
       mode: entryMode,
@@ -562,136 +570,117 @@ class _AddSaleBody extends ConsumerWidget {
           bottom: false,
           child: AddBarberHeader(
             title: l10n.ownerAddSaleTitle,
-            subtitle: l10n.ownerAddSaleSubtitle,
+            subtitle: l10n.addSaleDualSubtitle,
             compact: compactHeader,
             onBack: () => Navigator.of(context).maybePop(),
           ),
         ),
+        const AddSaleModeSelector(),
         Expanded(
           child: AppFadeIn(
             child: ColoredBox(
               color: scheme.surfaceContainerLow,
-              child: CustomScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: ServiceSelectionCard(
+              child: posTab == AddSalePosTab.fromBookingCode
+                  ? BookingCodeSaleForm(
+                      salonId: salonId,
                       l10n: l10n,
                       locale: locale,
                       currencyCode: currencyCode,
-                      services: activeServices,
-                      lines: addState.lines,
-                      searchQuery: addState.searchQuery,
-                      onSearchChanged: addNotifier.setSearchQuery,
-                      onServiceTap: addNotifier.addOrIncrementService,
-                      onRemoveLine: addNotifier.removeLine,
-                      serviceStripScrollController:
-                          serviceStripScrollController,
+                    )
+                  : ManualSaleForm(
+                      user: user,
+                      entryMode: entryMode,
+                      l10n: l10n,
+                      locale: locale,
+                      currencyCode: currencyCode,
+                      activeServices: activeServices,
+                      activeEmployees: activeEmployees,
+                      onPickBarber: onPickBarber,
+                      onCustomerNameDialog: onCustomerNameDialog,
+                      onDiscountDialog: onDiscountDialog,
+                      canPickBarber: canPickBarber,
                       showManageServicesLink:
                           user.role != UserRoles.employee &&
                           entryMode != AddSaleEntryMode.employee,
+                      allowedPayments: allowedPayments,
                     ),
-                  ),
-                  if (entryMode != AddSaleEntryMode.employee)
-                    SliverToBoxAdapter(
-                      child: BarberSelectorTile(
-                        l10n: l10n,
-                        employees: activeEmployees,
-                        selectedId: addState.selectedBarberId,
-                        enabled: canPickBarber,
-                        onTap: () => onPickBarber(context, activeEmployees),
-                      ),
-                    ),
-                  SliverToBoxAdapter(
-                    child: CustomerSelectorTile(
-                      l10n: l10n,
-                      customerName: addState.customerName,
-                      onAddNameTap: onCustomerNameDialog,
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: PaymentMethodSelector(
-                      selected: addState.paymentMethod,
-                      onChanged: addNotifier.setPaymentMethod,
-                      l10n: l10n,
-                      allowedMethods: allowedPayments,
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: AddSalePaymentSplitFields()),
-                  const SliverToBoxAdapter(child: AddSaleReceiptSection()),
-                  SliverToBoxAdapter(
-                    child: OrderSummaryCard(
-                      l10n: l10n,
-                      locale: locale,
-                      currencyCode: currencyCode,
-                      subtotal: addState.subtotal,
-                      discount: addState.totalDiscountAmount,
-                      total: addState.totalAmount,
-                      onDiscountTap: onDiscountDialog,
-                      showManualDiscountEditor: showDiscountEditor,
-                    ),
-                  ),
-                  if (addState.submitError != null)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 4,
-                        ),
-                        child: Text(
-                          addState.submitError!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                ],
-              ),
             ),
           ),
         ),
-        _CheckoutBar(
-          l10n: l10n,
-          locale: locale,
-          currencyCode: currencyCode,
-          total: addState.totalAmount,
-          enabled: canRecord,
-          isLoading: addState.isSubmitting,
-          disabledReason: disabledReason,
-          onPressed: () async {
-            if (!addState.canSubmit) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.ownerAddSaleValidation)),
-              );
-              return;
-            }
-            if (!receiptOk) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.addSaleReceiptRequiredCard)),
-              );
-              return;
-            }
-            final ok = await addNotifier.recordSale();
-            if (!context.mounted) return;
-            if (ok) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    entryMode == AddSaleEntryMode.employee
-                        ? l10n.employeeSaleRecordedSuccess
-                        : l10n.ownerAddSaleSuccess,
+        if (posTab == AddSalePosTab.manual)
+          _CheckoutBar(
+            l10n: l10n,
+            locale: locale,
+            currencyCode: currencyCode,
+            total: addState.totalAmount,
+            enabled: canRecord,
+            isLoading: addState.isSubmitting,
+            disabledReason: disabledReason,
+            onPressed: () async {
+              if (!addState.canSubmit) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.ownerAddSaleValidation)),
+                );
+                return;
+              }
+              if (!receiptOk) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.addSaleReceiptRequiredCard)),
+                );
+                return;
+              }
+              final ok = await addNotifier.recordSale();
+              if (!context.mounted) return;
+              if (ok) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      entryMode == AddSaleEntryMode.employee
+                          ? l10n.employeeSaleRecordedSuccess
+                          : l10n.ownerAddSaleSuccess,
+                    ),
                   ),
-                ),
-              );
-              context.pop(true);
-            }
-          },
-        ),
+                );
+                context.pop(true);
+              }
+            },
+          )
+        else
+          RecordSaleBottomBar(
+            l10n: l10n,
+            locale: locale,
+            currencyCode: currencyCode,
+            total: bookingFlow.preview?.totalAmount ?? 0,
+            enabled:
+                salonId.isNotEmpty &&
+                bookingFlow.preview != null &&
+                !bookingFlow.lookupLoading &&
+                !bookingFlow.submitLoading,
+            isLoading: bookingFlow.submitLoading,
+            primaryActionLabel: l10n.addSaleCreateFromBooking,
+            onPressed: () async {
+              if (salonId.isEmpty) return;
+              final id = await ref
+                  .read(addSaleBookingFlowProvider.notifier)
+                  .createSaleFromBooking(salonId);
+              if (!context.mounted) return;
+              if (id != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.addSaleBookingSaleCreated)),
+                );
+                context.pop(true);
+              } else {
+                final code = ref.read(addSaleBookingFlowProvider).errorCode;
+                if (code != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(localizedAddSaleBookingError(l10n, code)),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
       ],
     );
   }
@@ -922,7 +911,7 @@ class _ServiceProviderPickerTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TeamMemberNameText(
                         employee.name,
                         style: const TextStyle(
                           fontSize: 16,

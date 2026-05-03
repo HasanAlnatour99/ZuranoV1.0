@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employee_today/presentation/employee_today_theme.dart';
 
@@ -68,7 +69,7 @@ class EmployeeAttendanceGreetingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                TeamMemberNameText(
                   employeeName,
                   style: const TextStyle(
                     color: Colors.white,

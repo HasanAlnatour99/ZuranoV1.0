@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../attendance/data/location_attendance_service.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
+import '../../../employee_dashboard/application/employee_today_attendance_ui_provider.dart';
 import '../../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../../../employee_today/data/attendance_exception.dart';
 import '../../../employee_today/data/models/et_attendance_day.dart';
@@ -155,6 +156,7 @@ Future<void> submitEmployeeAttendancePunch(
       }
     }
 
+    final vm = ref.read(employeeTodayAttendanceProvider).asData?.value;
     await ref
         .read(employeeTodayAttendanceRepositoryProvider)
         .submitPunch(
@@ -167,6 +169,8 @@ Future<void> submitEmployeeAttendancePunch(
           type: type,
           position: pos,
           settings: settings,
+          shiftStartHhmm: vm?.shiftStartRaw,
+          shiftEndHhmm: vm?.shiftEndRaw,
         );
 
     switch (type) {
@@ -186,7 +190,11 @@ Future<void> submitEmployeeAttendancePunch(
     ref.invalidate(employeeMonthlyAttendanceStatsProvider);
     ref.invalidate(employeeAttendanceLocationProvider);
   } on AttendanceException catch (e) {
-    onMessage(e.message);
+    onMessage(
+      e.message == AttendanceExceptionCodes.outsideShiftBreak
+          ? 'Breaks can only be started during your scheduled shift hours.'
+          : e.message,
+    );
   } on Object catch (e) {
     onMessage('Something went wrong. Please try again.');
     assert(() {

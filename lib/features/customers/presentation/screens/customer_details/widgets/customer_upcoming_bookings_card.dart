@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../../../core/constants/booking_status_machine.dart';
 import '../../../../../../core/constants/booking_statuses.dart';
+import '../../../../../../core/text/team_member_name.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../l10n/app_localizations.dart';
 import 'package:barber_shop_app/features/bookings/data/models/booking.dart';
@@ -133,7 +134,9 @@ class CustomerUpcomingBookingsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    next.barberName ?? next.barberId,
+                    (next.barberName?.trim().isNotEmpty == true)
+                        ? formatTeamMemberName(next.barberName)
+                        : next.barberId,
                     style: const TextStyle(
                       color: FinanceDashboardColors.textSecondary,
                       fontWeight: FontWeight.w600,

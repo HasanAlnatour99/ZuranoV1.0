@@ -88,9 +88,7 @@ class FirestoreCustomerSalonProfileRepository
             if (c != 0) {
               return c;
             }
-            return a.displayTitle.toLowerCase().compareTo(
-              b.displayTitle.toLowerCase(),
-            );
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
           });
           return list;
         });
@@ -122,9 +120,7 @@ class FirestoreCustomerSalonProfileRepository
       if (c != 0) {
         return c;
       }
-      return a.displayTitle.toLowerCase().compareTo(
-        b.displayTitle.toLowerCase(),
-      );
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
     return list;
   }

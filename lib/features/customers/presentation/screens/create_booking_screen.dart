@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/ui/app_icons.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -155,7 +156,7 @@ class _CreateBookingScreenState extends ConsumerState<CreateBookingScreen> {
                       .map(
                         (barber) => DropdownMenuItem(
                           value: barber.id,
-                          child: Text(barber.name),
+                          child: TeamMemberNameText(barber.name),
                         ),
                       )
                       .toList(),

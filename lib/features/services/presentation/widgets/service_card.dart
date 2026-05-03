@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/models/service.dart';
 import '../../data/service_category_helpers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import 'package:barber_shop_app/shared/widgets/zurano_service_category_icon.dart';
 
 class ServiceCard extends StatelessWidget {
   const ServiceCard({
@@ -28,9 +29,8 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onToggleActive;
 
-  String get _displayName => service.serviceName.trim().isNotEmpty
-      ? service.serviceName
-      : service.name;
+  String get _displayName =>
+      service.localizedTitleForLanguageCode(locale.languageCode);
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +41,8 @@ class ServiceCard extends StatelessWidget {
     final thumb = _ServiceThumbnail(
       imageUrl: service.imageUrl,
       isActive: service.isActive,
+      categoryKey: service.categoryKey,
+      iconKey: service.iconKey,
     );
 
     final meta = [
@@ -246,10 +248,17 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _ServiceThumbnail extends StatelessWidget {
-  const _ServiceThumbnail({required this.imageUrl, required this.isActive});
+  const _ServiceThumbnail({
+    required this.imageUrl,
+    required this.isActive,
+    required this.categoryKey,
+    required this.iconKey,
+  });
 
   final String? imageUrl;
   final bool isActive;
+  final String? categoryKey;
+  final String? iconKey;
 
   @override
   Widget build(BuildContext context) {
@@ -302,10 +311,14 @@ class _ServiceThumbnail extends StatelessWidget {
     return ColoredBox(
       color: scheme.surfaceContainerHighest.withValues(alpha: 0.9),
       child: Center(
-        child: Icon(
-          AppIcons.content_cut_rounded,
-          size: 24,
-          color: scheme.primary.withValues(alpha: 0.75),
+        child: ZuranoServiceCategoryIcon(
+          categoryKey: categoryKey,
+          iconKey: iconKey,
+          size: 44,
+          iconSize: 22,
+          backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
+          iconColor: scheme.primary.withValues(alpha: 0.9),
+          borderRadius: 12,
         ),
       ),
     );

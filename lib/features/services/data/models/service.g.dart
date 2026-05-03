@@ -14,6 +14,7 @@ _SalonService _$SalonServiceFromJson(Map<String, dynamic> json) =>
       serviceName: json['serviceName'] == null
           ? ''
           : looseStringFromJson(json['serviceName']),
+      nameAr: json['nameAr'] == null ? '' : looseStringFromJson(json['nameAr']),
       durationMinutes: looseIntFromJson(json['durationMinutes']),
       price: looseDoubleFromJson(json['price']),
       description: nullableLooseStringFromJson(json['description']),
@@ -23,6 +24,7 @@ _SalonService _$SalonServiceFromJson(Map<String, dynamic> json) =>
         json['customCategoryName'],
       ),
       category: nullableLooseStringFromJson(json['category']),
+      iconKey: nullableLooseStringFromJson(json['iconKey']),
       imageUrl: nullableLooseStringFromJson(json['imageUrl']),
       timesUsed: nullableLooseIntFromJson(json['timesUsed']),
       totalRevenue: nullableLooseDoubleFromJson(json['totalRevenue']),
@@ -42,6 +44,7 @@ Map<String, dynamic> _$SalonServiceToJson(_SalonService instance) =>
       'salonId': instance.salonId,
       'name': instance.name,
       'serviceName': instance.serviceName,
+      'nameAr': instance.nameAr,
       'durationMinutes': instance.durationMinutes,
       'price': instance.price,
       'description': instance.description,
@@ -49,6 +52,7 @@ Map<String, dynamic> _$SalonServiceToJson(_SalonService instance) =>
       'categoryLabel': instance.categoryLabel,
       'customCategoryName': instance.customCategoryName,
       'category': instance.category,
+      'iconKey': instance.iconKey,
       'imageUrl': instance.imageUrl,
       'timesUsed': instance.timesUsed,
       'totalRevenue': instance.totalRevenue,

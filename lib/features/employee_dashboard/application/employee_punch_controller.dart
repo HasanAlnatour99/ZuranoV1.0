@@ -6,19 +6,23 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/repository_providers.dart';
 import '../../../providers/session_provider.dart';
-import '../../employee_today/data/attendance_exception.dart';
+import '../../employee_today/data/attendance_exception.dart'
+    show AttendanceException, AttendanceExceptionCodes;
 import '../../employee_today/providers/employee_today_providers.dart';
 import '../domain/enums/attendance_punch_type.dart';
 import '../domain/services/attendance_location_service.dart';
 import 'employee_dashboard_providers.dart';
 import 'employee_today_attendance_ui_provider.dart';
 
-final employeeTodayAttendanceControllerProvider = AsyncNotifierProvider.autoDispose<
-    EmployeeTodayAttendanceController,
-    AttendancePunchType?>(EmployeeTodayAttendanceController.new);
+final employeeTodayAttendanceControllerProvider =
+    AsyncNotifierProvider.autoDispose<
+      EmployeeTodayAttendanceController,
+      AttendancePunchType?
+    >(EmployeeTodayAttendanceController.new);
 
 @Deprecated('Use employeeTodayAttendanceControllerProvider')
-final employeePunchControllerProvider = employeeTodayAttendanceControllerProvider;
+final employeePunchControllerProvider =
+    employeeTodayAttendanceControllerProvider;
 
 class EmployeeTodayAttendanceController
     extends AsyncNotifier<AttendancePunchType?> {
@@ -66,6 +70,7 @@ class EmployeeTodayAttendanceController
         );
       }
 
+      final vm = ref.read(employeeTodayAttendanceProvider).asData?.value;
       await ref
           .read(employeeTodayAttendanceRepositoryProvider)
           .submitPunch(
@@ -78,6 +83,8 @@ class EmployeeTodayAttendanceController
             type: type,
             position: pos,
             settings: settings,
+            shiftStartHhmm: vm?.shiftStartRaw,
+            shiftEndHhmm: vm?.shiftEndRaw,
           );
 
       ref.invalidate(etTodayAttendanceDayProvider);
@@ -85,7 +92,10 @@ class EmployeeTodayAttendanceController
       _invalidateAfterPunch();
       onSuccess?.call();
     } on AttendanceException catch (e) {
-      onMessage(e.message);
+      final message = e.message == AttendanceExceptionCodes.outsideShiftBreak
+          ? l10n.employeeTodayBreakOutsideShift
+          : e.message;
+      onMessage(message);
     } on FirebaseException catch (e) {
       onMessage(e.message ?? l10n.employeeRequestFailed);
     } on Object catch (e) {

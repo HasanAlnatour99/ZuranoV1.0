@@ -1,15 +1,21 @@
 import '../../../core/constants/attendance_approval.dart';
+import '../../../core/constants/payroll_period_constants.dart';
 import '../../../core/constants/sale_reporting.dart';
 import '../../../core/constants/user_roles.dart';
 import '../../../core/constants/violation_types.dart';
+import '../../../core/firestore/report_period.dart';
+import '../../../core/time/iso_week.dart';
 import '../../attendance/data/attendance_repository.dart';
 import '../../attendance/data/models/attendance_record.dart';
 import '../../employees/data/employee_repository.dart';
 import '../../employees/data/models/employee.dart';
 import '../../sales/data/models/sale.dart';
 import '../../sales/data/sales_repository.dart';
+import '../../salon/data/salon_repository.dart';
 import '../../violations/data/models/violation.dart';
 import '../../violations/data/violation_repository.dart';
+import '../domain/effective_payroll_period.dart'
+    show effectivePayrollPeriodFor;
 import 'employee_element_entry_repository.dart';
 import 'models/employee_element_entry_model.dart';
 import 'models/payroll_element_model.dart';
@@ -17,6 +23,7 @@ import 'models/payroll_result_model.dart';
 import 'models/payroll_run_model.dart';
 import 'payroll_constants.dart';
 import 'payroll_element_repository.dart';
+import 'payroll_run_repository.dart';
 
 class PayrollCalculationBundle {
   const PayrollCalculationBundle({
@@ -70,12 +77,16 @@ class PayrollCalculationService {
     required SalesRepository salesRepository,
     required AttendanceRepository attendanceRepository,
     required ViolationRepository violationRepository,
+    required SalonRepository salonRepository,
+    required PayrollRunRepository payrollRunRepository,
   }) : _payrollElementRepository = payrollElementRepository,
        _employeeElementEntryRepository = employeeElementEntryRepository,
        _employeeRepository = employeeRepository,
        _salesRepository = salesRepository,
        _attendanceRepository = attendanceRepository,
-       _violationRepository = violationRepository;
+       _violationRepository = violationRepository,
+       _salonRepository = salonRepository,
+       _payrollRunRepository = payrollRunRepository;
 
   final PayrollElementRepository _payrollElementRepository;
   final EmployeeElementEntryRepository _employeeElementEntryRepository;
@@ -83,6 +94,8 @@ class PayrollCalculationService {
   final SalesRepository _salesRepository;
   final AttendanceRepository _attendanceRepository;
   final ViolationRepository _violationRepository;
+  final SalonRepository _salonRepository;
+  final PayrollRunRepository _payrollRunRepository;
 
   static DateTime periodStartUtc(int year, int month) =>
       DateTime.utc(year, month, 1);
@@ -149,6 +162,8 @@ class PayrollCalculationService {
     required int month,
     required String createdBy,
     String? existingRunId,
+    int? isoWeekYear,
+    int? isoWeekNumber,
   }) async {
     final employee = await _employeeRepository.getEmployee(salonId, employeeId);
     if (employee == null ||
@@ -161,6 +176,64 @@ class PayrollCalculationService {
       );
     }
 
+    final salon = await _salonRepository.getSalon(salonId);
+    final effectivePeriod = effectivePayrollPeriodFor(
+      salonDefaultPayrollPeriod:
+          salon?.defaultPayrollPeriod ?? SalonPayrollPeriods.monthly,
+      employeePayrollPeriodOverride: employee.payrollPeriodOverride,
+    );
+    var wy = isoWeekYear ?? 0;
+    var wn = isoWeekNumber ?? 0;
+    if (effectivePeriod == SalonPayrollPeriods.weekly &&
+        (wy <= 0 || wn <= 0)) {
+      final spec = isoWeekSpecForUtcDate(DateTime.utc(year, month, 15));
+      wy = spec.weekYear;
+      wn = spec.weekNumber;
+    }
+
+    var runYear = year;
+    var runMonth = month;
+    var periodGranularity = PayrollRunPeriodGranularities.monthly;
+    var runIsoY = 0;
+    var runIsoN = 0;
+    if (effectivePeriod == SalonPayrollPeriods.weekly && wy > 0 && wn > 0) {
+      periodGranularity = PayrollRunPeriodGranularities.weekly;
+      runIsoY = wy;
+      runIsoN = wn;
+      final mon = isoWeekMondayUtc(wy, wn);
+      runYear = mon.year;
+      runMonth = mon.month;
+    }
+
+    final periodKeyRun = PayrollRunModel(
+      id: '',
+      runType: PayrollRunTypes.quickPay,
+      salonId: salonId,
+      employeeId: employee.id,
+      employeeName: employee.name,
+      year: runYear,
+      month: runMonth,
+      periodGranularity: periodGranularity,
+      isoWeekYear: runIsoY,
+      isoWeekNumber: runIsoN,
+      employeeIds: [employee.id],
+    );
+    final excludeRun = existingRunId?.trim();
+    final alreadyPaid = await _payrollRunRepository
+        .employeeIdsWithPaidRunForReportPeriod(
+          salonId,
+          reportPeriodKey: periodKeyRun.reportPeriodKey,
+          excludeRunId:
+              excludeRun != null && excludeRun.isNotEmpty ? excludeRun : null,
+        );
+    if (alreadyPaid.contains(employee.id)) {
+      throw ArgumentError.value(
+        employee.id,
+        'payrollEmployeeAlreadyPaidForPeriod',
+        'This team member already has a paid payroll for this period.',
+      );
+    }
+
     final elements = await _loadElementsMap(salonId);
     final statement = await _buildEmployeeStatement(
       salonId: salonId,
@@ -170,6 +243,9 @@ class PayrollCalculationService {
       elements: elements,
       existingRunId: existingRunId,
       runId: existingRunId ?? '',
+      accrualGranularity: effectivePeriod,
+      isoWeekYear: wy,
+      isoWeekNumber: wn,
     );
 
     final run = PayrollRunModel(
@@ -178,8 +254,11 @@ class PayrollCalculationService {
       salonId: salonId,
       employeeId: employee.id,
       employeeName: employee.name,
-      year: year,
-      month: month,
+      year: runYear,
+      month: runMonth,
+      periodGranularity: periodGranularity,
+      isoWeekYear: runIsoY,
+      isoWeekNumber: runIsoN,
       status: PayrollRunStatuses.draft,
       totalEarnings: statement.totalEarnings,
       totalDeductions: statement.totalDeductions,
@@ -201,13 +280,130 @@ class PayrollCalculationService {
     required int year,
     required int month,
     required String createdBy,
+    required String runCadence,
     Iterable<String>? employeeIds,
     String? existingRunId,
+    int? isoWeekYear,
+    int? isoWeekNumber,
+    DateTime? weeklyWindowStartUtc,
+    DateTime? weeklyWindowEndUtc,
   }) async {
-    final employees = await _loadEligibleEmployees(
+    final salon = await _salonRepository.getSalon(salonId);
+    final salonDefault = salon?.defaultPayrollPeriod;
+    final bulkGranularity = SalonPayrollPeriods.normalize(runCadence);
+
+    var wy = isoWeekYear ?? 0;
+    var wn = isoWeekNumber ?? 0;
+    DateTime? windowStart;
+    DateTime? windowEnd;
+
+    if (bulkGranularity == SalonPayrollPeriods.weekly) {
+      final customStart = weeklyWindowStartUtc;
+      final customEndDay = weeklyWindowEndUtc;
+      if (customStart != null && customEndDay != null) {
+        windowStart = DateTime.utc(
+          customStart.year,
+          customStart.month,
+          customStart.day,
+        );
+        windowEnd = DateTime.utc(
+          customEndDay.year,
+          customEndDay.month,
+          customEndDay.day,
+          23,
+          59,
+          59,
+          999,
+        );
+        if (windowStart.isAfter(windowEnd)) {
+          final d0 = customStart;
+          final d1 = customEndDay;
+          windowStart = DateTime.utc(d1.year, d1.month, d1.day);
+          windowEnd = DateTime.utc(
+            d0.year,
+            d0.month,
+            d0.day,
+            23,
+            59,
+            59,
+            999,
+          );
+        }
+        final spec = isoWeekSpecForUtcDate(windowStart);
+        wy = spec.weekYear;
+        wn = spec.weekNumber;
+      } else if (wy <= 0 || wn <= 0) {
+        final spec = isoWeekSpecForUtcDate(DateTime.utc(year, month, 15));
+        wy = spec.weekYear;
+        wn = spec.weekNumber;
+        final bounds = isoWeekUtcBounds(wy, wn);
+        windowStart = bounds.$1;
+        windowEnd = bounds.$2;
+      } else {
+        final bounds = isoWeekUtcBounds(wy, wn);
+        windowStart = bounds.$1;
+        windowEnd = bounds.$2;
+      }
+    }
+
+    var runYear = year;
+    var runMonth = month;
+    var periodGranularity = PayrollRunPeriodGranularities.monthly;
+    var runIsoY = 0;
+    var runIsoN = 0;
+    DateTime? persistedWinStart;
+    DateTime? persistedWinEnd;
+    if (bulkGranularity == SalonPayrollPeriods.weekly &&
+        windowStart != null &&
+        windowEnd != null) {
+      periodGranularity = PayrollRunPeriodGranularities.weekly;
+      runIsoY = wy;
+      runIsoN = wn;
+      runYear = windowStart.year;
+      runMonth = windowStart.month;
+      persistedWinStart = windowStart;
+      persistedWinEnd = windowEnd;
+    }
+
+    final periodKeyRun = PayrollRunModel(
+      id: '',
+      runType: PayrollRunTypes.payrollRun,
+      salonId: salonId,
+      year: runYear,
+      month: runMonth,
+      periodGranularity: periodGranularity,
+      isoWeekYear: runIsoY,
+      isoWeekNumber: runIsoN,
+      payrollWindowStartUtc: persistedWinStart,
+      payrollWindowEndUtc: persistedWinEnd,
+    );
+    final excludeRun = existingRunId?.trim();
+    final alreadyPaidIds = await _payrollRunRepository
+        .employeeIdsWithPaidRunForReportPeriod(
+          salonId,
+          reportPeriodKey: periodKeyRun.reportPeriodKey,
+          excludeRunId:
+              excludeRun != null && excludeRun.isNotEmpty ? excludeRun : null,
+        );
+
+    var employees = await _loadEligibleEmployeesForRun(
       salonId,
+      salonDefaultPayrollPeriod: salonDefault,
+      runCadence: bulkGranularity,
       employeeIds: employeeIds,
     );
+    employees = employees
+        .where((e) => !alreadyPaidIds.contains(e.id))
+        .toList(growable: false);
+
+    if (employees.isEmpty) {
+      throw ArgumentError.value(
+        null,
+        'payrollAllStaffAlreadyPaidForPeriod',
+        'Everyone on your list already has a paid payroll for this period.',
+      );
+    }
+
     final elements = await _loadElementsMap(salonId);
     final statements = <PayrollEmployeeStatement>[];
 
@@ -220,6 +416,11 @@ class PayrollCalculationService {
         elements: elements,
         existingRunId: existingRunId,
         runId: existingRunId ?? '',
+        accrualGranularity: bulkGranularity,
+        isoWeekYear: wy,
+        isoWeekNumber: wn,
+        periodWindowStartUtc: windowStart,
+        periodWindowEndUtc: windowEnd,
       );
       statements.add(statement);
     }
@@ -232,8 +433,11 @@ class PayrollCalculationService {
       id: existingRunId ?? '',
       runType: PayrollRunTypes.payrollRun,
       salonId: salonId,
-      year: year,
-      month: month,
+      year: runYear,
+      month: runMonth,
+      periodGranularity: periodGranularity,
+      isoWeekYear: runIsoY,
+      isoWeekNumber: runIsoN,
       status: PayrollRunStatuses.draft,
       totalEarnings: roundMoney(
         statements.fold<double>(
@@ -255,6 +459,8 @@ class PayrollCalculationService {
           .toList(growable: false),
       employeeCount: statements.length,
       createdBy: createdBy,
+      payrollWindowStartUtc: persistedWinStart,
+      payrollWindowEndUtc: persistedWinEnd,
     );
 
     return PayrollCalculationBundle(
@@ -264,8 +470,10 @@ class PayrollCalculationService {
     );
   }
 
-  Future<List<Employee>> _loadEligibleEmployees(
+  Future<List<Employee>> _loadEligibleEmployeesForRun(
     String salonId, {
+    required String? salonDefaultPayrollPeriod,
+    required String runCadence,
     Iterable<String>? employeeIds,
   }) async {
     final employees = await _employeeRepository.getEmployees(
@@ -277,8 +485,21 @@ class PayrollCalculationService {
         .where((id) => id.isNotEmpty)
         .toSet();
 
+    final normalizedSalonDefault =
+        SalonPayrollPeriods.normalize(salonDefaultPayrollPeriod);
+    final wantCadence = SalonPayrollPeriods.normalize(runCadence);
+
     return employees
         .where((employee) => employee.role != UserRoles.owner)
+        .where((employee) => employee.isPayrollEnabled)
+        .where(
+          (employee) =>
+              effectivePayrollPeriodFor(
+                salonDefaultPayrollPeriod: normalizedSalonDefault,
+                employeePayrollPeriodOverride: employee.payrollPeriodOverride,
+              ) ==
+              wantCadence,
+        )
         .where((employee) => idSet == null || idSet.contains(employee.id))
         .toList(growable: false);
   }
@@ -293,6 +514,51 @@ class PayrollCalculationService {
     return {for (final element in elements) element.code: element};
   }
 
+  Future<List<Violation>> _violationsForPayrollWindow({
+    required String salonId,
+    required String employeeId,
+    required DateTime periodStart,
+    required DateTime periodEnd,
+    required String accrualGranularity,
+    required int year,
+    required int month,
+    String? existingRunId,
+  }) async {
+    if (accrualGranularity == SalonPayrollPeriods.weekly) {
+      final monthKeys = <String, (int, int)>{};
+      var cursor = periodStart;
+      while (!cursor.isAfter(periodEnd)) {
+        final k = ReportPeriod.periodKey(cursor.year, cursor.month);
+        monthKeys[k] = (cursor.year, cursor.month);
+        cursor = cursor.add(const Duration(days: 1));
+      }
+      final byId = <String, Violation>{};
+      for (final ym in monthKeys.values) {
+        final chunk = await _violationRepository.getPayrollEligibleForEmployeeMonth(
+          salonId,
+          employeeId,
+          ym.$1,
+          ym.$2,
+          includeRunId: existingRunId,
+        );
+        for (final v in chunk) {
+          if (!v.occurredAt.isBefore(periodStart) &&
+              !v.occurredAt.isAfter(periodEnd)) {
+            byId[v.id] = v;
+          }
+        }
+      }
+      return byId.values.toList(growable: false);
+    }
+    return _violationRepository.getPayrollEligibleForEmployeeMonth(
+      salonId,
+      employeeId,
+      year,
+      month,
+      includeRunId: existingRunId,
+    );
+  }
+
   Future<PayrollEmployeeStatement> _buildEmployeeStatement({
     required String salonId,
     required Employee employee,
@@ -301,9 +567,34 @@ class PayrollCalculationService {
     required Map<String, PayrollElementModel> elements,
     required String runId,
     String? existingRunId,
+    required String accrualGranularity,
+    int isoWeekYear = 0,
+    int isoWeekNumber = 0,
+    DateTime? periodWindowStartUtc,
+    DateTime? periodWindowEndUtc,
   }) async {
-    final periodStart = periodStartUtc(year, month);
-    final periodEnd = periodEndInclusiveUtc(year, month);
+    late DateTime periodStart;
+    late DateTime periodEnd;
+    if (periodWindowStartUtc != null && periodWindowEndUtc != null) {
+      periodStart = periodWindowStartUtc;
+      periodEnd = periodWindowEndUtc;
+    } else if (accrualGranularity == SalonPayrollPeriods.weekly &&
+        isoWeekYear > 0 &&
+        isoWeekNumber > 0) {
+      final bounds = isoWeekUtcBounds(isoWeekYear, isoWeekNumber);
+      periodStart = bounds.$1;
+      periodEnd = bounds.$2;
+    } else {
+      periodStart = periodStartUtc(year, month);
+      periodEnd = periodEndInclusiveUtc(year, month);
+    }
+
+    final nonRecurringYear = accrualGranularity == SalonPayrollPeriods.weekly
+        ? periodStart.year
+        : year;
+    final nonRecurringMonth = accrualGranularity == SalonPayrollPeriods.weekly
+        ? periodStart.month
+        : month;
 
     final recurringEntries = await _employeeElementEntryRepository
         .getActiveRecurringEntriesForPeriod(
@@ -316,16 +607,24 @@ class PayrollCalculationService {
         .getCurrentPeriodNonRecurringEntries(
           salonId,
           employee.id,
-          year: year,
-          month: month,
+          year: nonRecurringYear,
+          month: nonRecurringMonth,
         );
-    final sales = await _salesRepository.getSalesByEmployee(
-      salonId,
-      employee.id,
-      reportYear: year,
-      reportMonth: month,
-      limit: 2000,
-    );
+    final sales = accrualGranularity == SalonPayrollPeriods.weekly
+        ? await _salesRepository.getSalesByEmployee(
+            salonId,
+            employee.id,
+            soldFrom: periodStart,
+            soldTo: periodEnd,
+            limit: 2000,
+          )
+        : await _salesRepository.getSalesByEmployee(
+            salonId,
+            employee.id,
+            reportYear: year,
+            reportMonth: month,
+            limit: 2000,
+          );
     final attendance = await _attendanceRepository.getAttendance(
       salonId,
       employeeId: employee.id,
@@ -333,14 +632,16 @@ class PayrollCalculationService {
       workDateTo: periodEnd,
       limit: 120,
     );
-    final violations = await _violationRepository
-        .getPayrollEligibleForEmployeeMonth(
-          salonId,
-          employee.id,
-          year,
-          month,
-          includeRunId: existingRunId,
-        );
+    final violations = await _violationsForPayrollWindow(
+      salonId: salonId,
+      employeeId: employee.id,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      accrualGranularity: accrualGranularity,
+      year: year,
+      month: month,
+      existingRunId: existingRunId,
+    );
 
     final basicSalaryAmount = recurringEntries
         .where((entry) => entry.elementCode == 'basic_salary')

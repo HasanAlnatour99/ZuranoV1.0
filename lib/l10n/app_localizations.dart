@@ -1070,6 +1070,12 @@ abstract class AppLocalizations {
   /// **'Enter a price greater than zero.'**
   String get ownerServiceValidationPriceInvalid;
 
+  /// No description provided for @ownerServiceValidationArabicNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the Arabic service name.'**
+  String get ownerServiceValidationArabicNameRequired;
+
   /// No description provided for @ownerServiceDeleteConfirmTitle.
   ///
   /// In en, this message translates to:
@@ -1196,6 +1202,12 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get ownerServiceCategoryPickerLabel;
 
+  /// No description provided for @ownerServiceCategoryIconPreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This icon appears in booking, sales, and customer apps.'**
+  String get ownerServiceCategoryIconPreviewHint;
+
   /// No description provided for @ownerServiceCategoryNone.
   ///
   /// In en, this message translates to:
@@ -1217,8 +1229,14 @@ abstract class AppLocalizations {
   /// No description provided for @ownerServiceName.
   ///
   /// In en, this message translates to:
-  /// **'Service name'**
+  /// **'Service name (English)'**
   String get ownerServiceName;
+
+  /// No description provided for @ownerServiceNameArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Service name (Arabic)'**
+  String get ownerServiceNameArabic;
 
   /// No description provided for @ownerAddServiceSheetSubtitle.
   ///
@@ -1273,6 +1291,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. Classic Haircut'**
   String get ownerServiceNamePlaceholder;
+
+  /// No description provided for @ownerServiceNameArabicPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. قصة شعر كلاسيكية'**
+  String get ownerServiceNameArabicPlaceholder;
 
   /// No description provided for @ownerServiceDescriptionPlaceholderLong.
   ///
@@ -3476,6 +3500,18 @@ abstract class AppLocalizations {
   /// **'Payroll data could not be loaded right now.'**
   String get payrollGenericError;
 
+  /// No description provided for @payrollEmployeeAlreadyPaidForPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'This team member already has a paid payroll for this period.'**
+  String get payrollEmployeeAlreadyPaidForPeriod;
+
+  /// No description provided for @payrollAllStaffAlreadyPaidForPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone on your list already has a paid payroll for this period.'**
+  String get payrollAllStaffAlreadyPaidForPeriod;
+
   /// No description provided for @payrollSummaryEarnings.
   ///
   /// In en, this message translates to:
@@ -3530,17 +3566,347 @@ abstract class AppLocalizations {
   /// **'{monthLabel} payroll engine overview.'**
   String payrollDashboardSubtitle(String monthLabel);
 
+  /// No description provided for @ownerPayrollFinanceBreadcrumb.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance · Payroll'**
+  String get ownerPayrollFinanceBreadcrumb;
+
+  /// No description provided for @ownerPayrollRunReviewBreadcrumb.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance · Payroll · Run review'**
+  String get ownerPayrollRunReviewBreadcrumb;
+
+  /// No description provided for @payrollRunReviewEngineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes commissions from sales, attendance, violations, and your payroll elements.'**
+  String get payrollRunReviewEngineHint;
+
+  /// No description provided for @payrollRunReviewConfigureSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Period & team'**
+  String get payrollRunReviewConfigureSectionTitle;
+
+  /// No description provided for @payrollRunReviewCadenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll period type'**
+  String get payrollRunReviewCadenceLabel;
+
+  /// No description provided for @payrollRunReviewCadenceMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get payrollRunReviewCadenceMonthly;
+
+  /// No description provided for @payrollRunReviewCadenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get payrollRunReviewCadenceWeekly;
+
+  /// No description provided for @payrollRunWeeklyPaidDaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay is calculated only for the calendar days you select (inclusive).'**
+  String get payrollRunWeeklyPaidDaysHint;
+
+  /// No description provided for @payrollRunWeeklyStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get payrollRunWeeklyStartLabel;
+
+  /// No description provided for @payrollRunWeeklyEndLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get payrollRunWeeklyEndLabel;
+
+  /// No description provided for @payrollRunWeeklyRangeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a valid weekly range (1–31 days, end on or after start).'**
+  String get payrollRunWeeklyRangeInvalid;
+
+  /// No description provided for @payrollRunNoMatchingStaffForCadence.
+  ///
+  /// In en, this message translates to:
+  /// **'No team members use this payroll period. Assign monthly or weekly under Team → payroll period, or switch the period type above.'**
+  String get payrollRunNoMatchingStaffForCadence;
+
+  /// No description provided for @payrollRunReviewViewPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'View payslip'**
+  String get payrollRunReviewViewPayslip;
+
+  /// No description provided for @payrollRollbackConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rollback this payroll run?'**
+  String get payrollRollbackConfirmTitle;
+
+  /// No description provided for @payrollRollbackConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This reverses payslip snapshots and linked adjustments for this run. If the run is paid, payslips are removed from staff apps—confirm this matches your bank and accounting records. Continue?'**
+  String get payrollRollbackConfirmMessage;
+
+  /// No description provided for @payrollRollbackConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Rollback'**
+  String get payrollRollbackConfirmAction;
+
+  /// No description provided for @payrollRunReviewStatusPaidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid run. Use rollback below only if you must reverse payouts—payslips disappear from staff apps and linked violations reopen where applicable.'**
+  String get payrollRunReviewStatusPaidHint;
+
+  /// No description provided for @payrollRunReviewStatusRolledBackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This run was rolled back. You can recalculate when ready.'**
+  String get payrollRunReviewStatusRolledBackHint;
+
+  /// No description provided for @payrollRunReviewKpiHeadcountTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'In this run'**
+  String get payrollRunReviewKpiHeadcountTrend;
+
+  /// No description provided for @payrollRunReviewWorkflowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next steps'**
+  String get payrollRunReviewWorkflowTitle;
+
+  /// No description provided for @payrollRunReviewWorkflowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve when ready, then mark paid after you pay out.'**
+  String get payrollRunReviewWorkflowSubtitle;
+
+  /// No description provided for @payrollRunReviewTeamPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team breakdown'**
+  String get payrollRunReviewTeamPreviewTitle;
+
+  /// No description provided for @payrollDashboardKpiTrendLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get payrollDashboardKpiTrendLabel;
+
+  /// No description provided for @payrollDashboardKpiThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get payrollDashboardKpiThisWeek;
+
+  /// No description provided for @payrollDashboardKpiRunsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll runs'**
+  String get payrollDashboardKpiRunsLabel;
+
+  /// No description provided for @payrollDashboardKpiRunsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs in this month'**
+  String get payrollDashboardKpiRunsHint;
+
+  /// No description provided for @payrollDashboardKpiRunsHintWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs in this ISO week'**
+  String get payrollDashboardKpiRunsHintWeek;
+
+  /// No description provided for @payrollDashboardSubtitleWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{weekLabel} payroll engine overview.'**
+  String payrollDashboardSubtitleWeek(String weekLabel);
+
+  /// No description provided for @payrollIsoWeekShortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{weekYear}-W{weekNumberPadded}'**
+  String payrollIsoWeekShortLabel(int weekYear, String weekNumberPadded);
+
+  /// No description provided for @payrollWeekPickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick any day in the payroll week'**
+  String get payrollWeekPickerHelp;
+
+  /// No description provided for @payrollStatusBreakdownSubtitleWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts for the selected ISO week.'**
+  String get payrollStatusBreakdownSubtitleWeek;
+
+  /// No description provided for @payrollRecentRunsSectionSubtitleWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalized runs in the selected ISO week.'**
+  String get payrollRecentRunsSectionSubtitleWeek;
+
+  /// No description provided for @settingsPayrollCadenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll period'**
+  String get settingsPayrollCadenceTitle;
+
+  /// No description provided for @settingsPayrollCadenceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Default calendar for payroll runs, QuickPay, and the payroll hub.'**
+  String get settingsPayrollCadenceSubtitle;
+
+  /// No description provided for @settingsPayrollCadenceSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get settingsPayrollCadenceSave;
+
+  /// No description provided for @settingsPayrollCadenceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll period updated'**
+  String get settingsPayrollCadenceSaved;
+
+  /// No description provided for @settingsPayrollCadenceMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get settingsPayrollCadenceMonthly;
+
+  /// No description provided for @settingsPayrollCadenceWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly (ISO weeks)'**
+  String get settingsPayrollCadenceWeekly;
+
+  /// No description provided for @teamPayrollPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll period'**
+  String get teamPayrollPeriodLabel;
+
+  /// No description provided for @teamPayrollPeriodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults to your salon payroll period. Change only if this person should use the other cadence.'**
+  String get teamPayrollPeriodHint;
+
+  /// No description provided for @teamPayrollPeriodInherit.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as salon default'**
+  String get teamPayrollPeriodInherit;
+
+  /// No description provided for @teamPayrollPeriodInheritDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as salon · {periodLabel}'**
+  String teamPayrollPeriodInheritDetail(String periodLabel);
+
+  /// No description provided for @teamPayrollPeriodMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get teamPayrollPeriodMonthly;
+
+  /// No description provided for @teamPayrollPeriodWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly (ISO weeks)'**
+  String get teamPayrollPeriodWeekly;
+
+  /// No description provided for @payrollRecentRunsSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalized runs in the selected month.'**
+  String get payrollRecentRunsSectionSubtitle;
+
+  /// No description provided for @payrollStatusBreakdownSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts for the selected month.'**
+  String get payrollStatusBreakdownSubtitle;
+
   /// No description provided for @payrollQuickPayTitle.
   ///
   /// In en, this message translates to:
   /// **'QuickPay'**
   String get payrollQuickPayTitle;
 
+  /// No description provided for @payrollQuickPayScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose who to pay and which month. Calculate, then save as draft, approve, or mark paid—the same workflow as your payroll runs.'**
+  String get payrollQuickPayScreenSubtitle;
+
   /// No description provided for @payrollQuickPayShortcutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Calculate and process one employee quickly.'**
+  /// **'Pick staff and month, calculate, then pay for this period.'**
   String get payrollQuickPayShortcutSubtitle;
+
+  /// No description provided for @payrollQuickPaySetupCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Period and staff'**
+  String get payrollQuickPaySetupCardTitle;
+
+  /// No description provided for @payrollQuickPayStaffSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose staff'**
+  String get payrollQuickPayStaffSheetTitle;
+
+  /// No description provided for @payrollQuickPayStaffPickerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff member'**
+  String get payrollQuickPayStaffPickerLabel;
+
+  /// No description provided for @payrollQuickPayStaffEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No eligible staff for payroll.'**
+  String get payrollQuickPayStaffEmpty;
+
+  /// No description provided for @payrollQuickPayStatementCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay statement'**
+  String get payrollQuickPayStatementCardTitle;
+
+  /// No description provided for @payrollQuickPayRunStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Run status'**
+  String get payrollQuickPayRunStatusLabel;
+
+  /// No description provided for @payrollQuickPaySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name'**
+  String get payrollQuickPaySearchHint;
+
+  /// No description provided for @payrollQuickPaySearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching staff.'**
+  String get payrollQuickPaySearchEmpty;
 
   /// No description provided for @payrollRunReviewTitle.
   ///
@@ -3589,6 +3955,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All active employees have a recurring payroll setup.'**
   String get payrollMissingSetupEmpty;
+
+  /// No description provided for @payrollDashboardSetupCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll setup'**
+  String get payrollDashboardSetupCardTitle;
+
+  /// No description provided for @payrollSetupEveryoneReadyHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Team is ready'**
+  String get payrollSetupEveryoneReadyHeading;
+
+  /// No description provided for @payrollSetupNeedsAttentionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least one recurring \"basic salary\" payroll entry for each teammate below (opens their payroll setup).'**
+  String get payrollSetupNeedsAttentionSubtitle;
+
+  /// No description provided for @payrollSetupWhereToConfigureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where to configure'**
+  String get payrollSetupWhereToConfigureTitle;
+
+  /// No description provided for @payrollSetupShortcutCatalogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll catalog'**
+  String get payrollSetupShortcutCatalogTitle;
+
+  /// No description provided for @payrollSetupShortcutCatalogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed defaults, earning and deduction rules'**
+  String get payrollSetupShortcutCatalogSubtitle;
+
+  /// No description provided for @payrollSetupShortcutTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get payrollSetupShortcutTeamTitle;
+
+  /// No description provided for @payrollSetupShortcutTeamSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a barber profile → Payroll to add salary entries'**
+  String get payrollSetupShortcutTeamSubtitle;
 
   /// No description provided for @payrollActionSetUp.
   ///
@@ -3788,6 +4202,90 @@ abstract class AppLocalizations {
   /// **'Rollback'**
   String get payrollActionRollback;
 
+  /// No description provided for @payrollReversalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse payroll'**
+  String get payrollReversalTitle;
+
+  /// No description provided for @payrollReversalShortcutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a run, then reverse the whole run or one team member.'**
+  String get payrollReversalShortcutSubtitle;
+
+  /// No description provided for @payrollReversalScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse a payroll run'**
+  String get payrollReversalScreenTitle;
+
+  /// No description provided for @payrollReversalScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a draft, approved, or paid run. Paid runs remove payslips from staff apps—confirm carefully.'**
+  String get payrollReversalScreenSubtitle;
+
+  /// No description provided for @payrollReversalScopeWholeRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole run'**
+  String get payrollReversalScopeWholeRun;
+
+  /// No description provided for @payrollReversalScopeOneMember.
+  ///
+  /// In en, this message translates to:
+  /// **'One team member'**
+  String get payrollReversalScopeOneMember;
+
+  /// No description provided for @payrollReversalSelectRunHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a payroll run'**
+  String get payrollReversalSelectRunHint;
+
+  /// No description provided for @payrollReversalSelectMemberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a team member'**
+  String get payrollReversalSelectMemberHint;
+
+  /// No description provided for @payrollReversalNoRunsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No reversible payroll runs right now.'**
+  String get payrollReversalNoRunsMessage;
+
+  /// No description provided for @payrollReversalPartialUnavailableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This run only includes one person—use whole run to reverse it.'**
+  String get payrollReversalPartialUnavailableHint;
+
+  /// No description provided for @payrollReversalConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse payroll?'**
+  String get payrollReversalConfirmTitle;
+
+  /// No description provided for @payrollReversalConfirmWholeRunMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will roll back the entire run, restore linked violations where applicable, and remove payslips for this period.'**
+  String get payrollReversalConfirmWholeRunMessage;
+
+  /// No description provided for @payrollReversalConfirmOneMemberMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove {employeeName} from this run, roll back their linked violations where applicable, and delete their payslip for this period.'**
+  String payrollReversalConfirmOneMemberMessage(String employeeName);
+
+  /// No description provided for @payrollReversalSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll reversal completed.'**
+  String get payrollReversalSuccess;
+
   /// No description provided for @payrollEmployeeSetupTitle.
   ///
   /// In en, this message translates to:
@@ -3866,23 +4364,59 @@ abstract class AppLocalizations {
   /// **'All active employees'**
   String get payrollRunAllEmployees;
 
+  /// No description provided for @payrollRunAllMatchingStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'All matching staff'**
+  String get payrollRunAllMatchingStaff;
+
   /// No description provided for @payrollRunValidation.
   ///
   /// In en, this message translates to:
   /// **'Choose a payroll period before calculating.'**
   String get payrollRunValidation;
 
-  /// No description provided for @payrollRunReviewEmptyTitle.
+  /// No description provided for @payrollRunReviewHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'No payroll run draft yet'**
-  String get payrollRunReviewEmptyTitle;
+  /// **'Payroll history'**
+  String get payrollRunReviewHistoryTitle;
 
-  /// No description provided for @payrollRunReviewEmptySubtitle.
+  /// No description provided for @payrollRunReviewHistorySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pick a period and calculate the run to review grouped payroll totals.'**
-  String get payrollRunReviewEmptySubtitle;
+  /// **'Approved and paid payroll runs (drafts are hidden). Tap an approved run to pay or roll back.'**
+  String get payrollRunReviewHistorySubtitle;
+
+  /// No description provided for @payrollRunReviewHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No payroll transactions yet. Calculate a run above to get started.'**
+  String get payrollRunReviewHistoryEmpty;
+
+  /// No description provided for @payrollHistoryApprovedSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved — not paid yet'**
+  String get payrollHistoryApprovedSheetTitle;
+
+  /// No description provided for @payrollHistoryApprovedSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as paid after you transfer funds, or roll back to undo this approval.'**
+  String get payrollHistoryApprovedSheetBody;
+
+  /// No description provided for @payrollHistoryMarkedPaidSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as paid.'**
+  String get payrollHistoryMarkedPaidSnack;
+
+  /// No description provided for @payrollHistoryRollbackSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll run rolled back.'**
+  String get payrollHistoryRollbackSnack;
 
   /// No description provided for @payrollRunEmployeeSummary.
   ///
@@ -4045,6 +4579,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Occasional updates from your salon or the app.'**
   String get notificationsPrefMarketingHint;
+
+  /// No description provided for @notificationsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get notificationsFilterAll;
+
+  /// No description provided for @notificationsFilterUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get notificationsFilterUnread;
+
+  /// No description provided for @notificationsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notificationsEmptyTitle;
+
+  /// No description provided for @notificationsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates about bookings, attendance, payroll, and team activity will appear here.'**
+  String get notificationsEmptySubtitle;
+
+  /// No description provided for @notificationsFirestoreIndexBuildingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your inbox will load shortly — Firestore is finishing the notification index. Pull to refresh or try again in a minute.'**
+  String get notificationsFirestoreIndexBuildingSubtitle;
+
+  /// No description provided for @notificationsMarkAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsSettingBookingUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking updates'**
+  String get notificationsSettingBookingUpdates;
+
+  /// No description provided for @notificationsSettingAttendanceUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance updates'**
+  String get notificationsSettingAttendanceUpdates;
+
+  /// No description provided for @notificationsSettingPayrollUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll updates'**
+  String get notificationsSettingPayrollUpdates;
+
+  /// No description provided for @notificationsSettingApprovals.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval requests'**
+  String get notificationsSettingApprovals;
+
+  /// No description provided for @notificationsSettingSystemAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'System alerts'**
+  String get notificationsSettingSystemAlerts;
 
   /// No description provided for @notificationsInboxTooltip.
   ///
@@ -7092,6 +7692,66 @@ abstract class AppLocalizations {
   /// **'No sales recorded yet.'**
   String get ownerOverviewRevenueMonthHintEmpty;
 
+  /// No description provided for @ownerOverviewRevenueMonthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue trend for the current month'**
+  String get ownerOverviewRevenueMonthSubtitle;
+
+  /// No description provided for @ownerOverviewRevenueMonthEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No revenue yet this month'**
+  String get ownerOverviewRevenueMonthEmpty;
+
+  /// No description provided for @ownerOverviewRevenueMonthTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Month total: {amount}'**
+  String ownerOverviewRevenueMonthTotal(String amount);
+
+  /// No description provided for @ownerOverviewRevenuePeriodDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get ownerOverviewRevenuePeriodDay;
+
+  /// No description provided for @ownerOverviewRevenuePeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get ownerOverviewRevenuePeriodMonth;
+
+  /// No description provided for @ownerOverviewRevenuePeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get ownerOverviewRevenuePeriodWeek;
+
+  /// No description provided for @ownerOverviewRevenueTodayByHourTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue today'**
+  String get ownerOverviewRevenueTodayByHourTitle;
+
+  /// No description provided for @ownerOverviewRevenueTodayByHourSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'By hour (your local time)'**
+  String get ownerOverviewRevenueTodayByHourSubtitle;
+
+  /// No description provided for @ownerOverviewRevenueTodayByHourEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No revenue yet today'**
+  String get ownerOverviewRevenueTodayByHourEmpty;
+
+  /// No description provided for @ownerOverviewRevenueTodayByHourTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Today total: {amount}'**
+  String ownerOverviewRevenueTodayByHourTotal(String amount);
+
   /// No description provided for @ownerOverviewRevenueThisWeekTitle.
   ///
   /// In en, this message translates to:
@@ -7116,11 +7776,53 @@ abstract class AppLocalizations {
   /// **'Week total: {amount}'**
   String ownerOverviewRevenueThisWeekTotal(String amount);
 
+  /// No description provided for @ownerOverviewTeamPerformanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team performance'**
+  String get ownerOverviewTeamPerformanceTitle;
+
+  /// No description provided for @ownerOverviewTeamPerformanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top barbers by today’s revenue'**
+  String get ownerOverviewTeamPerformanceSubtitle;
+
+  /// No description provided for @ownerOverviewTeamPerformanceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No services recorded yet today'**
+  String get ownerOverviewTeamPerformanceEmpty;
+
+  /// No description provided for @ownerOverviewTeamPerformanceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load team performance'**
+  String get ownerOverviewTeamPerformanceError;
+
+  /// No description provided for @ownerOverviewTeamPerformanceFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Team member'**
+  String get ownerOverviewTeamPerformanceFallbackName;
+
+  /// No description provided for @ownerOverviewTeamPerformanceServicesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{0 services today} one{1 service today} other{{count} services today}}'**
+  String ownerOverviewTeamPerformanceServicesToday(int count);
+
   /// No description provided for @ownerOverviewKpiPendingRequests.
   ///
   /// In en, this message translates to:
   /// **'Pending requests'**
   String get ownerOverviewKpiPendingRequests;
+
+  /// No description provided for @ownerOverviewKpiPendingApprovals.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approvals'**
+  String get ownerOverviewKpiPendingApprovals;
 
   /// No description provided for @ownerOverviewDashboardTagline.
   ///
@@ -7158,6 +7860,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 request needs review.} other{{count} requests need review.}}'**
   String ownerOverviewTodayInsightPendingRequests(int count);
 
+  /// No description provided for @ownerOverviewTodayInsightPendingApprovals.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 attendance request needs your review.} other{{count} attendance requests need your review.}}'**
+  String ownerOverviewTodayInsightPendingApprovals(int count);
+
   /// No description provided for @ownerOverviewRecentServicesTitle.
   ///
   /// In en, this message translates to:
@@ -7185,7 +7893,7 @@ abstract class AppLocalizations {
   /// No description provided for @ownerOverviewBestBarberSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Best barber today · {amount}'**
+  /// **'Best team member today · {amount}'**
   String ownerOverviewBestBarberSubtitle(String amount);
 
   /// No description provided for @ownerOverviewRecentActivityTitle.
@@ -7284,6 +7992,12 @@ abstract class AppLocalizations {
   /// **'Bookings today'**
   String get ownerOverviewStatBookingsToday;
 
+  /// No description provided for @ownerOverviewStatServicesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Services today'**
+  String get ownerOverviewStatServicesToday;
+
   /// No description provided for @ownerOverviewStatCompletedToday.
   ///
   /// In en, this message translates to:
@@ -7295,6 +8009,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checked in'**
   String get ownerOverviewStatCheckedIn;
+
+  /// No description provided for @ownerOverviewStatWorkingNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Working now'**
+  String get ownerOverviewStatWorkingNow;
 
   /// No description provided for @ownerOverviewQuickActionsTitle.
   ///
@@ -8100,6 +8820,30 @@ abstract class AppLocalizations {
   /// **'Top Performers'**
   String get teamFilterTopPerformers;
 
+  /// No description provided for @teamFilterTopServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Services'**
+  String get teamFilterTopServices;
+
+  /// No description provided for @teamFilterTopPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Performance'**
+  String get teamFilterTopPerformance;
+
+  /// No description provided for @teamFilterOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Old'**
+  String get teamFilterOldest;
+
+  /// No description provided for @teamFilterNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get teamFilterNewest;
+
   /// No description provided for @teamFilterNeedsAttention.
   ///
   /// In en, this message translates to:
@@ -8135,6 +8879,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filter team'**
   String get teamFilterAction;
+
+  /// No description provided for @teamSortAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort team'**
+  String get teamSortAction;
+
+  /// No description provided for @teamSortSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get teamSortSheetTitle;
+
+  /// No description provided for @teamSortNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name A–Z'**
+  String get teamSortNameAsc;
+
+  /// No description provided for @teamSortNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Name Z–A'**
+  String get teamSortNameDesc;
+
+  /// No description provided for @teamSortRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get teamSortRole;
+
+  /// No description provided for @teamSortJoinedNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest hire first'**
+  String get teamSortJoinedNewest;
+
+  /// No description provided for @teamSortJoinedOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest hire first'**
+  String get teamSortJoinedOldest;
+
+  /// No description provided for @teamSortSalesToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s sales'**
+  String get teamSortSalesToday;
+
+  /// No description provided for @teamSortSalesMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month\'s sales'**
+  String get teamSortSalesMonth;
 
   /// No description provided for @teamEmptyTitle.
   ///
@@ -8435,6 +9233,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get teamFieldPhone;
+
+  /// No description provided for @teamFieldHiringDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Hiring date'**
+  String get teamFieldHiringDate;
+
+  /// No description provided for @teamFieldHiringDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly base salary in payroll is prorated by calendar days from this date.'**
+  String get teamFieldHiringDateHint;
 
   /// No description provided for @teamFieldRole.
   ///
@@ -8940,11 +9750,11 @@ abstract class AppLocalizations {
   /// **'Commission rate (%)'**
   String get teamFieldCommissionPercentagePercent;
 
-  /// No description provided for @teamFieldCommissionFixedSar.
+  /// No description provided for @teamFieldCommissionFixedAmount.
   ///
   /// In en, this message translates to:
-  /// **'Fixed amount (SAR)'**
-  String get teamFieldCommissionFixedSar;
+  /// **'Fixed amount ({currencyCode})'**
+  String teamFieldCommissionFixedAmount(String currencyCode);
 
   /// No description provided for @teamCommissionPercentInputHint.
   ///
@@ -9042,14 +9852,18 @@ abstract class AppLocalizations {
   /// No description provided for @teamCommissionSummaryFixed.
   ///
   /// In en, this message translates to:
-  /// **'{amount} SAR'**
-  String teamCommissionSummaryFixed(String amount);
+  /// **'{amount} {currencyCode}'**
+  String teamCommissionSummaryFixed(String amount, String currencyCode);
 
   /// No description provided for @teamCommissionSummaryMixed.
   ///
   /// In en, this message translates to:
-  /// **'{percent}% + {amount} SAR'**
-  String teamCommissionSummaryMixed(String percent, String amount);
+  /// **'{percent}% + {amount} {currencyCode}'**
+  String teamCommissionSummaryMixed(
+    String percent,
+    String amount,
+    String currencyCode,
+  );
 
   /// No description provided for @teamFieldCommissionValue.
   ///
@@ -9198,13 +10012,13 @@ abstract class AppLocalizations {
   /// No description provided for @teamMemberAttendanceCheckInLabel.
   ///
   /// In en, this message translates to:
-  /// **'Check-in'**
+  /// **'Punch in'**
   String get teamMemberAttendanceCheckInLabel;
 
   /// No description provided for @teamMemberAttendanceCheckOutLabel.
   ///
   /// In en, this message translates to:
-  /// **'Check-out'**
+  /// **'Punch out'**
   String get teamMemberAttendanceCheckOutLabel;
 
   /// No description provided for @teamMemberAttendanceAddManual.
@@ -9240,7 +10054,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamMemberAttendanceSummaryMissingCheckout.
   ///
   /// In en, this message translates to:
-  /// **'Missing check-outs'**
+  /// **'Missing punch-outs'**
   String get teamMemberAttendanceSummaryMissingCheckout;
 
   /// No description provided for @teamMemberAttendanceSummaryMissingCheckoutHint.
@@ -9260,6 +10074,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'corrections'**
   String get teamMemberAttendanceSummaryPendingRequestsHint;
+
+  /// No description provided for @teamMemberAttendanceNoShiftAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift assigned. Open Weekly Shifts to set one.'**
+  String get teamMemberAttendanceNoShiftAssigned;
 
   /// No description provided for @teamMemberAttendanceSummaryDaysUnit.
   ///
@@ -9363,6 +10183,60 @@ abstract class AppLocalizations {
   /// **'Recent attendance'**
   String get teamMemberAttendanceHistoryTitle;
 
+  /// No description provided for @teamMemberAttendanceFullHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All attendance'**
+  String get teamMemberAttendanceFullHistoryTitle;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get teamMemberAttendanceHistoryFilterTitle;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get teamMemberAttendanceHistoryFilterFrom;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get teamMemberAttendanceHistoryFilterTo;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get teamMemberAttendanceHistoryFilterApply;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get teamMemberAttendanceHistoryFilterClear;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterSelectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get teamMemberAttendanceHistoryFilterSelectDate;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterNeedBothDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Select both start and end dates.'**
+  String get teamMemberAttendanceHistoryFilterNeedBothDates;
+
+  /// No description provided for @teamMemberAttendanceHistoryFilterEmptyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance in this range.'**
+  String get teamMemberAttendanceHistoryFilterEmptyRange;
+
   /// No description provided for @teamMemberAttendanceViewAll.
   ///
   /// In en, this message translates to:
@@ -9374,6 +10248,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No attendance records yet'**
   String get teamMemberAttendanceHistoryEmpty;
+
+  /// No description provided for @teamMemberAttendanceRecordStatusCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get teamMemberAttendanceRecordStatusCheckedIn;
 
   /// No description provided for @teamMemberAttendanceRecordStatusPresent.
   ///
@@ -9404,6 +10284,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Absent'**
   String get teamMemberAttendanceRecordStatusAbsent;
+
+  /// No description provided for @teamMemberAttendanceRecordStatusOnBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'On break'**
+  String get teamMemberAttendanceRecordStatusOnBreak;
 
   /// No description provided for @teamMemberAttendanceManualSaved.
   ///
@@ -9501,6 +10387,252 @@ abstract class AppLocalizations {
   /// **'Reject'**
   String get teamMemberAttendanceReviewConfirmReject;
 
+  /// No description provided for @attendanceAdjustmentSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust attendance'**
+  String get attendanceAdjustmentSheetTitle;
+
+  /// No description provided for @attendanceAdjustmentSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes are saved on the server and recorded in the audit log. Payroll summaries may update for this month.'**
+  String get attendanceAdjustmentSheetSubtitle;
+
+  /// No description provided for @attendanceAdjustmentShiftOffDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Off day'**
+  String get attendanceAdjustmentShiftOffDay;
+
+  /// No description provided for @attendanceAdjustmentDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get attendanceAdjustmentDateLabel;
+
+  /// No description provided for @attendanceAdjustmentShiftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get attendanceAdjustmentShiftLabel;
+
+  /// No description provided for @attendanceAdjustmentStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get attendanceAdjustmentStatusLabel;
+
+  /// No description provided for @attendanceAdjustmentStatusPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get attendanceAdjustmentStatusPresent;
+
+  /// No description provided for @attendanceAdjustmentStatusLateChips.
+  ///
+  /// In en, this message translates to:
+  /// **'Late'**
+  String get attendanceAdjustmentStatusLateChips;
+
+  /// No description provided for @attendanceAdjustmentStatusAbsentChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get attendanceAdjustmentStatusAbsentChip;
+
+  /// No description provided for @attendanceAdjustmentStatusDayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Day off'**
+  String get attendanceAdjustmentStatusDayOff;
+
+  /// No description provided for @attendanceAdjustmentNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get attendanceAdjustmentNotSet;
+
+  /// No description provided for @attendanceAdjustmentLateMinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Late (min)'**
+  String get attendanceAdjustmentLateMinLabel;
+
+  /// No description provided for @attendanceAdjustmentEarlyExitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Early exit (min)'**
+  String get attendanceAdjustmentEarlyExitLabel;
+
+  /// No description provided for @attendanceAdjustmentMissingCheckoutLabelShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing out'**
+  String get attendanceAdjustmentMissingCheckoutLabelShort;
+
+  /// No description provided for @attendanceAdjustmentMinutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String attendanceAdjustmentMinutesValue(int minutes);
+
+  /// No description provided for @attendanceAdjustmentYesWithMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes (+{minutes} pen.)'**
+  String attendanceAdjustmentYesWithMinutes(int minutes);
+
+  /// No description provided for @attendanceAdjustmentNoAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get attendanceAdjustmentNoAbbr;
+
+  /// No description provided for @attendanceAdjustmentErrorReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a reason for this adjustment.'**
+  String get attendanceAdjustmentErrorReasonRequired;
+
+  /// No description provided for @attendanceAdjustmentSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction saved.'**
+  String get attendanceAdjustmentSaveSuccess;
+
+  /// No description provided for @attendanceAdjustmentCloudError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save: {code}'**
+  String attendanceAdjustmentCloudError(String code);
+
+  /// No description provided for @attendanceAdjustmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save attendance. Try again.'**
+  String get attendanceAdjustmentSaveFailed;
+
+  /// No description provided for @attendanceAdjustmentTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Punch times'**
+  String get attendanceAdjustmentTimesLabel;
+
+  /// No description provided for @attendanceAdjustmentBreakOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Break start'**
+  String get attendanceAdjustmentBreakOutLabel;
+
+  /// No description provided for @attendanceAdjustmentBreakInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Break end'**
+  String get attendanceAdjustmentBreakInLabel;
+
+  /// No description provided for @attendanceAdjustmentMissingCheckoutWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Punch-out is missing. Minutes may include the missing check-out penalty from salon settings.'**
+  String get attendanceAdjustmentMissingCheckoutWarning;
+
+  /// No description provided for @attendanceAdjustmentReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get attendanceAdjustmentReasonLabel;
+
+  /// No description provided for @attendanceAdjustmentReasonPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a reason'**
+  String get attendanceAdjustmentReasonPlaceholder;
+
+  /// No description provided for @attendanceAdjustmentReasonForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot punch'**
+  String get attendanceAdjustmentReasonForgot;
+
+  /// No description provided for @attendanceAdjustmentReasonGps.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS / device issue'**
+  String get attendanceAdjustmentReasonGps;
+
+  /// No description provided for @attendanceAdjustmentReasonSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule correction'**
+  String get attendanceAdjustmentReasonSchedule;
+
+  /// No description provided for @attendanceAdjustmentReasonPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll sync'**
+  String get attendanceAdjustmentReasonPayroll;
+
+  /// No description provided for @attendanceAdjustmentReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get attendanceAdjustmentReasonOther;
+
+  /// No description provided for @attendanceAdjustmentManagerNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal note (optional)'**
+  String get attendanceAdjustmentManagerNoteLabel;
+
+  /// No description provided for @attendanceAdjustmentAuditFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'This action creates an adjustment record and updates monthly payroll summaries when applicable.'**
+  String get attendanceAdjustmentAuditFootnote;
+
+  /// No description provided for @attendanceAdjustmentSaveCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Save correction'**
+  String get attendanceAdjustmentSaveCta;
+
+  /// No description provided for @attendanceAdjustmentFirestoreDocLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Firestore path · '**
+  String get attendanceAdjustmentFirestoreDocLabel;
+
+  /// No description provided for @attendanceAdjustmentSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Please sign in again.'**
+  String get attendanceAdjustmentSessionExpired;
+
+  /// No description provided for @attendanceAdjustmentPermissionDeniedSave.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to save this correction.'**
+  String get attendanceAdjustmentPermissionDeniedSave;
+
+  /// No description provided for @attendanceAdjustmentServerUnavailableSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Please try again.'**
+  String get attendanceAdjustmentServerUnavailableSave;
+
+  /// No description provided for @attendanceAdjustmentSaveFailedMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the correction. Please try again.'**
+  String get attendanceAdjustmentSaveFailedMapped;
+
+  /// No description provided for @attendanceAdjustmentLoadContextFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this screen. Please try again.'**
+  String get attendanceAdjustmentLoadContextFailed;
+
   /// No description provided for @teamDetailsLoadErrorTitle.
   ///
   /// In en, this message translates to:
@@ -9552,7 +10684,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamDetailsJoinDate.
   ///
   /// In en, this message translates to:
-  /// **'Join date'**
+  /// **'Hiring date'**
   String get teamDetailsJoinDate;
 
   /// No description provided for @teamDetailsCommissionRate.
@@ -9576,7 +10708,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamProfileJoinDateMissing.
   ///
   /// In en, this message translates to:
-  /// **'Join date not available'**
+  /// **'Hiring date not available'**
   String get teamProfileJoinDateMissing;
 
   /// No description provided for @teamProfileSectionContact.
@@ -9698,6 +10830,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disabled'**
   String get teamValueDisabled;
+
+  /// No description provided for @teamCardTeamMemberSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team member'**
+  String get teamCardTeamMemberSubtitle;
+
+  /// No description provided for @teamCardNameMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed'**
+  String get teamCardNameMissing;
+
+  /// No description provided for @teamMemberPerformanceUnrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrated'**
+  String get teamMemberPerformanceUnrated;
+
+  /// No description provided for @teamCardEmployeeId.
+  ///
+  /// In en, this message translates to:
+  /// **'ID · {id}'**
+  String teamCardEmployeeId(String id);
+
+  /// No description provided for @teamCardChipLabelStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get teamCardChipLabelStatus;
+
+  /// No description provided for @teamCardChipLabelAttendToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Attend today'**
+  String get teamCardChipLabelAttendToday;
+
+  /// No description provided for @teamCardAttendWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working'**
+  String get teamCardAttendWorking;
+
+  /// No description provided for @teamCardAttendCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get teamCardAttendCompleted;
+
+  /// No description provided for @teamCardAttendAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get teamCardAttendAbsent;
+
+  /// No description provided for @teamCardAttendTodayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Today off'**
+  String get teamCardAttendTodayOff;
+
+  /// No description provided for @teamCardAttendNoCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-in'**
+  String get teamCardAttendNoCheckIn;
+
+  /// No description provided for @teamCardSwipeBrowseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to browse team'**
+  String get teamCardSwipeBrowseHint;
+
+  /// No description provided for @teamDeckFooterMemberCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 team member} other{{count} team members}}'**
+  String teamDeckFooterMemberCount(int count);
 
   /// No description provided for @teamCommissionPercentValue.
   ///
@@ -9879,6 +11089,18 @@ abstract class AppLocalizations {
   /// **'—'**
   String get teamMemberSalesNotAvailableShort;
 
+  /// No description provided for @teamMemberSalesReceiptTapToEnlarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt photo, tap to enlarge'**
+  String get teamMemberSalesReceiptTapToEnlarge;
+
+  /// No description provided for @teamMemberSalesReceiptViewerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get teamMemberSalesReceiptViewerTitle;
+
   /// No description provided for @teamNoAttendanceTodayTitle.
   ///
   /// In en, this message translates to:
@@ -10029,6 +11251,54 @@ abstract class AppLocalizations {
   /// **'Inactive'**
   String get teamServicesServiceInactive;
 
+  /// No description provided for @teamServicesEditAssignmentCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage the services this barber can perform.'**
+  String get teamServicesEditAssignmentCardSubtitle;
+
+  /// No description provided for @teamServicesAssignedSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Services this barber is currently offering.'**
+  String get teamServicesAssignedSectionSubtitle;
+
+  /// No description provided for @teamServicesAssignServicesAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign services'**
+  String get teamServicesAssignServicesAction;
+
+  /// No description provided for @teamServicesAssignmentSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get teamServicesAssignmentSelectAll;
+
+  /// No description provided for @teamServicesAssignmentClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get teamServicesAssignmentClearSelection;
+
+  /// No description provided for @teamServicesRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get teamServicesRetryAction;
+
+  /// No description provided for @teamServicesLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load assignments'**
+  String get teamServicesLoadErrorTitle;
+
+  /// No description provided for @teamServicesUnnamedService.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed service'**
+  String get teamServicesUnnamedService;
+
   /// No description provided for @teamBookingPrepPublicDisplayName.
   ///
   /// In en, this message translates to:
@@ -10113,11 +11383,29 @@ abstract class AppLocalizations {
   /// **'Sales vs expenses'**
   String get moneyDashboardTrendTitle;
 
-  /// No description provided for @moneyDashboardTrendSubtitle.
+  /// No description provided for @moneyDashboardTrendSubtitleDaily.
   ///
   /// In en, this message translates to:
-  /// **'Track how revenue and costs moved across the selected month.'**
-  String get moneyDashboardTrendSubtitle;
+  /// **'Track how revenue and costs moved day by day in the selected month.'**
+  String get moneyDashboardTrendSubtitleDaily;
+
+  /// No description provided for @moneyDashboardTrendSubtitleWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Track how revenue and costs moved by week in the selected month.'**
+  String get moneyDashboardTrendSubtitleWeekly;
+
+  /// No description provided for @moneyDashboardTrendSubtitleMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Track how revenue and costs moved across recent months.'**
+  String get moneyDashboardTrendSubtitleMonthly;
+
+  /// No description provided for @moneyDashboardTrendSubtitleYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Track how revenue and costs moved across recent calendar years.'**
+  String get moneyDashboardTrendSubtitleYearly;
 
   /// No description provided for @moneyDashboardSalesLegend.
   ///
@@ -10212,7 +11500,7 @@ abstract class AppLocalizations {
   /// No description provided for @moneyDashboardNetLossWarning.
   ///
   /// In en, this message translates to:
-  /// **'Net profit is negative after payroll. Trim discretionary expenses, revisit pricing, and review payroll timing for this month.'**
+  /// **'Net profit is negative for this month (completed sales minus expenses and payroll in this period). Trim discretionary spending, revisit pricing, and check payroll runs when they apply.'**
   String get moneyDashboardNetLossWarning;
 
   /// No description provided for @moneyDashboardTrendPeakSalesSummary.
@@ -10253,6 +11541,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily'**
   String get moneyDashboardChartGranularityDaily;
+
+  /// No description provided for @moneyDashboardChartGranularityWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get moneyDashboardChartGranularityWeekly;
+
+  /// No description provided for @moneyDashboardChartGranularityMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get moneyDashboardChartGranularityMonthly;
+
+  /// No description provided for @moneyDashboardChartGranularityYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get moneyDashboardChartGranularityYearly;
+
+  /// No description provided for @moneyDashboardChartGranularityPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart period'**
+  String get moneyDashboardChartGranularityPickerTitle;
 
   /// No description provided for @moneyDashboardKpiTrendNoData.
   ///
@@ -10716,6 +12028,24 @@ abstract class AppLocalizations {
   /// **'Add another service'**
   String get addSaleAddAnotherService;
 
+  /// No description provided for @addSaleAllServicesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All services'**
+  String get addSaleAllServicesSectionTitle;
+
+  /// No description provided for @addSaleSelectedServiceLineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In this sale'**
+  String get addSaleSelectedServiceLineSubtitle;
+
+  /// No description provided for @addSaleClearSearchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get addSaleClearSearchTooltip;
+
   /// No description provided for @addSaleBarberLabel.
   ///
   /// In en, this message translates to:
@@ -11169,14 +12499,32 @@ abstract class AppLocalizations {
   /// No description provided for @employeeTodayBreakOut.
   ///
   /// In en, this message translates to:
-  /// **'Break out'**
+  /// **'Leave for break'**
   String get employeeTodayBreakOut;
 
   /// No description provided for @employeeTodayBreakIn.
   ///
   /// In en, this message translates to:
-  /// **'Break in'**
+  /// **'Return from break'**
   String get employeeTodayBreakIn;
+
+  /// No description provided for @employeeTodayBreakCountdownRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining break time: {time}'**
+  String employeeTodayBreakCountdownRemaining(String time);
+
+  /// No description provided for @employeeTodayBreakCountdownExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Break exceeded by {time}'**
+  String employeeTodayBreakCountdownExceeded(String time);
+
+  /// No description provided for @employeeTodayBreakOutsideShift.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only start a break during your scheduled shift hours.'**
+  String get employeeTodayBreakOutsideShift;
 
   /// No description provided for @employeeTodayCompletedForToday.
   ///
@@ -11640,6 +12988,252 @@ abstract class AppLocalizations {
   /// **'Auto-filled price'**
   String get ownerAddSaleAutoPrice;
 
+  /// No description provided for @addSaleModeBookingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code'**
+  String get addSaleModeBookingCode;
+
+  /// No description provided for @addSaleModeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual sale'**
+  String get addSaleModeManual;
+
+  /// No description provided for @addSaleDualSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from a guest booking code or record a manual sale.'**
+  String get addSaleDualSubtitle;
+
+  /// No description provided for @addSaleBookingCodeFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code'**
+  String get addSaleBookingCodeFieldLabel;
+
+  /// No description provided for @addSaleBookingCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter booking code'**
+  String get addSaleBookingCodeHint;
+
+  /// No description provided for @addSaleBookingCodeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: ZR-AB12CD'**
+  String get addSaleBookingCodeExample;
+
+  /// No description provided for @addSaleRetrieveBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrieve booking'**
+  String get addSaleRetrieveBooking;
+
+  /// No description provided for @addSaleCreateFromBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Create sale'**
+  String get addSaleCreateFromBooking;
+
+  /// No description provided for @addSaleBookingFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking found'**
+  String get addSaleBookingFound;
+
+  /// No description provided for @addSaleBookingSectionPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get addSaleBookingSectionPayment;
+
+  /// No description provided for @addSaleBookingSectionAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment'**
+  String get addSaleBookingSectionAppointment;
+
+  /// No description provided for @addSaleBookingSectionServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get addSaleBookingSectionServices;
+
+  /// No description provided for @addSaleBookingSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get addSaleBookingSubtotal;
+
+  /// No description provided for @addSaleBookingDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get addSaleBookingDiscount;
+
+  /// No description provided for @addSaleBookingTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get addSaleBookingTotal;
+
+  /// No description provided for @addSaleBookingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking status'**
+  String get addSaleBookingStatus;
+
+  /// No description provided for @addSalePaymentStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get addSalePaymentStatusPending;
+
+  /// No description provided for @addSalePaymentStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get addSalePaymentStatusPaid;
+
+  /// No description provided for @addSalePaymentStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get addSalePaymentStatusFailed;
+
+  /// No description provided for @addSalePaymentStatusRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get addSalePaymentStatusRefunded;
+
+  /// No description provided for @addSalePaymentMethodUnspecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unspecified'**
+  String get addSalePaymentMethodUnspecified;
+
+  /// No description provided for @addSaleBookingErrorEmptyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a booking code.'**
+  String get addSaleBookingErrorEmptyCode;
+
+  /// No description provided for @addSaleBookingErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code not found.'**
+  String get addSaleBookingErrorNotFound;
+
+  /// No description provided for @addSaleBookingErrorWrongSalon.
+  ///
+  /// In en, this message translates to:
+  /// **'This booking does not belong to this salon.'**
+  String get addSaleBookingErrorWrongSalon;
+
+  /// No description provided for @addSaleBookingErrorCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This booking is cancelled.'**
+  String get addSaleBookingErrorCancelled;
+
+  /// No description provided for @addSaleBookingErrorSaleExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A sale was already created for this booking.'**
+  String get addSaleBookingErrorSaleExists;
+
+  /// No description provided for @addSaleBookingErrorNoServices.
+  ///
+  /// In en, this message translates to:
+  /// **'This booking has no services.'**
+  String get addSaleBookingErrorNoServices;
+
+  /// No description provided for @addSaleBookingErrorZeroTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total must be greater than zero.'**
+  String get addSaleBookingErrorZeroTotal;
+
+  /// No description provided for @addSaleBookingErrorBarberMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking barber does not match.'**
+  String get addSaleBookingErrorBarberMismatch;
+
+  /// No description provided for @addSaleBookingErrorNotYourBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only use bookings assigned to you.'**
+  String get addSaleBookingErrorNotYourBooking;
+
+  /// No description provided for @addSaleBookingErrorNoPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrieve the booking first.'**
+  String get addSaleBookingErrorNoPreview;
+
+  /// No description provided for @addSaleBookingErrorNoSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again to continue.'**
+  String get addSaleBookingErrorNoSession;
+
+  /// No description provided for @addSaleBookingErrorBarberMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned barber was not found.'**
+  String get addSaleBookingErrorBarberMissing;
+
+  /// No description provided for @addSaleBookingErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get addSaleBookingErrorUnknown;
+
+  /// No description provided for @addSaleBookingSaleCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale created'**
+  String get addSaleBookingSaleCreated;
+
+  /// No description provided for @addSaleBookingSalon.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon'**
+  String get addSaleBookingSalon;
+
+  /// No description provided for @addSaleBookingCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code'**
+  String get addSaleBookingCodeLabel;
+
+  /// No description provided for @addSaleBookingCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get addSaleBookingCustomer;
+
+  /// No description provided for @addSaleBookingBarber.
+  ///
+  /// In en, this message translates to:
+  /// **'Barber'**
+  String get addSaleBookingBarber;
+
+  /// No description provided for @addSalePaymentMethodWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get addSalePaymentMethodWallet;
+
+  /// No description provided for @addSaleBookingErrorManualNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer name is required.'**
+  String get addSaleBookingErrorManualNameRequired;
+
   /// No description provided for @authV2WelcomeTitle.
   ///
   /// In en, this message translates to:
@@ -11988,6 +13582,90 @@ abstract class AppLocalizations {
   /// **'OR'**
   String get authV2OrDivider;
 
+  /// No description provided for @guestAuthOrDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get guestAuthOrDivider;
+
+  /// No description provided for @guestAuthContinueAsGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue as guest'**
+  String get guestAuthContinueAsGuest;
+
+  /// No description provided for @guestAuthGuestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No account needed. Discover salons and book in seconds.'**
+  String get guestAuthGuestSubtitle;
+
+  /// No description provided for @guestAuthSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to continue as guest: {details}'**
+  String guestAuthSignInFailed(String details);
+
+  /// No description provided for @guestAuthSessionTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is taking too long to load. Check your connection and try again.'**
+  String get guestAuthSessionTimeout;
+
+  /// No description provided for @guestNicknameScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How should we call you?'**
+  String get guestNicknameScreenTitle;
+
+  /// No description provided for @guestNicknameScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a nickname for the salon team. We’ll make it unique.'**
+  String get guestNicknameScreenSubtitle;
+
+  /// No description provided for @guestNicknameFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname'**
+  String get guestNicknameFieldLabel;
+
+  /// No description provided for @guestNicknameSuggestedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your display name'**
+  String get guestNicknameSuggestedLabel;
+
+  /// No description provided for @guestNicknameContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get guestNicknameContinue;
+
+  /// No description provided for @guestNicknameErrorTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least 2 characters.'**
+  String get guestNicknameErrorTooShort;
+
+  /// No description provided for @guestNicknameErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use letters and numbers only.'**
+  String get guestNicknameErrorInvalid;
+
+  /// No description provided for @guestNicknameErrorReserveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reserve that name. Try again.'**
+  String get guestNicknameErrorReserveFailed;
+
+  /// No description provided for @customerBookingReviewMissingGuestNickname.
+  ///
+  /// In en, this message translates to:
+  /// **'Please set your guest nickname first.'**
+  String get customerBookingReviewMissingGuestNickname;
+
   /// No description provided for @authV2ContinueGoogle.
   ///
   /// In en, this message translates to:
@@ -12249,8 +13927,140 @@ abstract class AppLocalizations {
   /// No description provided for @customersCountBadge.
   ///
   /// In en, this message translates to:
-  /// **'{count} customers'**
+  /// **'{count, plural, =0{0 customers} one{1 customer} other{{count} customers}}'**
   String customersCountBadge(int count);
+
+  /// No description provided for @customersGoldenInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden customers'**
+  String get customersGoldenInfoTitle;
+
+  /// No description provided for @customersGoldenInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track visits, bookings, and spending.'**
+  String get customersGoldenInfoSubtitle;
+
+  /// No description provided for @customersGoldenInfoDismissSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss tip'**
+  String get customersGoldenInfoDismissSemantics;
+
+  /// No description provided for @customersInsightsThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get customersInsightsThisMonth;
+
+  /// No description provided for @customersInsightsNewThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'New customers'**
+  String get customersInsightsNewThisMonth;
+
+  /// No description provided for @customersInsightsReturningThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Returning'**
+  String get customersInsightsReturningThisMonth;
+
+  /// No description provided for @customersInsightsTotalCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Total active'**
+  String get customersInsightsTotalCustomers;
+
+  /// No description provided for @customersInsightsTotalSpent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total spending'**
+  String get customersInsightsTotalSpent;
+
+  /// No description provided for @customersInsightsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load insights.'**
+  String get customersInsightsLoadError;
+
+  /// No description provided for @customersLastServiceLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Last service: {serviceName}'**
+  String customersLastServiceLine(String serviceName);
+
+  /// No description provided for @customersActionCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call customer'**
+  String get customersActionCall;
+
+  /// No description provided for @customersActionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message on WhatsApp'**
+  String get customersActionMessage;
+
+  /// No description provided for @customersActionViewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get customersActionViewProfile;
+
+  /// No description provided for @customersActionCouldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link.'**
+  String get customersActionCouldNotOpen;
+
+  /// No description provided for @customersListFooterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Build your customer list'**
+  String get customersListFooterTitle;
+
+  /// No description provided for @customersListFooterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add walk-in customers, link bookings, and track loyalty automatically.'**
+  String get customersListFooterSubtitle;
+
+  /// No description provided for @customersFilterEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get customersFilterEmptyTitle;
+
+  /// No description provided for @customersFilterEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search or chip, or clear filters.'**
+  String get customersFilterEmptySubtitle;
+
+  /// No description provided for @customersClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get customersClearFilters;
+
+  /// No description provided for @customersSearchEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No search results'**
+  String get customersSearchEmptyTitle;
+
+  /// No description provided for @customersSearchEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different name or phone, or clear the search.'**
+  String get customersSearchEmptySubtitle;
+
+  /// No description provided for @customersClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get customersClearSearch;
 
   /// No description provided for @customersAddCustomerFab.
   ///
@@ -13617,8 +15427,8 @@ abstract class AppLocalizations {
   /// No description provided for @employeePolicyGpsSummary.
   ///
   /// In en, this message translates to:
-  /// **'Your salon uses GPS attendance when enabled. Punch limits: {maxPunches} per day, up to {maxBreaks} breaks.'**
-  String employeePolicyGpsSummary(int maxPunches, int maxBreaks);
+  /// **'Your salon uses GPS attendance when enabled. Record one punch in and one punch out per day; up to {maxBreaks} breaks.'**
+  String employeePolicyGpsSummary(int maxBreaks);
 
   /// No description provided for @employeePolicyRulePunchSession.
   ///
@@ -13746,11 +15556,11 @@ abstract class AppLocalizations {
   /// **'Deductions'**
   String get employeePolicyDeductionsSection;
 
-  /// No description provided for @employeePolicyRuleMaxPunchesOneLine.
+  /// No description provided for @employeePolicyRuleWorkPunchesOneLine.
   ///
   /// In en, this message translates to:
-  /// **'You can record up to {max} punches per calendar day.'**
-  String employeePolicyRuleMaxPunchesOneLine(int max);
+  /// **'Each day you record one punch in and one punch out; breaks are separate.'**
+  String get employeePolicyRuleWorkPunchesOneLine;
 
   /// No description provided for @employeePolicyRuleMaxBreakMinutesOneLine.
   ///
@@ -14597,6 +16407,1128 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load services'**
   String get addSaleUnableToLoadServices;
+
+  /// No description provided for @ownerShiftsTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts & Staff Schedule'**
+  String get ownerShiftsTileTitle;
+
+  /// No description provided for @ownerShiftsTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage templates and weekly roster'**
+  String get ownerShiftsTileSubtitle;
+
+  /// No description provided for @ownerShiftsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shifts'**
+  String get ownerShiftsTitle;
+
+  /// No description provided for @ownerShiftsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and manage shift templates'**
+  String get ownerShiftsSubtitle;
+
+  /// No description provided for @ownerShiftsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get ownerShiftsRetry;
+
+  /// No description provided for @ownerShiftsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load shift templates'**
+  String get ownerShiftsLoadError;
+
+  /// No description provided for @ownerShiftsSummaryTotalShifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Shifts'**
+  String get ownerShiftsSummaryTotalShifts;
+
+  /// No description provided for @ownerShiftsSummaryAssignedStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned Staff'**
+  String get ownerShiftsSummaryAssignedStaff;
+
+  /// No description provided for @ownerShiftsSummaryOffDayRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Off Days Rules'**
+  String get ownerShiftsSummaryOffDayRules;
+
+  /// No description provided for @ownerShiftsSummaryTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get ownerShiftsSummaryTemplates;
+
+  /// No description provided for @ownerShiftsSummaryEmployees.
+  ///
+  /// In en, this message translates to:
+  /// **'Employees'**
+  String get ownerShiftsSummaryEmployees;
+
+  /// No description provided for @ownerShiftsSummaryRuleSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule set'**
+  String get ownerShiftsSummaryRuleSet;
+
+  /// No description provided for @ownerShiftsTemplatesSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Templates'**
+  String get ownerShiftsTemplatesSectionTitle;
+
+  /// No description provided for @ownerShiftsEmptyStateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift templates yet'**
+  String get ownerShiftsEmptyStateTitle;
+
+  /// No description provided for @ownerShiftsEmptyStateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first shift template to start weekly scheduling.'**
+  String get ownerShiftsEmptyStateSubtitle;
+
+  /// No description provided for @ownerShiftsEmptyStateHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended: Day Shift, Night Shift, and Off Day.'**
+  String get ownerShiftsEmptyStateHelper;
+
+  /// No description provided for @ownerShiftsDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get ownerShiftsDuration;
+
+  /// No description provided for @ownerShiftsBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get ownerShiftsBreak;
+
+  /// No description provided for @ownerShiftsEmployees.
+  ///
+  /// In en, this message translates to:
+  /// **'Employees'**
+  String get ownerShiftsEmployees;
+
+  /// No description provided for @ownerShiftsOvernightBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Overnight'**
+  String get ownerShiftsOvernightBadge;
+
+  /// No description provided for @ownerShiftsOffDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Off Day'**
+  String get ownerShiftsOffDay;
+
+  /// No description provided for @ownerShiftsOpenWeeklyRosterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open weekly roster'**
+  String get ownerShiftsOpenWeeklyRosterTitle;
+
+  /// No description provided for @ownerShiftsOpenWeeklyRosterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View and manage staff shifts for the week'**
+  String get ownerShiftsOpenWeeklyRosterSubtitle;
+
+  /// No description provided for @ownerShiftsCreateTemplateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Shift Template'**
+  String get ownerShiftsCreateTemplateCta;
+
+  /// No description provided for @ownerShiftsDeactivateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not deactivate this shift'**
+  String get ownerShiftsDeactivateError;
+
+  /// No description provided for @ownerShiftsDeleteConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this shift template?'**
+  String get ownerShiftsDeleteConfirmMessage;
+
+  /// No description provided for @ownerShiftsCreateTemplatePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Shift Template screen coming next'**
+  String get ownerShiftsCreateTemplatePlaceholder;
+
+  /// No description provided for @ownerShiftsEditTemplatePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Shift Template screen coming next'**
+  String get ownerShiftsEditTemplatePlaceholder;
+
+  /// No description provided for @ownerShiftsWeeklyPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Shifts screen coming next'**
+  String get ownerShiftsWeeklyPlaceholder;
+
+  /// No description provided for @ownerShiftsApplyPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Schedule screen coming next'**
+  String get ownerShiftsApplyPlaceholder;
+
+  /// No description provided for @ownerShiftCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Shift'**
+  String get ownerShiftCreateTitle;
+
+  /// No description provided for @ownerShiftEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Shift'**
+  String get ownerShiftEditTitle;
+
+  /// No description provided for @ownerShiftCreateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Define working hours for employees'**
+  String get ownerShiftCreateSubtitle;
+
+  /// No description provided for @ownerShiftEditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update working hours for employees'**
+  String get ownerShiftEditSubtitle;
+
+  /// No description provided for @ownerShiftNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift name'**
+  String get ownerShiftNameLabel;
+
+  /// No description provided for @ownerShiftNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Day Shift'**
+  String get ownerShiftNameHint;
+
+  /// No description provided for @ownerShiftTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift type'**
+  String get ownerShiftTypeLabel;
+
+  /// No description provided for @ownerShiftTypeWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Shift'**
+  String get ownerShiftTypeWorking;
+
+  /// No description provided for @ownerShiftTypeOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off Day'**
+  String get ownerShiftTypeOff;
+
+  /// No description provided for @ownerShiftStartTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get ownerShiftStartTimeLabel;
+
+  /// No description provided for @ownerShiftEndTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get ownerShiftEndTimeLabel;
+
+  /// No description provided for @ownerShiftBreakMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Break allowance (minutes)'**
+  String get ownerShiftBreakMinutesLabel;
+
+  /// No description provided for @ownerShiftBreakMinutesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'30'**
+  String get ownerShiftBreakMinutesHint;
+
+  /// No description provided for @ownerShiftNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get ownerShiftNotesLabel;
+
+  /// No description provided for @ownerShiftNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes for this shift...'**
+  String get ownerShiftNotesHint;
+
+  /// No description provided for @ownerShiftColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get ownerShiftColorLabel;
+
+  /// No description provided for @ownerShiftDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default shift'**
+  String get ownerShiftDefaultLabel;
+
+  /// No description provided for @ownerShiftDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New staff will use this shift by default.'**
+  String get ownerShiftDefaultHint;
+
+  /// No description provided for @ownerShiftCancelCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get ownerShiftCancelCta;
+
+  /// No description provided for @ownerShiftSaveCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Shift'**
+  String get ownerShiftSaveCta;
+
+  /// No description provided for @ownerShiftSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift saved successfully'**
+  String get ownerShiftSaveSuccess;
+
+  /// No description provided for @ownerShiftSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save shift'**
+  String get ownerShiftSaveError;
+
+  /// No description provided for @ownerShiftPreviewTitleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Preview'**
+  String get ownerShiftPreviewTitleFallback;
+
+  /// No description provided for @ownerShiftValidationNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift name is required.'**
+  String get ownerShiftValidationNameRequired;
+
+  /// No description provided for @ownerShiftValidationNameLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift name must be 30 characters or less.'**
+  String get ownerShiftValidationNameLength;
+
+  /// No description provided for @ownerShiftValidationTimeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Start and end time are required for working shifts.'**
+  String get ownerShiftValidationTimeRequired;
+
+  /// No description provided for @ownerShiftValidationDurationPositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift duration must be greater than zero.'**
+  String get ownerShiftValidationDurationPositive;
+
+  /// No description provided for @ownerShiftValidationDurationMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift duration must be 16 hours or less.'**
+  String get ownerShiftValidationDurationMax;
+
+  /// No description provided for @ownerShiftValidationBreakMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Break minutes cannot be negative.'**
+  String get ownerShiftValidationBreakMin;
+
+  /// No description provided for @ownerShiftValidationBreakMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Break minutes must be less than shift duration.'**
+  String get ownerShiftValidationBreakMax;
+
+  /// No description provided for @ownerShiftValidationDefaultRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one shift template must be set as default.'**
+  String get ownerShiftValidationDefaultRequired;
+
+  /// No description provided for @ownerWeeklyShiftsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Shifts'**
+  String get ownerWeeklyShiftsTitle;
+
+  /// No description provided for @ownerWeeklyShiftsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage team schedule'**
+  String get ownerWeeklyShiftsSubtitle;
+
+  /// No description provided for @ownerWeeklyShiftsThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get ownerWeeklyShiftsThisWeek;
+
+  /// No description provided for @ownerWeeklyShiftsNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Week'**
+  String get ownerWeeklyShiftsNextWeek;
+
+  /// No description provided for @ownerWeeklyShiftsApplyToMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to Month'**
+  String get ownerWeeklyShiftsApplyToMonth;
+
+  /// No description provided for @ownerWeeklyShiftsTemplatesStripTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a shift onto a day'**
+  String get ownerWeeklyShiftsTemplatesStripTitle;
+
+  /// No description provided for @ownerWeeklyShiftsDragStripBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a shift\nonto a day'**
+  String get ownerWeeklyShiftsDragStripBody;
+
+  /// No description provided for @ownerWeeklyShiftsTipCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a cell to mark off, assign a different shift, or remove the current assignment.'**
+  String get ownerWeeklyShiftsTipCardBody;
+
+  /// No description provided for @ownerShiftsTemplatesReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get ownerShiftsTemplatesReorder;
+
+  /// No description provided for @ownerWeeklyShiftsNoTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Create shift templates first'**
+  String get ownerWeeklyShiftsNoTemplates;
+
+  /// No description provided for @ownerWeeklyShiftsNoEmployees.
+  ///
+  /// In en, this message translates to:
+  /// **'Add employees first'**
+  String get ownerWeeklyShiftsNoEmployees;
+
+  /// No description provided for @ownerWeeklyShiftsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load weekly schedule data'**
+  String get ownerWeeklyShiftsLoadError;
+
+  /// No description provided for @ownerWeeklyShiftsEmptyCell.
+  ///
+  /// In en, this message translates to:
+  /// **'+'**
+  String get ownerWeeklyShiftsEmptyCell;
+
+  /// No description provided for @ownerWeeklyShiftsEmployeesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Employees'**
+  String get ownerWeeklyShiftsEmployeesHeader;
+
+  /// No description provided for @ownerWeeklyShiftsMarkOffAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Off'**
+  String get ownerWeeklyShiftsMarkOffAction;
+
+  /// No description provided for @ownerWeeklyShiftsRemoveAssignmentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove assignment'**
+  String get ownerWeeklyShiftsRemoveAssignmentAction;
+
+  /// No description provided for @ownerWeeklyShiftsAssignAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get ownerWeeklyShiftsAssignAction;
+
+  /// No description provided for @ownerApplyScheduleSectionTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply this plan to'**
+  String get ownerApplyScheduleSectionTarget;
+
+  /// No description provided for @ownerApplyScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Schedule'**
+  String get ownerApplyScheduleTitle;
+
+  /// No description provided for @ownerApplyScheduleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat this weekly plan'**
+  String get ownerApplyScheduleSubtitle;
+
+  /// No description provided for @ownerApplyScheduleOptionThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week Only'**
+  String get ownerApplyScheduleOptionThisWeek;
+
+  /// No description provided for @ownerApplyScheduleOptionRemainingMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Weeks of This Month'**
+  String get ownerApplyScheduleOptionRemainingMonth;
+
+  /// No description provided for @ownerApplyScheduleOptionRemainingMonthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply from this week to the end of the month'**
+  String get ownerApplyScheduleOptionRemainingMonthSubtitle;
+
+  /// No description provided for @ownerApplyScheduleOptionCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Date Range'**
+  String get ownerApplyScheduleOptionCustomRange;
+
+  /// No description provided for @ownerApplyScheduleSelectCustomRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Select start and end dates'**
+  String get ownerApplyScheduleSelectCustomRange;
+
+  /// No description provided for @ownerApplyScheduleCalendarPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar Preview'**
+  String get ownerApplyScheduleCalendarPreview;
+
+  /// No description provided for @ownerApplyScheduleRepeatEveryWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat every week'**
+  String get ownerApplyScheduleRepeatEveryWeek;
+
+  /// No description provided for @ownerApplyScheduleSkipExistingAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip existing assignments'**
+  String get ownerApplyScheduleSkipExistingAssignments;
+
+  /// No description provided for @ownerApplyScheduleIncludeOffDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Include off days'**
+  String get ownerApplyScheduleIncludeOffDays;
+
+  /// No description provided for @ownerApplyScheduleInfoCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying this schedule will update employee roster for selected dates.'**
+  String get ownerApplyScheduleInfoCard;
+
+  /// No description provided for @ownerApplyScheduleCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Schedule'**
+  String get ownerApplyScheduleCta;
+
+  /// No description provided for @ownerApplyScheduleSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule applied successfully'**
+  String get ownerApplyScheduleSuccessTitle;
+
+  /// No description provided for @ownerApplyScheduleSuccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Created/updated {writes} schedules. Skipped {skipped} existing schedules.'**
+  String ownerApplyScheduleSuccessBody(int writes, int skipped);
+
+  /// No description provided for @ownerApplyScheduleOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ownerApplyScheduleOk;
+
+  /// No description provided for @ownerApplySchedulePreviewSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments: {assignments} • Off days: {offDays}'**
+  String ownerApplySchedulePreviewSummary(int assignments, int offDays);
+
+  /// No description provided for @zuranoDiscoverGuestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get zuranoDiscoverGuestName;
+
+  /// No description provided for @zuranoHomeHeadlineLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Where self-care'**
+  String get zuranoHomeHeadlineLine1;
+
+  /// No description provided for @zuranoHomeHeadlineLine2Prefix.
+  ///
+  /// In en, this message translates to:
+  /// **'meets '**
+  String get zuranoHomeHeadlineLine2Prefix;
+
+  /// No description provided for @zuranoHomeHeadlineHighlight.
+  ///
+  /// In en, this message translates to:
+  /// **'style'**
+  String get zuranoHomeHeadlineHighlight;
+
+  /// No description provided for @zuranoHomeLocationLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding location…'**
+  String get zuranoHomeLocationLoading;
+
+  /// No description provided for @zuranoHomeLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location unavailable'**
+  String get zuranoHomeLocationUnavailable;
+
+  /// No description provided for @zuranoHomeLocationNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Near you'**
+  String get zuranoHomeLocationNearYou;
+
+  /// No description provided for @zuranoHomeLocationCityCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'{city}, {country}'**
+  String zuranoHomeLocationCityCountry(String city, String country);
+
+  /// No description provided for @zuranoDiscoverSomethingWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get zuranoDiscoverSomethingWrong;
+
+  /// No description provided for @zuranoDiscoverRecommendedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for you'**
+  String get zuranoDiscoverRecommendedTitle;
+
+  /// No description provided for @zuranoDiscoverSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get zuranoDiscoverSeeAll;
+
+  /// No description provided for @zuranoDiscoverExploreAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore all'**
+  String get zuranoDiscoverExploreAll;
+
+  /// No description provided for @zuranoDiscoverFiltersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get zuranoDiscoverFiltersLabel;
+
+  /// No description provided for @zuranoDiscoverFiltersComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved filters arrive in a future update.'**
+  String get zuranoDiscoverFiltersComingSoon;
+
+  /// No description provided for @zuranoDiscoverSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search salons, services, areas...'**
+  String get zuranoDiscoverSearchHint;
+
+  /// No description provided for @zuranoRewardsBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Glow more, pay less ✨'**
+  String get zuranoRewardsBannerTitle;
+
+  /// No description provided for @zuranoRewardsBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn points on every booking and unlock exclusive rewards.'**
+  String get zuranoRewardsBannerSubtitle;
+
+  /// No description provided for @zuranoRewardsBannerCta.
+  ///
+  /// In en, this message translates to:
+  /// **'View offers'**
+  String get zuranoRewardsBannerCta;
+
+  /// No description provided for @zuranoTrendingServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Services trending now'**
+  String get zuranoTrendingServicesTitle;
+
+  /// No description provided for @zuranoNearbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby salons'**
+  String get zuranoNearbyTitle;
+
+  /// No description provided for @zuranoNearbyViewMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View map'**
+  String get zuranoNearbyViewMap;
+
+  /// No description provided for @zuranoNearbyMapSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Map view arrives in a future update.'**
+  String get zuranoNearbyMapSnack;
+
+  /// No description provided for @zuranoNearbyBookNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book now'**
+  String get zuranoNearbyBookNow;
+
+  /// No description provided for @zuranoNearbyLocationLineKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{cityCountry} • {kmFormatted} km'**
+  String zuranoNearbyLocationLineKm(String cityCountry, String kmFormatted);
+
+  /// No description provided for @zuranoNearbyKilometersOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{kmFormatted} km'**
+  String zuranoNearbyKilometersOnly(String kmFormatted);
+
+  /// No description provided for @zuranoNearbyLocationTwoParts.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} • {second}'**
+  String zuranoNearbyLocationTwoParts(String first, String second);
+
+  /// No description provided for @zuranoBottomNavHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get zuranoBottomNavHome;
+
+  /// No description provided for @zuranoBottomNavBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get zuranoBottomNavBookings;
+
+  /// No description provided for @zuranoBottomNavRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get zuranoBottomNavRewards;
+
+  /// No description provided for @zuranoBottomNavProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get zuranoBottomNavProfile;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get zuranoDiscoverFallbackCategoryAll;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryHair.
+  ///
+  /// In en, this message translates to:
+  /// **'Hair'**
+  String get zuranoDiscoverFallbackCategoryHair;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryNails.
+  ///
+  /// In en, this message translates to:
+  /// **'Nails'**
+  String get zuranoDiscoverFallbackCategoryNails;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'Beauty'**
+  String get zuranoDiscoverFallbackCategoryBeauty;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryBarbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Barbers'**
+  String get zuranoDiscoverFallbackCategoryBarbers;
+
+  /// No description provided for @zuranoDiscoverFallbackCategorySpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Spa'**
+  String get zuranoDiscoverFallbackCategorySpa;
+
+  /// No description provided for @zuranoDiscoverFallbackCategoryMakeup.
+  ///
+  /// In en, this message translates to:
+  /// **'Makeup'**
+  String get zuranoDiscoverFallbackCategoryMakeup;
+
+  /// No description provided for @zuranoDiscoverIndexBuildingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We are preparing salon data. Please try again shortly.'**
+  String get zuranoDiscoverIndexBuildingMessage;
+
+  /// No description provided for @zuranoDiscoverSectionLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load this section. Please try again.'**
+  String get zuranoDiscoverSectionLoadFailed;
+
+  /// No description provided for @zuranoDiscoverRecommendedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recommended salons yet'**
+  String get zuranoDiscoverRecommendedEmpty;
+
+  /// No description provided for @zuranoDiscoverTrendingServicesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No trending services yet'**
+  String get zuranoDiscoverTrendingServicesEmpty;
+
+  /// No description provided for @zuranoDiscoverNearbyEmptyInCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'No salons available in {countryName} yet'**
+  String zuranoDiscoverNearbyEmptyInCountry(String countryName);
+
+  /// No description provided for @estimatedPayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated payout'**
+  String get estimatedPayout;
+
+  /// No description provided for @commission.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission'**
+  String get commission;
+
+  /// No description provided for @services.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get services;
+
+  /// No description provided for @addBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bonus'**
+  String get addBonus;
+
+  /// No description provided for @addDeduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add deduction'**
+  String get addDeduction;
+
+  /// No description provided for @generatePayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate payslip'**
+  String get generatePayslip;
+
+  /// No description provided for @reverseLastPayrollMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse last payroll month'**
+  String get reverseLastPayrollMonth;
+
+  /// No description provided for @fixedCommissionAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed commission amount'**
+  String get fixedCommissionAmount;
+
+  /// No description provided for @earningsBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Earnings breakdown'**
+  String get earningsBreakdown;
+
+  /// No description provided for @servicesRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Services revenue'**
+  String get servicesRevenue;
+
+  /// No description provided for @commissionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission today'**
+  String get commissionToday;
+
+  /// No description provided for @commissionThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission this month'**
+  String get commissionThisMonth;
+
+  /// No description provided for @bonuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonuses'**
+  String get bonuses;
+
+  /// No description provided for @deductions.
+  ///
+  /// In en, this message translates to:
+  /// **'Deductions'**
+  String get deductions;
+
+  /// No description provided for @payrollFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll formula'**
+  String get payrollFormula;
+
+  /// No description provided for @payrollHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll history'**
+  String get payrollHistory;
+
+  /// No description provided for @noPayrollRecordsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No payroll records yet'**
+  String get noPayrollRecordsYet;
+
+  /// No description provided for @generatedPayslipsWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated payslips will appear here.'**
+  String get generatedPayslipsWillAppearHere;
+
+  /// No description provided for @generateFirstPayslip.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate first payslip'**
+  String get generateFirstPayslip;
+
+  /// No description provided for @payrollLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll locked'**
+  String get payrollLocked;
+
+  /// No description provided for @payrollPaidLockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This payroll is already paid and can no longer be edited.'**
+  String get payrollPaidLockedMessage;
+
+  /// No description provided for @payrollPayslipGeneratedLockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A payslip was generated for this month. Use Reverse last payroll month to edit or delete adjustments, then regenerate if needed.'**
+  String get payrollPayslipGeneratedLockedMessage;
+
+  /// No description provided for @employeeInactivePayrollMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This employee is inactive/frozen, so payroll actions are disabled.'**
+  String get employeeInactivePayrollMessage;
+
+  /// No description provided for @addPayrollAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add payroll adjustment'**
+  String get addPayrollAdjustment;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @elementName.
+  ///
+  /// In en, this message translates to:
+  /// **'Element name'**
+  String get elementName;
+
+  /// No description provided for @notRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recurring'**
+  String get notRecurring;
+
+  /// No description provided for @recurringOneYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring (until removed)'**
+  String get recurringOneYear;
+
+  /// No description provided for @deletePayrollElementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete payroll element?'**
+  String get deletePayrollElementTitle;
+
+  /// No description provided for @deletePayrollElementMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove \"{name}\" from payroll elements? Recurring items will stop for future months.'**
+  String deletePayrollElementMessage(String name);
+
+  /// No description provided for @keepElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keepElement;
+
+  /// No description provided for @deleteElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteElement;
+
+  /// No description provided for @payrollElementDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll element deleted.'**
+  String get payrollElementDeleted;
+
+  /// No description provided for @payrollAdjustmentDeleteNoneMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove that adjustment (nothing matched in the database). Pull to refresh and try again.'**
+  String get payrollAdjustmentDeleteNoneMatched;
+
+  /// No description provided for @reverseLastPayrollMonthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse last payroll month?'**
+  String get reverseLastPayrollMonthTitle;
+
+  /// No description provided for @reverseLastPayrollMonthMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will mark the latest payroll month as reversed. You can regenerate it if needed.'**
+  String get reverseLastPayrollMonthMessage;
+
+  /// No description provided for @reversePayrollMonthSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Last payroll month reversed successfully.'**
+  String get reversePayrollMonthSuccess;
+
+  /// No description provided for @reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get reason;
+
+  /// No description provided for @noteOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get noteOptional;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @bonusAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonus added successfully.'**
+  String get bonusAddedSuccessfully;
+
+  /// No description provided for @deductionAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Deduction added successfully.'**
+  String get deductionAddedSuccessfully;
+
+  /// No description provided for @payslipGeneratedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip generated successfully.'**
+  String get payslipGeneratedSuccessfully;
+
+  /// No description provided for @payrollLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load payroll.'**
+  String get payrollLoadFailed;
+
+  /// No description provided for @payrollHistoryLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load payroll history.'**
+  String get payrollHistoryLoadFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @updatePayrollAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Update payroll adjustment'**
+  String get updatePayrollAdjustment;
+
+  /// No description provided for @payrollElementUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll element updated.'**
+  String get payrollElementUpdated;
+
+  /// No description provided for @update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
 }
 
 class _AppLocalizationsDelegate

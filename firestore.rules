@@ -116,6 +116,47 @@ service cloud.firestore {
         (currentRole() == 'owner' || currentRole() == 'admin');
     }
 
+    /// Owner/admin inserting a punch while approving `attendanceCorrectionRequests/{rid}`.
+    /// Transaction order writes the punch before the request is marked approved; rules see
+    /// the request still `pending`, which is what we require here.
+    function isAttendanceCorrectionAdminPunchCreate(salonId, dayId, punchData) {
+      let rid = punchData.correctionRequestId;
+      return rid is string &&
+        rid.size() > 0 &&
+        punchData.get('source', '') == 'correction_approved' &&
+        punchData.attendanceDayId == dayId &&
+        punchData.salonId == salonId &&
+        punchData.employeeId is string &&
+        punchData.employeeId.size() > 0 &&
+        exists(
+          /databases/$(database)/documents/salons/$(salonId)/attendanceCorrectionRequests/$(rid)
+        ) &&
+        get(
+            /databases/$(database)/documents/salons/$(salonId)/attendanceCorrectionRequests/$(rid)
+          )
+            .data
+            .status == 'pending' &&
+        get(
+            /databases/$(database)/documents/salons/$(salonId)/attendanceCorrectionRequests/$(rid)
+          )
+            .data
+            .employeeId == punchData.employeeId &&
+        get(
+            /databases/$(database)/documents/salons/$(salonId)/attendanceCorrectionRequests/$(rid)
+          )
+            .data
+            .attendanceDayId == dayId;
+    }
+
+    /// Salon inbox: each row targets exactly one Firebase Auth uid (production model).
+    function salonInAppNotificationRecipientScoped(salonId) {
+      return signedIn()
+        && userDocExists()
+        && resource.data.get('status', '') == 'active'
+        && currentSalonId() == salonId
+        && resource.data.get('recipientUserId', '') == request.auth.uid;
+    }
+
     function payslipParentVisibleToStaff(salonId, payslipId) {
       return exists(/databases/$(database)/documents/salons/$(salonId)/payslips/$(payslipId)) &&
         get(/databases/$(database)/documents/salons/$(salonId)/payslips/$(payslipId)).data.employeeId == currentEmployeeId() &&
@@ -178,7 +219,8 @@ service cloud.firestore {
           'displayName', 'fullName', 'name', 'phone', 'address',
           'notificationPrefs', 'notification_prefs',
           'updatedAt', 'profileCompletedAt', 'onboardingCompleted',
-          'authProvider', 'photoUrl', 'isActive'
+          'authProvider', 'photoUrl', 'isActive',
+          'accountType', 'isAnonymous', 'guestStatus'
         ]);
     }
 
@@ -218,7 +260,9 @@ service cloud.firestore {
       allow read: if (resource.data.isPublic == true &&
           resource.data.isActive == true) ||
         (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId));
-      allow create, update: if isSalonOwnerOrAdmin(salonId) && sameSalon(salonId);
+      // TODO DEV ONLY: remove debug-seed branch before production.
+      allow create, update: if (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId)) ||
+        (request.auth != null && request.resource.data.debugSeed == true);
       allow delete: if false;
 
       /// Customer-safe team rows (synced from private employees via Cloud Functions).
@@ -226,7 +270,11 @@ service cloud.firestore {
         allow read: if salonListedForPublicBrowsing(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('allowCustomerBooking', false) == true;
-        allow write: if false;
+        // TODO DEV ONLY: remove before production.
+        allow create, update: if request.auth != null &&
+          request.resource.data.debugSeed == true &&
+          get(/databases/$(database)/documents/publicSalons/$(salonId)).data.debugSeed == true;
+        allow delete: if false;
       }
 
       /// Customer-safe service catalog (synced from private services via Cloud Functions).
@@ -234,7 +282,11 @@ service cloud.firestore {
         allow read: if salonListedForPublicBrowsing(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('isCustomerVisible', true) == true;
-        allow write: if false;
+        // TODO DEV ONLY: remove before production.
+        allow create, update: if request.auth != null &&
+          request.resource.data.debugSeed == true &&
+          get(/databases/$(database)/documents/publicSalons/$(salonId)).data.debugSeed == true;
+        allow delete: if false;
       }
     }
 
@@ -261,15 +313,88 @@ service cloud.firestore {
       }
     }
 
+    function salonDocIsPublishedForDiscovery(salonId) {
+      return exists(/databases/$(database)/documents/salons/$(salonId)) &&
+        get(/databases/$(database)/documents/salons/$(salonId)).data.get('isPublished', false) == true;
+    }
+
+    /// Discovery rows are public brochure data; reads must mirror client queries (`isActive` + `limit`).
+    function customerDiscoveryItemIsActiveBrowse() {
+      return resource.data.get('isActive', false) == true;
+    }
+
+    /// Matches client `.limit(...)` caps on discovery / salon catalogue lists (Firestore rules ↔ query parity).
+    function customerHomeQueryLimitBounded() {
+      return request.query.limit is int && request.query.limit <= 128;
+    }
+
+    function salonRootPublishedBrowseRow() {
+      return resource.data.get('isPublished', false) == true;
+    }
+
+    // TODO DEV ONLY: remove before production — salon doc must already be a demo seed row.
+    function salonDebugSeedExisting(salonId) {
+      return exists(/databases/$(database)/documents/salons/$(salonId)) &&
+        get(/databases/$(database)/documents/salons/$(salonId)).data.debugSeed == true;
+    }
+
+    // TODO DEV ONLY: remove before production — new salon doc must declare itself as demo seed.
+    function salonDebugSeedCreateRequest() {
+      return request.auth != null &&
+        request.resource.data.debugSeed == true;
+    }
+
+    // Curated banners / categories / trending rows for Zurano discovery.
+    match /customerDiscovery/{docId}/items/{itemId} {
+      allow get: if customerDiscoveryItemIsActiveBrowse();
+      allow list: if customerDiscoveryItemIsActiveBrowse() &&
+        customerHomeQueryLimitBounded();
+
+      // TODO DEV ONLY: remove before production — client demo seed only (`debugSeed: true`).
+      allow create: if request.auth != null &&
+        request.resource.data.debugSeed == true;
+      // TODO DEV ONLY: remove before production.
+      allow update: if request.auth != null &&
+        request.resource.data.debugSeed == true;
+
+      allow delete: if false;
+    }
+
     match /salons/{salonId} {
-      allow read: if isOwnerOrStaffOfSalon(salonId) ||
-        (isCustomer() && resource.data != null && resource.data.isActive == true);
+      // Single-doc reads (staff/owner onboarding, customer salon profile).
+      allow get: if salonRootPublishedBrowseRow() ||
+        isOwnerOrStaffOfSalon(salonId) ||
+        (
+          isCustomer() &&
+          resource.data != null &&
+          resource.data.get('isActive', false) == true
+        );
 
-      allow create: if signedIn() &&
-        isOwner() &&
-        request.resource.data.ownerUid == request.auth.uid;
+      // Collection list queries MUST be bounded (`limit`) and only return docs this rule proves readable.
+      // Customer home always filters `isPublished == true`; staff lists use per-doc `salonId` authorization.
+      // TODO DEV ONLY: remove debug-seed list branch before production.
+      allow list: if (salonRootPublishedBrowseRow() && customerHomeQueryLimitBounded()) ||
+        isOwnerOrStaffOfSalon(salonId) ||
+        (
+          signedIn() &&
+          resource.data.get('debugSeed', false) == true &&
+          request.query.limit is int &&
+          request.query.limit <= 64
+        );
 
-      allow update: if isSalonOwnerOrAdmin(salonId);
+      // TODO DEV ONLY: merge debug-seed branch before production.
+      allow create: if (signedIn() &&
+          isOwner() &&
+          request.resource.data.ownerUid == request.auth.uid) ||
+        salonDebugSeedCreateRequest();
+
+      // TODO DEV ONLY: merge debug-seed branch before production.
+      allow update: if isSalonOwnerOrAdmin(salonId) ||
+        (
+          request.auth != null &&
+          salonDebugSeedExisting(salonId) &&
+          request.resource.data.debugSeed == true
+        );
       allow delete: if isOwnerOfSalon(salonId);
 
       match /employees/{employeeId} {
@@ -282,13 +407,66 @@ service cloud.firestore {
         allow update: if isSalonOwnerOrAdmin(salonId) ||
           employeeSelfClearsMustChangePasswordOnly(salonId, employeeId);
 
+        match /assignedServices/{assignmentId} {
+          allow read: if isSalonOwnerOrAdmin(salonId) ||
+            (isStaffOfSalon(salonId) && employeeId == currentEmployeeId());
+
+          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+        }
       }
 
-      // Private catalog: staff only (customers read `publicSalons/{salonId}/services`).
+      // Private catalog — staff fully; discovery guests see published salons + active services rows.
       match /services/{serviceId} {
-        allow read: if isOwnerOrStaffOfSalon(salonId);
+        allow read: if isOwnerOrStaffOfSalon(salonId) ||
+          salonDocIsPublishedForDiscovery(salonId);
 
-        allow write: if isOwnerOfSalon(salonId);
+        // TODO DEV ONLY: remove debug-seed branch before production.
+        allow create, update: if isOwnerOfSalon(salonId) ||
+          (
+            request.auth != null &&
+            salonDebugSeedExisting(salonId) &&
+            request.resource.data.debugSeed == true
+          );
+        allow delete: if isOwnerOfSalon(salonId);
+      }
+
+      match /shiftTemplates/{shiftTemplateId} {
+        allow read: if isOwnerOrStaffOfSalon(salonId);
+        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      match /weeklyScheduleTemplates/{weekTemplateId} {
+        allow read: if isOwnerOrStaffOfSalon(salonId);
+        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+
+        match /assignments/{assignmentId} {
+          allow read: if isOwnerOrStaffOfSalon(salonId);
+          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+        }
+      }
+
+      match /employeeSchedules/{scheduleId} {
+        allow read: if isSalonOwnerOrAdmin(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            resource.data.employeeId == currentEmployeeId()
+          );
+        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if salonInAppNotificationRecipientScoped(salonId);
+        allow create: if isSalonOwnerOrAdmin(salonId);
+        allow update: if salonInAppNotificationRecipientScoped(salonId) &&
+          request.resource.data.diff(resource.data).changedKeys()
+            .hasOnly(['isRead', 'readBy', 'readAt', 'updatedAt']);
+        allow delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      match /notificationSettings/{userId} {
+        allow read, write: if signedIn() &&
+          isOwnerOrStaffOfSalon(salonId) &&
+          request.auth.uid == userId;
       }
 
       match /reviews/{reviewId} {
@@ -397,6 +575,12 @@ service cloud.firestore {
         }
       }
 
+      // Monthly per-employee performance summaries (`{yyyyMM}_{employeeId}`), owner/admin UI.
+      match /performance/{performanceId} {
+        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
       match /attendanceRequests/{requestId} {
         allow read: if isSalonOwnerOrAdmin(salonId) ||
           (
@@ -468,7 +652,36 @@ service cloud.firestore {
             request.resource.data.employeeId == currentEmployeeId() &&
             request.resource.data.salonId == salonId &&
             isValidPunchTypeValue(request.resource.data.type) &&
-            request.resource.data.createdAt == request.time;
+            request.resource.data.createdAt == request.time ||
+            (
+              canManageSalonAttendance(salonId) &&
+              isAttendanceCorrectionAdminPunchCreate(
+                salonId,
+                dayId,
+                request.resource.data
+              ) &&
+              isValidPunchTypeValue(request.resource.data.type) &&
+              request.resource.data.createdAt == request.time
+            );
+          allow update, delete: if false;
+        }
+
+        match /breaks/{breakId} {
+          allow get, list: if isSalonOwnerOrAdmin(salonId) ||
+            (isStaffOfSalon(salonId) && isOwnAttendanceDocId(dayId));
+          allow create: if isStaffOfSalon(salonId) &&
+            isOwnAttendanceDocId(dayId) &&
+            request.resource.data.employeeId == currentEmployeeId() &&
+            request.resource.data.salonId == salonId &&
+            request.resource.data.attendanceDayId == dayId &&
+            request.resource.data.startedAt is timestamp &&
+            request.resource.data.endedAt is timestamp &&
+            request.resource.data.createdAt is timestamp &&
+            request.resource.data.allowedMinutes is int &&
+            request.resource.data.actualMinutes is int &&
+            request.resource.data.exceededMinutes is int &&
+            request.resource.data.exceededMinutes >= 0 &&
+            request.resource.data.exceededMinutes <= 1440;
           allow update, delete: if false;
         }
       }
@@ -484,6 +697,18 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      // Structured owner/admin adjustment audits (written via Cloud Functions Admin SDK).
+      match /attendanceAdjustments/{adjustmentId} {
+        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow write: if false;
+      }
+
+      // Monthly attendance rollups for payroll impact (written via Cloud Functions).
+      match /payrollPeriods/{periodId}/employeeSummaries/{summaryEmployeeId} {
+        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow write: if false;
+      }
+
       match /audit_logs/{auditLogId} {
         allow read: if canReadSalonAuditLogs(salonId);
         allow create: if canManageSalonAttendance(salonId);
@@ -496,7 +721,8 @@ service cloud.firestore {
             isStaffOfSalon(salonId) &&
             resource.data.get('employeeId', '') == currentEmployeeId()
           );
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow create, update: if isSalonOwnerOrAdmin(salonId);
+        allow delete: if isOwnerOfSalon(salonId);
       }
 
       match /payroll_elements/{elementId} {
@@ -551,6 +777,22 @@ service cloud.firestore {
         allow write: if isSalonOwnerOrAdmin(salonId);
       }
 
+      match /payrollAdjustments/{adjustmentId} {
+        allow read: if isSalonOwnerOrAdmin(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            resource.data.employeeId == currentEmployeeId()
+          );
+        allow create, update: if isSalonOwnerOrAdmin(salonId) &&
+          request.resource.data.salonId == salonId &&
+          request.resource.data.employeeId is string &&
+          request.resource.data.monthKey is string &&
+          request.resource.data.amount is number &&
+          request.resource.data.amount > 0 &&
+          request.resource.data.type in ['bonus', 'deduction'];
+        allow delete: if isOwnerOfSalon(salonId);
+      }
+
       match /violation_rules/{ruleId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
         allow write: if isSalonOwnerOrAdmin(salonId);
@@ -563,7 +805,26 @@ service cloud.firestore {
 
       match /violations/{violationId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
-        allow create, update: if isOwnerOfSalon(salonId);
+        allow create: if isOwnerOfSalon(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            request.resource.data.salonId == salonId &&
+            request.resource.data.employeeId == currentEmployeeId() &&
+            request.resource.data.violationType == 'EXCEEDED_BREAK_TIME' &&
+            request.resource.data.sourceType == 'ATTENDANCE_BREAK' &&
+            request.resource.data.status in ['pending', 'approved'] &&
+            request.resource.data.occurredAt is timestamp &&
+            request.resource.data.reportPeriodKey is string &&
+            request.resource.data.reportYear is int &&
+            request.resource.data.reportMonth is int &&
+            request.resource.data.amount is number &&
+            request.resource.data.amount >= 0 &&
+            request.resource.data.amount <= 100000 &&
+            request.resource.data.minutesLate is int &&
+            request.resource.data.minutesLate >= 0 &&
+            request.resource.data.minutesLate <= 1440
+          );
+        allow update: if isOwnerOfSalon(salonId);
         allow delete: if isOwnerOfSalon(salonId);
       }
 
@@ -575,7 +836,20 @@ service cloud.firestore {
             resource.data.barberId == currentEmployeeId()) ||
           (isCustomer() && resource.data.customerId == request.auth.uid);
 
-        allow create: if isOwnerOrStaffOfSalon(salonId);
+        allow create: if isOwnerOrStaffOfSalon(salonId) ||
+          (
+            isCustomer() &&
+            request.resource.data.salonId == salonId &&
+            request.resource.data.createdByAuthUid == request.auth.uid &&
+            request.resource.data.source == 'customer_app' &&
+            request.resource.data.customerId is string &&
+            request.resource.data.customerName is string &&
+            request.resource.data.employeeId is string &&
+            request.resource.data.barberId == request.resource.data.employeeId &&
+            request.resource.data.startAt is timestamp &&
+            request.resource.data.endAt is timestamp &&
+            request.resource.data.status is string
+          );
         allow update: if isOwnerOrStaffOfSalon(salonId);
         allow delete: if isOwnerOrStaffOfSalon(salonId);
       }
@@ -587,11 +861,21 @@ service cloud.firestore {
       match /customers/{customerId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
 
-        allow create: if isOwnerOrStaffOfSalon(salonId) &&
-          request.resource.data.salonId == salonId &&
-          request.resource.data.fullName is string &&
-          request.resource.data.phone is string &&
-          request.resource.data.isActive is bool;
+        allow create: if (
+            isOwnerOrStaffOfSalon(salonId) &&
+            request.resource.data.salonId == salonId &&
+            request.resource.data.fullName is string &&
+            request.resource.data.phone is string &&
+            request.resource.data.isActive is bool
+          ) ||
+          (
+            isCustomer() &&
+            request.resource.data.salonId == salonId &&
+            request.resource.data.createdByAuthUid == request.auth.uid &&
+            request.resource.data.fullName is string &&
+            request.resource.data.phone is string &&
+            request.resource.data.isActive is bool
+          );
 
         allow update: if (isSalonOwnerOrAdmin(salonId) &&
           request.resource.data.salonId == resource.data.salonId) ||
@@ -605,6 +889,8 @@ service cloud.firestore {
               'lastVisitAt',
               'firstVisitAt',
               'updatedAt',
+              'lastSaleId',
+              'lastBookingCode',
             ]));
 
         allow delete: if isSalonOwnerOrAdmin(salonId);
@@ -644,6 +930,35 @@ service cloud.firestore {
 
       allow delete: if resource.data != null &&
         isOwnerOfSalon(resource.data.salonId);
+    }
+
+    match /guestProfiles/{nicknameKey} {
+      allow read: if signedIn() && resource.data.authUid == request.auth.uid;
+      allow create: if signedIn() &&
+        request.resource.data.authUid == request.auth.uid &&
+        request.resource.data.nicknameKey == nicknameKey;
+      allow update, delete: if false;
+    }
+
+    match /guestBookings/{bookingCode} {
+      allow read: if signedIn() && (
+        resource.data.authUid == request.auth.uid ||
+        isOwnerOrStaffOfSalon(resource.data.salonId)
+      );
+      allow create: if signedIn() && isCustomer() &&
+        request.resource.data.authUid == request.auth.uid &&
+        request.resource.data.bookingCode == bookingCode &&
+        request.resource.data.salonId is string &&
+        request.resource.data.accountType == 'guest';
+      allow update: if resource.data.salonId is string &&
+        isOwnerOrStaffOfSalon(resource.data.salonId) &&
+        resource.data.get('saleCreated', false) != true &&
+        request.resource.data.saleCreated == true &&
+        request.resource.data.saleId is string &&
+        request.resource.data.saleId.size() > 0 &&
+        request.resource.data.bookingCode == bookingCode &&
+        request.resource.data.salonId == resource.data.salonId;
+      allow delete: if false;
     }
 
     match /{document=**} {

@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../services/data/service_category_catalog.dart';
+import '../../../../shared/services/service_category_icon_resolver.dart';
 
-IconData posServiceIconForCategoryKey(String? categoryKey) {
-  switch (categoryKey) {
-    case ServiceCategoryKeys.hair:
-      return Icons.content_cut_rounded;
-    case ServiceCategoryKeys.barberBeard:
-      return Icons.face_rounded;
-    case ServiceCategoryKeys.facialSkincare:
-    case ServiceCategoryKeys.browsLashes:
-      return Icons.spa_rounded;
-    case ServiceCategoryKeys.nails:
-      return Icons.brush_rounded;
-    default:
-      return Icons.design_services_rounded;
-  }
+/// POS / legacy helpers that only need [IconData].
+IconData posServiceIconForCategoryKey(String? categoryKey, {String? iconKey}) {
+  return ServiceCategoryIconResolver.resolve(
+    iconKey: iconKey,
+    categoryKey: categoryKey,
+  );
 }

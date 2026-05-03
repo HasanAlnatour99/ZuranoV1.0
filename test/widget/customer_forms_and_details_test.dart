@@ -11,7 +11,9 @@ import 'package:barber_shop_app/features/sales/data/models/sale.dart';
 import 'package:barber_shop_app/features/salon/data/models/salon.dart';
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
+import 'package:barber_shop_app/providers/app_settings_providers.dart';
 import 'package:barber_shop_app/providers/salon_streams_provider.dart';
+import '../helpers/create_test_shared_preferences.dart';
 import 'package:barber_shop_app/providers/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -57,6 +59,7 @@ void main() {
   testWidgets('Add Customer form validation appears on empty submit', (
     tester,
   ) async {
+    final prefs = await createTestSharedPreferences();
     final createCustomerController = _MockCreateCustomerController();
     when(
       () => createCustomerController.createCustomer(any()),
@@ -65,6 +68,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           createCustomerControllerProvider.overrideWithValue(
             createCustomerController,
           ),
@@ -82,6 +86,7 @@ void main() {
   testWidgets('Create Booking form validation blocks incomplete submit', (
     tester,
   ) async {
+    final prefs = await createTestSharedPreferences();
     final createBookingController = _MockCreateBookingController();
     when(
       () => createBookingController.createBooking(any()),
@@ -90,6 +95,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           createBookingControllerProvider.overrideWithValue(
             createBookingController,
           ),
@@ -116,18 +122,17 @@ void main() {
     await tester.tap(saveBookingCta);
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(l10n.createBookingValidationIncomplete),
-      findsWidgets,
-    );
+    expect(find.text(l10n.createBookingValidationIncomplete), findsWidgets);
   });
 
   testWidgets('Customer Details shows book appointment CTA for owner', (
     tester,
   ) async {
+    final prefs = await createTestSharedPreferences();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           sessionUserProvider.overrideWith((ref) => Stream.value(_ownerUser())),
           customerDetailsProvider.overrideWith(
             (ref, args) => Stream.value(

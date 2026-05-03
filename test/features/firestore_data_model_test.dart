@@ -99,6 +99,33 @@ void main() {
       expect(s.name, 'Cut');
       expect(s.serviceName, 'Premium Cut');
     });
+
+    test('nameAr defaults empty when omitted in json', () {
+      final s = SalonService.fromJson({
+        'id': 's1',
+        'salonId': 'salon-1',
+        'name': 'Cut',
+        'durationMinutes': 30,
+        'price': 20,
+      });
+      expect(s.nameAr, '');
+    });
+
+    test('nameAr roundtrips and localizedTitle prefers Arabic', () {
+      final s = SalonService.fromJson({
+        'id': 's1',
+        'salonId': 'salon-1',
+        'name': 'Cut',
+        'serviceName': 'Cut',
+        'nameAr': 'قص',
+        'durationMinutes': 30,
+        'price': 20,
+      });
+      expect(s.nameAr, 'قص');
+      expect(s.toJson()['nameAr'], 'قص');
+      expect(s.localizedTitleForLanguageCode('ar'), 'قص');
+      expect(s.localizedTitleForLanguageCode('en'), 'Cut');
+    });
   });
 
   group('UserRoles', () {
@@ -242,6 +269,37 @@ void main() {
       expect(decoded.barberId, 'e1');
       expect(decoded.reportYear, 2026);
       expect(decoded.reportMonth, 1);
+    });
+
+    test('fromJson and toJson preserve receipt photo fields', () {
+      final soldAt = DateTime.utc(2026, 5, 2);
+      final decoded = Sale.fromJson({
+        'id': 's1',
+        'salonId': 'salon-1',
+        'employeeId': 'e1',
+        'employeeName': 'X',
+        'lineItems': <dynamic>[],
+        'serviceNames': <String>[],
+        'subtotal': 10.0,
+        'tax': 0.0,
+        'discount': 0.0,
+        'total': 10.0,
+        'paymentMethod': SalePaymentMethods.cash,
+        'status': SaleStatuses.completed,
+        'soldAt': soldAt.toIso8601String(),
+        'receiptPhotoUrl': 'https://example.com/r.jpg',
+        'receiptStoragePath': 'salons/s1/sales/s1/receipts/1.jpg',
+      });
+      expect(decoded.receiptPhotoUrl, 'https://example.com/r.jpg');
+      expect(decoded.receiptStoragePath, 'salons/s1/sales/s1/receipts/1.jpg');
+
+      final out = decoded.toJson();
+      expect(out['receiptPhotoUrl'], 'https://example.com/r.jpg');
+      expect(out['receiptStoragePath'], 'salons/s1/sales/s1/receipts/1.jpg');
+
+      final round = Sale.fromJson(out);
+      expect(round.receiptPhotoUrl, decoded.receiptPhotoUrl);
+      expect(round.receiptStoragePath, decoded.receiptStoragePath);
     });
 
     test('Sale.create derives subtotal, total, and serviceNames', () {

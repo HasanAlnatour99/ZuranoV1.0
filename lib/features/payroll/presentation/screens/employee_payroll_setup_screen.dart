@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_page_header.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -67,7 +68,9 @@ class EmployeePayrollSetupScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.large),
             children: [
               Text(
-                employee?.name ?? l10n.payrollEmployeeSetupTitle,
+                employee == null
+                    ? l10n.payrollEmployeeSetupTitle
+                    : formatTeamMemberName(employee.name),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -225,7 +228,7 @@ class EmployeePayrollSetupScreen extends ConsumerWidget {
                             EmployeeElementEntryModel(
                               id: '',
                               employeeId: employee.id,
-                              employeeName: employee.name,
+                              employeeName: formatTeamMemberName(employee.name),
                               elementCode: selectedElement.code,
                               elementName: selectedElement.name,
                               classification: selectedElement.classification,

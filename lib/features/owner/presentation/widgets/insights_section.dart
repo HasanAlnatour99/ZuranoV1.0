@@ -5,7 +5,9 @@ import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../features/insights/data/models/salon_insight.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/salon_streams_provider.dart'
+    show insightsStreamProvider;
+import '../../../../providers/money_currency_providers.dart';
 
 class InsightsSection extends ConsumerWidget {
   const InsightsSection({super.key});
@@ -33,8 +35,7 @@ class InsightsSection extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final locale = Localizations.localeOf(context);
     final insightsAsync = ref.watch(insightsStreamProvider);
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

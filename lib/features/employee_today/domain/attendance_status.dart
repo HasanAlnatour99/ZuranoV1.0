@@ -1,5 +1,6 @@
 import '../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../data/models/et_attendance_punch.dart';
+import 'attendance_work_punch_limits.dart';
 
 enum AttendanceStatus {
   notStarted,
@@ -28,13 +29,13 @@ AttendanceStatus calculateTodayStatus({
   required DateTime now,
   required DateTime? shiftEndAt,
   required int maxBreakMinutesPerDay,
-  required int maxPunchesPerDay,
+  required int maxWorkPunchesPerDay,
 }) {
   if (punches.isEmpty) {
     return AttendanceStatus.notStarted;
   }
 
-  if (punches.length > maxPunchesPerDay) {
+  if (workPunchCountInPunches(punches) > maxWorkPunchesPerDay) {
     return AttendanceStatus.invalidSequence;
   }
 
@@ -52,11 +53,8 @@ AttendanceStatus calculateTodayStatus({
   }
 
   if (last == AttendancePunchType.breakOut) {
-    final breakStartedAt = punches.last.punchTime;
-    final breakMinutes = now.difference(breakStartedAt).inMinutes;
-    if (breakMinutes > maxBreakMinutesPerDay) {
-      return AttendanceStatus.missingPunch;
-    }
+    // Exceeding allowed break time is a payroll/violation matter; the employee
+    // must stay ON_BREAK until they punch breakIn (return from break).
     return AttendanceStatus.onBreak;
   }
 
@@ -80,14 +78,14 @@ bool _isValidSequence(List<AttendancePunchType> types) {
     final current = types[i];
     final allowed = switch (previous) {
       AttendancePunchType.punchIn => {
-          AttendancePunchType.breakOut,
-          AttendancePunchType.punchOut,
-        },
+        AttendancePunchType.breakOut,
+        AttendancePunchType.punchOut,
+      },
       AttendancePunchType.breakOut => {AttendancePunchType.breakIn},
       AttendancePunchType.breakIn => {
-          AttendancePunchType.breakOut,
-          AttendancePunchType.punchOut,
-        },
+        AttendancePunchType.breakOut,
+        AttendancePunchType.punchOut,
+      },
       AttendancePunchType.punchOut => <AttendancePunchType>{},
     };
     if (!allowed.contains(current)) {

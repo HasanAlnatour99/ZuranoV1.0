@@ -3,10 +3,76 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/sale_reporting.dart';
+import '../../../core/text/team_member_name.dart';
 import '../../../core/firestore/firestore_page.dart';
 import '../../../core/firestore/firestore_paths.dart';
 import '../../../core/firestore/firestore_write_payload.dart';
 import 'models/sale.dart';
+
+Sale _saleWithFormattedTeamMemberNames(Sale sale) {
+  final items = <SaleLineItem>[
+    for (final i in sale.lineItems)
+      SaleLineItem(
+        serviceId: i.serviceId,
+        serviceName: i.serviceName,
+        serviceIcon: i.serviceIcon,
+        employeeId: i.employeeId,
+        employeeName: formatTeamMemberName(i.employeeName),
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        total: i.total,
+      ),
+  ];
+  return Sale(
+    id: sale.id,
+    salonId: sale.salonId,
+    employeeId: sale.employeeId,
+    barberId: sale.barberId,
+    employeeName: formatTeamMemberName(sale.employeeName),
+    lineItems: items,
+    serviceNames: sale.serviceNames,
+    subtotal: sale.subtotal,
+    tax: sale.tax,
+    discount: sale.discount,
+    total: sale.total,
+    paymentMethod: sale.paymentMethod,
+    status: sale.status,
+    soldAt: sale.soldAt,
+    customerId: sale.customerId,
+    customerPhoneSnapshot: sale.customerPhoneSnapshot,
+    customerDiscountPercentageSnapshot:
+        sale.customerDiscountPercentageSnapshot,
+    reportYear: sale.reportYear,
+    reportMonth: sale.reportMonth,
+    customerName: sale.customerName,
+    customerDisplayName: sale.customerDisplayName,
+    customerUid: sale.customerUid,
+    customerAuthUid: sale.customerAuthUid,
+    barberImageUrl: sale.barberImageUrl,
+    createdByUid: sale.createdByUid,
+    createdByName: sale.createdByName,
+    commissionRateUsed: sale.commissionRateUsed,
+    commissionAmount: sale.commissionAmount,
+    receiptPhotoUrl: sale.receiptPhotoUrl,
+    receiptStoragePath: sale.receiptStoragePath,
+    createdAt: sale.createdAt,
+    updatedAt: sale.updatedAt,
+  );
+}
+
+Map<String, dynamic>? _additionalFieldsWithFormattedBarberName(
+  Map<String, dynamic>? additionalFields,
+) {
+  if (additionalFields == null || additionalFields.isEmpty) {
+    return additionalFields;
+  }
+  final out = Map<String, dynamic>.from(additionalFields);
+  final bn = out['barberName'];
+  if (bn is String && bn.trim().isNotEmpty) {
+    out['barberName'] = formatTeamMemberName(bn);
+  }
+  return out;
+}
 
 class SalesRepository {
   SalesRepository({
@@ -61,15 +127,17 @@ class SalesRepository {
     final document = sale.id.isEmpty
         ? collection.doc()
         : collection.doc(sale.id);
+    final normalized = _saleWithFormattedTeamMemberNames(sale);
+    final extras = _additionalFieldsWithFormattedBarberName(additionalFields);
     final payload = FirestoreWritePayload.withServerTimestampsForCreate({
-      ...sale.toJson(),
+      ...normalized.toJson(),
       'id': document.id,
-      ...?additionalFields,
+      ...?extras,
     });
 
     final batch = _firestore.batch();
     batch.set(document, payload);
-    for (final item in sale.lineItems) {
+    for (final item in normalized.lineItems) {
       final itemRef = document.collection('items').doc();
       batch.set(itemRef, {
         'serviceId': item.serviceId,
@@ -101,38 +169,42 @@ class SalesRepository {
     final saleRef = preset.isNotEmpty
         ? _sales(sid).doc(preset)
         : _sales(sid).doc();
+    final normalized = _saleWithFormattedTeamMemberNames(sale);
     final saleWithId = Sale(
       id: saleRef.id,
-      salonId: sale.salonId,
-      employeeId: sale.employeeId,
-      barberId: sale.barberId,
-      employeeName: sale.employeeName,
-      lineItems: sale.lineItems,
-      serviceNames: sale.serviceNames,
-      subtotal: sale.subtotal,
-      tax: sale.tax,
-      discount: sale.discount,
-      total: sale.total,
-      paymentMethod: sale.paymentMethod,
-      status: sale.status,
-      soldAt: sale.soldAt,
-      customerId: sale.customerId,
-      customerPhoneSnapshot: sale.customerPhoneSnapshot,
+      salonId: normalized.salonId,
+      employeeId: normalized.employeeId,
+      barberId: normalized.barberId,
+      employeeName: normalized.employeeName,
+      lineItems: normalized.lineItems,
+      serviceNames: normalized.serviceNames,
+      subtotal: normalized.subtotal,
+      tax: normalized.tax,
+      discount: normalized.discount,
+      total: normalized.total,
+      paymentMethod: normalized.paymentMethod,
+      status: normalized.status,
+      soldAt: normalized.soldAt,
+      customerId: normalized.customerId,
+      customerPhoneSnapshot: normalized.customerPhoneSnapshot,
       customerDiscountPercentageSnapshot:
-          sale.customerDiscountPercentageSnapshot,
-      reportYear: sale.reportYear,
-      reportMonth: sale.reportMonth,
-      customerName: sale.customerName,
-      barberImageUrl: sale.barberImageUrl,
-      createdByUid: sale.createdByUid,
-      createdByName: sale.createdByName,
-      commissionRateUsed: sale.commissionRateUsed,
-      commissionAmount: sale.commissionAmount,
+          normalized.customerDiscountPercentageSnapshot,
+      reportYear: normalized.reportYear,
+      reportMonth: normalized.reportMonth,
+      customerName: normalized.customerName,
+      barberImageUrl: normalized.barberImageUrl,
+      createdByUid: normalized.createdByUid,
+      createdByName: normalized.createdByName,
+      commissionRateUsed: normalized.commissionRateUsed,
+      commissionAmount: normalized.commissionAmount,
+      receiptPhotoUrl: normalized.receiptPhotoUrl,
+      receiptStoragePath: normalized.receiptStoragePath,
     );
+    final extras = _additionalFieldsWithFormattedBarberName(additionalFields);
     final payload = FirestoreWritePayload.withServerTimestampsForCreate({
       ...saleWithId.toJson(),
       'id': saleRef.id,
-      ...?additionalFields,
+      ...?extras,
     });
 
     return _firestore.runTransaction((transaction) async {

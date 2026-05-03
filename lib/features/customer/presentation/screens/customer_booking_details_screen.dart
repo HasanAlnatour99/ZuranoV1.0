@@ -8,6 +8,7 @@ import '../../../../core/constants/app_routes.dart' show AppRouteNames;
 import '../../../../core/constants/booking_status_machine.dart';
 import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -278,7 +279,11 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                   CustomerBookingDetailsSectionCard(
                     title: l10n.customerBookingReviewServices,
                     icon: Icons.content_cut_rounded,
-                    child: _ServicesBody(details: details, l10n: l10n),
+                    child: _ServicesBody(
+                      details: details,
+                      l10n: l10n,
+                      currencyCode: details.currencyCode,
+                    ),
                   ),
                   CustomerBookingDetailsSectionCard(
                     title: l10n.customerBookingDetailsSpecialist,
@@ -286,7 +291,7 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                     child: Text(
                       details.employeeName.isEmpty
                           ? l10n.customerBookingLookupAnySpecialist
-                          : details.employeeName,
+                          : formatTeamMemberName(details.employeeName),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: AppColorsLight.textPrimary,
                         fontWeight: FontWeight.w700,
@@ -342,13 +347,17 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                       children: [
                         _PaymentRow(
                           label: l10n.customerBookingReviewSubtotal,
-                          value: formatMoney(details.subtotal, 'QAR', locale),
+                          value: formatMoney(
+                            details.subtotal,
+                            details.currencyCode,
+                            locale,
+                          ),
                         ),
                         _PaymentRow(
                           label: l10n.customerBookingReviewDiscount,
                           value: formatMoney(
                             details.discountAmount,
-                            'QAR',
+                            details.currencyCode,
                             locale,
                           ),
                         ),
@@ -357,7 +366,7 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                           label: l10n.customerBookingReviewTotal,
                           value: formatMoney(
                             details.totalAmount,
-                            'QAR',
+                            details.currencyCode,
                             locale,
                           ),
                           emphasize: true,
@@ -424,10 +433,15 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
 }
 
 class _ServicesBody extends StatelessWidget {
-  const _ServicesBody({required this.details, required this.l10n});
+  const _ServicesBody({
+    required this.details,
+    required this.l10n,
+    required this.currencyCode,
+  });
 
   final CustomerBookingDetailsModel details;
   final AppLocalizations l10n;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +463,7 @@ class _ServicesBody extends StatelessWidget {
 
     return Column(
       children: details.services.map((s) {
-        final price = formatMoney(s.price, 'QAR', locale);
+        final price = formatMoney(s.price, currencyCode, locale);
         final name = s.serviceName.isNotEmpty
             ? s.serviceName
             : l10n.bookingService;

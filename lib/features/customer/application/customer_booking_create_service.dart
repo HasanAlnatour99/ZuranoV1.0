@@ -20,13 +20,21 @@ class CustomerBookingCreateService {
     required String salonId,
     required CustomerBookingDraft draft,
     required CustomerBookingSettings bookingSettings,
+    required String customerUiLanguageCode,
+    bool anonymousGuestRequiresNickname = false,
   }) async {
     try {
-      _validateDraft(draft, bookingSettings);
+      _validateDraft(
+        draft,
+        bookingSettings,
+        anonymousGuestRequiresNickname: anonymousGuestRequiresNickname,
+      );
       return await _repository.createBookingFromDraft(
         salonId: salonId,
         draft: draft,
         bookingSettings: bookingSettings,
+        customerUiLanguageCode: customerUiLanguageCode,
+        anonymousGuestRequiresNickname: anonymousGuestRequiresNickname,
       );
     } on CustomerBookingCreateException {
       rethrow;
@@ -47,8 +55,9 @@ class CustomerBookingCreateService {
 
   void _validateDraft(
     CustomerBookingDraft draft,
-    CustomerBookingSettings bookingSettings,
-  ) {
+    CustomerBookingSettings bookingSettings, {
+    bool anonymousGuestRequiresNickname = false,
+  }) {
     if (!draft.hasServices) {
       throw const CustomerBookingCreateException('missing_services');
     }
@@ -63,6 +72,9 @@ class CustomerBookingCreateService {
       customerPhoneNormalized: draft.customerPhoneNormalized,
     )) {
       throw const CustomerBookingCreateException('missing_customer');
+    }
+    if (anonymousGuestRequiresNickname && !draft.hasGuestNickname) {
+      throw const CustomerBookingCreateException('missing_guest_nickname');
     }
   }
 }

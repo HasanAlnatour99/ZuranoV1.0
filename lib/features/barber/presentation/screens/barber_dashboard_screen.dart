@@ -30,6 +30,7 @@ import '../../../../providers/repository_providers.dart';
 import '../../../bookings/logic/booking_actions.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 class BarberDashboardScreen extends ConsumerStatefulWidget {
@@ -335,10 +336,9 @@ class _BarberTodaySummary extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final salesAsync = ref.watch(salesStreamProvider);
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
     final eid = user.employeeId ?? '';
     final now = DateTime.now();
-    final code = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final code = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final monthTotal = salesAsync.maybeWhen(
       data: (sales) {
@@ -452,6 +452,8 @@ class _BarberSaleTabState extends ConsumerState<_BarberSaleTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final servicesAsync = ref.watch(servicesStreamProvider);
     final uid = widget.user.uid;
     final name = widget.user.name;
@@ -486,7 +488,9 @@ class _BarberSaleTabState extends ConsumerState<_BarberSaleTab> {
                 final sel = _service?.id == s.id;
                 return ListTile(
                   title: Text(s.serviceName),
-                  subtitle: Text('${s.price}'),
+                  subtitle: Text(
+                    formatAppMoney(s.price.toDouble(), currencyCode, locale),
+                  ),
                   trailing: sel
                       ? Icon(
                           AppIcons.check_circle,

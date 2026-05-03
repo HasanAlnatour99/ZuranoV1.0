@@ -98,11 +98,16 @@ class Sale {
     int? reportYear,
     int? reportMonth,
     this.customerName,
+    this.customerDisplayName,
+    this.customerUid,
+    this.customerAuthUid,
     this.barberImageUrl,
     this.createdByUid,
     this.createdByName,
     this.commissionRateUsed,
     this.commissionAmount,
+    this.receiptPhotoUrl,
+    this.receiptStoragePath,
     this.createdAt,
     this.updatedAt,
   }) : barberId = _barberId(barberId, employeeId),
@@ -145,6 +150,16 @@ class Sale {
   final int reportMonth;
 
   final String? customerName;
+
+  /// Denormalized display name for POS / lists (preferred over [customerName] when set).
+  final String? customerDisplayName;
+
+  /// Same as salon customer document id when linked from booking flow.
+  final String? customerUid;
+
+  /// Firebase Auth uid when sale is tied to a guest/customer account (internal only).
+  final String? customerAuthUid;
+
   final String? barberImageUrl;
   final String? createdByUid;
   final String? createdByName;
@@ -157,6 +172,12 @@ class Sale {
   /// Absolute commission amount attributed to [barberId] for this sale,
   /// computed at creation time from [commissionRateUsed] and [total].
   final double? commissionAmount;
+
+  /// Download URL for optional receipt photo (Firebase Storage).
+  final String? receiptPhotoUrl;
+
+  /// Storage object path for [receiptPhotoUrl] when uploaded via app flows.
+  final String? receiptStoragePath;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -199,11 +220,16 @@ class Sale {
     String? customerPhoneSnapshot,
     double customerDiscountPercentageSnapshot = 0,
     String? customerName,
+    String? customerDisplayName,
+    String? customerUid,
+    String? customerAuthUid,
     String? barberImageUrl,
     String? createdByUid,
     String? createdByName,
     double? commissionRateUsed,
     double? commissionAmount,
+    String? receiptPhotoUrl,
+    String? receiptStoragePath,
   }) {
     final subtotal = subtotalFromLineItems(lineItems);
     final total = totalFromParts(
@@ -233,11 +259,16 @@ class Sale {
       customerPhoneSnapshot: customerPhoneSnapshot,
       customerDiscountPercentageSnapshot: customerDiscountPercentageSnapshot,
       customerName: customerName,
+      customerDisplayName: customerDisplayName,
+      customerUid: customerUid,
+      customerAuthUid: customerAuthUid,
       barberImageUrl: barberImageUrl,
       createdByUid: createdByUid,
       createdByName: createdByName,
       commissionRateUsed: commissionRateUsed,
       commissionAmount: resolvedCommission,
+      receiptPhotoUrl: receiptPhotoUrl,
+      receiptStoragePath: receiptStoragePath,
     );
   }
 
@@ -368,6 +399,13 @@ class Sale {
       reportYear: reportYear,
       reportMonth: reportMonth,
       customerName: FirestoreSerializers.string(json['customerName']),
+      customerDisplayName: FirestoreSerializers.string(
+        json['customerDisplayName'],
+      ),
+      customerUid: FirestoreSerializers.string(json['customerUid']),
+      customerAuthUid: FirestoreSerializers.string(
+        json['authUid'] ?? json['customerAuthUid'],
+      ),
       barberImageUrl:
           FirestoreSerializers.string(json['barberImageUrl']) ??
           FirestoreSerializers.string(json['employeeImageUrl']),
@@ -379,6 +417,10 @@ class Sale {
       commissionAmount: json.containsKey('commissionAmount')
           ? FirestoreSerializers.doubleValue(json['commissionAmount'])
           : null,
+      receiptPhotoUrl: FirestoreSerializers.string(json['receiptPhotoUrl']),
+      receiptStoragePath: FirestoreSerializers.string(
+        json['receiptStoragePath'],
+      ),
       createdAt: FirestoreSerializers.dateTime(json['createdAt']),
       updatedAt: FirestoreSerializers.dateTime(json['updatedAt']),
     );
@@ -409,17 +451,29 @@ class Sale {
       'paymentMethod': paymentMethod,
       'status': status,
       'soldAt': soldAt,
-      'customerId': customerId,
+      if (customerId != null && customerId!.trim().isNotEmpty)
+        'customerId': customerId,
       'reportYear': reportYear,
       'reportMonth': reportMonth,
       'reportPeriodKey': reportPeriodKey,
       'customerName': customerName,
+      if (customerDisplayName != null && customerDisplayName!.trim().isNotEmpty)
+        'customerDisplayName': customerDisplayName,
+      if (customerUid != null && customerUid!.trim().isNotEmpty)
+        'customerUid': customerUid,
+      if (customerAuthUid != null && customerAuthUid!.trim().isNotEmpty)
+        'authUid': customerAuthUid,
       if (barberImageUrl != null && barberImageUrl!.trim().isNotEmpty)
         'barberImageUrl': barberImageUrl,
       'createdByUid': createdByUid,
       'createdByName': createdByName,
       if (commissionRateUsed != null) 'commissionRateUsed': commissionRateUsed,
       if (commissionAmount != null) 'commissionAmount': commissionAmount,
+      if (receiptPhotoUrl != null && receiptPhotoUrl!.trim().isNotEmpty)
+        'receiptPhotoUrl': receiptPhotoUrl,
+      if (receiptStoragePath != null &&
+          receiptStoragePath!.trim().isNotEmpty)
+        'receiptStoragePath': receiptStoragePath,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };

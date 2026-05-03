@@ -9,6 +9,7 @@ import '../../../core/result/app_result.dart';
 import '../../../core/result/app_result_guard.dart';
 import 'models/payroll_result_model.dart';
 import 'models/payroll_run_model.dart';
+import 'payroll_constants.dart';
 
 class PayrollRunRepository {
   PayrollRunRepository({
@@ -109,6 +110,51 @@ class PayrollRunRepository {
       operation: 'getPayrollRun',
       run: () => getRun(salonId, runId),
     );
+  }
+
+  /// Employee ids that already appear on a **paid** [PayrollRunModel] whose
+  /// [PayrollRunModel.reportPeriodKey] matches [reportPeriodKey].
+  ///
+  /// Scans up to [scanLimit] most recent paid runs (unordered) and filters in
+  /// memory by period key. Excludes [excludeRunId] when recalculating a draft.
+  Future<Set<String>> employeeIdsWithPaidRunForReportPeriod(
+    String salonId, {
+    required String reportPeriodKey,
+    String? excludeRunId,
+    int scanLimit = 300,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final key = reportPeriodKey.trim();
+    if (key.isEmpty) {
+      return const <String>{};
+    }
+    final exclude = excludeRunId?.trim();
+    final snapshot = await _runs(salonId)
+        .where('status', isEqualTo: PayrollRunStatuses.paid)
+        .limit(scanLimit)
+        .get();
+
+    final out = <String>{};
+    for (final doc in snapshot.docs) {
+      if (exclude != null && exclude.isNotEmpty && doc.id == exclude) {
+        continue;
+      }
+      final run = PayrollRunModel.fromJson(doc.data());
+      if (run.reportPeriodKey != key) {
+        continue;
+      }
+      for (final id in run.employeeIds) {
+        final t = id.trim();
+        if (t.isNotEmpty) {
+          out.add(t);
+        }
+      }
+      final single = run.employeeId?.trim();
+      if (single != null && single.isNotEmpty) {
+        out.add(single);
+      }
+    }
+    return out;
   }
 
   Future<List<PayrollRunModel>> getRuns(

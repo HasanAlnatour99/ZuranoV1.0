@@ -9,12 +9,16 @@ class ZuranoGradientButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.onPressed,
+    this.height = 64,
+    this.fontSize = 16,
   });
 
   final String label;
   final IconData? icon;
   final bool isLoading;
   final VoidCallback? onPressed;
+  final double height;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +34,7 @@ class ZuranoGradientButton extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           opacity: disabled ? 0.65 : 1,
           child: Container(
-            height: 64,
+            height: height,
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: ZuranoTokens.primaryGradient,
@@ -63,9 +67,9 @@ class ZuranoGradientButton extends StatelessWidget {
                         ],
                         Text(
                           label,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: fontSize,
                             fontWeight: FontWeight.w800,
                           ),
                         ),

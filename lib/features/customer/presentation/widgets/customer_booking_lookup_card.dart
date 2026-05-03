@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
 import 'customer_booking_status_badge.dart';
 import 'customer_gradient_scaffold.dart';
 
-class CustomerBookingLookupCard extends StatelessWidget {
+class CustomerBookingLookupCard extends ConsumerWidget {
   const CustomerBookingLookupCard({super.key, required this.booking});
 
   final CustomerBookingLookupModel booking;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -33,7 +36,8 @@ class CustomerBookingLookupCard extends StatelessWidget {
         : booking.salonName;
     final specialistName = booking.employeeName.isEmpty
         ? l10n.customerBookingLookupAnySpecialist
-        : booking.employeeName;
+        : formatTeamMemberName(booking.employeeName);
+    final moneyCode = watchCustomerSalonMoneyCode(ref, booking.salonId);
 
     return Material(
       color: scheme.surface,
@@ -105,7 +109,7 @@ class CustomerBookingLookupCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.small),
               _InfoRow(
                 icon: Icons.payments_rounded,
-                text: formatMoney(booking.totalAmount, 'QAR', locale),
+                text: formatMoney(booking.totalAmount, moneyCode, locale),
               ),
               const SizedBox(height: AppSpacing.large),
               SizedBox(

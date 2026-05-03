@@ -8,6 +8,7 @@ import '../../bookings/data/booking_time_overlap_exception.dart';
 import '../../bookings/data/models/booking.dart';
 import '../../employees/data/models/employee.dart';
 import '../../services/data/models/service.dart';
+import '../../../providers/app_settings_providers.dart';
 import '../../../providers/customer_salon_streams_provider.dart';
 import '../../../providers/repository_providers.dart';
 import '../../../providers/session_provider.dart';
@@ -176,6 +177,7 @@ class CustomerBookingNotifier extends Notifier<CustomerBookingState> {
 
     final start = slot;
     final end = start.add(Duration(minutes: service.durationMinutes));
+    final lang = ref.read(appLocalePreferenceProvider).languageCode;
 
     final booking = Booking(
       id: '',
@@ -188,7 +190,7 @@ class CustomerBookingNotifier extends Notifier<CustomerBookingState> {
       barberName: barber.name,
       customerName: user.name,
       serviceId: service.id,
-      serviceName: service.serviceName,
+      serviceName: service.localizedTitleForLanguageCode(lang),
       notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
     );
 

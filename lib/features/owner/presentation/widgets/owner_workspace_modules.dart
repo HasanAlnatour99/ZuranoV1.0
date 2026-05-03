@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/payroll_status_localized.dart';
 import '../../../../core/formatting/staff_role_localized.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -15,6 +16,7 @@ import '../../../../core/widgets/luxury_kpi_card.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employees/data/models/employee.dart';
 import '../../../../providers/app_settings_providers.dart';
+import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart'
     show
@@ -229,7 +231,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
     final salesAsync = ref.watch(salesStreamProvider);
     final salonAsync = ref.watch(sessionSalonStreamProvider);
     final recognition = ref.watch(ownerMoneyRecognitionModeProvider);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final now = DateTime.now();
     final localeTag = locale.toString();
     final saleDateFmt = DateFormat.yMMMd(localeTag);
@@ -326,7 +328,6 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                           loading: () => const MoneyDashboardSkeleton(),
                           error: (_, _) => Text(l10n.genericError),
                           data: (salon) {
-                            final code = salon?.currencyCode ?? 'USD';
                             final totalSales = OwnerMoneyAggregation.sumSales(
                               sales,
                               recognition,
@@ -391,7 +392,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                   label: l10n.ownerMoneyTotalSales,
                                   value: formatAppMoney(
                                     totalSales,
-                                    code,
+                                    currencyCode,
                                     locale,
                                   ),
                                   icon: AppIcons.point_of_sale_outlined,
@@ -401,7 +402,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                   label: l10n.ownerMoneyTotalPayroll,
                                   value: formatAppMoney(
                                     totalPayroll,
-                                    code,
+                                    currencyCode,
                                     locale,
                                   ),
                                   icon: AppIcons.payments_outlined,
@@ -411,7 +412,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                   label: l10n.ownerMoneyTotalExpenses,
                                   value: formatAppMoney(
                                     totalExpenses,
-                                    code,
+                                    currencyCode,
                                     locale,
                                   ),
                                   icon: AppIcons.receipt_long_outlined,
@@ -419,7 +420,11 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                 const SizedBox(height: AppSpacing.small),
                                 LuxuryKpiCard(
                                   label: l10n.ownerMoneyNetResult,
-                                  value: formatAppMoney(net, code, locale),
+                                  value: formatAppMoney(
+                                    net,
+                                    currencyCode,
+                                    locale,
+                                  ),
                                   icon: AppIcons.account_balance_outlined,
                                 ),
                                 const SizedBox(height: AppSpacing.medium),
@@ -467,7 +472,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                                         )),
                                           ),
                                           subtitle: Text(
-                                            '${s.employeeName} · ${localizedSalePaymentMethod(l10n, s.paymentMethod)} · ${saleDateFmt.format(s.soldAt.toLocal())} ${saleTimeFmt.format(s.soldAt.toLocal())}',
+                                            '${formatTeamMemberName(s.employeeName)} · ${localizedSalePaymentMethod(l10n, s.paymentMethod)} · ${saleDateFmt.format(s.soldAt.toLocal())} ${saleTimeFmt.format(s.soldAt.toLocal())}',
                                           ),
                                           trailing: Text(
                                             formatAppMoney(
@@ -507,7 +512,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
                                       ),
                                       child: Card(
                                         child: ExpansionTile(
-                                          title: Text(p.employeeName),
+                                          title: TeamMemberNameText(p.employeeName),
                                           subtitle: Text(
                                             '${p.year}-${p.month.toString().padLeft(2, '0')} · ${localizedPayrollStatus(l10n, p.status)}',
                                           ),

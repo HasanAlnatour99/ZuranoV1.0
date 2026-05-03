@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_modal_sheet.dart';
 import '../../../../core/widgets/app_select_field.dart';
 import '../../../../core/widgets/keyboard_safe_form_scaffold.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/salon_streams_provider.dart'
+    show employeesStreamProvider, salesStreamProvider;
 import '../../../employees/data/models/employee.dart';
 import '../../data/models/sale.dart';
 import '../../domain/sales_filter.dart';
@@ -27,6 +29,7 @@ import '../widgets/sales_skeleton_blocks.dart';
 import '../widgets/sales_vs_expenses_chart.dart';
 import '../../../../core/formatting/sale_payment_method_localized.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class SalesScreen extends ConsumerStatefulWidget {
   const SalesScreen({super.key, this.initialBarberId});
@@ -98,9 +101,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final filters = ref.watch(salesFiltersProvider);
     final salesRoot = ref.watch(salesStreamProvider);
     final summaryAsync = ref.watch(salesSummaryModelProvider);
@@ -430,7 +431,7 @@ Future<void> _showSalesFiltersSheet(
                         .map(
                           (employee) => AppSelectOption<String?>(
                             value: employee.id,
-                            label: employee.name,
+                            label: formatTeamMemberName(employee.name),
                           ),
                         ),
                   ],

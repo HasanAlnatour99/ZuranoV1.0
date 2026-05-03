@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/user_roles.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
@@ -11,6 +12,7 @@ import '../../../../core/widgets/app_fade_in.dart';
 import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../core/widgets/app_surface_card.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../attendance/data/models/attendance_record.dart';
 import '../../logic/attendance_requests_review_controller.dart';
@@ -159,28 +161,35 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
     }
 
     return AppFadeIn(
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.large),
-        itemCount: state.requests.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.medium),
-        itemBuilder: (context, index) {
-          final record = state.requests[index];
-          final processing = state.processingIds.contains(record.id);
-          return _AttendanceRequestRow(
-            record: record,
-            processing: processing,
-            onApprove: () => ref
-                .read(attendanceRequestsReviewControllerProvider.notifier)
-                .approve(record),
-            onReject: () async {
-              final reason = await _promptRejectionReason(context, l10n);
-              if (reason == null) return;
-              await ref
-                  .read(attendanceRequestsReviewControllerProvider.notifier)
-                  .reject(record, rejectionReason: reason);
-            },
-          );
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(pendingAttendanceRequestsStreamProvider);
+          ref.invalidate(attendanceRequestsReviewControllerProvider);
         },
+        child: ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppSpacing.large),
+          itemCount: state.requests.length,
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.medium),
+          itemBuilder: (context, index) {
+            final record = state.requests[index];
+            final processing = state.processingIds.contains(record.id);
+            return _AttendanceRequestRow(
+              record: record,
+              processing: processing,
+              onApprove: () => ref
+                  .read(attendanceRequestsReviewControllerProvider.notifier)
+                  .approve(record),
+              onReject: () async {
+                final reason = await _promptRejectionReason(context, l10n);
+                if (reason == null) return;
+                await ref
+                    .read(attendanceRequestsReviewControllerProvider.notifier)
+                    .reject(record, rejectionReason: reason);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -255,7 +264,7 @@ class _AttendanceRequestRow extends StatelessWidget {
                 radius: 20,
                 backgroundColor: scheme.primary.withValues(alpha: 0.14),
                 child: Text(
-                  _initials(record.employeeName),
+                  _initials(formatTeamMemberName(record.employeeName)),
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: scheme.primary,
                     fontWeight: FontWeight.w700,
@@ -270,7 +279,7 @@ class _AttendanceRequestRow extends StatelessWidget {
                     Text(
                       record.employeeName.isEmpty
                           ? l10n.attendanceReviewUnknownEmployee
-                          : record.employeeName,
+                          : formatTeamMemberName(record.employeeName),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),

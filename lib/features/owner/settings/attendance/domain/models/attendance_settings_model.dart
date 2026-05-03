@@ -40,6 +40,7 @@ class AttendanceSettingsModel {
     required this.earlyExitDeductionPercent,
     required this.maxBreakMinutesPerDay,
     required this.correctionRequestMaxDaysBack,
+    required this.missingCheckoutPenaltyMinutes,
     this.standardShiftStart,
     this.standardShiftEnd,
     this.createdAt,
@@ -94,6 +95,9 @@ class AttendanceSettingsModel {
 
   /// Backward window for retroactive correction requests (days).
   final int correctionRequestMaxDaysBack;
+
+  /// Assumed missing punch-out duration (minutes) for payroll preview and server reprocess.
+  final int missingCheckoutPenaltyMinutes;
 
   /// `HH:mm` standard shift start used for late grace calculation.
   final String? standardShiftStart;
@@ -166,7 +170,7 @@ class AttendanceSettingsModel {
       punchInRequired: true,
       punchOutRequired: true,
       breaksEnabled: true,
-      maxPunchesPerDay: 4,
+      maxPunchesPerDay: 2,
       maxBreaksPerDay: 2,
       lateGraceMinutes: 10,
       earlyExitGraceMinutes: 10,
@@ -186,6 +190,7 @@ class AttendanceSettingsModel {
       earlyExitDeductionPercent: 5,
       maxBreakMinutesPerDay: 15,
       correctionRequestMaxDaysBack: 30,
+      missingCheckoutPenaltyMinutes: 120,
       standardShiftStart: null,
       standardShiftEnd: null,
     );
@@ -277,9 +282,7 @@ class AttendanceSettingsModel {
       punchOutRequired:
           (data['punchOutRequired'] as bool?) ?? defaults.punchOutRequired,
       breaksEnabled: breaksEnabled,
-      maxPunchesPerDay:
-          (data['maxPunchesPerDay'] as num?)?.toInt() ??
-          defaults.maxPunchesPerDay,
+      maxPunchesPerDay: 2,
       maxBreaksPerDay: maxBreaksPerDay,
       lateGraceMinutes:
           (data['lateGraceMinutes'] as num?)?.toInt() ??
@@ -346,6 +349,9 @@ class AttendanceSettingsModel {
       correctionRequestMaxDaysBack:
           (data['correctionRequestMaxDaysBack'] as num?)?.toInt() ??
           defaults.correctionRequestMaxDaysBack,
+      missingCheckoutPenaltyMinutes:
+          (data['missingCheckoutPenaltyMinutes'] as num?)?.toInt() ??
+          defaults.missingCheckoutPenaltyMinutes,
       standardShiftStart: data['standardShiftStart']?.toString(),
       standardShiftEnd: data['standardShiftEnd']?.toString(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
@@ -369,7 +375,7 @@ class AttendanceSettingsModel {
       'punchInRequired': punchInRequired,
       'punchOutRequired': punchOutRequired,
       'breaksEnabled': breaksEnabled,
-      'maxPunchesPerDay': maxPunchesPerDay,
+      'maxPunchesPerDay': 2,
       'maxBreaksPerDay': maxBreaksPerDay,
       'lateGraceMinutes': lateGraceMinutes,
       'earlyExitGraceMinutes': earlyExitGraceMinutes,
@@ -390,6 +396,7 @@ class AttendanceSettingsModel {
       'earlyExitDeductionPercent': earlyExitDeductionPercent,
       'maxBreakMinutesPerDay': maxBreakMinutesPerDay,
       'correctionRequestMaxDaysBack': correctionRequestMaxDaysBack,
+      'missingCheckoutPenaltyMinutes': missingCheckoutPenaltyMinutes,
       'standardShiftStart': standardShiftStart,
       'standardShiftEnd': standardShiftEnd,
 
@@ -463,6 +470,7 @@ class AttendanceSettingsModel {
     int? earlyExitDeductionPercent,
     int? maxBreakMinutesPerDay,
     int? correctionRequestMaxDaysBack,
+    int? missingCheckoutPenaltyMinutes,
     String? standardShiftStart,
     bool clearStandardShiftStart = false,
     String? standardShiftEnd,
@@ -518,6 +526,9 @@ class AttendanceSettingsModel {
           maxBreakMinutesPerDay ?? this.maxBreakMinutesPerDay,
       correctionRequestMaxDaysBack:
           correctionRequestMaxDaysBack ?? this.correctionRequestMaxDaysBack,
+      missingCheckoutPenaltyMinutes:
+          missingCheckoutPenaltyMinutes ??
+          this.missingCheckoutPenaltyMinutes,
       standardShiftStart: clearStandardShiftStart
           ? null
           : (standardShiftStart ?? this.standardShiftStart),

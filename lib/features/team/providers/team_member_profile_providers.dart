@@ -5,6 +5,7 @@ import '../../../providers/repository_providers.dart';
 import '../data/models/team_member_model.dart';
 import '../data/models/team_member_today_summary_model.dart';
 import '../data/repositories/team_repository.dart';
+import '../data/team_member_cards_repository.dart';
 
 final teamRepositoryProvider = Provider<TeamRepository>((ref) {
   return TeamRepository(
@@ -55,5 +56,18 @@ final teamMemberTodaySummaryProvider = FutureProvider.autoDispose
         salonId: args.salonId,
         employeeId: args.employeeId,
         now: DateTime.now(),
+      );
+    });
+
+/// Current calendar month performance row (same source as team deck cards).
+final teamMemberCurrentMonthPerformanceProvider = StreamProvider.autoDispose
+    .family<SalonEmployeeMonthlyPerformance?, TeamMemberProfileArgs>((
+      ref,
+      args,
+    ) {
+      final cardsRepo = ref.watch(teamMemberCardsRepositoryProvider);
+      return cardsRepo.watchCurrentMonthPerformance(
+        salonId: args.salonId,
+        employeeId: args.employeeId,
       );
     });

@@ -1,6 +1,7 @@
 import '../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../data/models/et_attendance_settings.dart';
 import 'attendance_state_resolver.dart';
+import 'attendance_work_punch_limits.dart';
 
 /// Client-side punch validation (mirror server-side rules in production).
 class AttendanceRuleEngine {
@@ -53,13 +54,7 @@ class AttendanceRuleEngine {
   }) {
     final mergedTypes = List<String>.from(punchSequence)
       ..add(requestedType.name);
-    final configuredMax = settings.maxPunchesPerDay;
-    final effectiveMax = configuredMax <= 0
-        ? AttendanceStateResolver.maxPunchesPerDayDefault
-        : (configuredMax > AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
-              ? AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
-              : configuredMax);
-    if (mergedTypes.length > effectiveMax) {
+    if (workPunchCountInSequenceNames(mergedTypes) > kMaxWorkPunchesPerDay) {
       return const AttendanceValidationResult(
         allowed: false,
         message: 'This punch would exceed the daily punch limit.',

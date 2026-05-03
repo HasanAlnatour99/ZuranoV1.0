@@ -31,8 +31,9 @@ abstract final class PayrollRunStatuses {
   static const paid = 'paid';
   static const rolledBack = 'rolled_back';
 
+  /// Draft, approved, or paid runs may be fully or partially reversed.
   static bool canRollback(String status) =>
-      status == draft || status == approved;
+      status == draft || status == approved || status == paid;
 
   static bool isFinalized(String status) =>
       status == paid || status == rolledBack;

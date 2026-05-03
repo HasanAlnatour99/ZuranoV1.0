@@ -58,6 +58,10 @@ _Employee _$EmployeeFromJson(Map<String, dynamic> json) => _Employee(
   workingHoursProfileId: nullableLooseStringFromJson(
     json['workingHoursProfileId'],
   ),
+  payrollPeriodOverride: json['payrollPeriodOverride'] == null
+      ? null
+      : _payrollPeriodOverrideFromJson(json['payrollPeriodOverride']),
+  hiredAt: nullableFirestoreDateTimeFromJson(json['hiredAt']),
   assignedServiceIds: json['assignedServiceIds'] == null
       ? const <String>[]
       : stringListFromJson(json['assignedServiceIds']),
@@ -96,6 +100,10 @@ Map<String, dynamic> _$EmployeeToJson(_Employee instance) => <String, dynamic>{
   'publicBio': instance.publicBio,
   'displayOrder': instance.displayOrder,
   'workingHoursProfileId': instance.workingHoursProfileId,
+  'payrollPeriodOverride': _payrollPeriodOverrideToJson(
+    instance.payrollPeriodOverride,
+  ),
+  'hiredAt': nullableFirestoreDateTimeToJson(instance.hiredAt),
   'assignedServiceIds': instance.assignedServiceIds,
   'isActive': instance.isActive,
   'weeklyAvailability': _weeklyAvailabilityToJson(instance.weeklyAvailability),

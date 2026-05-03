@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/booking/availability_schedule.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -28,6 +29,7 @@ import '../widgets/booking_recommendations_section.dart';
 import '../widgets/customer_booking_section_header.dart';
 import '../widgets/customer_booking_summary_card.dart';
 import '../widgets/customer_day_scroller.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 class CustomerBookingScreen extends ConsumerStatefulWidget {
@@ -161,7 +163,7 @@ class _CustomerBookingScreenState extends ConsumerState<CustomerBookingScreen> {
     final locale = Localizations.localeOf(context);
     final localeTag = locale.toString();
     final timeFmt = DateFormat.jm(localeTag);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final isReschedule = bookingState.isRescheduleFlow;
     final errText = customerBookingSubmissionMessage(
@@ -511,7 +513,7 @@ class _CustomerBookingScreenState extends ConsumerState<CustomerBookingScreen> {
                                   final b = list[i];
                                   final selected = barber?.id == b.id;
                                   return FilterChip(
-                                    label: Text(b.name),
+                                    label: TeamMemberNameText(b.name),
                                     selected: selected,
                                     showCheckmark: true,
                                     selectedColor: scheme.primary.withValues(

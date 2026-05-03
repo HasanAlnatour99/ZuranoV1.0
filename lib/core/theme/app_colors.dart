@@ -58,6 +58,10 @@ abstract final class AppColorsLight {
   static const statIconMuted = Color(0xFF64748B); // Slate 500
   static const verifiedBadge = Color(0xFF7C3AED); // Purple 600
   static const pillButtonSurface = Color(0xFFF1F5F9);
+
+  /// Payroll run badge — approved (light mint; not blue secondary).
+  static const payrollApprovedBadgeBackground = Color(0xFFE8F5E9);
+  static const onPayrollApprovedBadge = Color(0xFF1B5E20);
 }
 
 /// Dark palette — deep slate background, dark surfaces, purple primary.
@@ -83,6 +87,9 @@ abstract final class AppColorsDark {
   static const statIconMuted = Color(0xFF94A3B8);
   static const verifiedBadge = Color(0xFF8B5CF6); // Violet 500
   static const pillButtonSurface = Color(0xFF1E293B);
+
+  static const payrollApprovedBadgeBackground = Color(0xFF1B3D24);
+  static const onPayrollApprovedBadge = Color(0xFFC8E6C9);
 }
 
 /// Premium brand — luxury purple for auth & onboarding.

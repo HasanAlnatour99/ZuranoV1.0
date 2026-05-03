@@ -8,6 +8,7 @@ import '../../../../core/constants/user_roles.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/firebase_error_message.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
@@ -45,7 +46,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
     final salon = ref.watch(sessionSalonStreamProvider).asData?.value;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final currency = salon?.currencyCode ?? 'QAR';
+    final currency = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     if (session == null) {
       return Scaffold(

@@ -118,6 +118,7 @@ class SalonRepository {
     final employeeDoc = salonDoc
         .collection(FirestorePaths.employees)
         .doc(outcome.employeeId);
+    final nowUtc = DateTime.now().toUtc();
     final employee = Employee(
       id: outcome.employeeId,
       salonId: outcome.salonId,
@@ -126,6 +127,7 @@ class SalonRepository {
       email: owner.email.trim(),
       role: UserRoles.owner,
       phone: owner.phoneE164OrEmpty,
+      hiredAt: DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day),
     );
 
     try {

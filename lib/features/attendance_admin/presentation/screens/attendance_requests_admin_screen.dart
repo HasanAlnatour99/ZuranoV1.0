@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
@@ -50,7 +51,7 @@ class AttendanceRequestsAdminScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TeamMemberNameText(
                         r.employeeName,
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),

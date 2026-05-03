@@ -87,8 +87,8 @@ class AttendanceRecordModel {
       weekKey: data['weekKey']?.toString() ?? '',
       monthKey:
           data['monthKey']?.toString() ?? _monthKeyFromIso(attendanceDateStr),
-      checkInAt: readTimestamp('checkInAt'),
-      checkOutAt: readTimestamp('checkOutAt'),
+      checkInAt: readTimestamp('checkInAt') ?? readTimestamp('punchInAt'),
+      checkOutAt: readTimestamp('checkOutAt') ?? readTimestamp('punchOutAt'),
       status: data['status']?.toString().trim().isNotEmpty == true
           ? data['status'] as String
           : 'incomplete',
@@ -121,5 +121,42 @@ class AttendanceRecordModel {
   static String _monthKeyFromIso(String iso) {
     if (iso.length < 7) return '';
     return iso.substring(0, 7);
+  }
+
+  /// Keys consumed by attendance adjustment parsers / Cloud Function payloads.
+  Map<String, dynamic> toAttendanceAdjustmentPrefillPayload() {
+    final m = <String, dynamic>{
+      'status': status,
+      if (notes.trim().isNotEmpty) 'notes': notes.trim(),
+    };
+    final ci = checkInAt;
+    if (ci != null) {
+      m['checkInAt'] = Timestamp.fromDate(ci);
+    }
+    final co = checkOutAt;
+    if (co != null) {
+      m['checkOutAt'] = Timestamp.fromDate(co);
+    }
+    return m;
+  }
+
+  /// Calendar day for this row (team history / adjustments).
+  DateTime? attendanceCalendarDay() {
+    final iso = DateTime.tryParse(attendanceDate);
+    if (iso != null) {
+      return DateTime(iso.year, iso.month, iso.day);
+    }
+    if (dateKey > 0) {
+      final padded = dateKey.toString().padLeft(8, '0');
+      if (padded.length == 8) {
+        final y = int.tryParse(padded.substring(0, 4));
+        final mo = int.tryParse(padded.substring(4, 6));
+        final d = int.tryParse(padded.substring(6, 8));
+        if (y != null && mo != null && d != null) {
+          return DateTime(y, mo, d);
+        }
+      }
+    }
+    return null;
   }
 }

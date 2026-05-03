@@ -26,6 +26,9 @@ class EtAttendanceDay {
     required this.hasMissingPunch,
     required this.hasPendingCorrectionRequest,
     required this.punchSequence,
+    this.exceededBreakMinutes,
+    this.hasBreakViolation,
+    this.payrollImpactStatus,
     this.createdAt,
     this.updatedAt,
   });
@@ -56,6 +59,15 @@ class EtAttendanceDay {
 
   /// Punch type names in order (`punchIn`, `breakOut`, …) for atomic validation.
   final List<String> punchSequence;
+
+  /// Cumulative exceeded break minutes (salon policy) for this calendar day.
+  final int? exceededBreakMinutes;
+
+  /// True when at least one break return created an [EXCEEDED_BREAK_TIME] path.
+  final bool? hasBreakViolation;
+
+  /// Optional HR flag (e.g. PENDING_PROCESSING) for payroll pipelines.
+  final String? payrollImpactStatus;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -95,6 +107,11 @@ class EtAttendanceDay {
       hasMissingPunch: d['hasMissingPunch'] == true,
       hasPendingCorrectionRequest: d['hasPendingCorrectionRequest'] == true,
       punchSequence: sequence,
+      exceededBreakMinutes: (d['exceededBreakMinutes'] as num?)?.toInt(),
+      hasBreakViolation: d['hasBreakViolation'] is bool
+          ? d['hasBreakViolation'] as bool
+          : null,
+      payrollImpactStatus: d['payrollImpactStatus']?.toString(),
       createdAt: ts('createdAt'),
       updatedAt: ts('updatedAt'),
     );

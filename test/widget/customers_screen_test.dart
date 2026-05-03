@@ -5,6 +5,7 @@ import 'package:barber_shop_app/features/customers/logic/customer_providers.dart
 import 'package:barber_shop_app/features/customers/presentation/screens/customers_screen.dart';
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
+import 'package:barber_shop_app/providers/notification_providers.dart';
 import 'package:barber_shop_app/providers/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -44,6 +45,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
           ),
@@ -67,6 +69,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
           ),
@@ -88,6 +91,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('barber')),
           ),
@@ -111,6 +115,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            unreadNotificationCountProvider.overrideWith((ref) => 0),
             sessionUserProvider.overrideWith(
               (ref) => Stream.value(_user('owner')),
             ),
@@ -135,6 +140,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
           ),
@@ -160,6 +166,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
           ),
@@ -185,6 +192,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
           ),

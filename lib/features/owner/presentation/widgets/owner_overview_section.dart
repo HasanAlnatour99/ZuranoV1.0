@@ -13,13 +13,15 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../users/data/models/app_user.dart';
 import '../../logic/owner_overview_controller.dart';
 import '../../logic/owner_overview_state.dart';
-import 'overview/dashboard_section_card.dart';
 import 'overview/owner_dashboard_hero_header.dart';
 import 'overview/overview_action_button.dart';
 import 'overview/overview_design_tokens.dart';
 import 'overview/overview_kpi_grid_section.dart';
 import 'overview/overview_revenue_chart_card.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import 'package:barber_shop_app/features/owner_dashboard/presentation/widgets/overview_bottom_insights_section.dart';
+import 'package:barber_shop_app/features/owner_dashboard/presentation/widgets/team_performance_mini_bars_card.dart';
+import 'owner_zurano_bottom_nav.dart';
 
 Widget _buildTodayInsightCard({
   required BuildContext context,
@@ -31,8 +33,8 @@ Widget _buildTodayInsightCard({
   final scheme = theme.colorScheme;
   final revenueToday = state.todayRevenue;
   final bookingsToday = state.bookingsToday;
-  final pendingRequests =
-      state.pendingBookingsCount + state.pendingApprovalsCount;
+  final pendingApprovals = state.pendingApprovalsCount;
+  final pendingBookings = state.pendingBookingsCount;
   final revenueLabel = formatAppMoney(revenueToday, state.currencyCode, locale);
 
   final insightMessage = revenueToday > 0
@@ -107,17 +109,29 @@ Widget _buildTodayInsightCard({
                   color: Color(0xFF374151),
                 ),
               ),
-              if (pendingRequests > 0) ...[
+              if (pendingApprovals > 0) ...[
                 const Gap(8),
                 Text(
-                  l10n.ownerOverviewTodayInsightPendingRequests(
-                    pendingRequests,
+                  l10n.ownerOverviewTodayInsightPendingApprovals(
+                    pendingApprovals,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: scheme.error,
                     fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+              if (pendingBookings > 0) ...[
+                const Gap(6),
+                Text(
+                  l10n.ownerOverviewAttentionPendingBookings(pendingBookings),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -163,12 +177,10 @@ Widget _buildTodayInsightCard({
 Widget _buildBody({
   required BuildContext context,
   required WidgetRef ref,
+  required AppUser user,
   required OwnerOverviewState state,
   required AppLocalizations l10n,
   required Locale locale,
-  required double navClearance,
-  required double fabClearance,
-  required double bottomInset,
 }) {
   Widget animated(Widget child, int i) {
     return child
@@ -202,7 +214,7 @@ Widget _buildBody({
       OverviewKpiGridSection(
         state: state,
         locale: locale,
-        onBookingsTap: () => context.push(AppRoutes.bookingsNew),
+        onServicesTap: () => context.push(AppRoutes.ownerSales),
         onCheckedInTap: () => context.go(AppRoutes.ownerTeam),
         onPendingTap: () => context.push(AppRoutes.attendanceRequestsReview),
       ),
@@ -210,18 +222,33 @@ Widget _buildBody({
     ),
     const Gap(16),
     animated(OverviewRevenueChartCard(state: state, locale: locale), index++),
+    const Gap(16),
     animated(
-      _OverviewPerformanceSection(state: state, locale: locale),
+      Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 0),
+        child: TeamPerformanceMiniBarsCard(
+          salonId: user.salonId ?? '',
+          currencyCode: state.currencyCode,
+        ),
+      ),
       index++,
     ),
+    const Gap(16),
     animated(
-      _OverviewRecentActivityCard(state: state, locale: locale),
+      Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 0),
+        child: OverviewBottomInsightsSection(
+          salonId: user.salonId ?? '',
+          currencyCode: state.currencyCode,
+        ),
+      ),
       index++,
     ),
   ];
 
-  final scrollBottomPad =
-      (navClearance + fabClearance + 24).clamp(128.0, 220.0) + bottomInset;
+  final scrollBottomPad = OwnerZuranoBottomNav.ownerShellScrollBottomPadding(
+    context,
+  );
 
   return AppMotionPlayback(
     child: ListView(
@@ -234,7 +261,7 @@ Widget _buildBody({
   );
 }
 
-/// Owner Overview: premium header, welcome, KPIs, weekly revenue chart, team, suggestions.
+/// Owner Overview: premium header, welcome, KPIs, revenue chart (month / week), insights.
 class OwnerOverviewSection extends ConsumerWidget {
   const OwnerOverviewSection({super.key, required this.user});
 
@@ -248,9 +275,6 @@ class OwnerOverviewSection extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context);
     final state = ref.watch(ownerOverviewControllerProvider);
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-    final navClearance = 88.0 + bottomInset;
-    final fabClearance = 72.0 + bottomInset;
 
     if (state.isLoading) {
       return const _OverviewLoadingScaffold();
@@ -283,109 +307,13 @@ class OwnerOverviewSection extends ConsumerWidget {
             child: _buildBody(
               context: context,
               ref: ref,
+              user: user,
               state: state,
               l10n: l10n,
               locale: locale,
-              navClearance: navClearance,
-              fabClearance: fabClearance,
-              bottomInset: bottomInset,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _OverviewPerformanceSection extends StatelessWidget {
-  const _OverviewPerformanceSection({
-    required this.state,
-    required this.locale,
-  });
-
-  final OwnerOverviewState state;
-  final Locale locale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final topService = (state.topServiceThisWeekName ?? state.topServiceToday)
-        ?.trim();
-    final barberInsight = state.topBarberTodayInsight;
-    final topBarber = (barberInsight?.barberName ?? state.topBarberToday)
-        ?.trim();
-    final topBarberSubtitle = barberInsight == null
-        ? l10n.ownerOverviewPerformanceNoData
-        : l10n.ownerOverviewBestBarberSubtitle(
-            formatAppMoney(
-              barberInsight.totalSales,
-              state.currencyCode,
-              locale,
-            ),
-          );
-    final topServiceSubtitle = topService == null || topService.isEmpty
-        ? l10n.ownerOverviewPerformanceNoData
-        : l10n.ownerOverviewBestServiceSubtitle(state.topServiceThisWeekUses);
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 16),
-      child: Column(
-        children: [
-          DashboardMiniActionCard(
-            title: topService == null || topService.isEmpty
-                ? l10n.salesScreenTopService
-                : topService,
-            subtitle: topServiceSubtitle,
-            icon: AppIcons.content_cut_rounded,
-            margin: EdgeInsets.zero,
-          ),
-          const Gap(16),
-          DashboardMiniActionCard(
-            title: topBarber == null || topBarber.isEmpty
-                ? l10n.salesScreenTopBarber
-                : topBarber,
-            subtitle: topBarber == null || topBarber.isEmpty
-                ? l10n.ownerOverviewPerformanceNoData
-                : topBarberSubtitle,
-            icon: AppIcons.person_outline,
-            margin: EdgeInsets.zero,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OverviewRecentActivityCard extends StatelessWidget {
-  const _OverviewRecentActivityCard({
-    required this.state,
-    required this.locale,
-  });
-
-  final OwnerOverviewState state;
-  final Locale locale;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final latestSale = state.latestSale;
-    final latestSaleService = latestSale?.serviceLabel.trim();
-    final subtitle = latestSale == null
-        ? l10n.ownerOverviewRecentActivityEmpty
-        : l10n.ownerOverviewLatestSaleSubtitle(
-            latestSaleService == null || latestSaleService.isEmpty
-                ? l10n.ownerOverviewLatestSaleFallbackService
-                : latestSaleService,
-            formatAppMoney(latestSale.amount, state.currencyCode, locale),
-          );
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 0),
-      child: DashboardMiniActionCard(
-        title: l10n.ownerOverviewRecentActivityTitle,
-        subtitle: subtitle,
-        icon: Icons.history_rounded,
-        margin: EdgeInsets.zero,
       ),
     );
   }

@@ -1,8 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/firestore/firestore_paths.dart';
 import '../models/customer_booking_create_result.dart';
 import '../models/customer_booking_draft.dart';
@@ -23,6 +22,8 @@ abstract class CustomerBookingCreateRepository {
     required String salonId,
     required CustomerBookingDraft draft,
     required CustomerBookingSettings bookingSettings,
+    required String customerUiLanguageCode,
+    bool anonymousGuestRequiresNickname = false,
   });
 }
 
@@ -47,8 +48,14 @@ class FirestoreCustomerBookingCreateRepository
     required String salonId,
     required CustomerBookingDraft draft,
     required CustomerBookingSettings bookingSettings,
+    required String customerUiLanguageCode,
+    bool anonymousGuestRequiresNickname = false,
   }) async {
-    validateDraft(draft, bookingSettings);
+    validateDraft(
+      draft,
+      bookingSettings,
+      anonymousGuestRequiresNickname: anonymousGuestRequiresNickname,
+    );
 
     final startAt = draft.selectedStartAt!;
     final endAt = draft.selectedEndAt!;
@@ -63,6 +70,14 @@ class FirestoreCustomerBookingCreateRepository
         .where('startAt', isLessThan: Timestamp.fromDate(dayEnd))
         .get()
         .then((snap) => snap.docs.map((doc) => doc.reference).toList());
+
+    final authUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final publicSalonSnap = await _firestore
+        .doc(FirestorePaths.publicSalon(salonId))
+        .get();
+    final salonName =
+        (publicSalonSnap.data()?['name'] as String?)?.trim() ?? salonId;
+    final bookingCode = await _pickUniquePublicBookingCode();
 
     final bookingRef = _firestore
         .collection(FirestorePaths.salonBookings(salonId))
@@ -126,6 +141,9 @@ class FirestoreCustomerBookingCreateRepository
           'createdAt': now,
           'updatedAt': now,
         };
+        if (authUid.isNotEmpty) {
+          customerData['createdByAuthUid'] = authUid;
+        }
         transaction.set(
           stableCustomerRef,
           customerData,
@@ -135,12 +153,13 @@ class FirestoreCustomerBookingCreateRepository
         final status = bookingSettings.autoConfirmBookings
             ? 'confirmed'
             : 'pending';
-        final bookingCode = _bookingCode(startAt);
         final services = draft.selectedServices
             .map(
               (service) => <String, dynamic>{
                 'serviceId': service.id,
-                'serviceName': service.displayTitle,
+                'serviceName': service.localizedTitleForLanguageCode(
+                  customerUiLanguageCode,
+                ),
                 'price': service.price,
                 'durationMinutes': service.durationMinutes,
                 'category': service.category,
@@ -148,7 +167,7 @@ class FirestoreCustomerBookingCreateRepository
             )
             .toList(growable: false);
 
-        transaction.set(bookingRef, {
+        final bookingPayload = <String, dynamic>{
           'salonId': salonId,
           'customerId': stableCustomerRef.id,
           'customerName': displayName,
@@ -161,7 +180,9 @@ class FirestoreCustomerBookingCreateRepository
           'barberId': employeeId,
           'barberName': employeeName,
           'services': services,
-          'serviceNames': draft.serviceNames,
+          'serviceNames': draft.serviceNamesForLanguageCode(
+            customerUiLanguageCode,
+          ),
           'subtotal': draft.subtotal,
           'discountAmount': draft.discountAmount,
           'totalAmount': draft.totalAmount,
@@ -175,7 +196,46 @@ class FirestoreCustomerBookingCreateRepository
           'customerGender': draft.customerGender,
           'createdAt': now,
           'updatedAt': now,
-        });
+        };
+        if (authUid.isNotEmpty) {
+          bookingPayload['createdByAuthUid'] = authUid;
+        }
+        if (draft.hasGuestNickname) {
+          bookingPayload['guestNicknameKey'] = draft.guestNicknameKey;
+          bookingPayload['guestDisplayName'] = draft.guestDisplayName;
+        }
+        transaction.set(bookingRef, bookingPayload);
+
+        if (authUid.isNotEmpty && draft.hasGuestNickname) {
+          final guestBookingRef = _firestore.doc(
+            FirestorePaths.guestBooking(bookingCode),
+          );
+          transaction.set(guestBookingRef, <String, dynamic>{
+            'bookingCode': bookingCode,
+            'salonBookingId': bookingRef.id,
+            'authUid': authUid,
+            'accountType': 'guest',
+            'nicknameKey': draft.guestNicknameKey,
+            'guestDisplayName': draft.guestDisplayName,
+            'salonId': salonId,
+            'salonName': salonName,
+            'barberId': employeeId,
+            'barberName': employeeName,
+            'serviceItems': services,
+            'subtotal': draft.subtotal,
+            'discountAmount': draft.discountAmount,
+            'totalAmount': draft.totalAmount,
+            'paymentMethod': 'unspecified',
+            'paymentStatus': 'pending',
+            'bookingStatus': status,
+            'saleCreated': false,
+            'saleId': null,
+            'appointmentStartAt': Timestamp.fromDate(startAt),
+            'appointmentEndAt': Timestamp.fromDate(endAt),
+            'createdAt': now,
+            'updatedAt': now,
+          });
+        }
 
         return CustomerBookingCreateResult(
           bookingId: bookingRef.id,
@@ -195,8 +255,9 @@ class FirestoreCustomerBookingCreateRepository
   /// Used by [CustomerCallableBookingRepository] before HTTPS create.
   static void validateDraft(
     CustomerBookingDraft draft,
-    CustomerBookingSettings settings,
-  ) {
+    CustomerBookingSettings settings, {
+    bool anonymousGuestRequiresNickname = false,
+  }) {
     if (!draft.hasServices) {
       throw const CustomerBookingValidationException('missing_services');
     }
@@ -212,6 +273,28 @@ class FirestoreCustomerBookingCreateRepository
     )) {
       throw const CustomerBookingValidationException('missing_customer');
     }
+    if (anonymousGuestRequiresNickname && !draft.hasGuestNickname) {
+      throw const CustomerBookingValidationException('missing_guest_nickname');
+    }
+  }
+
+  Future<String> _pickUniquePublicBookingCode() async {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rnd = Random.secure();
+    for (var attempt = 0; attempt < 16; attempt++) {
+      final body = StringBuffer();
+      for (var i = 0; i < 6; i++) {
+        body.write(chars[rnd.nextInt(chars.length)]);
+      }
+      final code = 'ZR-${body.toString()}';
+      final exists = await _firestore
+          .doc(FirestorePaths.guestBooking(code))
+          .get();
+      if (!exists.exists) {
+        return code;
+      }
+    }
+    throw StateError('Could not allocate booking code.');
   }
 
   static String _stableCustomerDocId({
@@ -260,12 +343,6 @@ class FirestoreCustomerBookingCreateRepository
       return value;
     }
     return null;
-  }
-
-  static String _bookingCode(DateTime startAt) {
-    final date = DateFormat('yyyyMMdd').format(startAt);
-    final random = Random.secure().nextInt(90000) + 10000;
-    return 'ZR-$date-$random';
   }
 
   static String _customerIdFromPhone(String phoneNormalized) {

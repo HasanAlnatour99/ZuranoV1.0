@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../bookings/logic/booking_recommendation_models.dart';
@@ -134,7 +135,7 @@ class BookingRecommendationsSection extends ConsumerWidget {
                 (a) => Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.small),
                   child: _RecommendationTile(
-                    title: a.barberName,
+                    title: formatTeamMemberName(a.barberName),
                     rec: a,
                     timeFmt: timeFmt,
                     l10n: l10n,
@@ -201,7 +202,7 @@ class _RecommendationTile extends StatelessWidget {
               Text(
                 l10n.customerRecommendationUseSlot(
                   timeFmt.format(local),
-                  rec.barberName,
+                  formatTeamMemberName(rec.barberName),
                 ),
                 style: theme.textTheme.bodyMedium,
               ),

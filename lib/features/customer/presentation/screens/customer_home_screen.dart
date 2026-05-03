@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/utils/currency_for_country.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
@@ -81,9 +82,21 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
   ) {
     final servicesAsync = ref.watch(customerDiscoveryServicesProvider);
     final locale = Localizations.localeOf(context);
-    final currencyBySalon = {
-      for (final s in salonsForCurrency) s.id: s.currencyCode,
-    };
+    /// Discovery lists multiple salons; the user's address/onboarding country
+    /// must not drive per-salon prices (e.g. CA → CAD for a non‑Canadian salon).
+    const unknownSalonCurrencyFallback = 'USD';
+    final currencyBySalon = <String, String>{};
+    for (final s in salonsForCurrency) {
+      final code = resolvedSalonMoneyCurrency(
+        salonCurrencyCode: s.currencyCode,
+        salonCountryIso: s.countryCode,
+      );
+      currencyBySalon[s.id] = code;
+      final sid = s.salonId.trim();
+      if (sid.isNotEmpty) {
+        currencyBySalon[sid] = code;
+      }
+    }
 
     return servicesAsync.when(
       data: (services) {
@@ -109,6 +122,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
                   l10n,
                   locale,
                   currencyBySalon,
+                  unknownSalonCurrencyFallback,
                 ),
               ),
             ),
@@ -137,6 +151,7 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     AppLocalizations l10n,
     Locale locale,
     Map<String, String> currencyBySalon,
+    String fallbackCurrencyCode,
   ) {
     final out = <Widget>[];
     for (var i = 0; i < services.length; i++) {
@@ -144,7 +159,8 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         out.add(const SizedBox(width: AppSpacing.medium));
       }
       final s = services[i];
-      final code = currencyBySalon[s.salonId] ?? 'USD';
+      final code =
+          currencyBySalon[s.salonId.trim()] ?? fallbackCurrencyCode;
       out.add(
         CustomerQuickServiceTile(
           title: s.serviceName,

@@ -12,7 +12,7 @@ class EmployeeQuickActionFab extends StatelessWidget {
       width: 60,
       height: 60,
       child: FloatingActionButton(
-        heroTag: 'employee_quick_action_fab',
+        heroTag: null,
         elevation: 10,
         highlightElevation: 6,
         backgroundColor: const Color(0xFF7C3AED),

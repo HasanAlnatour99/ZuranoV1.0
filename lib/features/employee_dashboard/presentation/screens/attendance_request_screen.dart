@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/repository_providers.dart';
@@ -92,7 +93,7 @@ class _AttendanceRequestScreenState
             salonId: scope.salonId,
             employeeId: scope.employeeId,
             employeeUid: scope.uid,
-            employeeName: scope.displayName,
+            employeeName: formatTeamMemberName(scope.displayName),
             attendanceId: attendanceId,
             dateKey: dateKey,
             requestedPunchType: _type,

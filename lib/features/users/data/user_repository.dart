@@ -139,6 +139,20 @@ class UserRepository {
     }
   }
 
+  /// Shallow merge for fields not modeled on [AppUser] (e.g. guest metadata).
+  Future<void> mergeProfileFields(Map<String, dynamic> fields) async {
+    final authUid = FirebaseAuth.instance.currentUser?.uid;
+    if (authUid == null || authUid.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'user-not-authenticated',
+        message: 'Cannot merge users/*: not signed in.',
+      );
+    }
+    final docRef = _users.doc(authUid);
+    final payload = FirestoreWritePayload.withServerTimestampForUpdate(fields);
+    await docRef.set(payload, SetOptions(merge: true));
+  }
+
   /// Account recovery / first-time [users/{uid}] when the doc is missing.
   Future<void> createMinimalRecoveryUser(AppUser user) async {
     await createUserIfNotExists(user);

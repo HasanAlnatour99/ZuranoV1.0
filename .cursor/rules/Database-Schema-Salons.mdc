@@ -15,6 +15,7 @@ ownerUid: string (**not** ownerId — Firebase Auth uid)
 ownerName: string
 ownerEmail: string
 currencyCode: string (default USD)
+defaultPayrollPeriod: string (monthly | weekly; default monthly when missing)
 isActive: boolean
 createdAt: timestamp
 updatedAt: timestamp

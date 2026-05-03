@@ -24,6 +24,7 @@ import '../widgets/attendance_request_card.dart';
 import '../widgets/employee_today_section_error.dart';
 import '../widgets/employee_today_skeletons.dart';
 import '../widgets/employee_today_widgets.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class EmployeeTodayScreen extends ConsumerStatefulWidget {
   const EmployeeTodayScreen({super.key});
@@ -65,7 +66,7 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
 
     final salon = ref.watch(sessionSalonStreamProvider).asData?.value;
     final sessionUser = ref.watch(sessionUserProvider).asData?.value;
-    final salonCurrency = salon?.currencyCode ?? 'USD';
+    final salonCurrency = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final salonDisplayName = salon?.name.trim().isNotEmpty == true
         ? salon!.name.trim()
         : l10n.employeeTodaySalonLabel;

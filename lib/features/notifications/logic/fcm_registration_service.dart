@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,15 +12,22 @@ import '../../../core/storage/secure_storage_service.dart';
 import '../../users/data/models/app_user.dart';
 import '../data/device_token_model.dart';
 import '../data/notification_repository.dart';
+import 'notification_router.dart' show decodeNotificationLaunchPayload;
 
 const _deviceIdStorageKey = 'notification_installation_device_id';
 
-/// Set to `true` after **Apple Push Notification service (APNs)** is configured
-/// (Apple Developer + Firebase) and you are ready to ship push.
+/// Push enablement (compile-time). **Default: enabled.**
 ///
-/// While `false`, the app does not request notification permission, register
-/// FCM tokens, or show local notifications for remote messages.
-const kFirebasePushMessagingEnabled = false;
+/// Disable for local testing: `--dart-define=ENABLE_PUSH_NOTIFICATIONS=false`
+///
+/// When disabled, the app does not request notification permission, register
+/// FCM tokens, or wire foreground/background listeners.
+///
+/// Configure **Apple Push Notification service (APNs)** for iOS production pushes.
+const bool kFirebasePushMessagingEnabled = bool.fromEnvironment(
+  'ENABLE_PUSH_NOTIFICATIONS',
+  defaultValue: true,
+);
 
 /// Foreground display + device registration against Cloud Functions.
 class FcmRegistrationService {
@@ -44,7 +52,11 @@ class FcmRegistrationService {
   static const _androidChannelId = 'barber_shop_default';
   static const _androidChannelName = 'General';
 
-  Future<void> initializeLocalNotifications() async {
+  /// Optional [onNotificationTap]: invoked when the user taps a **local**
+  /// notification shown for an FCM message while the app was foregrounded.
+  Future<void> initializeLocalNotifications({
+    void Function(Map<String, dynamic> data)? onNotificationTap,
+  }) async {
     if (kIsWeb || !kFirebasePushMessagingEnabled) {
       return;
     }
@@ -52,6 +64,14 @@ class FcmRegistrationService {
     const iosInit = DarwinInitializationSettings();
     await _local.initialize(
       const InitializationSettings(android: androidInit, iOS: iosInit),
+      onDidReceiveNotificationResponse: onNotificationTap == null
+          ? null
+          : (NotificationResponse response) {
+              final data = decodeNotificationLaunchPayload(response.payload);
+              if (data.isNotEmpty) {
+                onNotificationTap(data);
+              }
+            },
     );
 
     final android = _local
@@ -65,6 +85,25 @@ class FcmRegistrationService {
         importance: Importance.defaultImportance,
       ),
     );
+  }
+
+  /// When the app cold-starts from a **local** notification tap (not system FCM).
+  Future<void> consumeLaunchNotificationTap({
+    required void Function(Map<String, dynamic> data) onTap,
+  }) async {
+    if (kIsWeb || !kFirebasePushMessagingEnabled) {
+      return;
+    }
+    final details = await _local.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) {
+      return;
+    }
+    final data = decodeNotificationLaunchPayload(
+      details!.notificationResponse?.payload,
+    );
+    if (data.isNotEmpty) {
+      onTap(data);
+    }
   }
 
   Future<void> requestPermissionIfSupported() async {
@@ -183,6 +222,7 @@ class FcmRegistrationService {
     if (title.isEmpty && body.isEmpty) {
       return;
     }
+    final payloadMap = Map<String, dynamic>.from(message.data);
     await _local.show(
       message.hashCode,
       title,
@@ -196,7 +236,7 @@ class FcmRegistrationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      payload: message.data['route']?.toString(),
+      payload: jsonEncode(payloadMap),
     );
   }
 }

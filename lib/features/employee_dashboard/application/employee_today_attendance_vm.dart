@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -5,12 +8,18 @@ import '../../../l10n/app_localizations.dart';
 import '../../employee_today/data/models/et_attendance_day.dart';
 import '../../employee_today/data/models/et_attendance_punch.dart';
 import '../../employee_today/data/models/employee_workplace_location_snapshot.dart';
+import '../../employee_today/domain/attendance_action_rules.dart';
+import '../../employee_today/domain/break_allowance_math.dart';
+import '../../employee_today/domain/attendance_punch_sequence.dart';
 import '../../employee_today/domain/attendance_status.dart';
 import '../../employee_today/domain/attendance_state_resolver.dart';
 import '../../employee_today/domain/employee_attendance_today_chips.dart';
 import '../../employees/data/models/employee.dart';
+import '../../owner_settings/shifts/data/models/employee_schedule_model.dart';
 import '../../owner/settings/attendance/domain/models/attendance_settings_model.dart';
 import '../domain/enums/attendance_punch_type.dart';
+
+const int _kDefaultBreakAllowedMinutesFallback = 60;
 
 /// Why the primary punch CTA is disabled (maps to localized copy in the UI).
 enum EmployeeTodayPrimaryBlock {
@@ -60,6 +69,8 @@ class EmployeeTodayAttendanceVm {
     required this.allowedPunchTypes,
     required this.punchSequence,
     required this.locationResolved,
+    this.assignedShiftName,
+    this.assignedShiftType,
     this.shiftStartRaw,
     this.shiftEndRaw,
     required this.primaryBlock,
@@ -68,6 +79,10 @@ class EmployeeTodayAttendanceVm {
     required this.locationRowShowsOutside,
     required this.dayStatusKey,
     required this.splitActions,
+    this.openBreakStartedAt,
+    this.openBreakAllowedMinutes,
+    this.breakCountdownShiftStart,
+    this.breakCountdownShiftEnd,
   });
 
   factory EmployeeTodayAttendanceVm.noWorkspace() {
@@ -85,6 +100,8 @@ class EmployeeTodayAttendanceVm {
       allowedPunchTypes: <AttendancePunchType>{},
       punchSequence: <String>[],
       locationResolved: false,
+      assignedShiftName: null,
+      assignedShiftType: null,
       primaryBlock: EmployeeTodayPrimaryBlock.generic,
       showOutsideZoneChip: false,
       showMissingPunchChip: false,
@@ -96,6 +113,10 @@ class EmployeeTodayAttendanceVm {
         showCorrectionAction: true,
         validationMessage: null,
       ),
+      openBreakStartedAt: null,
+      openBreakAllowedMinutes: null,
+      breakCountdownShiftStart: null,
+      breakCountdownShiftEnd: null,
     );
   }
 
@@ -107,11 +128,12 @@ class EmployeeTodayAttendanceVm {
     required AttendanceSettingsModel settings,
     required EtAttendanceDay? day,
     required List<EtAttendancePunch> punches,
+    required EmployeeScheduleModel? assignedSchedule,
     required Employee? employee,
     required EmployeeWorkplaceLocationSnapshot location,
   }) {
     final attendanceReq = employeeAttendanceRequired(employee);
-    final seq = day?.punchSequence ?? const <String>[];
+    final seq = punchTypeSequenceForResolver(day: day, punches: punches);
     final effectiveInside = _effectiveInsideZone(
       attendanceRequired: attendanceReq,
       settings: settings,
@@ -128,6 +150,11 @@ class EmployeeTodayAttendanceVm {
     final completedDay = _completedForDay(day);
     final locationRowShowsOutside =
         showOutside && (completedDay || location.insideZone != true);
+
+    final sortedAsc = List<EtAttendancePunch>.of(punches)
+      ..sort((a, b) => a.punchTime.compareTo(b.punchTime));
+    final lastChrono =
+        sortedAsc.isEmpty ? null : sortedAsc[sortedAsc.length - 1];
 
     EtAttendancePunch? lastPunch;
     for (final p in punches) {
@@ -155,8 +182,22 @@ class EmployeeTodayAttendanceVm {
       isInsideZone: effectiveInside,
       attendanceRequired: attendanceReq,
     );
-    final next = resolution.nextType;
-    final allowedTypes = resolution.allowedTypes;
+    var allowedTypes = Set<AttendancePunchType>.from(resolution.allowedTypes);
+    var next = resolution.nextType;
+    if (dayStatus == AttendanceStatus.onBreak &&
+        settings.breaksEnabled &&
+        !isCheckedOut) {
+      allowedTypes.add(AttendancePunchType.breakIn);
+      next = AttendancePunchType.breakIn;
+    }
+    final machine = AttendanceActionsState.fromAttendanceStatus(dayStatus);
+    if (kDebugMode) {
+      debugPrint(
+        'ATTENDANCE_UI: dayStatus=${dayStatus.name} seq=$seq '
+        'resolverAllowed=${resolution.allowedTypes} mergedAllowed=$allowedTypes '
+        'next=$next machineBreakIn=${machine.canBreakIn}',
+      );
+    }
     final canPunch =
         next != null &&
         allowedTypes.contains(next) &&
@@ -177,6 +218,41 @@ class EmployeeTodayAttendanceVm {
           : validation,
     );
 
+    final shiftStartRaw = assignedSchedule?.startTime ?? settings.standardShiftStart;
+    final shiftEndRaw = assignedSchedule?.endTime ?? settings.standardShiftEnd;
+
+    DateTime? openBreakStartedAt;
+    int? openBreakAllowedMinutes;
+    DateTime? breakCountdownShiftStart;
+    DateTime? breakCountdownShiftEnd;
+    if (isOnBreak &&
+        lastChrono != null &&
+        lastChrono.type == AttendancePunchType.breakOut) {
+      openBreakStartedAt = lastChrono.punchTime;
+      final d = day?.date;
+      final cal = d != null
+          ? DateTime(d.year, d.month, d.day)
+          : DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+            );
+      breakCountdownShiftStart = shiftBoundaryOnCalendarDay(
+        cal,
+        shiftStartRaw,
+      );
+      breakCountdownShiftEnd = shiftBoundaryOnCalendarDay(cal, shiftEndRaw);
+      final cap = settings.maxBreakMinutesPerDay <= 0
+          ? _kDefaultBreakAllowedMinutesFallback
+          : settings.maxBreakMinutesPerDay;
+      final used = completedClosedBreakMinutesClamped(
+        sortedAsc,
+        breakCountdownShiftStart,
+        breakCountdownShiftEnd,
+      );
+      openBreakAllowedMinutes = math.max(0, cap - used);
+    }
+
     return EmployeeTodayAttendanceVm(
       salonId: salonId,
       employeeId: employeeId,
@@ -195,8 +271,10 @@ class EmployeeTodayAttendanceVm {
       allowedPunchTypes: allowedTypes,
       punchSequence: seq,
       locationResolved: location.resolved,
-      shiftStartRaw: settings.standardShiftStart,
-      shiftEndRaw: settings.standardShiftEnd,
+      assignedShiftName: assignedSchedule?.shiftName,
+      assignedShiftType: assignedSchedule?.shiftType,
+      shiftStartRaw: shiftStartRaw,
+      shiftEndRaw: shiftEndRaw,
       primaryBlock: block,
       showOutsideZoneChip: showOutside,
       showMissingPunchChip:
@@ -205,6 +283,10 @@ class EmployeeTodayAttendanceVm {
       locationRowShowsOutside: locationRowShowsOutside,
       dayStatusKey: dayStatusKey,
       splitActions: splitActions,
+      openBreakStartedAt: openBreakStartedAt,
+      openBreakAllowedMinutes: openBreakAllowedMinutes,
+      breakCountdownShiftStart: breakCountdownShiftStart,
+      breakCountdownShiftEnd: breakCountdownShiftEnd,
     );
   }
 
@@ -225,6 +307,8 @@ class EmployeeTodayAttendanceVm {
   final Set<AttendancePunchType> allowedPunchTypes;
   final List<String> punchSequence;
   final bool locationResolved;
+  final String? assignedShiftName;
+  final String? assignedShiftType;
   final String? shiftStartRaw;
   final String? shiftEndRaw;
   final EmployeeTodayPrimaryBlock primaryBlock;
@@ -233,6 +317,16 @@ class EmployeeTodayAttendanceVm {
   final bool locationRowShowsOutside;
   final String dayStatusKey;
   final SplitPunchActionsVm splitActions;
+
+  /// Start time of the open [AttendancePunchType.breakOut] when [isOnBreak].
+  final DateTime? openBreakStartedAt;
+
+  /// Remaining minutes from the **daily** break pool for the open session.
+  final int? openBreakAllowedMinutes;
+
+  /// Shift window used for break countdown clamp (assigned shift or salon default).
+  final DateTime? breakCountdownShiftStart;
+  final DateTime? breakCountdownShiftEnd;
 
   String primaryStatusTitle(AppLocalizations l10n) {
     switch (dayStatusKey) {
@@ -341,16 +435,29 @@ class EmployeeTodayAttendanceVm {
   }
 
   String shiftLabel(AppLocalizations l10n, Locale locale) {
+    if (assignedShiftType == 'off') {
+      if (assignedShiftName != null && assignedShiftName!.isNotEmpty) {
+        return '${l10n.employeeTodayShiftLabel}: $assignedShiftName';
+      }
+      return '${l10n.employeeTodayShiftLabel}: —';
+    }
     final start = _parseShiftTime(shiftStartRaw);
     final end = _parseShiftTime(shiftEndRaw);
     if (start == null || end == null) {
+      if (assignedShiftName != null && assignedShiftName!.isNotEmpty) {
+        return '${l10n.employeeTodayShiftLabel}: $assignedShiftName';
+      }
       return '${l10n.employeeTodayShiftLabel}: —';
     }
     final day = DateTime.now();
     final startAt = DateTime(day.year, day.month, day.day, start.$1, start.$2);
     final endAt = DateTime(day.year, day.month, day.day, end.$1, end.$2);
     final fmt = DateFormat.jm(locale.toString());
-    return '${l10n.employeeTodayShiftLabel}: ${fmt.format(startAt)} - ${fmt.format(endAt)}';
+    final timeText = '${fmt.format(startAt)} - ${fmt.format(endAt)}';
+    if (assignedShiftName != null && assignedShiftName!.isNotEmpty) {
+      return '${l10n.employeeTodayShiftLabel}: $assignedShiftName • $timeText';
+    }
+    return '${l10n.employeeTodayShiftLabel}: $timeText';
   }
 
   bool get isGpsVerified => locationResolved && isInsideSalonZone;

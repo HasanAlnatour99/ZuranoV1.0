@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../core/utils/currency_for_country.dart';
 import '../../../core/utils/firebase_error_message.dart';
 import '../../../core/utils/input_validators.dart';
 import '../../../core/utils/localized_input_validators.dart';
@@ -169,6 +170,7 @@ class CreateSalonController extends Notifier<CreateSalonFormState> {
         return CreateSalonSubmitResult.success(existingSid);
       }
 
+      final moneyCode = currencyCodeForCountryIso(address.countryCode);
       final created = await ref
           .read(salonRepositoryProvider)
           .createSalonForOwner(
@@ -177,6 +179,7 @@ class CreateSalonController extends Notifier<CreateSalonFormState> {
             businessType: state.businessType!,
             address: address,
             contactPhone: contactPhone,
+            currencyCode: moneyCode,
           );
       refreshSessionAndRouter(ref);
 

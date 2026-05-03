@@ -52,6 +52,16 @@ class TeamFilterBar extends StatelessWidget {
             selected: selectedFilter == TeamFilter.needsAttention,
             onTap: () => onSelected(TeamFilter.needsAttention),
           ),
+          _FilterChip(
+            label: l10n.teamFilterTopServices,
+            selected: selectedFilter == TeamFilter.topServices,
+            onTap: () => onSelected(TeamFilter.topServices),
+          ),
+          _FilterChip(
+            label: l10n.teamFilterTopPerformance,
+            selected: selectedFilter == TeamFilter.topPerformance,
+            onTap: () => onSelected(TeamFilter.topPerformance),
+          ),
         ],
       ),
     );

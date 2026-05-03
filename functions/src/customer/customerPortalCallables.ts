@@ -196,7 +196,6 @@ export const getCustomerAvailability = onCall(CALL, async (request) => {
   if (!settings.enabled) {
     throw new HttpsError("failed-precondition", "Online booking is disabled.");
   }
-
   const dayStart = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
   const dayEnd = new Date(dayStart.getTime() + 86400000);
   const startTs = Timestamp.fromDate(dayStart);

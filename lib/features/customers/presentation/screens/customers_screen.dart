@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/app_page_header.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../data/models/customer.dart';
@@ -15,7 +15,13 @@ import '../widgets/customer_card.dart';
 import '../widgets/customer_empty_state.dart';
 import '../widgets/customer_filter_chips.dart';
 import '../widgets/customer_info_banner.dart';
+import '../widgets/customer_insight_card.dart';
+import '../widgets/customer_list_footer.dart';
 import '../widgets/customer_permission_error.dart';
+import '../widgets/customer_search_bar.dart';
+import '../widgets/customers_filter_empty_state.dart';
+import '../widgets/customers_header.dart';
+import '../widgets/customers_search_empty_state.dart';
 import '../widgets/customers_premium_header.dart';
 
 class CustomersScreen extends ConsumerStatefulWidget {
@@ -39,12 +45,17 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   List<Customer> _applyFilters(List<Customer> customers) {
-    final q = _searchController.text.trim().toLowerCase();
+    final qRaw = _searchController.text.trim();
+    final q = normalizeCustomerName(qRaw);
+    final queryDigits = normalizeCustomerPhone(qRaw);
     return customers.where((c) {
-      final searchOk =
-          q.isEmpty ||
-          c.fullName.toLowerCase().contains(q) ||
-          c.phone.toLowerCase().contains(q);
+      final searchOk = q.isEmpty ||
+          c.normalizedFullName.contains(q) ||
+          (c.email?.toLowerCase().contains(q) ?? false) ||
+          c.phone.toLowerCase().contains(q) ||
+          (queryDigits != null &&
+              queryDigits.isNotEmpty &&
+              (c.normalizedPhoneNumber?.contains(queryDigits) ?? false));
       final seg = segmentForCustomer(c);
       final tagOk = switch (_selectedTag) {
         'All' => c.isActive,
@@ -58,6 +69,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     }).toList();
   }
 
+  void _resetFilters() {
+    setState(() {
+      _selectedTag = 'All';
+      _searchController.clear();
+    });
+  }
+
+  void _clearSearchOnly() {
+    setState(() {
+      _searchController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -66,11 +90,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     final salonId = user?.salonId?.trim() ?? '';
     final salonAsync = ref.watch(sessionSalonStreamProvider);
     final salonName = salonAsync.asData?.value?.name ?? '';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
-    final query = _searchController.text.trim();
-    final rawAsync = query.isEmpty
-        ? ref.watch(customersListProvider(salonId))
-        : ref.watch(customerSearchProvider((salonId: salonId, query: query)));
+    // Always stream the salon list; filter locally as the user types so we do
+    // not swap to [customerSearchProvider] per keystroke (that re-ran a Future
+    // and showed a full-screen loading spinner on every character).
+    final rawAsync = ref.watch(customersListProvider(salonId));
 
     final canCreate =
         user != null && (user.role == 'owner' || user.role == 'admin');
@@ -109,11 +134,17 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         },
         data: (customers) {
           final filtered = _applyFilters(customers);
+          final searchQuery = _searchController.text.trim();
+          final filterEmpty =
+              customers.isNotEmpty && filtered.isEmpty && salonId.isNotEmpty;
+          final showListFooter =
+              filtered.isNotEmpty && filtered.length < 5 && salonId.isNotEmpty;
+
           return CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, embedded ? 24 : 0, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20, embedded ? 36 : 0, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -126,10 +157,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         ),
                         const SizedBox(height: 16),
                       ] else ...[
-                        CustomerInfoBanner(salonName: salonName),
-                        const SizedBox(height: 20),
+                        const CustomerInfoBanner(),
+                        const SizedBox(height: 16),
                       ],
-                      _CustomersTitleRow(
+                      CustomersHeader(
                         count: filtered.length,
                         onFilterTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -137,28 +168,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           );
                         },
                       ),
+                      if (salonId.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        CustomerInsightCard(salonId: salonId),
+                      ],
                       const SizedBox(height: 16),
-                      TextField(
+                      CustomerSearchBar(
                         controller: _searchController,
                         onChanged: (_) => setState(() {}),
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: l10n.customersSearchHint,
-                          hintStyle: const TextStyle(
-                            color: FinanceDashboardColors.textSecondary,
-                          ),
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          filled: true,
-                          fillColor: FinanceDashboardColors.surface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 18,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(22),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 14),
                       CustomerFilterChips(
@@ -170,16 +187,30 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   ),
                 ),
               ),
-              if (filtered.isEmpty)
+              if (customers.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
                     padding: EdgeInsets.only(bottom: clearanceBelowContent),
-                    child: CustomerEmptyState(
-                      canCreate: canCreate,
-                      onAddCustomer: canCreate
-                          ? () => context.push(AppRoutes.customerNew)
-                          : null,
+                    child: searchQuery.isNotEmpty
+                        ? CustomersSearchEmptyState(
+                            onClearSearch: _clearSearchOnly,
+                          )
+                        : CustomerEmptyState(
+                            canCreate: canCreate,
+                            onAddCustomer: canCreate
+                                ? () => context.push(AppRoutes.customerNew)
+                                : null,
+                          ),
+                  ),
+                )
+              else if (filterEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: clearanceBelowContent),
+                    child: CustomersFilterEmptyState(
+                      onClearFilters: _resetFilters,
                     ),
                   ),
                 )
@@ -191,20 +222,40 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     20,
                     clearanceBelowContent + (embedded ? 120 : 8),
                   ),
-                  sliver: SliverList.separated(
-                    itemCount: filtered.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final c = filtered[index];
-                      return CustomerCard(
-                        customer: c,
-                        l10n: l10n,
-                        localeName: localeName,
-                        onTap: () =>
-                            context.push(AppRoutes.ownerCustomerDetails(c.id)),
-                      );
-                    },
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index >= filtered.length + (showListFooter ? 1 : 0)) {
+                          return null;
+                        }
+                        if (showListFooter && index == filtered.length) {
+                          return const CustomerListFooter();
+                        }
+                        final c = filtered[index];
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: index == filtered.length - 1 && !showListFooter
+                                ? 0
+                                : 12,
+                          ),
+                          child: CustomerCard(
+                            customer: c,
+                            l10n: l10n,
+                            localeName: localeName,
+                            currencyCode: currencyCode,
+                            listIndex: index,
+                            onTap: () => context.push(
+                              AppRoutes.ownerCustomerDetails(c.id),
+                            ),
+                            onOpenProfile: () => context.push(
+                              AppRoutes.ownerCustomerDetails(c.id),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount:
+                          filtered.length + (showListFooter ? 1 : 0),
+                    ),
                   ),
                 ),
             ],
@@ -226,81 +277,34 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
     return Scaffold(
       backgroundColor: FinanceDashboardColors.background,
-      appBar: const AppPageHeader(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (user != null)
-            CustomersPremiumHeader(user: user, salonName: salonName),
+            CustomersPremiumHeader(
+              user: user,
+              salonName: salonName,
+              leading: context.canPop()
+                  ? IconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).backButtonTooltip,
+                      onPressed: () => context.pop(),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                      ),
+                      style: IconButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    )
+                  : null,
+            ),
+          const SizedBox(height: 14),
           Expanded(child: bodyChild),
         ],
       ),
-    );
-  }
-}
-
-class _CustomersTitleRow extends StatelessWidget {
-  const _CustomersTitleRow({required this.count, required this.onFilterTap});
-
-  final int count;
-  final VoidCallback onFilterTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                l10n.customersScreenTitle,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: FinanceDashboardColors.textPrimary,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: FinanceDashboardColors.lightPurple,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  l10n.customersCountBadge(count),
-                  style: const TextStyle(
-                    color: FinanceDashboardColors.primaryPurple,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        IconButton.filledTonal(
-          style: IconButton.styleFrom(
-            backgroundColor: FinanceDashboardColors.surface,
-            foregroundColor: FinanceDashboardColors.primaryPurple,
-            side: BorderSide(
-              color: FinanceDashboardColors.primaryPurple.withValues(
-                alpha: 0.18,
-              ),
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
-          onPressed: onFilterTap,
-          icon: const Icon(Icons.tune_rounded),
-        ),
-      ],
     );
   }
 }

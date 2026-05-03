@@ -16,7 +16,9 @@ import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/salon_public_card.dart';
 
 class SalonDiscoveryScreen extends ConsumerStatefulWidget {
-  const SalonDiscoveryScreen({super.key});
+  const SalonDiscoveryScreen({super.key, this.showBottomNavigationBar = true});
+
+  final bool showBottomNavigationBar;
 
   @override
   ConsumerState<SalonDiscoveryScreen> createState() =>
@@ -65,10 +67,9 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
     final session = ref.watch(appSessionBootstrapProvider);
 
     return CustomerGradientScaffold(
-      bottomNavigationBar: _CustomerDiscoveryBottomBar(
-        session: session,
-        l10n: l10n,
-      ),
+      bottomNavigationBar: widget.showBottomNavigationBar
+          ? _CustomerDiscoveryBottomBar(session: session, l10n: l10n)
+          : null,
       child: SafeArea(
         child: CustomScrollView(
           slivers: [

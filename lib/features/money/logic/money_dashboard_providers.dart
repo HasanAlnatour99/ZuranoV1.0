@@ -1,12 +1,35 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/payroll_statuses.dart';
+import '../../../core/constants/sale_reporting.dart';
+import '../../../core/time/iso_week.dart';
 import '../../../providers/salon_streams_provider.dart';
 import '../../expenses/data/models/expense.dart';
 import '../../payroll/data/models/payroll_record.dart';
+import '../../payroll/data/models/payslip_model.dart';
 import '../../sales/data/models/sale.dart';
 
 enum MoneyInsightKind { topBarber, topService, largestExpenseCategory }
+
+/// X-axis bucketing for the Finance dashboard sales vs expenses chart.
+enum MoneyChartGranularity { daily, weekly, monthly, yearly }
+
+class MoneyChartGranularityNotifier extends Notifier<MoneyChartGranularity> {
+  @override
+  MoneyChartGranularity build() => MoneyChartGranularity.daily;
+
+  void select(MoneyChartGranularity value) {
+    state = value;
+  }
+}
+
+final moneyChartGranularityProvider =
+    NotifierProvider<MoneyChartGranularityNotifier, MoneyChartGranularity>(
+      MoneyChartGranularityNotifier.new,
+    );
 
 class MoneyMonthSelection extends Notifier<DateTime> {
   @override
@@ -104,22 +127,100 @@ class MoneyDashboardSummary {
   final List<MoneyCategoryBreakdown> categoryBreakdown;
 }
 
+/// Net payroll from payslips created by the payroll-run / QuickPay pipeline
+/// ([PayslipModel.payrollRunId]). Only **paid** amounts count toward finance KPIs
+/// so approved-but-unsettled runs do not reduce net profit.
+///
+/// When [inclusiveEndDay] is set (month-to-date mode), only payslips with a
+/// non-null [PayslipModel.paidAt] whose local calendar day is in
+/// `1..inclusiveEndDay` within that payslip's [PayslipModel.year]/[month] count.
+double _payrollNetFromRunPayslips(
+  Iterable<PayslipModel> payslips, {
+  int? inclusiveEndDay,
+}) {
+  return payslips
+      .where((p) => (p.payrollRunId ?? '').trim().isNotEmpty)
+      .where((p) => p.status == PayrollStatuses.paid)
+      .where((p) {
+        if (inclusiveEndDay == null) return true;
+        final paid = p.paidAt;
+        if (paid == null) return false;
+        final local = DateUtils.dateOnly(paid.toLocal());
+        if (local.year != p.year || local.month != p.month) return false;
+        return local.day <= inclusiveEndDay;
+      })
+      .fold<double>(0, (sum, p) => sum + p.netPay);
+}
+
+/// True when [instant]'s local date is in [month]'s calendar month and its
+/// day-of-month is at most [inclusiveEndDay].
+bool _isLocalOnOrBeforeDayInMonth(
+  DateTime instant,
+  DateTime month,
+  int inclusiveEndDay,
+) {
+  final local = DateUtils.dateOnly(instant.toLocal());
+  return local.year == month.year &&
+      local.month == month.month &&
+      local.day <= inclusiveEndDay;
+}
+
 /// Builds [MoneyDashboardSummary] for a calendar month from raw streams.
+///
+/// [inclusiveEndDay]: when non-null, only include sales ([Sale.soldAt]),
+/// expenses ([Expense.incurredAt]), and paid payroll attributed via
+/// [PayrollRecord.paidAt] / [PayslipModel.paidAt] up to that day-of-month in
+/// the summary [month]. Paid legacy payroll without [PayrollRecord.paidAt] is
+/// excluded in MTD mode so whole-month payouts are not mis-attributed.
 MoneyDashboardSummary buildMoneyDashboardSummaryForMonth({
   required Iterable<Sale> sales,
   required Iterable<Expense> expenses,
   required Iterable<PayrollRecord> payroll,
+  required Iterable<PayslipModel> runPayslips,
   required DateTime month,
+  int? inclusiveEndDay,
 }) {
   final mSales = sales.where((sale) {
-    return sale.reportYear == month.year && sale.reportMonth == month.month;
+    if (sale.reportYear != month.year ||
+        sale.reportMonth != month.month ||
+        sale.status != SaleStatuses.completed) {
+      return false;
+    }
+    if (inclusiveEndDay != null &&
+        !_isLocalOnOrBeforeDayInMonth(sale.soldAt, month, inclusiveEndDay)) {
+      return false;
+    }
+    return true;
   });
   final mExpenses = expenses.where((expense) {
-    return expense.reportYear == month.year &&
-        expense.reportMonth == month.month;
+    if (expense.reportYear != month.year ||
+        expense.reportMonth != month.month) {
+      return false;
+    }
+    if (inclusiveEndDay != null &&
+        !_isLocalOnOrBeforeDayInMonth(
+          expense.incurredAt,
+          month,
+          inclusiveEndDay,
+        )) {
+      return false;
+    }
+    return true;
   });
   final mPayroll = payroll.where((record) {
-    return record.year == month.year && record.month == month.month;
+    if (record.year != month.year ||
+        record.month != month.month ||
+        record.status != PayrollStatuses.paid) {
+      return false;
+    }
+    if (inclusiveEndDay != null) {
+      final paid = record.paidAt;
+      if (paid == null) return false;
+      if (!_isLocalOnOrBeforeDayInMonth(paid, month, inclusiveEndDay)) {
+        return false;
+      }
+    }
+    return true;
   });
 
   final salesTotal = mSales.fold<double>(0, (sum, sale) => sum + sale.total);
@@ -127,10 +228,15 @@ MoneyDashboardSummary buildMoneyDashboardSummaryForMonth({
     0,
     (sum, expense) => sum + expense.amount,
   );
-  final payrollTotal = mPayroll.fold<double>(
+  final payrollFromRecords = mPayroll.fold<double>(
     0,
     (sum, record) => sum + record.netAmount,
   );
+  final payrollFromRuns = _payrollNetFromRunPayslips(
+    runPayslips,
+    inclusiveEndDay: inclusiveEndDay,
+  );
+  final payrollTotal = payrollFromRecords + payrollFromRuns;
 
   return MoneyDashboardSummary(
     month: month,
@@ -235,41 +341,66 @@ final netProfitThisMonthProvider = Provider<double>((ref) {
 
 final moneyDashboardSummaryProvider =
     Provider<AsyncValue<MoneyDashboardSummary>>((ref) {
-      final salesAsync = ref.watch(salesStreamProvider);
-      final expensesAsync = ref.watch(expensesStreamProvider);
-      final payrollAsync = ref.watch(payrollStreamProvider);
       final month = ref.watch(moneySelectedMonthProvider);
+      final now = DateTime.now();
+      final selectedIsCurrentMonth =
+          month.year == now.year && month.month == now.month;
+      final inclusiveEndDay = selectedIsCurrentMonth ? now.day : null;
+      final key = (year: month.year, month: month.month);
+      final salesAsync = ref.watch(salesByMonthStreamProvider(key));
+      final expensesAsync = ref.watch(expensesByMonthStreamProvider(key));
+      final payrollAsync = ref.watch(payrollByMonthStreamProvider(key));
+      final payslipsAsync = ref.watch(payslipsByMonthStreamProvider(key));
 
       return _combineAsyncValues<MoneyDashboardSummary>(
-        [salesAsync, expensesAsync, payrollAsync],
+        [salesAsync, expensesAsync, payrollAsync, payslipsAsync],
         () {
           return buildMoneyDashboardSummaryForMonth(
             sales: salesAsync.requireValue,
             expenses: expensesAsync.requireValue,
             payroll: payrollAsync.requireValue,
+            runPayslips: payslipsAsync.requireValue,
             month: month,
+            inclusiveEndDay: inclusiveEndDay,
           );
         },
       );
     });
 
 /// Prior month totals for KPI trend copy (vs Mar, etc.).
+///
+/// When the selected month is the current calendar month, totals are capped to
+/// the same day range as [moneyDashboardSummaryProvider] (like-for-like vs
+/// partial month-to-date).
 final moneyPreviousMonthSummaryProvider =
     Provider<AsyncValue<MoneyDashboardSummary>>((ref) {
-      final salesAsync = ref.watch(salesStreamProvider);
-      final expensesAsync = ref.watch(expensesStreamProvider);
-      final payrollAsync = ref.watch(payrollStreamProvider);
       final month = ref.watch(moneySelectedMonthProvider);
+      final now = DateTime.now();
+      final selectedIsCurrentMonth =
+          month.year == now.year && month.month == now.month;
       final previous = DateTime(month.year, month.month - 1);
+      final prevInclusiveEndDay = selectedIsCurrentMonth
+          ? math.min(
+              now.day,
+              DateUtils.getDaysInMonth(previous.year, previous.month),
+            )
+          : null;
+      final prevKey = (year: previous.year, month: previous.month);
+      final salesAsync = ref.watch(salesByMonthStreamProvider(prevKey));
+      final expensesAsync = ref.watch(expensesByMonthStreamProvider(prevKey));
+      final payrollAsync = ref.watch(payrollByMonthStreamProvider(prevKey));
+      final payslipsAsync = ref.watch(payslipsByMonthStreamProvider(prevKey));
 
       return _combineAsyncValues<MoneyDashboardSummary>(
-        [salesAsync, expensesAsync, payrollAsync],
+        [salesAsync, expensesAsync, payrollAsync, payslipsAsync],
         () {
           return buildMoneyDashboardSummaryForMonth(
             sales: salesAsync.requireValue,
             expenses: expensesAsync.requireValue,
             payroll: payrollAsync.requireValue,
+            runPayslips: payslipsAsync.requireValue,
             month: previous,
+            inclusiveEndDay: prevInclusiveEndDay,
           );
         },
       );
@@ -278,50 +409,26 @@ final moneyPreviousMonthSummaryProvider =
 final moneyTrendSeriesProvider = Provider<AsyncValue<List<MoneyTrendPoint>>>((
   ref,
 ) {
+  final month = ref.watch(moneySelectedMonthProvider);
+  final granularity = ref.watch(moneyChartGranularityProvider);
   final salesAsync = ref.watch(salesStreamProvider);
   final expensesAsync = ref.watch(expensesStreamProvider);
-  final month = ref.watch(moneySelectedMonthProvider);
 
   return _combineAsyncValues<List<MoneyTrendPoint>>(
     [salesAsync, expensesAsync],
     () {
-      final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
-      final salesByDay = <DateTime, double>{};
-      final expensesByDay = <DateTime, double>{};
-
-      for (final sale in salesAsync.requireValue) {
-        if (sale.reportYear != month.year || sale.reportMonth != month.month) {
-          continue;
-        }
-        final day = DateUtils.dateOnly(sale.soldAt.toLocal());
-        salesByDay.update(
-          day,
-          (value) => value + sale.total,
-          ifAbsent: () => sale.total,
-        );
+      final sales = salesAsync.requireValue;
+      final expenses = expensesAsync.requireValue;
+      switch (granularity) {
+        case MoneyChartGranularity.daily:
+          return _moneyTrendPointsDaily(month, sales, expenses);
+        case MoneyChartGranularity.weekly:
+          return _moneyTrendPointsWeekly(month, sales, expenses);
+        case MoneyChartGranularity.monthly:
+          return _moneyTrendPointsMonthly(month, sales, expenses);
+        case MoneyChartGranularity.yearly:
+          return _moneyTrendPointsYearly(month, sales, expenses);
       }
-
-      for (final expense in expensesAsync.requireValue) {
-        if (expense.reportYear != month.year ||
-            expense.reportMonth != month.month) {
-          continue;
-        }
-        final day = DateUtils.dateOnly(expense.incurredAt.toLocal());
-        expensesByDay.update(
-          day,
-          (value) => value + expense.amount,
-          ifAbsent: () => expense.amount,
-        );
-      }
-
-      return List<MoneyTrendPoint>.generate(daysInMonth, (index) {
-        final date = DateTime(month.year, month.month, index + 1);
-        return MoneyTrendPoint(
-          date: date,
-          sales: salesByDay[date] ?? 0,
-          expenses: expensesByDay[date] ?? 0,
-        );
-      }, growable: false);
     },
   );
 });
@@ -368,12 +475,22 @@ final moneyInsightsProvider = Provider<AsyncValue<List<MoneyDashboardInsight>>>(
 );
 
 final _currentMonthPayrollTotalProvider = Provider<double>((ref) {
-  final payroll =
-      ref.watch(payrollStreamProvider).asData?.value ?? const <PayrollRecord>[];
   final now = DateTime.now();
-  return payroll
-      .where((record) => record.year == now.year && record.month == now.month)
+  final key = (year: now.year, month: now.month);
+  final payroll = ref
+          .watch(payrollByMonthStreamProvider(key))
+          .asData
+          ?.value ??
+      const <PayrollRecord>[];
+  final payslips = ref
+          .watch(payslipsByMonthStreamProvider(key))
+          .asData
+          ?.value ??
+      const <PayslipModel>[];
+  final fromRecords = payroll
+      .where((record) => record.status == PayrollStatuses.paid)
       .fold<double>(0, (sum, record) => sum + record.netAmount);
+  return fromRecords + _payrollNetFromRunPayslips(payslips);
 });
 
 AsyncValue<T> _combineAsyncValues<T>(
@@ -480,4 +597,175 @@ bool _isSameDay(DateTime value, DateTime day) {
   return local.year == day.year &&
       local.month == day.month &&
       local.day == day.day;
+}
+
+List<MoneyTrendPoint> _moneyTrendPointsDaily(
+  DateTime month,
+  List<Sale> sales,
+  List<Expense> expenses,
+) {
+  final y = month.year;
+  final m = month.month;
+  final daysInMonth = DateUtils.getDaysInMonth(y, m);
+  final salesByDay = <DateTime, double>{};
+  final expensesByDay = <DateTime, double>{};
+
+  for (final sale in sales) {
+    if (sale.status != SaleStatuses.completed) {
+      continue;
+    }
+    if (sale.reportYear != y || sale.reportMonth != m) {
+      continue;
+    }
+    final day = DateUtils.dateOnly(sale.soldAt.toLocal());
+    salesByDay.update(
+      day,
+      (value) => value + sale.total,
+      ifAbsent: () => sale.total,
+    );
+  }
+
+  for (final expense in expenses) {
+    if (expense.reportYear != y || expense.reportMonth != m) {
+      continue;
+    }
+    final day = DateUtils.dateOnly(expense.incurredAt.toLocal());
+    expensesByDay.update(
+      day,
+      (value) => value + expense.amount,
+      ifAbsent: () => expense.amount,
+    );
+  }
+
+  return List<MoneyTrendPoint>.generate(daysInMonth, (index) {
+    final date = DateTime(y, m, index + 1);
+    return MoneyTrendPoint(
+      date: date,
+      sales: salesByDay[date] ?? 0,
+      expenses: expensesByDay[date] ?? 0,
+    );
+  }, growable: false);
+}
+
+List<MoneyTrendPoint> _moneyTrendPointsWeekly(
+  DateTime month,
+  List<Sale> sales,
+  List<Expense> expenses,
+) {
+  final y = month.year;
+  final m = month.month;
+  final totals = <({int wy, int wn}), ({double s, double e})>{};
+
+  void addWeek(DateTime localDay, double saleDelta, double expDelta) {
+    final utc = DateTime.utc(localDay.year, localDay.month, localDay.day);
+    final spec = isoWeekSpecForUtcDate(utc);
+    final key = (wy: spec.weekYear, wn: spec.weekNumber);
+    final cur = totals[key] ?? (s: 0.0, e: 0.0);
+    totals[key] = (
+      s: cur.s + saleDelta,
+      e: cur.e + expDelta,
+    );
+  }
+
+  for (final sale in sales) {
+    if (sale.status != SaleStatuses.completed) {
+      continue;
+    }
+    if (sale.reportYear != y || sale.reportMonth != m) {
+      continue;
+    }
+    addWeek(DateUtils.dateOnly(sale.soldAt.toLocal()), sale.total, 0);
+  }
+  for (final expense in expenses) {
+    if (expense.reportYear != y || expense.reportMonth != m) {
+      continue;
+    }
+    addWeek(DateUtils.dateOnly(expense.incurredAt.toLocal()), 0, expense.amount);
+  }
+
+  // Include every ISO week that touches the selected month (even with no
+  // transactions), so the chart always has multiple X points and matches daily.
+  final daysInMonth = DateUtils.getDaysInMonth(y, m);
+  final weekKeys = <({int wy, int wn})>[];
+  final seenWeeks = <({int wy, int wn})>{};
+  for (var day = 1; day <= daysInMonth; day++) {
+    final localDay = DateTime(y, m, day);
+    final utc = DateTime.utc(localDay.year, localDay.month, localDay.day);
+    final spec = isoWeekSpecForUtcDate(utc);
+    final key = (wy: spec.weekYear, wn: spec.weekNumber);
+    if (seenWeeks.add(key)) {
+      weekKeys.add(key);
+    }
+  }
+  weekKeys.sort(
+    (a, b) => a.wy != b.wy ? a.wy.compareTo(b.wy) : a.wn.compareTo(b.wn),
+  );
+
+  return [
+    for (final k in weekKeys)
+      MoneyTrendPoint(
+        date: isoWeekMondayUtc(k.wy, k.wn),
+        sales: totals[k]?.s ?? 0.0,
+        expenses: totals[k]?.e ?? 0.0,
+      ),
+  ];
+}
+
+List<MoneyTrendPoint> _moneyTrendPointsMonthly(
+  DateTime anchor,
+  List<Sale> sales,
+  List<Expense> expenses,
+) {
+  final out = <MoneyTrendPoint>[];
+  for (var i = 0; i < 6; i++) {
+    final d = DateTime(anchor.year, anchor.month - 5 + i);
+    final y = d.year;
+    final m = d.month;
+    var s = 0.0;
+    var e = 0.0;
+    for (final sale in sales) {
+      if (sale.status != SaleStatuses.completed) {
+        continue;
+      }
+      if (sale.reportYear == y && sale.reportMonth == m) {
+        s += sale.total;
+      }
+    }
+    for (final expense in expenses) {
+      if (expense.reportYear == y && expense.reportMonth == m) {
+        e += expense.amount;
+      }
+    }
+    out.add(MoneyTrendPoint(date: DateTime(y, m), sales: s, expenses: e));
+  }
+  return out;
+}
+
+List<MoneyTrendPoint> _moneyTrendPointsYearly(
+  DateTime anchor,
+  List<Sale> sales,
+  List<Expense> expenses,
+) {
+  final out = <MoneyTrendPoint>[];
+  final endYear = anchor.year;
+  for (var i = 0; i < 5; i++) {
+    final year = endYear - 4 + i;
+    var s = 0.0;
+    var e = 0.0;
+    for (final sale in sales) {
+      if (sale.status != SaleStatuses.completed) {
+        continue;
+      }
+      if (sale.reportYear == year) {
+        s += sale.total;
+      }
+    }
+    for (final expense in expenses) {
+      if (expense.reportYear == year) {
+        e += expense.amount;
+      }
+    }
+    out.add(MoneyTrendPoint(date: DateTime(year), sales: s, expenses: e));
+  }
+  return out;
 }

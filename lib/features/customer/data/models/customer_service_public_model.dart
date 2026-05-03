@@ -1,14 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../services/data/service_category_catalog.dart';
+
 /// Customer-safe service row from `publicSalons/{salonId}/services/{serviceId}`.
 class CustomerServicePublicModel {
   const CustomerServicePublicModel({
     required this.id,
     required this.salonId,
     required this.name,
+    this.nameAr = '',
     required this.displayName,
     required this.category,
     required this.categoryLabel,
+    this.categoryKey,
+    this.iconKey,
     this.description,
     required this.price,
     required this.durationMinutes,
@@ -24,9 +29,18 @@ class CustomerServicePublicModel {
   final String id;
   final String salonId;
   final String name;
+
+  /// Arabic service name from public mirror (`nameAr`).
+  final String nameAr;
   final String displayName;
   final String category;
   final String categoryLabel;
+
+  /// Canonical catalog key when mirrored from owner services; drives icons.
+  final String? categoryKey;
+
+  /// Optional service-level icon override (same key vocabulary as [categoryKey]).
+  final String? iconKey;
   final String? description;
   final double price;
   final int durationMinutes;
@@ -41,6 +55,27 @@ class CustomerServicePublicModel {
   /// Title line (display name with name fallback).
   String get displayTitle =>
       displayName.trim().isNotEmpty ? displayName.trim() : name.trim();
+
+  /// Pass `Localizations.localeOf(context).languageCode`.
+  String localizedTitleForLanguageCode(String languageCode) {
+    if (languageCode == 'ar') {
+      final ar = nameAr.trim();
+      if (ar.isNotEmpty) return ar;
+    }
+    return displayTitle;
+  }
+
+  /// Key used with [ServiceCategoryIconResolver] (never empty).
+  String get resolvedCategoryKeyForIcon {
+    final k = categoryKey?.trim();
+    if (k != null && k.isNotEmpty) {
+      return k;
+    }
+    final migrated = ServiceCategoryKeys.migrateLegacyCategoryLabelToKey(
+      categoryLabel.trim().isNotEmpty ? categoryLabel : category,
+    );
+    return migrated ?? ServiceCategoryKeys.other;
+  }
 
   static DateTime? _ts(Object? value) {
     if (value is Timestamp) {
@@ -91,6 +126,7 @@ class CustomerServicePublicModel {
     final data = raw is Map<String, dynamic> ? raw : const <String, dynamic>{};
 
     final nameRaw = _string(data['name']);
+    final nameArRaw = _string(data['nameAr']);
     final displayNameRaw = _string(data['displayName']);
     final name = nameRaw.isNotEmpty ? nameRaw : 'Service';
     final displayName = displayNameRaw.isNotEmpty ? displayNameRaw : name;
@@ -101,6 +137,15 @@ class CustomerServicePublicModel {
     final categoryLabel = categoryLabelRaw.isNotEmpty
         ? categoryLabelRaw
         : category;
+
+    var categoryKey = _string(data['categoryKey']);
+    if (categoryKey.isEmpty) {
+      final migrated = ServiceCategoryKeys.migrateLegacyCategoryLabelToKey(
+        categoryLabelRaw.isNotEmpty ? categoryLabelRaw : categoryRaw,
+      );
+      categoryKey = migrated ?? '';
+    }
+    final iconKeyRaw = _string(data['iconKey']);
 
     final vis = data['isCustomerVisible'];
     final isCustomerVisible = vis is bool ? vis : true;
@@ -119,9 +164,12 @@ class CustomerServicePublicModel {
           ? _string(data['salonId'])
           : salonId,
       name: name,
+      nameAr: nameArRaw,
       displayName: displayName,
       category: category,
       categoryLabel: categoryLabel,
+      categoryKey: categoryKey.isNotEmpty ? categoryKey : null,
+      iconKey: iconKeyRaw.isNotEmpty ? iconKeyRaw : null,
       description: _string(data['description']).isNotEmpty
           ? _string(data['description'])
           : null,

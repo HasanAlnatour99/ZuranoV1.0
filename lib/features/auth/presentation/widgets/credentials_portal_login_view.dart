@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/onboarding_providers.dart';
 import '../../../../router/router_session_refresh.dart';
+import '../../logic/guest_customer_sign_in_controller.dart';
 import '../../logic/user_login_controller.dart';
 import 'auth_app_divider.dart';
 import 'auth_luxury_social_login_stack.dart';
@@ -101,6 +103,31 @@ class _CredentialsPortalLoginViewState
     context.go(AppRoutes.roleSelection);
   }
 
+  Future<void> _continueAsGuest(AppLocalizations l10n) async {
+    FocusScope.of(context).unfocus();
+    if (kDebugMode) {
+      debugPrint('[GUEST_AUTH] guest_button_pressed_from_ui');
+    }
+    final ok = await ref
+        .read(guestCustomerSignInControllerProvider.notifier)
+        .continueAsGuest();
+    if (!mounted) return;
+    if (!ok) {
+      final err = ref.read(guestCustomerSignInControllerProvider).errorMessage;
+      if (err != null) {
+        final message =
+            err == GuestCustomerSignInController.sessionTimeoutMarker
+            ? l10n.guestAuthSessionTimeout
+            : l10n.guestAuthSignInFailed(err);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+      return;
+    }
+    context.go(AppRoutes.customerHome);
+  }
+
   Future<void> _showForgotPassword(AppLocalizations l10n) async {
     final id = _identifierController.text.trim();
     if (!id.contains('@')) {
@@ -167,9 +194,11 @@ class _CredentialsPortalLoginViewState
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final state = ref.watch(userLoginControllerProvider);
+    final guestState = ref.watch(guestCustomerSignInControllerProvider);
     final socialBusy = state.isAnyAuthLoading;
     final oauth = state.oauthProviderInFlight;
     final customer = widget.customerPortal;
+    final guestBusy = guestState.isLoading;
 
     return FadeTransition(
       opacity: _fade,
@@ -190,7 +219,7 @@ class _CredentialsPortalLoginViewState
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: IconButton(
-                      onPressed: socialBusy || state.isSubmitting
+                      onPressed: socialBusy || state.isSubmitting || guestBusy
                           ? null
                           : _onBackToRoleSelection,
                       icon: Icon(
@@ -249,7 +278,7 @@ class _CredentialsPortalLoginViewState
                           : l10n.loginHintIdentifier,
                       errorText: state.identifierErrorFor(l10n),
                     ),
-                    enabled: !socialBusy,
+                    enabled: !socialBusy && !guestBusy,
                   ),
                   const SizedBox(height: AppSpacing.medium),
                   TextFormField(
@@ -265,7 +294,7 @@ class _CredentialsPortalLoginViewState
                         tooltip: _obscurePassword
                             ? l10n.accessibilityShowPassword
                             : l10n.accessibilityHidePassword,
-                        onPressed: socialBusy
+                        onPressed: socialBusy || guestBusy
                             ? null
                             : () => setState(
                                 () => _obscurePassword = !_obscurePassword,
@@ -277,12 +306,12 @@ class _CredentialsPortalLoginViewState
                         ),
                       ),
                     ),
-                    enabled: !socialBusy,
+                    enabled: !socialBusy && !guestBusy,
                   ),
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: TextButton(
-                      onPressed: socialBusy
+                      onPressed: socialBusy || guestBusy
                           ? null
                           : () => _showForgotPassword(l10n),
                       child: Text(l10n.authV2ForgotPassword),
@@ -302,11 +331,82 @@ class _CredentialsPortalLoginViewState
                     isLoading: state.isSubmitting,
                     minHeight: 56,
                     borderRadius: 18,
-                    onPressed: state.isFormValid && !socialBusy
+                    onPressed: state.isFormValid && !socialBusy && !guestBusy
                         ? _submit
                         : null,
                   ),
                   if (customer) ...[
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: scheme.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            l10n.guestAuthOrDivider,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: scheme.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: OutlinedButton(
+                        onPressed: socialBusy || state.isSubmitting || guestBusy
+                            ? null
+                            : () => _continueAsGuest(l10n),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF7C3AED),
+                          side: const BorderSide(
+                            color: Color(0xFF7C3AED),
+                            width: 1.4,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          backgroundColor: const Color(0xFFF7F0FF),
+                        ),
+                        child: guestBusy
+                            ? SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: const Color(0xFF7C3AED),
+                                ),
+                              )
+                            : Text(
+                                l10n.guestAuthContinueAsGuest,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.guestAuthGuestSubtitle,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        height: 1.3,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.large),
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
@@ -320,7 +420,7 @@ class _CredentialsPortalLoginViewState
                           ),
                         ),
                         TextButton(
-                          onPressed: socialBusy
+                          onPressed: socialBusy || guestBusy
                               ? null
                               : () => context.push(AppRoutes.signup),
                           child: Text(l10n.authV2SignUpLink),
@@ -331,7 +431,7 @@ class _CredentialsPortalLoginViewState
                     AuthOrDivider(text: l10n.authV2OrDivider),
                     const SizedBox(height: AppSpacing.medium),
                     AuthLuxurySocialLoginStack(
-                      enabled: !socialBusy,
+                      enabled: !socialBusy && !guestBusy,
                       googleLoading: oauth == 'google',
                       appleLoading: oauth == 'apple',
                       facebookLoading: oauth == 'facebook',

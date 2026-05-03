@@ -11,6 +11,7 @@ import '../../application/employee_today_attendance_ui_provider.dart';
 import '../../application/employee_today_attendance_vm.dart';
 import '../../domain/enums/attendance_punch_type.dart';
 import 'attendance_four_action_panel.dart';
+import 'break_countdown_card.dart';
 
 /// White attendance card with a single primary punch CTA.
 class TodayAttendanceCard extends ConsumerWidget {
@@ -268,7 +269,11 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.schedule_rounded, size: 16, color: Color(0xFF6B7280)),
+              const Icon(
+                Icons.schedule_rounded,
+                size: 16,
+                color: Color(0xFF6B7280),
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -283,6 +288,17 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
+          if (vm.isOnBreak &&
+              vm.openBreakStartedAt != null &&
+              vm.openBreakAllowedMinutes != null) ...[
+            BreakCountdownCard(
+              breakStartedAt: vm.openBreakStartedAt!,
+              remainingAllowanceMinutes: vm.openBreakAllowedMinutes!,
+              shiftStart: vm.breakCountdownShiftStart,
+              shiftEnd: vm.breakCountdownShiftEnd,
+            ),
+            const SizedBox(height: 14),
+          ],
           AttendanceFourActionPanel(
             vm: vm,
             busyType: busy,

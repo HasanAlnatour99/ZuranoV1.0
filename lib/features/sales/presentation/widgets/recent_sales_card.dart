@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/sale_payment_method_localized.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -136,7 +137,7 @@ class RecentSalesCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    '${sale.employeeName} · ${localizedSalePaymentMethod(l10n, sale.paymentMethod)} · ${DateFormat.jm(locale.toString()).format(sale.soldAt.toLocal())}',
+                    '${formatTeamMemberName(sale.employeeName)} · ${localizedSalePaymentMethod(l10n, sale.paymentMethod)} · ${DateFormat.jm(locale.toString()).format(sale.soldAt.toLocal())}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

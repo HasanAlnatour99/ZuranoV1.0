@@ -35,16 +35,34 @@ export {
 } from "./notificationCallables";
 export {
   onBookingUpdatedNotification,
+  onExpenseCreatedNotification,
   onPayrollCreatedNotification,
+  onSaleRecordedOwnerNotification,
   onViolationCreatedNotification,
 } from "./notificationFirestoreTriggers";
+export {
+  onAttendanceCorrectionRequestCreatedNotification,
+  onAttendanceRecordUpdatedNotification,
+  onSalonEmployeeWrittenNotification,
+  onSalonServiceWrittenNotification,
+} from "./notificationExtendedFirestoreTriggers";
+export { sendDailyOwnerSummaries, sendMonthlyOwnerSummaries } from "./notificationSummaryScheduler";
 export { sendUpcomingBookingReminders } from "./notificationScheduler";
 export { salonStaffCreateWithAuth } from "./staffProvisioningCallables";
 export { resolveStaffLoginEmail } from "./staffLoginCallables";
 export { generateAttendancePolicyReadable } from "./attendancePolicyCallable";
+export { reprocessAttendanceForEmployeeDate } from "./attendance/reprocessAttendance";
 export {
   approvePayslip,
   generateMonthlyPayroll,
   generatePayslipSummary,
   markPayslipPaid,
 } from "./payrollCallables";
+export {
+  applyAbsenceViolationsForEndedShifts,
+  onAttendanceDayViolationAutomation,
+} from "./attendanceViolationAutomation";
+
+export {
+  createSalonInAppNotification,
+} from "./notifications/salonInAppNotificationService";

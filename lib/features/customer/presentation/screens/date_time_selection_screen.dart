@@ -10,6 +10,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_availability_providers.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../data/models/customer_booking_slot.dart';
 import '../widgets/booking_summary_bar.dart';
@@ -115,9 +116,10 @@ class _DateTimeSelectionScreenState
       customerPublicBookingFlowSettingsProvider(widget.salonId),
     );
     final slotsAsync = ref.watch(customerBookingSlotsProvider(widget.salonId));
+    final moneyCode = watchCustomerSalonMoneyCode(ref, widget.salonId);
     final total = formatMoney(
       draft.totalAmount,
-      'QAR',
+      moneyCode,
       Localizations.localeOf(context),
     );
     final teamLabel = draft.selectedEmployeeName?.trim().isNotEmpty == true

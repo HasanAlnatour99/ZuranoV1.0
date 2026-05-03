@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../core/formatting/app_money_format.dart';
+import '../../../../../../core/text/team_member_name.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../l10n/app_localizations.dart';
 import 'package:barber_shop_app/features/sales/data/models/sale.dart';
@@ -25,7 +26,7 @@ class CustomerTransactionTile extends StatelessWidget {
     final services = sale.serviceNames.isNotEmpty
         ? sale.serviceNames.join(' · ')
         : l10n.customerDetailsServiceFallback;
-    final barber = sale.employeeName;
+    final barber = formatTeamMemberName(sale.employeeName);
     final when = DateFormat.yMMMd(
       locale.toString(),
     ).add_jm().format(sale.soldAt.toLocal());

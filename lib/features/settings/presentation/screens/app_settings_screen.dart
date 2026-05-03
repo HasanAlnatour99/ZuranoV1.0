@@ -78,6 +78,8 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     final role = user?.role.trim() ?? '';
     if (role == UserRoles.owner || role == UserRoles.admin) {
       context.go(AppRoutes.ownerOverview);
+    } else if (role == UserRoles.customer) {
+      context.go(AppRoutes.customerHome);
     } else {
       context.go(AppRoutes.roleSelection);
     }
@@ -505,9 +507,53 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       orElse: () => null,
     );
 
+    final ownerShiftsTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        final canManage =
+            u.role == UserRoles.owner || u.role == UserRoles.admin;
+        if (!canManage || !salonOk) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.schedule_rounded,
+          title: l10n.ownerShiftsTileTitle,
+          subtitle: l10n.ownerShiftsTileSubtitle,
+          onTap: () => context.pushNamed(AppRouteNames.ownerShiftsSettings),
+        );
+      },
+      orElse: () => null,
+    );
+
+    final payrollCadenceTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        final canManage =
+            u.role == UserRoles.owner || u.role == UserRoles.admin;
+        if (!canManage || !salonOk) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.date_range_outlined,
+          title: l10n.settingsPayrollCadenceTitle,
+          subtitle: l10n.settingsPayrollCadenceSubtitle,
+          onTap: () => context.push(AppRoutes.ownerSettingsPayrollCadence),
+        );
+      },
+      orElse: () => null,
+    );
+
     final ownerSettingsTiles = <Widget>[
       ?customerBookingTile,
       ?attendanceSettingsTile,
+      ?ownerShiftsTile,
+      ?payrollCadenceTile,
     ];
 
     final accountActionChildren = <Widget>[

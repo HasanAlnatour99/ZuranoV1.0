@@ -4,6 +4,7 @@ import '../../../core/constants/booking_statuses.dart';
 import '../../../core/constants/sale_reporting.dart';
 import '../../bookings/data/models/booking.dart';
 import '../../sales/data/models/sale.dart';
+import '../../../core/utils/currency_for_country.dart';
 import '../../../providers/salon_streams_provider.dart';
 
 bool _sameLocalCalendarDay(DateTime a, DateTime b) {
@@ -251,7 +252,10 @@ final ownerOverviewMetricsProvider = Provider<AsyncValue<OwnerOverviewMetrics>>(
 
     final sales = salesAsync.requireValue;
     final bookings = bookingsAsync.requireValue;
-    final code = salonAsync.value?.currencyCode ?? 'USD';
+    final code = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: salonAsync.value?.currencyCode,
+      salonCountryIso: salonAsync.value?.countryCode,
+    );
 
     return AsyncData(
       _computeMetrics(sales: sales, bookings: bookings, currencyCode: code),
@@ -302,3 +306,4 @@ final ownerOverviewTopServiceMonthProvider =
             error: (e, s) => AsyncError(e, s),
           );
     });
+

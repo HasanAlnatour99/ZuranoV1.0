@@ -172,6 +172,7 @@ class AppIcons {
   static const unfold_more_rounded = Icons.unfold_more_rounded;
   static const verified_outlined = Icons.verified_outlined;
   static const verified_user_outlined = Icons.verified_user_outlined;
+  static const undo_rounded = Icons.undo_rounded;
   static const visibility = Icons.visibility;
   static const visibility_off = Icons.visibility_off;
   static const visibility_off_outlined = Icons.visibility_off_outlined;

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/connectivity/connectivity_service.dart';
+import '../../../core/text/team_member_name.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/firestore/firestore_paths.dart';
 import '../../../core/firestore/firestore_write_payload.dart';
@@ -38,8 +39,12 @@ class EmployeeRepository {
     final document = employee.id.isEmpty
         ? collection.doc()
         : collection.doc(employee.id);
+    final normalized = employee.copyWith(
+      id: document.id,
+      name: formatTeamMemberName(employee.name),
+    );
     final payload = FirestoreWritePayload.withServerTimestampsForCreate(
-      employee.copyWith(id: document.id).toJson(),
+      normalized.toJson(),
     );
 
     await document.set(payload);
@@ -59,12 +64,99 @@ class EmployeeRepository {
   }
 
   Future<void> updateEmployee(String salonId, Employee employee) {
+    final normalized = employee.copyWith(
+      name: formatTeamMemberName(employee.name),
+    );
     return _employees(salonId)
-        .doc(employee.id)
+        .doc(normalized.id)
         .set(
-          FirestoreWritePayload.withServerTimestampForUpdate(employee.toJson()),
+          FirestoreWritePayload.withServerTimestampForUpdate(
+            normalized.toJson(),
+          ),
           SetOptions(merge: true),
         );
+  }
+
+  /// Writes `assignedServiceIds` on the employee and mirrors each link under
+  /// `employees/{employeeId}/assignedServices/{serviceId}` for real-time queries.
+  Future<void> syncEmployeeAssignedServices({
+    required String salonId,
+    required String employeeId,
+    required List<String> assignedServiceIds,
+    String? assignedByUid,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final selected = <String>{...assignedServiceIds};
+    final empRef = _employees(salonId).doc(employeeId);
+    final assignmentCol =
+        empRef.collection(FirestorePaths.assignedServicesCollection);
+
+    Future<void> writeAssignedServiceIdsOnly() {
+      return empRef.set(
+        FirestoreWritePayload.withServerTimestampForUpdate({
+          'assignedServiceIds': selected.toList(growable: false),
+        }),
+        SetOptions(merge: true),
+      );
+    }
+
+    try {
+      final existing = await assignmentCol.get();
+      final batch = _firestore.batch();
+
+      for (final doc in existing.docs) {
+        final id = doc.id;
+        final active = selected.contains(id);
+        batch.set(
+          doc.reference,
+          {
+            'salonId': salonId,
+            'serviceId': id,
+            'isActive': active,
+            'updatedAt': FieldValue.serverTimestamp(),
+            if (active) ...{
+              'assignedAt': FieldValue.serverTimestamp(),
+              if (assignedByUid != null && assignedByUid.isNotEmpty)
+                'assignedBy': assignedByUid,
+            },
+          },
+          SetOptions(merge: true),
+        );
+      }
+
+      for (final id in selected) {
+        final assignmentDoc = assignmentCol.doc(id);
+        batch.set(
+          assignmentDoc,
+          {
+            'salonId': salonId,
+            'serviceId': id,
+            'isActive': true,
+            'assignedAt': FieldValue.serverTimestamp(),
+            if (assignedByUid != null && assignedByUid.isNotEmpty)
+              'assignedBy': assignedByUid,
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+      }
+
+      batch.set(
+        empRef,
+        FirestoreWritePayload.withServerTimestampForUpdate({
+          'assignedServiceIds': selected.toList(growable: false),
+        }),
+        SetOptions(merge: true),
+      );
+
+      await batch.commit();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        await writeAssignedServiceIdsOnly();
+        return;
+      }
+      rethrow;
+    }
   }
 
   Future<AppResult<Unit>> updateEmployeeResult(

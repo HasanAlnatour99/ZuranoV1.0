@@ -32,6 +32,8 @@ class QuickPayUseCase {
     required int month,
     required String createdBy,
     String? existingRunId,
+    int? isoWeekYear,
+    int? isoWeekNumber,
   }) {
     return guardResult(
       connectivityService: _connectivityService,
@@ -46,13 +48,12 @@ class QuickPayUseCase {
           month: month,
           createdBy: createdBy,
           existingRunId: existingRunId,
+          isoWeekYear: isoWeekYear,
+          isoWeekNumber: isoWeekNumber,
         );
       },
     );
   }
-
-  Future<AppResult<String>> saveDraft(PayrollCalculationBundle bundle) =>
-      _payrollRunUseCase.saveDraft(bundle);
 
   Future<AppResult<String>> approve(
     PayrollCalculationBundle bundle, {

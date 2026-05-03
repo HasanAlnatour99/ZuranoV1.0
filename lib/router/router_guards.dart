@@ -66,9 +66,9 @@ String? redirectAuthenticatedOwner(
     AppRoutes.ownerExpenses,
     AppRoutes.ownerExpensesAdd,
     AppRoutes.ownerPayroll,
-    AppRoutes.ownerPayrollElements,
     AppRoutes.ownerQuickPay,
     AppRoutes.ownerPayrollRunReview,
+    AppRoutes.ownerPayrollReverse,
     AppRoutes.attendanceRequestsReview,
     AppRoutes.attendanceRequestsAdmin,
     AppRoutes.salonAttendanceZoneSettings,
@@ -254,7 +254,11 @@ bool isAccountBootstrapPath(String location) =>
 
 bool isNotificationPath(String location) =>
     location == AppRoutes.notifications ||
-    location == AppRoutes.notificationPreferences;
+    location == AppRoutes.notificationPreferences ||
+    location.startsWith('${AppRoutes.customerNotificationsBase}/') ||
+    location.startsWith('${AppRoutes.employeeNotificationsBase}/') ||
+    location.startsWith('${AppRoutes.ownerNotificationsBase}/') ||
+    location.startsWith('${AppRoutes.notificationsSettingsBase}/');
 
 /// Routes where we **wait** for Firestore session while Firebase Auth may
 /// already be signed in (avoids splash ↔ login redirect fights).

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -61,7 +62,7 @@ class TeamMemberProfileCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final accent = _accent(scheme);
-    final initials = _initials(employee.name);
+    final initials = _initials(formatTeamMemberName(employee.name));
     final ribbon = _ribbonIcons[colorIndex % _ribbonIcons.length];
 
     return Material(
@@ -138,7 +139,7 @@ class TeamMemberProfileCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            TeamMemberNameText(
                               employee.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

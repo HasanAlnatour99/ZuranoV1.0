@@ -107,6 +107,8 @@ class ExpenseRepository {
   Stream<List<Expense>> watchExpenses(
     String salonId, {
     String? category,
+    int? reportYear,
+    int? reportMonth,
     DateTime? incurredFrom,
     DateTime? incurredTo,
     int limit = 100,
@@ -114,6 +116,8 @@ class ExpenseRepository {
     return _expensesQuery(
       salonId,
       category: category,
+      reportYear: reportYear,
+      reportMonth: reportMonth,
       incurredFrom: incurredFrom,
       incurredTo: incurredTo,
       limit: limit,

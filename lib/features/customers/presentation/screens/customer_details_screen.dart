@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../owner/presentation/widgets/add_barber/add_barber_header.dart';
 import '../../domain/customer_type_resolver.dart';
@@ -19,6 +18,7 @@ import 'customer_details/widgets/customer_profile_card.dart';
 import 'customer_details/widgets/customer_sales_section.dart';
 import 'customer_details/widgets/customer_upcoming_bookings_card.dart';
 import 'customer_details/widgets/customer_vip_banner.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 class CustomerDetailsScreen extends ConsumerWidget {
@@ -46,8 +46,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final sessionAsync = ref.watch(sessionUserProvider);
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'SAR';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     return sessionAsync.when(
       loading: () => Scaffold(
@@ -169,7 +168,7 @@ class CustomerDetailsScreen extends ConsumerWidget {
                           children: [
                             AddBarberHeader(
                               title: l10n.customerDetailsTitle,
-                              subtitle: customer.fullName,
+                              subtitle: customer.visibleDisplayName,
                               compact: true,
                               onBack: () => _popOrCustomers(context),
                             ),

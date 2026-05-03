@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
 import '../../../employee_dashboard/domain/enums/attendance_punch_type.dart';
@@ -146,7 +147,7 @@ class _AttendanceCorrectionScreenState
             uid: scope.uid,
             salonId: scope.salonId,
             employeeId: scope.employeeId,
-            employeeName: emp.name,
+            employeeName: formatTeamMemberName(emp.name),
             attendanceDayId: dayId,
             dateKey: dk,
             requestedType: _type!,

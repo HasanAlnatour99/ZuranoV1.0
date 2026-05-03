@@ -32,6 +32,9 @@ class TeamMemberAttendanceTab extends ConsumerWidget {
     );
 
     final todayAsync = ref.watch(todayAttendanceProvider(args));
+    final assignedScheduleAsync = ref.watch(
+      todayAssignedScheduleProvider(args),
+    );
     final summaryAsync = ref.watch(attendanceSummaryProvider(args));
     final requestsAsync = ref.watch(attendanceCorrectionRequestsProvider(args));
     final historyAsync = ref.watch(recentAttendanceProvider(args));
@@ -42,6 +45,7 @@ class TeamMemberAttendanceTab extends ConsumerWidget {
         color: TeamMemberProfileColors.primary,
         onRefresh: () async {
           ref.invalidate(todayAttendanceProvider(args));
+          ref.invalidate(todayAssignedScheduleProvider(args));
           ref.invalidate(attendanceSummaryProvider(args));
           ref.invalidate(attendanceCorrectionRequestsProvider(args));
           ref.invalidate(recentAttendanceProvider(args));
@@ -53,6 +57,7 @@ class TeamMemberAttendanceTab extends ConsumerWidget {
               data: (record) => AttendanceTodayAdminCard(
                 employeeName: employeeName,
                 record: record,
+                assignedSchedule: assignedScheduleAsync.asData?.value,
                 canManageAttendance: canManageAttendance,
                 salonId: salonId,
                 employeeId: employeeId,
@@ -83,6 +88,11 @@ class TeamMemberAttendanceTab extends ConsumerWidget {
               data: (records) => RecentAttendanceHistoryCard(
                 records: records,
                 emptyMessage: l10n.teamMemberAttendanceHistoryEmpty,
+                canManageAttendance: canManageAttendance,
+                salonId: salonId,
+                employeeId: employeeId,
+                employeeName: employeeName,
+                args: args,
               ),
               loading: () => const _CardSkeleton(height: 220),
               error: (error, _) => _ErrorCard(message: error.toString()),

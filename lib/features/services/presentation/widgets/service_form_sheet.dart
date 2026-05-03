@@ -19,6 +19,8 @@ import '../../data/service_category_catalog.dart';
 import '../../data/service_category_helpers.dart';
 import '../../data/service_image_storage.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import 'package:barber_shop_app/shared/services/service_category_icon_resolver.dart';
+import 'package:barber_shop_app/shared/widgets/zurano_service_category_icon.dart';
 
 final _editorSalonStreamProvider = StreamProvider.family<Salon?, String>((
   ref,
@@ -57,12 +59,14 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameC;
+  late final TextEditingController _nameArC;
   late final TextEditingController _durationC;
   late final TextEditingController _priceC;
   late final TextEditingController _imageUrlC;
   late final TextEditingController _descriptionC;
   late final TextEditingController _customCategoryC;
   late String _categoryKey;
+  String? _iconKey;
   late bool _isActive;
   bool _saving = false;
   bool _uploadingPhoto = false;
@@ -73,6 +77,7 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
     super.initState();
     final e = widget.existing;
     _nameC = TextEditingController(text: e?.name ?? '');
+    _nameArC = TextEditingController(text: e?.nameAr ?? '');
     _durationC = TextEditingController(
       text: e != null ? '${e.durationMinutes}' : '30',
     );
@@ -94,6 +99,9 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
           ? e!.customCategoryName!.trim()
           : (e?.category?.trim() ?? '');
     }
+    _iconKey = e?.iconKey?.trim().isNotEmpty == true
+        ? e!.iconKey!.trim()
+        : null;
     _isActive = e?.isActive ?? true;
     _imageUrlC.addListener(() => setState(() {}));
   }
@@ -222,6 +230,7 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
   @override
   void dispose() {
     _nameC.dispose();
+    _nameArC.dispose();
     _durationC.dispose();
     _priceC.dispose();
     _imageUrlC.dispose();
@@ -249,40 +258,6 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
     return false;
   }
 
-  IconData _categoryIcon(String key) {
-    return switch (key) {
-      ServiceCategoryKeys.hair ||
-      ServiceCategoryKeys.haircutStyling ||
-      ServiceCategoryKeys.hairTreatments ||
-      ServiceCategoryKeys.scalpTreatments ||
-      ServiceCategoryKeys.keratinSmoothing ||
-      ServiceCategoryKeys.hairExtensions ||
-      ServiceCategoryKeys.texturedHair => AppIcons.content_cut_rounded,
-      ServiceCategoryKeys.barberBeard || ServiceCategoryKeys.menGrooming =>
-        AppIcons.face_retouching_natural_outlined,
-      ServiceCategoryKeys.nails ||
-      ServiceCategoryKeys.manicurePedicure ||
-      ServiceCategoryKeys.nailArt => AppIcons.design_services_outlined,
-      ServiceCategoryKeys.browsLashes ||
-      ServiceCategoryKeys.lashExtensions ||
-      ServiceCategoryKeys.threading => AppIcons.visibility_outlined,
-      ServiceCategoryKeys.hairRemovalWaxing => AppIcons.spa_outlined,
-      ServiceCategoryKeys.makeup ||
-      ServiceCategoryKeys.makeupPermanent ||
-      ServiceCategoryKeys.bridal => AppIcons.palette_outlined,
-      ServiceCategoryKeys.facialSkincare ||
-      ServiceCategoryKeys.medSpa ||
-      ServiceCategoryKeys.bodyTreatments => AppIcons.spa_outlined,
-      ServiceCategoryKeys.massageSpa => AppIcons.spa_outlined,
-      ServiceCategoryKeys.packages => AppIcons.inventory_2_outlined,
-      ServiceCategoryKeys.coloring => AppIcons.palette_outlined,
-      ServiceCategoryKeys.tanning => AppIcons.flash_on_rounded,
-      ServiceCategoryKeys.kidsServices => AppIcons.groups_outlined,
-      ServiceCategoryKeys.other => AppIcons.more_horiz_rounded,
-      _ => AppIcons.category_outlined,
-    };
-  }
-
   Future<void> _openCategoryPicker(AppLocalizations l10n) async {
     if (_saving || _uploadingPhoto) {
       return;
@@ -301,7 +276,7 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
             _ServiceCategoryOption(
               key: key,
               label: serviceCategoryLabelForKey(key, l10n),
-              icon: _categoryIcon(key),
+              icon: ServiceCategoryIconResolver.resolve(categoryKey: key),
             ),
         ],
       ),
@@ -310,7 +285,11 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
       return;
     }
     setState(() {
+      final prev = _categoryKey;
       _categoryKey = selected;
+      if (prev != selected) {
+        _iconKey = null;
+      }
       if (selected != ServiceCategoryKeys.other) {
         _customCategoryC.clear();
       }
@@ -330,6 +309,17 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(nameErr)));
+      return;
+    }
+    final nameArErr = LocalizedInputValidators.requiredField(
+      l10n,
+      _nameArC.text,
+      l10n.ownerServiceNameArabic,
+    );
+    if (nameArErr != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(nameArErr)));
       return;
     }
     if (_categoryKey.isEmpty) {
@@ -397,11 +387,13 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
 
     try {
       final name = _nameC.text.trim();
+      final nameAr = _nameArC.text.trim();
       final built = SalonService(
         id: serviceId,
         salonId: widget.salonId,
         name: name,
         serviceName: name,
+        nameAr: nameAr,
         durationMinutes: dm,
         price: price,
         description: desc.isEmpty ? null : desc,
@@ -409,6 +401,7 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
         categoryLabel: categoryLabel,
         customCategoryName: customName,
         category: legacyDisplay,
+        iconKey: _iconKey?.trim().isNotEmpty == true ? _iconKey!.trim() : null,
         imageUrl: image.isEmpty ? null : image,
         timesUsed: existing?.timesUsed,
         totalRevenue: existing?.totalRevenue,
@@ -455,16 +448,10 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
     );
     final activeSalon =
         editorSalonAsync.asData?.value ?? salonAsync.asData?.value;
-    final explicitCurrency = activeSalon?.currencyCode.trim();
-    final countryBasedCurrency = activeSalon?.countryCode == null
-        ? null
-        : currencyCodeForCountryIso(activeSalon!.countryCode!);
-    final currencyCode =
-        (countryBasedCurrency != null && countryBasedCurrency.isNotEmpty)
-        ? countryBasedCurrency
-        : ((explicitCurrency != null && explicitCurrency.isNotEmpty)
-              ? explicitCurrency
-              : 'USD');
+    final currencyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: activeSalon?.currencyCode,
+      salonCountryIso: activeSalon?.countryCode,
+    );
     final busy = _uploadingPhoto || _saving;
     final photoUrl = _imageUrlC.text.trim().isEmpty
         ? null
@@ -520,6 +507,14 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
                         enabled: !busy,
                       ),
                       const SizedBox(height: 16),
+                      ZuranoTextField(
+                        controller: _nameArC,
+                        label: l10n.ownerServiceNameArabic,
+                        hint: l10n.ownerServiceNameArabicPlaceholder,
+                        requiredField: true,
+                        enabled: !busy,
+                      ),
+                      const SizedBox(height: 16),
                       InkWell(
                         onTap: busy ? null : () => _openCategoryPicker(l10n),
                         borderRadius: BorderRadius.circular(20),
@@ -532,20 +527,14 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
                           ),
                           child: Row(
                             children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: const Color(0xFFE9DDFE),
-                                  ),
-                                ),
-                                child: Icon(
-                                  _categoryIcon(_categoryKey),
-                                  color: const Color(0xFF7C3AED),
-                                ),
+                              ZuranoServiceCategoryIcon(
+                                categoryKey: _categoryKey,
+                                iconKey: _iconKey,
+                                size: 44,
+                                iconSize: 22,
+                                backgroundColor: Colors.white,
+                                iconColor: const Color(0xFF7C3AED),
+                                borderRadius: 14,
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -581,6 +570,15 @@ class _ServiceFormSheetBodyState extends ConsumerState<_ServiceFormSheetBody> {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.ownerServiceCategoryIconPreviewHint,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                          height: 1.35,
                         ),
                       ),
                       if (showCustom) ...[

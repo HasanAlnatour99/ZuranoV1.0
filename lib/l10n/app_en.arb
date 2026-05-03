@@ -195,6 +195,7 @@
   "ownerServiceDeletedSuccess": "Service removed.",
   "ownerServiceValidationDurationInvalid": "Enter a duration greater than zero.",
   "ownerServiceValidationPriceInvalid": "Enter a price greater than zero.",
+  "ownerServiceValidationArabicNameRequired": "Enter the Arabic service name.",
   "ownerServiceDeleteConfirmTitle": "Delete service?",
   "ownerServiceDeleteConfirmBody": "This removes the service from your catalog. This cannot be undone.",
   "ownerServiceActionCancel": "Cancel",
@@ -226,10 +227,12 @@
   "ownerServicePhotoUploadError": "Couldn’t upload the image. Try again.",
   "ownerServiceFormDescriptionHint": "Description (optional)",
   "ownerServiceCategoryPickerLabel": "Category",
+  "ownerServiceCategoryIconPreviewHint": "This icon appears in booking, sales, and customer apps.",
   "ownerServiceCategoryNone": "None",
   "ownerAddService": "Add service",
   "ownerEditService": "Edit service",
-  "ownerServiceName": "Service name",
+  "ownerServiceName": "Service name (English)",
+  "ownerServiceNameArabic": "Service name (Arabic)",
   "ownerAddServiceSheetSubtitle": "Create a bookable service for your customers",
   "ownerServiceSectionDetailsTitle": "Service details",
   "ownerServiceSectionDetailsSubtitle": "Basic information about your service",
@@ -239,6 +242,7 @@
   "ownerServiceSectionDescriptionSubtitle": "Add more details about this service",
   "ownerServiceActiveSubtitle": "Show this service to customers",
   "ownerServiceNamePlaceholder": "e.g. Classic Haircut",
+  "ownerServiceNameArabicPlaceholder": "e.g. قصة شعر كلاسيكية",
   "ownerServiceDescriptionPlaceholderLong": "Describe your service, what's included, benefits, etc.",
   "ownerServicePhotoFormatsHint": "PNG, JPG up to 5MB",
   "ownerServicePhotoSizeHint": "Recommended size: 1200x800px",
@@ -686,6 +690,8 @@
     }
   },
   "payrollGenericError": "Payroll data could not be loaded right now.",
+  "payrollEmployeeAlreadyPaidForPeriod": "This team member already has a paid payroll for this period.",
+  "payrollAllStaffAlreadyPaidForPeriod": "Everyone on your list already has a paid payroll for this period.",
   "payrollSummaryEarnings": "Earnings",
   "payrollSummaryDeductions": "Deductions",
   "payrollSummaryNetPay": "Net pay",
@@ -700,8 +706,79 @@
       "monthLabel": {"type": "String"}
     }
   },
+  "ownerPayrollFinanceBreadcrumb": "Finance · Payroll",
+  "ownerPayrollRunReviewBreadcrumb": "Finance · Payroll · Run review",
+  "payrollRunReviewEngineHint": "Includes commissions from sales, attendance, violations, and your payroll elements.",
+  "payrollRunReviewConfigureSectionTitle": "Period & team",
+  "payrollRunReviewCadenceLabel": "Payroll period type",
+  "payrollRunReviewCadenceMonthly": "Monthly",
+  "payrollRunReviewCadenceWeekly": "Weekly",
+  "payrollRunWeeklyPaidDaysHint": "Pay is calculated only for the calendar days you select (inclusive).",
+  "payrollRunWeeklyStartLabel": "Start date",
+  "payrollRunWeeklyEndLabel": "End date",
+  "payrollRunWeeklyRangeInvalid": "Choose a valid weekly range (1–31 days, end on or after start).",
+  "payrollRunNoMatchingStaffForCadence": "No team members use this payroll period. Assign monthly or weekly under Team → payroll period, or switch the period type above.",
+  "payrollRunReviewViewPayslip": "View payslip",
+  "payrollRollbackConfirmTitle": "Rollback this payroll run?",
+  "payrollRollbackConfirmMessage": "This reverses payslip snapshots and linked adjustments for this run. If the run is paid, payslips are removed from staff apps—confirm this matches your bank and accounting records. Continue?",
+  "payrollRollbackConfirmAction": "Rollback",
+  "payrollRunReviewStatusPaidHint": "Paid run. Use rollback below only if you must reverse payouts—payslips disappear from staff apps and linked violations reopen where applicable.",
+  "payrollRunReviewStatusRolledBackHint": "This run was rolled back. You can recalculate when ready.",
+  "payrollRunReviewKpiHeadcountTrend": "In this run",
+  "payrollRunReviewWorkflowTitle": "Next steps",
+  "payrollRunReviewWorkflowSubtitle": "Approve when ready, then mark paid after you pay out.",
+  "payrollRunReviewTeamPreviewTitle": "Team breakdown",
+  "payrollDashboardKpiTrendLabel": "This month",
+  "payrollDashboardKpiThisWeek": "This week",
+  "payrollDashboardKpiRunsLabel": "Payroll runs",
+  "payrollDashboardKpiRunsHint": "Runs in this month",
+  "payrollDashboardKpiRunsHintWeek": "Runs in this ISO week",
+  "payrollDashboardSubtitleWeek": "{weekLabel} payroll engine overview.",
+  "@payrollDashboardSubtitleWeek": {
+    "placeholders": {
+      "weekLabel": {"type": "String"}
+    }
+  },
+  "payrollIsoWeekShortLabel": "{weekYear}-W{weekNumberPadded}",
+  "@payrollIsoWeekShortLabel": {
+    "placeholders": {
+      "weekYear": {"type": "int"},
+      "weekNumberPadded": {"type": "String"}
+    }
+  },
+  "payrollWeekPickerHelp": "Pick any day in the payroll week",
+  "payrollStatusBreakdownSubtitleWeek": "Counts for the selected ISO week.",
+  "payrollRecentRunsSectionSubtitleWeek": "Finalized runs in the selected ISO week.",
+  "settingsPayrollCadenceTitle": "Payroll period",
+  "settingsPayrollCadenceSubtitle": "Default calendar for payroll runs, QuickPay, and the payroll hub.",
+  "settingsPayrollCadenceSave": "Save",
+  "settingsPayrollCadenceSaved": "Payroll period updated",
+  "settingsPayrollCadenceMonthly": "Monthly",
+  "settingsPayrollCadenceWeekly": "Weekly (ISO weeks)",
+  "teamPayrollPeriodLabel": "Payroll period",
+  "teamPayrollPeriodHint": "Defaults to your salon payroll period. Change only if this person should use the other cadence.",
+  "teamPayrollPeriodInherit": "Same as salon default",
+  "teamPayrollPeriodInheritDetail": "Same as salon · {periodLabel}",
+  "@teamPayrollPeriodInheritDetail": {
+    "placeholders": {
+      "periodLabel": {"type": "String"}
+    }
+  },
+  "teamPayrollPeriodMonthly": "Monthly",
+  "teamPayrollPeriodWeekly": "Weekly (ISO weeks)",
+  "payrollRecentRunsSectionSubtitle": "Finalized runs in the selected month.",
+  "payrollStatusBreakdownSubtitle": "Counts for the selected month.",
   "payrollQuickPayTitle": "QuickPay",
-  "payrollQuickPayShortcutSubtitle": "Calculate and process one employee quickly.",
+  "payrollQuickPayScreenSubtitle": "Choose who to pay and which month. Calculate, then save as draft, approve, or mark paid—the same workflow as your payroll runs.",
+  "payrollQuickPayShortcutSubtitle": "Pick staff and month, calculate, then pay for this period.",
+  "payrollQuickPaySetupCardTitle": "Period and staff",
+  "payrollQuickPayStaffSheetTitle": "Choose staff",
+  "payrollQuickPayStaffPickerLabel": "Staff member",
+  "payrollQuickPayStaffEmpty": "No eligible staff for payroll.",
+  "payrollQuickPayStatementCardTitle": "Pay statement",
+  "payrollQuickPayRunStatusLabel": "Run status",
+  "payrollQuickPaySearchHint": "Search by name",
+  "payrollQuickPaySearchEmpty": "No matching staff.",
   "payrollRunReviewTitle": "Payroll run review",
   "payrollRunShortcutSubtitle": "Review a monthly payroll run for multiple employees.",
   "payrollStatusBreakdownTitle": "Status breakdown",
@@ -715,6 +792,14 @@
   },
   "payrollMissingSetupTitle": "Missing payroll setup",
   "payrollMissingSetupEmpty": "All active employees have a recurring payroll setup.",
+  "payrollDashboardSetupCardTitle": "Payroll setup",
+  "payrollSetupEveryoneReadyHeading": "Team is ready",
+  "payrollSetupNeedsAttentionSubtitle": "Add at least one recurring \"basic salary\" payroll entry for each teammate below (opens their payroll setup).",
+  "payrollSetupWhereToConfigureTitle": "Where to configure",
+  "payrollSetupShortcutCatalogTitle": "Payroll catalog",
+  "payrollSetupShortcutCatalogSubtitle": "Seed defaults, earning and deduction rules",
+  "payrollSetupShortcutTeamTitle": "Team",
+  "payrollSetupShortcutTeamSubtitle": "Open a barber profile → Payroll to add salary entries",
   "payrollActionSetUp": "Set up",
   "payrollElementsTitle": "Payroll elements",
   "payrollElementsSeedDefaults": "Seed defaults",
@@ -748,6 +833,25 @@
   "payrollActionApprove": "Approve",
   "payrollActionPay": "Pay",
   "payrollActionRollback": "Rollback",
+  "payrollReversalTitle": "Reverse payroll",
+  "payrollReversalShortcutSubtitle": "Pick a run, then reverse the whole run or one team member.",
+  "payrollReversalScreenTitle": "Reverse a payroll run",
+  "payrollReversalScreenSubtitle": "Choose a draft, approved, or paid run. Paid runs remove payslips from staff apps—confirm carefully.",
+  "payrollReversalScopeWholeRun": "Whole run",
+  "payrollReversalScopeOneMember": "One team member",
+  "payrollReversalSelectRunHint": "Select a payroll run",
+  "payrollReversalSelectMemberHint": "Select a team member",
+  "payrollReversalNoRunsMessage": "No reversible payroll runs right now.",
+  "payrollReversalPartialUnavailableHint": "This run only includes one person—use whole run to reverse it.",
+  "payrollReversalConfirmTitle": "Reverse payroll?",
+  "payrollReversalConfirmWholeRunMessage": "This will roll back the entire run, restore linked violations where applicable, and remove payslips for this period.",
+  "payrollReversalConfirmOneMemberMessage": "This will remove {employeeName} from this run, roll back their linked violations where applicable, and delete their payslip for this period.",
+  "@payrollReversalConfirmOneMemberMessage": {
+    "placeholders": {
+      "employeeName": {"type": "String"}
+    }
+  },
+  "payrollReversalSuccess": "Payroll reversal completed.",
   "payrollEmployeeSetupTitle": "Employee payroll setup",
   "payrollEmployeeAddEntry": "Add entry",
   "payrollEmployeeSetupSubtitle": "Manage recurring and one-time payroll entries for this employee.",
@@ -761,9 +865,15 @@
   "payrollPayslipEmptySubtitle": "This payroll run does not have visible lines for the selected employee.",
   "payrollRunEmployeesLabel": "Employees",
   "payrollRunAllEmployees": "All active employees",
+  "payrollRunAllMatchingStaff": "All matching staff",
   "payrollRunValidation": "Choose a payroll period before calculating.",
-  "payrollRunReviewEmptyTitle": "No payroll run draft yet",
-  "payrollRunReviewEmptySubtitle": "Pick a period and calculate the run to review grouped payroll totals.",
+  "payrollRunReviewHistoryTitle": "Payroll history",
+  "payrollRunReviewHistorySubtitle": "Approved and paid payroll runs (drafts are hidden). Tap an approved run to pay or roll back.",
+  "payrollRunReviewHistoryEmpty": "No payroll transactions yet. Calculate a run above to get started.",
+  "payrollHistoryApprovedSheetTitle": "Approved — not paid yet",
+  "payrollHistoryApprovedSheetBody": "Mark as paid after you transfer funds, or roll back to undo this approval.",
+  "payrollHistoryMarkedPaidSnack": "Marked as paid.",
+  "payrollHistoryRollbackSnack": "Payroll run rolled back.",
   "payrollRunEmployeeSummary": "{lineCount} lines · net {netPay}",
   "@payrollRunEmployeeSummary": {
     "placeholders": {
@@ -803,6 +913,17 @@
   "notificationsPrefViolations": "Violations and no-shows",
   "notificationsPrefMarketing": "Tips and offers",
   "notificationsPrefMarketingHint": "Occasional updates from your salon or the app.",
+  "notificationsFilterAll": "All",
+  "notificationsFilterUnread": "Unread",
+  "notificationsEmptyTitle": "No notifications yet",
+  "notificationsEmptySubtitle": "Updates about bookings, attendance, payroll, and team activity will appear here.",
+  "notificationsFirestoreIndexBuildingSubtitle": "Your inbox will load shortly — Firestore is finishing the notification index. Pull to refresh or try again in a minute.",
+  "notificationsMarkAllRead": "Mark all as read",
+  "notificationsSettingBookingUpdates": "Booking updates",
+  "notificationsSettingAttendanceUpdates": "Attendance updates",
+  "notificationsSettingPayrollUpdates": "Payroll updates",
+  "notificationsSettingApprovals": "Approval requests",
+  "notificationsSettingSystemAlerts": "System alerts",
   "notificationsInboxTooltip": "Notifications",
   "customerNotificationsTooltip": "Notifications",
   "customerDiscoveryGoodMorning": "Good morning",
@@ -1467,6 +1588,26 @@
   "ownerOverviewHeroSearchHint": "Search team, revenue, and requests",
   "ownerOverviewRevenueMonthLabel": "Revenue this month",
   "ownerOverviewRevenueMonthHintEmpty": "No sales recorded yet.",
+  "ownerOverviewRevenueMonthSubtitle": "Revenue trend for the current month",
+  "ownerOverviewRevenueMonthEmpty": "No revenue yet this month",
+  "ownerOverviewRevenueMonthTotal": "Month total: {amount}",
+  "@ownerOverviewRevenueMonthTotal": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "ownerOverviewRevenuePeriodDay": "Day",
+  "ownerOverviewRevenuePeriodMonth": "Month",
+  "ownerOverviewRevenuePeriodWeek": "Week",
+  "ownerOverviewRevenueTodayByHourTitle": "Revenue today",
+  "ownerOverviewRevenueTodayByHourSubtitle": "By hour (your local time)",
+  "ownerOverviewRevenueTodayByHourEmpty": "No revenue yet today",
+  "ownerOverviewRevenueTodayByHourTotal": "Today total: {amount}",
+  "@ownerOverviewRevenueTodayByHourTotal": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
   "ownerOverviewRevenueThisWeekTitle": "Revenue this week",
   "ownerOverviewRevenueThisWeekSubtitle": "Revenue trend for the current week",
   "ownerOverviewRevenueThisWeekEmpty": "No revenue yet this week",
@@ -1476,7 +1617,19 @@
       "amount": {"type": "String"}
     }
   },
+  "ownerOverviewTeamPerformanceTitle": "Team performance",
+  "ownerOverviewTeamPerformanceSubtitle": "Top barbers by today’s revenue",
+  "ownerOverviewTeamPerformanceEmpty": "No services recorded yet today",
+  "ownerOverviewTeamPerformanceError": "Could not load team performance",
+  "ownerOverviewTeamPerformanceFallbackName": "Team member",
+  "ownerOverviewTeamPerformanceServicesToday": "{count, plural, =0{0 services today} one{1 service today} other{{count} services today}}",
+  "@ownerOverviewTeamPerformanceServicesToday": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "ownerOverviewKpiPendingRequests": "Pending requests",
+  "ownerOverviewKpiPendingApprovals": "Pending approvals",
   "ownerOverviewDashboardTagline": "Track revenue, team, and bookings in one place.",
   "ownerOverviewTodayInsightTitle": "Today’s insight",
   "ownerOverviewTodayInsightNoActivity": "No activity yet today. Start by adding a sale or booking.",
@@ -1498,6 +1651,12 @@
       "count": {"type": "int"}
     }
   },
+  "ownerOverviewTodayInsightPendingApprovals": "{count, plural, one{1 attendance request needs your review.} other{{count} attendance requests need your review.}}",
+  "@ownerOverviewTodayInsightPendingApprovals": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "ownerOverviewRecentServicesTitle": "Recent services",
   "ownerOverviewRecentServicesEmpty": "No active services yet.",
   "ownerOverviewPerformanceNoData": "No data yet",
@@ -1507,7 +1666,7 @@
       "count": {"type": "int"}
     }
   },
-  "ownerOverviewBestBarberSubtitle": "Best barber today · {amount}",
+  "ownerOverviewBestBarberSubtitle": "Best team member today · {amount}",
   "@ownerOverviewBestBarberSubtitle": {
     "placeholders": {
       "amount": {"type": "String"}
@@ -1550,8 +1709,10 @@
   },
   "ownerOverviewStatRevenueToday": "Revenue today",
   "ownerOverviewStatBookingsToday": "Bookings today",
+  "ownerOverviewStatServicesToday": "Services today",
   "ownerOverviewStatCompletedToday": "Completed today",
   "ownerOverviewStatCheckedIn": "Checked in",
+  "ownerOverviewStatWorkingNow": "Working now",
   "ownerOverviewQuickActionsTitle": "Quick actions",
   "ownerOverviewQuickAddSale": "Add sale",
   "ownerOverviewQuickAddExpense": "Add expense",
@@ -1844,12 +2005,25 @@
   "teamFilterInactive": "Inactive",
   "teamFilterTopSellers": "Top sellers",
   "teamFilterTopPerformers": "Top Performers",
+  "teamFilterTopServices": "Top Services",
+  "teamFilterTopPerformance": "Top Performance",
+  "teamFilterOldest": "Old",
+  "teamFilterNewest": "New",
   "teamFilterNeedsAttention": "Needs attention",
   "teamAddBarberAction": "Add Team Member",
   "teamHeroSearchHint": "Search members by name or phone",
   "teamSearchHint": "Search by name or phone",
   "teamMemberWhatsAppNoPhone": "No phone number on file for this team member",
   "teamFilterAction": "Filter team",
+  "teamSortAction": "Sort team",
+  "teamSortSheetTitle": "Sort by",
+  "teamSortNameAsc": "Name A–Z",
+  "teamSortNameDesc": "Name Z–A",
+  "teamSortRole": "Role",
+  "teamSortJoinedNewest": "Newest hire first",
+  "teamSortJoinedOldest": "Oldest hire first",
+  "teamSortSalesToday": "Today's sales",
+  "teamSortSalesMonth": "This month's sales",
   "teamEmptyTitle": "No team members yet",
   "teamEmptySubtitle": "Add your first team member to start tracking attendance, sales, and payroll.",
   "teamEmptyBuildTitle": "Build your team",
@@ -1935,6 +2109,8 @@
   "teamFieldEmail": "Email",
   "teamFieldUsername": "Username",
   "teamFieldPhone": "Phone",
+  "teamFieldHiringDate": "Hiring date",
+  "teamFieldHiringDateHint": "Monthly base salary in payroll is prorated by calendar days from this date.",
   "teamFieldRole": "Role",
   "teamRoleRequired": "Choose a role.",
   "teamCommissionValueRequired": "Enter a commission value.",
@@ -2029,7 +2205,12 @@
   "teamCommissionTypeFixed": "Fixed amount only",
   "teamCommissionTypePercentagePlusFixed": "Percentage + fixed amount",
   "teamFieldCommissionPercentagePercent": "Commission rate (%)",
-  "teamFieldCommissionFixedSar": "Fixed amount (SAR)",
+  "teamFieldCommissionFixedAmount": "Fixed amount ({currencyCode})",
+  "@teamFieldCommissionFixedAmount": {
+    "placeholders": {
+      "currencyCode": {"type": "String"}
+    }
+  },
   "teamCommissionPercentInputHint": "Enter a rate like 2, 10, or 25",
   "teamCommissionHelperPercentage": "The rate applies to total sales and services.",
   "teamCommissionHelperFixed": "A fixed amount is added to the team member's commission.",
@@ -2064,17 +2245,19 @@
   "teamCommissionPercentInvalidRange": "Rate must be between 0 and 100.",
   "teamCommissionFixedInvalid": "Enter a valid fixed amount (0 or more).",
   "teamCommissionCombinedInvalid": "Enter a valid rate and/or fixed amount.",
-  "teamCommissionSummaryFixed": "{amount} SAR",
+  "teamCommissionSummaryFixed": "{amount} {currencyCode}",
   "@teamCommissionSummaryFixed": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {"type": "String"},
+      "currencyCode": {"type": "String"}
     }
   },
-  "teamCommissionSummaryMixed": "{percent}% + {amount} SAR",
+  "teamCommissionSummaryMixed": "{percent}% + {amount} {currencyCode}",
   "@teamCommissionSummaryMixed": {
     "placeholders": {
       "percent": {"type": "String"},
-      "amount": {"type": "String"}
+      "amount": {"type": "String"},
+      "currencyCode": {"type": "String"}
     }
   },
   "teamFieldCommissionValue": "Commission value",
@@ -2116,17 +2299,18 @@
   "teamMemberAttendanceAdminCompletedTitle": "Attendance completed",
   "teamMemberAttendanceAdminCompletedSubtitle": "Check-in and check-out are recorded for today.",
   "teamMemberAttendanceStatusNone": "No record",
-  "teamMemberAttendanceCheckInLabel": "Check-in",
-  "teamMemberAttendanceCheckOutLabel": "Check-out",
+  "teamMemberAttendanceCheckInLabel": "Punch in",
+  "teamMemberAttendanceCheckOutLabel": "Punch out",
   "teamMemberAttendanceAddManual": "Add attendance manually",
   "teamMemberAttendanceEditManual": "Edit attendance record",
   "teamMemberAttendanceSummaryWeek": "Attendance this week",
   "teamMemberAttendanceSummaryLateMonth": "Late count",
   "teamMemberAttendanceSummaryLateMonthHint": "This month",
-  "teamMemberAttendanceSummaryMissingCheckout": "Missing check-outs",
+  "teamMemberAttendanceSummaryMissingCheckout": "Missing punch-outs",
   "teamMemberAttendanceSummaryMissingCheckoutHint": "times",
   "teamMemberAttendanceSummaryPendingRequests": "Pending requests",
   "teamMemberAttendanceSummaryPendingRequestsHint": "corrections",
+  "teamMemberAttendanceNoShiftAssigned": "No shift assigned. Open Weekly Shifts to set one.",
   "teamMemberAttendanceSummaryDaysUnit": "days",
   "teamMemberAttendanceCorrectionsTitle": "Attendance correction requests",
   "teamMemberAttendanceCorrectionEmptyTitle": "No correction requests",
@@ -2144,13 +2328,24 @@
   "teamMemberAttendanceStatusRejected": "Rejected",
   "teamMemberAttendanceNoReason": "No reason provided",
   "teamMemberAttendanceHistoryTitle": "Recent attendance",
+  "teamMemberAttendanceFullHistoryTitle": "All attendance",
+  "teamMemberAttendanceHistoryFilterTitle": "Date range",
+  "teamMemberAttendanceHistoryFilterFrom": "From",
+  "teamMemberAttendanceHistoryFilterTo": "To",
+  "teamMemberAttendanceHistoryFilterApply": "Apply",
+  "teamMemberAttendanceHistoryFilterClear": "Clear",
+  "teamMemberAttendanceHistoryFilterSelectDate": "Select date",
+  "teamMemberAttendanceHistoryFilterNeedBothDates": "Select both start and end dates.",
+  "teamMemberAttendanceHistoryFilterEmptyRange": "No attendance in this range.",
   "teamMemberAttendanceViewAll": "View all",
   "teamMemberAttendanceHistoryEmpty": "No attendance records yet",
+  "teamMemberAttendanceRecordStatusCheckedIn": "Checked in",
   "teamMemberAttendanceRecordStatusPresent": "Completed",
   "teamMemberAttendanceRecordStatusLate": "Late",
   "teamMemberAttendanceRecordStatusIncomplete": "Incomplete",
   "teamMemberAttendanceRecordStatusManual": "Manual",
   "teamMemberAttendanceRecordStatusAbsent": "Absent",
+  "teamMemberAttendanceRecordStatusOnBreak": "On break",
   "teamMemberAttendanceManualSaved": "Attendance record saved.",
   "teamMemberAttendanceCorrectionApproved": "Correction request approved.",
   "teamMemberAttendanceCorrectionRejected": "Correction request rejected.",
@@ -2167,6 +2362,68 @@
   "teamMemberAttendanceReviewNoteLabel": "Review note",
   "teamMemberAttendanceReviewConfirmApprove": "Approve",
   "teamMemberAttendanceReviewConfirmReject": "Reject",
+  "attendanceAdjustmentSheetTitle": "Adjust attendance",
+  "attendanceAdjustmentSheetSubtitle": "Changes are saved on the server and recorded in the audit log. Payroll summaries may update for this month.",
+  "attendanceAdjustmentShiftOffDay": "Off day",
+  "attendanceAdjustmentDateLabel": "Date",
+  "attendanceAdjustmentShiftLabel": "Shift",
+  "attendanceAdjustmentStatusLabel": "Status",
+  "attendanceAdjustmentStatusPresent": "Present",
+  "attendanceAdjustmentStatusLateChips": "Late",
+  "attendanceAdjustmentStatusAbsentChip": "Absent",
+  "attendanceAdjustmentStatusDayOff": "Day off",
+  "attendanceAdjustmentNotSet": "Not set",
+  "attendanceAdjustmentLateMinLabel": "Late (min)",
+  "attendanceAdjustmentEarlyExitLabel": "Early exit (min)",
+  "attendanceAdjustmentMissingCheckoutLabelShort": "Missing out",
+  "attendanceAdjustmentMinutesValue": "{minutes} min",
+  "@attendanceAdjustmentMinutesValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceAdjustmentYesWithMinutes": "Yes (+{minutes} pen.)",
+  "@attendanceAdjustmentYesWithMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "attendanceAdjustmentNoAbbr": "No",
+  "attendanceAdjustmentErrorReasonRequired": "Please select a reason for this adjustment.",
+  "attendanceAdjustmentSaveSuccess": "Correction saved.",
+  "attendanceAdjustmentCloudError": "Could not save: {code}",
+  "@attendanceAdjustmentCloudError": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "attendanceAdjustmentSaveFailed": "Could not save attendance. Try again.",
+  "attendanceAdjustmentTimesLabel": "Punch times",
+  "attendanceAdjustmentBreakOutLabel": "Break start",
+  "attendanceAdjustmentBreakInLabel": "Break end",
+  "attendanceAdjustmentMissingCheckoutWarning": "Punch-out is missing. Minutes may include the missing check-out penalty from salon settings.",
+  "attendanceAdjustmentReasonLabel": "Reason",
+  "attendanceAdjustmentReasonPlaceholder": "Select a reason",
+  "attendanceAdjustmentReasonForgot": "Forgot punch",
+  "attendanceAdjustmentReasonGps": "GPS / device issue",
+  "attendanceAdjustmentReasonSchedule": "Schedule correction",
+  "attendanceAdjustmentReasonPayroll": "Payroll sync",
+  "attendanceAdjustmentReasonOther": "Other",
+  "attendanceAdjustmentManagerNoteLabel": "Internal note (optional)",
+  "attendanceAdjustmentAuditFootnote": "This action creates an adjustment record and updates monthly payroll summaries when applicable.",
+  "attendanceAdjustmentSaveCta": "Save correction",
+  "attendanceAdjustmentFirestoreDocLabel": "Firestore path · ",
+  "attendanceAdjustmentSessionExpired": "Your session expired. Please sign in again.",
+  "attendanceAdjustmentPermissionDeniedSave": "You don't have permission to save this correction.",
+  "attendanceAdjustmentServerUnavailableSave": "Could not reach the server. Please try again.",
+  "attendanceAdjustmentSaveFailedMapped": "Could not save the correction. Please try again.",
+  "attendanceAdjustmentLoadContextFailed": "Could not load this screen. Please try again.",
   "teamDetailsLoadErrorTitle": "Could not load team member details",
   "teamDetailsTabOverview": "Overview",
   "teamDetailsTabSales": "Sales",
@@ -2175,11 +2432,11 @@
   "teamDetailsTabServices": "Services",
   "teamDetailsTabBookingPrep": "Booking Prep",
   "teamDetailsStatusLabel": "Status",
-  "teamDetailsJoinDate": "Join date",
+  "teamDetailsJoinDate": "Hiring date",
   "teamDetailsCommissionRate": "Commission %",
   "teamDetailsBookableLater": "Bookable later",
   "teamProfileStatusFrozen": "Frozen",
-  "teamProfileJoinDateMissing": "Join date not available",
+  "teamProfileJoinDateMissing": "Hiring date not available",
   "teamProfileSectionContact": "Contact",
   "teamProfileSectionWorkSettings": "Work settings",
   "teamProfileTodaySalesLabel": "Today sales",
@@ -2200,6 +2457,29 @@
   "teamValueNo": "No",
   "teamValueEnabled": "Enabled",
   "teamValueDisabled": "Disabled",
+  "teamCardTeamMemberSubtitle": "Team member",
+  "teamCardNameMissing": "Unnamed",
+  "teamMemberPerformanceUnrated": "Unrated",
+  "teamCardEmployeeId": "ID · {id}",
+  "@teamCardEmployeeId": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "teamCardChipLabelStatus": "Status",
+  "teamCardChipLabelAttendToday": "Attend today",
+  "teamCardAttendWorking": "Working",
+  "teamCardAttendCompleted": "Completed",
+  "teamCardAttendAbsent": "Absent",
+  "teamCardAttendTodayOff": "Today off",
+  "teamCardAttendNoCheckIn": "No check-in",
+  "teamCardSwipeBrowseHint": "Swipe to browse team",
+  "teamDeckFooterMemberCount": "{count, plural, one{1 team member} other{{count} team members}}",
+  "@teamDeckFooterMemberCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "teamCommissionPercentValue": "{value}%",
   "@teamCommissionPercentValue": {
     "placeholders": {
@@ -2255,6 +2535,8 @@
   "teamMemberSalesServiceSummaryFallback": "Services",
   "teamMemberSalesSmartSummaryTitle": "Smart summary",
   "teamMemberSalesNotAvailableShort": "—",
+  "teamMemberSalesReceiptTapToEnlarge": "Receipt photo, tap to enlarge",
+  "teamMemberSalesReceiptViewerTitle": "Receipt",
   "teamNoAttendanceTodayTitle": "No attendance yet today",
   "teamNoAttendanceTodaySubtitle": "Mark attendance to start the day.",
   "teamAttendanceTodayStatusTitle": "Today's attendance",
@@ -2280,6 +2562,14 @@
   "teamServicesAssignedTitle": "Assigned services",
   "teamServicesServiceActive": "Active",
   "teamServicesServiceInactive": "Inactive",
+  "teamServicesEditAssignmentCardSubtitle": "Manage the services this barber can perform.",
+  "teamServicesAssignedSectionSubtitle": "Services this barber is currently offering.",
+  "teamServicesAssignServicesAction": "Assign services",
+  "teamServicesAssignmentSelectAll": "Select all",
+  "teamServicesAssignmentClearSelection": "Clear selection",
+  "teamServicesRetryAction": "Try again",
+  "teamServicesLoadErrorTitle": "Could not load assignments",
+  "teamServicesUnnamedService": "Unnamed service",
   "teamBookingPrepPublicDisplayName": "Public display name",
   "teamBookingPrepPublicBio": "Public bio",
   "teamBookingPrepWorkingHoursProfile": "Working hours profile",
@@ -2294,7 +2584,10 @@
   "moneyDashboardErrorMessage": "Try again in a moment.",
   "moneyDashboardRetry": "Retry",
   "moneyDashboardTrendTitle": "Sales vs expenses",
-  "moneyDashboardTrendSubtitle": "Track how revenue and costs moved across the selected month.",
+  "moneyDashboardTrendSubtitleDaily": "Track how revenue and costs moved day by day in the selected month.",
+  "moneyDashboardTrendSubtitleWeekly": "Track how revenue and costs moved by week in the selected month.",
+  "moneyDashboardTrendSubtitleMonthly": "Track how revenue and costs moved across recent months.",
+  "moneyDashboardTrendSubtitleYearly": "Track how revenue and costs moved across recent calendar years.",
   "moneyDashboardSalesLegend": "Sales",
   "moneyDashboardExpensesLegend": "Expenses",
   "moneyDashboardInsightsTitle": "Insights",
@@ -2328,7 +2621,7 @@
     }
   },
   "moneyDashboardUncategorized": "Uncategorized",
-  "moneyDashboardNetLossWarning": "Net profit is negative after payroll. Trim discretionary expenses, revisit pricing, and review payroll timing for this month.",
+  "moneyDashboardNetLossWarning": "Net profit is negative for this month (completed sales minus expenses and payroll in this period). Trim discretionary spending, revisit pricing, and check payroll runs when they apply.",
   "moneyDashboardTrendPeakSalesSummary": "Peak sales day {day} · {amount}",
   "@moneyDashboardTrendPeakSalesSummary": {
     "placeholders": {
@@ -2359,6 +2652,10 @@
   },
   "moneyDashboardSearchHint": "Search team, revenue, and requests",
   "moneyDashboardChartGranularityDaily": "Daily",
+  "moneyDashboardChartGranularityWeekly": "Weekly",
+  "moneyDashboardChartGranularityMonthly": "Monthly",
+  "moneyDashboardChartGranularityYearly": "Yearly",
+  "moneyDashboardChartGranularityPickerTitle": "Chart period",
   "moneyDashboardKpiTrendNoData": "—",
   "moneyDashboardKpiTrendNew": "New",
   "moneyDashboardKpiTrendUpVsMonth": "↗ {percent}% vs {month}",
@@ -2477,6 +2774,9 @@
     }
   },
   "addSaleAddAnotherService": "Add another service",
+  "addSaleAllServicesSectionTitle": "All services",
+  "addSaleSelectedServiceLineSubtitle": "In this sale",
+  "addSaleClearSearchTooltip": "Clear search",
   "addSaleBarberLabel": "Service provider",
   "addSaleWalkInCustomer": "Walk-in customer",
   "addSaleAddNameLink": "Add name",
@@ -2583,8 +2883,25 @@
   "employeeTodaySalonLocationMissing": "Salon attendance location is not configured. Please contact the owner.",
   "employeeTodayPunchIn": "Punch in",
   "employeeTodayPunchOut": "Punch out",
-  "employeeTodayBreakOut": "Break out",
-  "employeeTodayBreakIn": "Break in",
+  "employeeTodayBreakOut": "Leave for break",
+  "employeeTodayBreakIn": "Return from break",
+  "employeeTodayBreakCountdownRemaining": "Remaining break time: {time}",
+  "@employeeTodayBreakCountdownRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "employeeTodayBreakCountdownExceeded": "Break exceeded by {time}",
+  "@employeeTodayBreakCountdownExceeded": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "employeeTodayBreakOutsideShift": "You can only start a break during your scheduled shift hours.",
   "employeeTodayCompletedForToday": "Completed for today",
   "employeeTodayHoursLabel": "{hours} h",
   "@employeeTodayHoursLabel": {
@@ -2702,6 +3019,47 @@
   "addSaleCardAmountHint": "Card",
   "addSalePaymentSplitInvalid": "Cash plus card must equal the total sale amount.",
   "ownerAddSaleAutoPrice": "Auto-filled price",
+  "addSaleModeBookingCode": "Booking code",
+  "addSaleModeManual": "Manual sale",
+  "addSaleDualSubtitle": "Add from a guest booking code or record a manual sale.",
+  "addSaleBookingCodeFieldLabel": "Booking code",
+  "addSaleBookingCodeHint": "Enter booking code",
+  "addSaleBookingCodeExample": "Example: ZR-AB12CD",
+  "addSaleRetrieveBooking": "Retrieve booking",
+  "addSaleCreateFromBooking": "Create sale",
+  "addSaleBookingFound": "Booking found",
+  "addSaleBookingSectionPayment": "Payment",
+  "addSaleBookingSectionAppointment": "Appointment",
+  "addSaleBookingSectionServices": "Services",
+  "addSaleBookingSubtotal": "Subtotal",
+  "addSaleBookingDiscount": "Discount",
+  "addSaleBookingTotal": "Total",
+  "addSaleBookingStatus": "Booking status",
+  "addSalePaymentStatusPending": "Pending",
+  "addSalePaymentStatusPaid": "Paid",
+  "addSalePaymentStatusFailed": "Failed",
+  "addSalePaymentStatusRefunded": "Refunded",
+  "addSalePaymentMethodUnspecified": "Unspecified",
+  "addSaleBookingErrorEmptyCode": "Please enter a booking code.",
+  "addSaleBookingErrorNotFound": "Booking code not found.",
+  "addSaleBookingErrorWrongSalon": "This booking does not belong to this salon.",
+  "addSaleBookingErrorCancelled": "This booking is cancelled.",
+  "addSaleBookingErrorSaleExists": "A sale was already created for this booking.",
+  "addSaleBookingErrorNoServices": "This booking has no services.",
+  "addSaleBookingErrorZeroTotal": "Total must be greater than zero.",
+  "addSaleBookingErrorBarberMismatch": "Booking barber does not match.",
+  "addSaleBookingErrorNotYourBooking": "You can only use bookings assigned to you.",
+  "addSaleBookingErrorNoPreview": "Retrieve the booking first.",
+  "addSaleBookingErrorNoSession": "Sign in again to continue.",
+  "addSaleBookingErrorBarberMissing": "Assigned barber was not found.",
+  "addSaleBookingErrorUnknown": "Something went wrong. Try again.",
+  "addSaleBookingSaleCreated": "Sale created",
+  "addSaleBookingSalon": "Salon",
+  "addSaleBookingCodeLabel": "Booking code",
+  "addSaleBookingCustomer": "Customer",
+  "addSaleBookingBarber": "Barber",
+  "addSalePaymentMethodWallet": "Wallet",
+  "addSaleBookingErrorManualNameRequired": "Customer name is required.",
   "authV2WelcomeTitle": "Operations, simplified.",
   "authV2WelcomeSubtitle": "Run bookings, team, payroll, and money in one premium workspace.",
   "authV2WelcomeContinue": "Continue",
@@ -2760,6 +3118,27 @@
   "authV2ForgotPasswordSent": "Check your email for reset instructions.",
   "authV2SendResetLink": "Send link",
   "authV2OrDivider": "OR",
+  "guestAuthOrDivider": "or",
+  "guestAuthContinueAsGuest": "Continue as guest",
+  "guestAuthGuestSubtitle": "No account needed. Discover salons and book in seconds.",
+  "guestAuthSignInFailed": "Unable to continue as guest: {details}",
+  "@guestAuthSignInFailed": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "guestAuthSessionTimeout": "Your profile is taking too long to load. Check your connection and try again.",
+  "guestNicknameScreenTitle": "How should we call you?",
+  "guestNicknameScreenSubtitle": "Pick a nickname for the salon team. We’ll make it unique.",
+  "guestNicknameFieldLabel": "Nickname",
+  "guestNicknameSuggestedLabel": "Your display name",
+  "guestNicknameContinue": "Continue",
+  "guestNicknameErrorTooShort": "Enter at least 2 characters.",
+  "guestNicknameErrorInvalid": "Use letters and numbers only.",
+  "guestNicknameErrorReserveFailed": "Could not reserve that name. Try again.",
+  "customerBookingReviewMissingGuestNickname": "Please set your guest nickname first.",
   "authV2ContinueGoogle": "Continue with Google",
   "authV2ContinueApple": "Continue with Apple",
   "authV2ContinueFacebook": "Continue with Facebook",
@@ -2814,12 +3193,39 @@
   },
   "customersSalonOnlyBannerSubtitle": "Salon-owned list for visits, bookings, and spending.",
   "customersGlobalSearchHint": "Search team, revenue, and requests",
-  "customersCountBadge": "{count} customers",
+  "customersCountBadge": "{count, plural, =0{0 customers} one{1 customer} other{{count} customers}}",
   "@customersCountBadge": {
     "placeholders": {
       "count": {"type": "int"}
     }
   },
+  "customersGoldenInfoTitle": "Golden customers",
+  "customersGoldenInfoSubtitle": "Track visits, bookings, and spending.",
+  "customersGoldenInfoDismissSemantics": "Dismiss tip",
+  "customersInsightsThisMonth": "This month",
+  "customersInsightsNewThisMonth": "New customers",
+  "customersInsightsReturningThisMonth": "Returning",
+  "customersInsightsTotalCustomers": "Total active",
+  "customersInsightsTotalSpent": "Total spending",
+  "customersInsightsLoadError": "Could not load insights.",
+  "customersLastServiceLine": "Last service: {serviceName}",
+  "@customersLastServiceLine": {
+    "placeholders": {
+      "serviceName": {"type": "String"}
+    }
+  },
+  "customersActionCall": "Call customer",
+  "customersActionMessage": "Message on WhatsApp",
+  "customersActionViewProfile": "View profile",
+  "customersActionCouldNotOpen": "Could not open the link.",
+  "customersListFooterTitle": "Build your customer list",
+  "customersListFooterSubtitle": "Add walk-in customers, link bookings, and track loyalty automatically.",
+  "customersFilterEmptyTitle": "No matches",
+  "customersFilterEmptySubtitle": "Try another search or chip, or clear filters.",
+  "customersClearFilters": "Clear filters",
+  "customersSearchEmptyTitle": "No search results",
+  "customersSearchEmptySubtitle": "Try a different name or phone, or clear the search.",
+  "customersClearSearch": "Clear search",
   "customersAddCustomerFab": "Add customer",
   "customersPermissionErrorTitle": "You do not have access to these customers.",
   "customersPermissionErrorSubtitle": "Please check salon membership or permissions.",
@@ -3183,10 +3589,9 @@
   "employeePolicyTitle": "Attendance policy",
   "employeePolicySubtitle": "Simple rules for your workday",
   "employeePolicySummaryTitle": "Policy summary",
-  "employeePolicyGpsSummary": "Your salon uses GPS attendance when enabled. Punch limits: {maxPunches} per day, up to {maxBreaks} breaks.",
+  "employeePolicyGpsSummary": "Your salon uses GPS attendance when enabled. Record one punch in and one punch out per day; up to {maxBreaks} breaks.",
   "@employeePolicyGpsSummary": {
     "placeholders": {
-      "maxPunches": {"type": "int"},
       "maxBreaks": {"type": "int"}
     }
   },
@@ -3216,12 +3621,7 @@
   "employeeMapOpenInMaps": "Open in Maps",
   "employeePolicySummaryStatic": "These rules follow your salon’s attendance settings. Your owner can change them anytime.",
   "employeePolicyDeductionsSection": "Deductions",
-  "employeePolicyRuleMaxPunchesOneLine": "You can record up to {max} punches per calendar day.",
-  "@employeePolicyRuleMaxPunchesOneLine": {
-    "placeholders": {
-      "max": {"type": "int"}
-    }
-  },
+  "employeePolicyRuleWorkPunchesOneLine": "Each day you record one punch in and one punch out; breaks are separate.",
   "employeePolicyRuleMaxBreakMinutesOneLine": "Total break time is limited to {minutes} minutes per day (combined breaks).",
   "@employeePolicyRuleMaxBreakMinutesOneLine": {
     "placeholders": {
@@ -3418,5 +3818,239 @@
   "addSaleMixedPaymentMustEqualTotal": "Cash + card must equal the total.",
   "addSaleNoActiveServicesYet": "No active services yet",
   "addSaleCreateServicesFirst": "Create services first to record sales.",
-  "addSaleUnableToLoadServices": "Unable to load services"
+  "addSaleUnableToLoadServices": "Unable to load services",
+  "ownerShiftsTileTitle": "Shifts & Staff Schedule",
+  "ownerShiftsTileSubtitle": "Manage templates and weekly roster",
+  "ownerShiftsTitle": "Shifts",
+  "ownerShiftsSubtitle": "Create and manage shift templates",
+  "ownerShiftsRetry": "Retry",
+  "ownerShiftsLoadError": "Could not load shift templates",
+  "ownerShiftsSummaryTotalShifts": "Total Shifts",
+  "ownerShiftsSummaryAssignedStaff": "Assigned Staff",
+  "ownerShiftsSummaryOffDayRules": "Off Days Rules",
+  "ownerShiftsSummaryTemplates": "Templates",
+  "ownerShiftsSummaryEmployees": "Employees",
+  "ownerShiftsSummaryRuleSet": "Rule set",
+  "ownerShiftsTemplatesSectionTitle": "Shift Templates",
+  "ownerShiftsEmptyStateTitle": "No shift templates yet",
+  "ownerShiftsEmptyStateSubtitle": "Create your first shift template to start weekly scheduling.",
+  "ownerShiftsEmptyStateHelper": "Recommended: Day Shift, Night Shift, and Off Day.",
+  "ownerShiftsDuration": "Duration",
+  "ownerShiftsBreak": "Break",
+  "ownerShiftsEmployees": "Employees",
+  "ownerShiftsOvernightBadge": "Overnight",
+  "ownerShiftsOffDay": "Off Day",
+  "ownerShiftsOpenWeeklyRosterTitle": "Open weekly roster",
+  "ownerShiftsOpenWeeklyRosterSubtitle": "View and manage staff shifts for the week",
+  "ownerShiftsCreateTemplateCta": "Create Shift Template",
+  "ownerShiftsDeactivateError": "Could not deactivate this shift",
+  "ownerShiftsDeleteConfirmMessage": "Are you sure you want to delete this shift template?",
+  "ownerShiftsCreateTemplatePlaceholder": "Create Shift Template screen coming next",
+  "ownerShiftsEditTemplatePlaceholder": "Edit Shift Template screen coming next",
+  "ownerShiftsWeeklyPlaceholder": "Weekly Shifts screen coming next",
+  "ownerShiftsApplyPlaceholder": "Apply Schedule screen coming next",
+  "ownerShiftCreateTitle": "Create Shift",
+  "ownerShiftEditTitle": "Edit Shift",
+  "ownerShiftCreateSubtitle": "Define working hours for employees",
+  "ownerShiftEditSubtitle": "Update working hours for employees",
+  "ownerShiftNameLabel": "Shift name",
+  "ownerShiftNameHint": "Day Shift",
+  "ownerShiftTypeLabel": "Shift type",
+  "ownerShiftTypeWorking": "Working Shift",
+  "ownerShiftTypeOff": "Off Day",
+  "ownerShiftStartTimeLabel": "Start time",
+  "ownerShiftEndTimeLabel": "End time",
+  "ownerShiftBreakMinutesLabel": "Break allowance (minutes)",
+  "ownerShiftBreakMinutesHint": "30",
+  "ownerShiftNotesLabel": "Notes (optional)",
+  "ownerShiftNotesHint": "Add notes for this shift...",
+  "ownerShiftColorLabel": "Color",
+  "ownerShiftDefaultLabel": "Default shift",
+  "ownerShiftDefaultHint": "New staff will use this shift by default.",
+  "ownerShiftCancelCta": "Cancel",
+  "ownerShiftSaveCta": "Save Shift",
+  "ownerShiftSaveSuccess": "Shift saved successfully",
+  "ownerShiftSaveError": "Could not save shift",
+  "ownerShiftPreviewTitleFallback": "Shift Preview",
+  "ownerShiftValidationNameRequired": "Shift name is required.",
+  "ownerShiftValidationNameLength": "Shift name must be 30 characters or less.",
+  "ownerShiftValidationTimeRequired": "Start and end time are required for working shifts.",
+  "ownerShiftValidationDurationPositive": "Shift duration must be greater than zero.",
+  "ownerShiftValidationDurationMax": "Shift duration must be 16 hours or less.",
+  "ownerShiftValidationBreakMin": "Break minutes cannot be negative.",
+  "ownerShiftValidationBreakMax": "Break minutes must be less than shift duration.",
+  "ownerShiftValidationDefaultRequired": "At least one shift template must be set as default.",
+  "ownerWeeklyShiftsTitle": "Weekly Shifts",
+  "ownerWeeklyShiftsSubtitle": "Manage team schedule",
+  "ownerWeeklyShiftsThisWeek": "This Week",
+  "ownerWeeklyShiftsNextWeek": "Next Week",
+  "ownerWeeklyShiftsApplyToMonth": "Apply to Month",
+  "ownerWeeklyShiftsTemplatesStripTitle": "Drag a shift onto a day",
+  "ownerWeeklyShiftsDragStripBody": "Drag a shift\nonto a day",
+  "ownerWeeklyShiftsTipCardBody": "Tap a cell to mark off, assign a different shift, or remove the current assignment.",
+  "ownerShiftsTemplatesReorder": "Reorder",
+  "ownerWeeklyShiftsNoTemplates": "Create shift templates first",
+  "ownerWeeklyShiftsNoEmployees": "Add employees first",
+  "ownerWeeklyShiftsLoadError": "Could not load weekly schedule data",
+  "ownerWeeklyShiftsEmptyCell": "+",
+  "ownerWeeklyShiftsEmployeesHeader": "Employees",
+  "ownerWeeklyShiftsMarkOffAction": "Mark Off",
+  "ownerWeeklyShiftsRemoveAssignmentAction": "Remove assignment",
+  "ownerWeeklyShiftsAssignAction": "Assign",
+  "ownerApplyScheduleSectionTarget": "Apply this plan to",
+  "ownerApplyScheduleTitle": "Apply Schedule",
+  "ownerApplyScheduleSubtitle": "Repeat this weekly plan",
+  "ownerApplyScheduleOptionThisWeek": "This Week Only",
+  "ownerApplyScheduleOptionRemainingMonth": "Remaining Weeks of This Month",
+  "ownerApplyScheduleOptionRemainingMonthSubtitle": "Apply from this week to the end of the month",
+  "ownerApplyScheduleOptionCustomRange": "Custom Date Range",
+  "ownerApplyScheduleSelectCustomRange": "Select start and end dates",
+  "ownerApplyScheduleCalendarPreview": "Calendar Preview",
+  "ownerApplyScheduleRepeatEveryWeek": "Repeat every week",
+  "ownerApplyScheduleSkipExistingAssignments": "Skip existing assignments",
+  "ownerApplyScheduleIncludeOffDays": "Include off days",
+  "ownerApplyScheduleInfoCard": "Applying this schedule will update employee roster for selected dates.",
+  "ownerApplyScheduleCta": "Apply Schedule",
+  "ownerApplyScheduleSuccessTitle": "Schedule applied successfully",
+  "ownerApplyScheduleSuccessBody": "Created/updated {writes} schedules. Skipped {skipped} existing schedules.",
+  "@ownerApplyScheduleSuccessBody": {
+    "placeholders": {
+      "writes": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  },
+  "ownerApplyScheduleOk": "OK",
+  "ownerApplySchedulePreviewSummary": "Assignments: {assignments} • Off days: {offDays}",
+  "@ownerApplySchedulePreviewSummary": {
+    "placeholders": {
+      "assignments": {"type": "int"},
+      "offDays": {"type": "int"}
+    }
+  },
+  "zuranoDiscoverGuestName": "Guest",
+  "zuranoHomeHeadlineLine1": "Where self-care",
+  "zuranoHomeHeadlineLine2Prefix": "meets ",
+  "zuranoHomeHeadlineHighlight": "style",
+  "zuranoHomeLocationLoading": "Finding location…",
+  "zuranoHomeLocationUnavailable": "Location unavailable",
+  "zuranoHomeLocationNearYou": "Near you",
+  "zuranoHomeLocationCityCountry": "{city}, {country}",
+  "@zuranoHomeLocationCityCountry": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "country": {"type": "String"}
+    }
+  },
+  "zuranoDiscoverSomethingWrong": "Something went wrong",
+  "zuranoDiscoverRecommendedTitle": "Recommended for you",
+  "zuranoDiscoverSeeAll": "See all",
+  "zuranoDiscoverExploreAll": "Explore all",
+  "zuranoDiscoverFiltersLabel": "Filters",
+  "zuranoDiscoverFiltersComingSoon": "Saved filters arrive in a future update.",
+  "zuranoDiscoverSearchHint": "Search salons, services, areas...",
+  "zuranoRewardsBannerTitle": "Glow more, pay less ✨",
+  "zuranoRewardsBannerSubtitle": "Earn points on every booking and unlock exclusive rewards.",
+  "zuranoRewardsBannerCta": "View offers",
+  "zuranoTrendingServicesTitle": "Services trending now",
+  "zuranoNearbyTitle": "Nearby salons",
+  "zuranoNearbyViewMap": "View map",
+  "zuranoNearbyMapSnack": "Map view arrives in a future update.",
+  "zuranoNearbyBookNow": "Book now",
+  "zuranoNearbyLocationLineKm": "{cityCountry} • {kmFormatted} km",
+  "@zuranoNearbyLocationLineKm": {
+    "placeholders": {
+      "cityCountry": {"type": "String"},
+      "kmFormatted": {"type": "String"}
+    }
+  },
+  "zuranoNearbyKilometersOnly": "{kmFormatted} km",
+  "@zuranoNearbyKilometersOnly": {
+    "placeholders": {
+      "kmFormatted": {"type": "String"}
+    }
+  },
+  "zuranoNearbyLocationTwoParts": "{first} • {second}",
+  "@zuranoNearbyLocationTwoParts": {
+    "placeholders": {
+      "first": {"type": "String"},
+      "second": {"type": "String"}
+    }
+  },
+  "zuranoBottomNavHome": "Home",
+  "zuranoBottomNavBookings": "Bookings",
+  "zuranoBottomNavRewards": "Rewards",
+  "zuranoBottomNavProfile": "Profile",
+  "zuranoDiscoverFallbackCategoryAll": "All",
+  "zuranoDiscoverFallbackCategoryHair": "Hair",
+  "zuranoDiscoverFallbackCategoryNails": "Nails",
+  "zuranoDiscoverFallbackCategoryBeauty": "Beauty",
+  "zuranoDiscoverFallbackCategoryBarbers": "Barbers",
+  "zuranoDiscoverFallbackCategorySpa": "Spa",
+  "zuranoDiscoverFallbackCategoryMakeup": "Makeup",
+  "zuranoDiscoverIndexBuildingMessage": "We are preparing salon data. Please try again shortly.",
+  "zuranoDiscoverSectionLoadFailed": "Unable to load this section. Please try again.",
+  "zuranoDiscoverRecommendedEmpty": "No recommended salons yet",
+  "zuranoDiscoverTrendingServicesEmpty": "No trending services yet",
+  "zuranoDiscoverNearbyEmptyInCountry": "No salons available in {countryName} yet",
+  "@zuranoDiscoverNearbyEmptyInCountry": {
+    "placeholders": {
+      "countryName": {
+        "type": "String"
+      }
+    }
+  },
+  "estimatedPayout": "Estimated payout",
+  "commission": "Commission",
+  "services": "Services",
+  "addBonus": "Add bonus",
+  "addDeduction": "Add deduction",
+  "generatePayslip": "Generate payslip",
+  "reverseLastPayrollMonth": "Reverse last payroll month",
+  "fixedCommissionAmount": "Fixed commission amount",
+  "earningsBreakdown": "Earnings breakdown",
+  "servicesRevenue": "Services revenue",
+  "commissionToday": "Commission today",
+  "commissionThisMonth": "Commission this month",
+  "bonuses": "Bonuses",
+  "deductions": "Deductions",
+  "payrollFormula": "Payroll formula",
+  "payrollHistory": "Payroll history",
+  "noPayrollRecordsYet": "No payroll records yet",
+  "generatedPayslipsWillAppearHere": "Generated payslips will appear here.",
+  "generateFirstPayslip": "Generate first payslip",
+  "payrollLocked": "Payroll locked",
+  "payrollPaidLockedMessage": "This payroll is already paid and can no longer be edited.",
+  "payrollPayslipGeneratedLockedMessage": "A payslip was generated for this month. Use Reverse last payroll month to edit or delete adjustments, then regenerate if needed.",
+  "employeeInactivePayrollMessage": "This employee is inactive/frozen, so payroll actions are disabled.",
+  "addPayrollAdjustment": "Add payroll adjustment",
+  "amount": "Amount",
+  "elementName": "Element name",
+  "notRecurring": "Not recurring",
+  "recurringOneYear": "Recurring (until removed)",
+  "deletePayrollElementTitle": "Delete payroll element?",
+  "deletePayrollElementMessage": "Remove \"{name}\" from payroll elements? Recurring items will stop for future months.",
+  "@deletePayrollElementMessage": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "keepElement": "Keep",
+  "deleteElement": "Delete",
+  "payrollElementDeleted": "Payroll element deleted.",
+  "payrollAdjustmentDeleteNoneMatched": "Could not remove that adjustment (nothing matched in the database). Pull to refresh and try again.",
+  "reverseLastPayrollMonthTitle": "Reverse last payroll month?",
+  "reverseLastPayrollMonthMessage": "This will mark the latest payroll month as reversed. You can regenerate it if needed.",
+  "reversePayrollMonthSuccess": "Last payroll month reversed successfully.",
+  "reason": "Reason",
+  "noteOptional": "Note (optional)",
+  "save": "Save",
+  "bonusAddedSuccessfully": "Bonus added successfully.",
+  "deductionAddedSuccessfully": "Deduction added successfully.",
+  "payslipGeneratedSuccessfully": "Payslip generated successfully.",
+  "payrollLoadFailed": "Failed to load payroll.",
+  "payrollHistoryLoadFailed": "Failed to load payroll history.",
+  "retry": "Retry",
+  "updatePayrollAdjustment": "Update payroll adjustment",
+  "payrollElementUpdated": "Payroll element updated.",
+  "update": "Update"
 }

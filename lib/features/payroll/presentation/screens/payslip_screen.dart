@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/motion/app_motion_widgets.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_page_header.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../data/payroll_constants.dart';
 import '../../logic/payroll_dashboard_providers.dart';
 import '../widgets/payroll_result_line_tile.dart';
@@ -17,6 +17,7 @@ import '../widgets/payroll_section_card.dart';
 import '../widgets/payroll_status_chip.dart';
 import '../widgets/payroll_summary_card.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class PayslipScreen extends ConsumerWidget {
   const PayslipScreen({
@@ -34,9 +35,7 @@ class PayslipScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final payslipAsync = ref.watch(
       payslipDataProvider((runId: runId, employeeId: employeeId)),
     );
@@ -103,8 +102,8 @@ class PayslipScreen extends ConsumerWidget {
           }
 
           final name = employeeName?.trim().isNotEmpty == true
-              ? employeeName!.trim()
-              : results.first.employeeName;
+              ? formatTeamMemberName(employeeName)
+              : formatTeamMemberName(results.first.employeeName);
 
           return AppMotionPlayback(
             child: ListView(

@@ -71,7 +71,7 @@ class CustomerProfileCard extends ConsumerWidget {
                     radius: 36,
                     backgroundColor: const Color(0xFFEDE9FE),
                     child: Text(
-                      _initials(customer.fullName),
+                      _initials(customer.visibleDisplayName),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -97,23 +97,14 @@ class CustomerProfileCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customer.fullName,
+                      customer.visibleDisplayName,
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 17,
                         color: FinanceDashboardColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'ID: ${customer.id}',
-                      style: const TextStyle(
-                        color: FinanceDashboardColors.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         const Icon(

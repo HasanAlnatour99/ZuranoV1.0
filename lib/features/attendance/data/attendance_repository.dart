@@ -242,16 +242,31 @@ class AttendanceRepository {
     }
 
     if (workDateFrom != null) {
-      query = query.where('workDate', isGreaterThanOrEqualTo: workDateFrom);
+      final d = workDateFrom;
+      final fromDay = DateTime(d.year, d.month, d.day);
+      query = query.where(
+        'workDate',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(fromDay),
+      );
     }
 
     if (workDateTo != null) {
-      query = query.where('workDate', isLessThanOrEqualTo: workDateTo);
+      final d = workDateTo;
+      final inclusiveEndDay = DateTime(d.year, d.month, d.day);
+      final exclusiveNext = inclusiveEndDay.add(const Duration(days: 1));
+      query = query.where(
+        'workDate',
+        isLessThan: Timestamp.fromDate(exclusiveNext),
+      );
     }
 
     return query.snapshots().map(
       (snapshot) => snapshot.docs
-          .map((doc) => AttendanceRecord.fromJson(doc.data()))
+          .map(
+            (doc) => AttendanceRecord.fromJson(
+              <String, dynamic>{...doc.data(), 'id': doc.id},
+            ),
+          )
           .toList(),
     );
   }
@@ -272,16 +287,31 @@ class AttendanceRepository {
     }
 
     if (workDateFrom != null) {
-      query = query.where('workDate', isGreaterThanOrEqualTo: workDateFrom);
+      final d = workDateFrom;
+      final fromDay = DateTime(d.year, d.month, d.day);
+      query = query.where(
+        'workDate',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(fromDay),
+      );
     }
 
     if (workDateTo != null) {
-      query = query.where('workDate', isLessThanOrEqualTo: workDateTo);
+      final d = workDateTo;
+      final inclusiveEndDay = DateTime(d.year, d.month, d.day);
+      final exclusiveNext = inclusiveEndDay.add(const Duration(days: 1));
+      query = query.where(
+        'workDate',
+        isLessThan: Timestamp.fromDate(exclusiveNext),
+      );
     }
 
     final snapshot = await query.get();
     return snapshot.docs
-        .map((doc) => AttendanceRecord.fromJson(doc.data()))
+        .map(
+          (doc) => AttendanceRecord.fromJson(
+            <String, dynamic>{...doc.data(), 'id': doc.id},
+          ),
+        )
         .toList(growable: false);
   }
 }

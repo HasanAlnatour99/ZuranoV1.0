@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/staff_role_localized.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -40,7 +41,7 @@ class BarberListCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final timeFormat = DateFormat.jm(locale.toString());
-    final initials = _initials(data.employee.name);
+    final initials = _initials(formatTeamMemberName(data.employee.name));
     final roleLabel = localizedStaffRole(l10n, data.employee.role);
     final attendanceLabel = _attendanceLabel(l10n, timeFormat);
 
@@ -89,7 +90,7 @@ class BarberListCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TeamMemberNameText(
                         data.employee.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

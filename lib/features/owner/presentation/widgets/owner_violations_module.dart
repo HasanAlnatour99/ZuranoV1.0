@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/violation_types.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -427,7 +428,7 @@ class _ViolationQueueCard extends StatelessWidget {
                   const SizedBox(width: AppSpacing.small),
                   Expanded(
                     child: Text(
-                      '${v.employeeName ?? v.employeeId} · ${v.violationType}',
+                      '${(v.employeeName?.trim().isNotEmpty == true) ? formatTeamMemberName(v.employeeName) : v.employeeId} · ${v.violationType}',
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: AppBrandColors.onTipsBackground,
                         fontWeight: FontWeight.w700,

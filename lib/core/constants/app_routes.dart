@@ -144,6 +144,9 @@ class AppRoutes {
   static String customerBookDetailsPath(String salonId) =>
       '$customerBook/$salonId/details';
 
+  static String customerBookGuestNicknamePath(String salonId) =>
+      '$customerBook/$salonId/guest-nickname';
+
   static String customerBookReviewPath(String salonId) =>
       '$customerBook/$salonId/review';
 
@@ -177,6 +180,7 @@ class AppRoutes {
             parts[1] == 'team' ||
             parts[1] == 'time' ||
             parts[1] == 'details' ||
+            parts[1] == 'guest-nickname' ||
             parts[1] == 'review' ||
             parts[1] == 'success');
   }
@@ -201,6 +205,7 @@ class AppRoutes {
 
   static bool isPublicCustomerExperiencePath(String location) {
     return location == customerMyBooking ||
+        location == customerHome ||
         isPublicCustomerSalonBrowsePath(location) ||
         isPublicCustomerBookPath(location) ||
         isPublicCustomerBookingDetailsPath(location);
@@ -228,6 +233,11 @@ class AppRoutes {
       '$ownerCustomers/$customerId/edit';
   static const ownerMoney = '/owner/money';
   static const ownerSettings = '/owner/settings';
+  static const ownerShiftsSettings = '/owner/settings/shifts';
+  static const ownerCreateShiftTemplate = '/owner/settings/shifts/create';
+  static const ownerEditShiftTemplateBase = '/owner/settings/shifts';
+  static const ownerWeeklyShifts = '/owner/settings/shifts/weekly';
+  static const ownerApplySchedule = '/owner/settings/shifts/apply';
 
   /// HR & violations (nested under owner settings shell — keeps bottom navigation).
   static const ownerSettingsHrViolations = '/owner/settings/hr-violations';
@@ -245,6 +255,12 @@ class AppRoutes {
   /// Canonical Add Sale screen path (nested URL under sales).
   static const ownerSalesAdd = '$ownerSales/add';
 
+  /// Staff / barber Add Sale URL (required by [router_guards] `staffEmployeeAddSalePath`).
+  static String get employeeAddSale => Uri(
+    path: ownerSalesAdd,
+    queryParameters: const {'source': 'employee'},
+  ).toString();
+
   /// Readable aliases for navigation (same paths as owner workspace URLs).
   static const sales = ownerSales;
   static const addSale = ownerSalesAdd;
@@ -253,9 +269,9 @@ class AppRoutes {
   static const ownerExpenses = '/owner-expenses';
   static const ownerExpensesAdd = '/owner-expenses/add';
   static const ownerPayroll = '/owner-payroll';
-  static const ownerPayrollElements = '/owner-payroll/elements';
   static const ownerQuickPay = '/owner-payroll/quick-pay';
   static const ownerPayrollRunReview = '/owner-payroll/run-review';
+  static const ownerPayrollReverse = '/owner-payroll/reverse';
   static const ownerEmployeePayrollSetupBase = '/owner-payroll/setup';
   static const payrollPayslipBase = '/payroll-payslip';
 
@@ -264,8 +280,13 @@ class AppRoutes {
     String? employeeId,
     String? serviceId,
     String? customerId,
+    String? bookingCode,
+    bool staffEmployeeEntry = false,
   }) {
     final params = <String, String>{};
+    if (staffEmployeeEntry) {
+      params['source'] = 'employee';
+    }
     if (employeeId != null && employeeId.trim().isNotEmpty) {
       params['employeeId'] = employeeId.trim();
     }
@@ -274,6 +295,9 @@ class AppRoutes {
     }
     if (customerId != null && customerId.trim().isNotEmpty) {
       params['customerId'] = customerId.trim();
+    }
+    if (bookingCode != null && bookingCode.trim().isNotEmpty) {
+      params['bookingCode'] = bookingCode.trim();
     }
     if (params.isEmpty) return ownerSalesAdd;
     return Uri(path: ownerSalesAdd, queryParameters: params).toString();
@@ -291,8 +315,20 @@ class AppRoutes {
   static String payrollPayslip(String runId, String employeeId) =>
       '$payrollPayslipBase/$runId/$employeeId';
 
-  static String ownerTeamMemberDetails(String employeeId) =>
-      '$ownerTeamMemberDetailsBase/$employeeId';
+  static String ownerTeamMemberDetails(
+    String employeeId, {
+    String? tab,
+  }) {
+    final id = employeeId.trim();
+    final q = tab != null && tab.trim().isNotEmpty
+        ? '?tab=${Uri.encodeQueryComponent(tab.trim())}'
+        : '';
+    return '$ownerTeamMemberDetailsBase/$id$q';
+  }
+
+  /// Full attendance list for [employeeId] (owner / admin).
+  static String ownerTeamMemberAttendanceHistory(String employeeId) =>
+      '$ownerTeamMemberDetailsBase/${employeeId.trim()}/attendance-history';
 
   static String ownerSaleDetails(String saleId) =>
       '$ownerSaleDetailsBase/$saleId';
@@ -329,6 +365,7 @@ class AppRoutes {
 
   /// Owner / admin: customer discovery + online booking rules (`publicSalons` + salon).
   static const ownerSettingsCustomerBooking = '$ownerSettings/customer-booking';
+  static const ownerSettingsPayrollCadence = '$ownerSettings/payroll-cadence';
 
   /// Owner / admin: GPS attendance zone under salon settings.
   static const salonAttendanceZoneSettings = '/settings/attendance-zone';
@@ -384,6 +421,22 @@ class AppRoutes {
 
   /// In-app notification center (all signed-in roles).
   static const notifications = '/notifications';
+  static const customerNotificationsBase = '/customer/notifications';
+  static const employeeNotificationsBase = '/employee/notifications';
+  static const ownerNotificationsBase = '/owner/notifications';
+  static const notificationsSettingsBase = '/notifications/settings';
+
+  static String customerNotifications(String salonId) =>
+      '$customerNotificationsBase/$salonId';
+
+  static String employeeNotifications(String salonId) =>
+      '$employeeNotificationsBase/$salonId';
+
+  static String ownerNotifications(String salonId) =>
+      '$ownerNotificationsBase/$salonId';
+
+  static String notificationSettingsForSalon(String salonId) =>
+      '$notificationsSettingsBase/$salonId';
 
   /// Notification preference toggles.
   static const notificationPreferences = '/notification-preferences';
@@ -476,6 +529,7 @@ abstract final class AppRouteNames {
   static const customerTeamSelection = 'customerTeamSelection';
   static const customerDateTimeSelection = 'customerDateTimeSelection';
   static const customerDetails = 'customerDetails';
+  static const customerGuestNickname = 'customerGuestNickname';
   static const customerBookingReview = 'customerBookingReview';
   static const customerBookingSuccess = 'customerBookingSuccess';
   static const customerBookingDetails = 'customerBookingDetails';
@@ -494,6 +548,11 @@ abstract final class AppRouteNames {
 
   /// Unified owner attendance settings (zone + rules + violations).
   static const ownerAttendanceSettings = 'ownerAttendanceSettings';
+  static const ownerShiftsSettings = 'ownerShiftsSettings';
+  static const ownerCreateShiftTemplate = 'ownerCreateShiftTemplate';
+  static const ownerEditShiftTemplate = 'ownerEditShiftTemplate';
+  static const ownerWeeklyShifts = 'ownerWeeklyShifts';
+  static const ownerApplySchedule = 'ownerApplySchedule';
 }
 
 /// Paths for each [AppRouteNames] entry (matches existing workspace URLs).

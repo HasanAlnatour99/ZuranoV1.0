@@ -90,45 +90,18 @@ class FinanceInsightsCard extends StatelessWidget {
               ),
             )
           else
-            LayoutBuilder(
-              builder: (context, c) {
-                if (c.maxWidth < 340) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = 0; i < insightLines.length; i++) ...[
-                        if (i > 0)
-                          const Divider(
-                            height: 20,
-                            color: FinanceDashboardColors.border,
-                          ),
-                        _InsightBlock(text: insightLines[i], index: i),
-                      ],
-                    ],
-                  );
-                }
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < insightLines.length; i++) ...[
-                      if (i > 0)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: SizedBox(
-                            height: 72,
-                            child: VerticalDivider(
-                              width: 1,
-                              color: FinanceDashboardColors.border,
-                            ),
-                          ),
-                        ),
-                      Expanded(
-                        child: _InsightBlock(text: insightLines[i], index: i),
-                      ),
-                    ],
-                  ],
-                );
-              },
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < insightLines.length; i++) ...[
+                  if (i > 0)
+                    const Divider(
+                      height: 20,
+                      color: FinanceDashboardColors.border,
+                    ),
+                  _InsightBlock(text: insightLines[i], index: i),
+                ],
+              ],
             ),
         ],
       ),

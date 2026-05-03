@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/formatting/payroll_status_localized.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/payroll_constants.dart';
 
@@ -14,6 +15,7 @@ class PayrollStatusChip extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
 
     final colors = switch (status) {
       PayrollRunStatuses.paid => (
@@ -21,8 +23,12 @@ class PayrollStatusChip extends StatelessWidget {
         foreground: scheme.onPrimaryContainer,
       ),
       PayrollRunStatuses.approved => (
-        background: scheme.secondaryContainer,
-        foreground: scheme.onSecondaryContainer,
+        background: isDark
+            ? AppColorsDark.payrollApprovedBadgeBackground
+            : AppColorsLight.payrollApprovedBadgeBackground,
+        foreground: isDark
+            ? AppColorsDark.onPayrollApprovedBadge
+            : AppColorsLight.onPayrollApprovedBadge,
       ),
       PayrollRunStatuses.rolledBack => (
         background: scheme.errorContainer,

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/sale.dart';
+import '../utils/sale_customer_display.dart';
 
 class EmployeeRecentSalesList extends StatelessWidget {
   const EmployeeRecentSalesList({
@@ -112,7 +113,7 @@ class _SaleRow extends StatelessWidget {
   final DateFormat timeFmt;
 
   String _initials(Sale s) {
-    final name = (s.customerName ?? '').trim();
+    final name = visibleSaleCustomerName(s);
     if (name.isEmpty) {
       final sn = s.serviceNames.isNotEmpty ? s.serviceNames.first : '?';
       return sn.isNotEmpty ? sn.substring(0, 1).toUpperCase() : '?';
@@ -130,9 +131,10 @@ class _SaleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = (sale.customerName ?? '').trim().isEmpty
+    final resolved = visibleSaleCustomerName(sale);
+    final title = resolved == 'Guest'
         ? AppLocalizations.of(context)!.addSaleWalkInCustomer
-        : sale.customerName!.trim();
+        : resolved;
     final services = sale.serviceNames.join(' + ');
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

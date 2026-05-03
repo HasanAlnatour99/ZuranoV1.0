@@ -46,24 +46,22 @@ class _OwnerCustomerBookingSettingsScreenState
     super.dispose();
   }
 
-  void _syncFromServer(CustomerBookingSettingsModel server) {
+  void _syncFromServerInBuild(CustomerBookingSettingsModel server) {
     if (!_seeded) {
-      setState(() {
-        _draft = server;
-        _baseline = server;
-        _messageController.text = server.publicBookingMessage;
-        _seeded = true;
-      });
+      _draft = server;
+      _baseline = server;
+      _messageController.text = server.publicBookingMessage;
+      _seeded = true;
       return;
     }
     if (_dirty) {
       return;
     }
-    setState(() {
-      _draft = server;
-      _baseline = server;
+    _draft = server;
+    _baseline = server;
+    if (_messageController.text != server.publicBookingMessage) {
       _messageController.text = server.publicBookingMessage;
-    });
+    }
   }
 
   bool get _dirty {
@@ -154,10 +152,6 @@ class _OwnerCustomerBookingSettingsScreenState
       );
     }
 
-    ref.listen(customerBookingSettingsProvider(salonId), (prev, next) {
-      next.whenData(_syncFromServer);
-    });
-
     final settingsAsync = ref.watch(customerBookingSettingsProvider(salonId));
 
     return ZuranoPageScaffold(
@@ -165,246 +159,251 @@ class _OwnerCustomerBookingSettingsScreenState
         color: Colors.transparent,
         child: Column(
           children: [
-          ZuranoTopBar(
-            title: l10n.ownerCustomerBookingTitle,
-            onBack: () {
-              if (context.canPop()) {
-                context.pop();
-              }
-            },
-          ),
-          Expanded(
-            child: settingsAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator.adaptive()),
-              error: (_, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.large),
-                  child: Text(
-                    l10n.ownerCustomerBookingLoadError,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: ZuranoPremiumUiColors.textSecondary,
+            SafeArea(
+              bottom: false,
+              child: ZuranoTopBar(
+                title: l10n.ownerCustomerBookingTitle,
+                onBack: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  }
+                },
+              ),
+            ),
+            Expanded(
+              child: settingsAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator.adaptive()),
+                error: (_, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.large),
+                    child: Text(
+                      l10n.ownerCustomerBookingLoadError,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ZuranoPremiumUiColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              data: (server) {
-                final d = _draft;
-                if (d == null) {
-                  return const Center(
-                    child: CircularProgressIndicator.adaptive(),
+                data: (server) {
+                  _syncFromServerInBuild(server);
+                  final d = _draft ?? server;
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                    children: [
+                      _HeaderCard(
+                        enabled: d.customerBookingEnabled,
+                        l10n: l10n,
+                      ),
+                      const SizedBox(height: 14),
+                      SettingsSectionCard(
+                        icon: Icons.toggle_on_rounded,
+                        title: l10n.ownerCustomerBookingEnableBooking,
+                        subtitle: l10n.ownerCustomerBookingSectionAvailability,
+                        child: SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          value: d.customerBookingEnabled,
+                          onChanged: (v) => setState(() {
+                            _draft = _draft!.copyWith(
+                              customerBookingEnabled: v,
+                            );
+                          }),
+                        ),
+                      ),
+                      SettingsSectionCard(
+                        icon: Icons.rule_folder_outlined,
+                        title: l10n.ownerCustomerBookingSectionRules,
+                        subtitle: l10n.ownerCustomerBookingSettingsSubtitle,
+                        child: Column(
+                          children: [
+                            _switch(
+                              l10n.ownerCustomerBookingAutoConfirm,
+                              d.autoConfirmBookings,
+                              (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  autoConfirmBookings: v,
+                                ),
+                              ),
+                            ),
+                            _switch(
+                              l10n.ownerCustomerBookingSameDay,
+                              d.allowSameDayBooking,
+                              (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  allowSameDayBooking: v,
+                                ),
+                              ),
+                            ),
+                            _switch(
+                              l10n.ownerCustomerBookingRequirePhone,
+                              d.requireCustomerPhone,
+                              (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  requireCustomerPhone: v,
+                                ),
+                              ),
+                            ),
+                            _switch(
+                              l10n.ownerCustomerBookingRequireName,
+                              d.requireCustomerName,
+                              (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  requireCustomerName: v,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SettingsSectionCard(
+                        icon: Icons.schedule_rounded,
+                        title: l10n.ownerCustomerBookingTimeRulesTitle,
+                        subtitle: l10n.ownerCustomerBookingSectionRules,
+                        child: Column(
+                          children: [
+                            _dropdownInt(
+                              label: l10n.ownerCustomerBookingMinNotice,
+                              value: d.minimumNoticeMinutes,
+                              options: _minNoticeOptions,
+                              display: (n) => n == 1440
+                                  ? l10n.ownerCustomerBookingMinutesDay
+                                  : l10n.ownerCustomerBookingMinutesShort(n),
+                              onChanged: (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  minimumNoticeMinutes: v,
+                                ),
+                              ),
+                            ),
+                            _dropdownInt(
+                              label: l10n.ownerCustomerBookingMaxDaysAhead,
+                              value: d.maxBookingDaysAhead,
+                              options: _maxDaysOptions,
+                              display: (n) => '$n',
+                              onChanged: (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  maxBookingDaysAhead: v,
+                                ),
+                              ),
+                            ),
+                            _dropdownInt(
+                              label: l10n.ownerCustomerBookingSlotDuration,
+                              value: d.slotDurationMinutes,
+                              options: _slotOptions,
+                              display: (n) =>
+                                  l10n.ownerCustomerBookingMinutesShort(n),
+                              onChanged: (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  slotDurationMinutes: v,
+                                ),
+                              ),
+                            ),
+                            _dropdownInt(
+                              label: l10n.ownerCustomerBookingBuffer,
+                              value: d.bufferMinutes,
+                              options: _bufferOptions,
+                              display: (n) =>
+                                  l10n.ownerCustomerBookingMinutesShort(n),
+                              onChanged: (v) => setState(
+                                () =>
+                                    _draft = _draft!.copyWith(bufferMinutes: v),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SettingsSectionCard(
+                        icon: Icons.event_busy_outlined,
+                        title: l10n.ownerCustomerBookingCancellationTitle,
+                        subtitle: l10n.ownerCustomerBookingSectionRules,
+                        child: Column(
+                          children: [
+                            _switch(
+                              l10n.ownerCustomerBookingAllowCancel,
+                              d.allowCustomerCancellation,
+                              (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  allowCustomerCancellation: v,
+                                ),
+                              ),
+                            ),
+                            _dropdownInt(
+                              label: l10n.ownerCustomerBookingCancelNotice,
+                              value: d.cancellationNoticeHours,
+                              options: _cancelHoursOptions,
+                              display: (n) =>
+                                  l10n.ownerCustomerBookingHoursShort(n),
+                              onChanged: (v) => setState(
+                                () => _draft = _draft!.copyWith(
+                                  cancellationNoticeHours: v,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SettingsSectionCard(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        title: l10n.ownerCustomerBookingPublicMessageTitle,
+                        subtitle: l10n.ownerCustomerBookingPublicMessageHint,
+                        child: TextField(
+                          controller: _messageController,
+                          onChanged: (_) => setState(() {}),
+                          maxLines: 3,
+                          maxLength: 250,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: ZuranoPremiumUiColors.lightSurface,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: ZuranoPremiumUiColors.border,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: ZuranoPremiumUiColors.border,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   );
-                }
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                  children: [
-                    _HeaderCard(enabled: d.customerBookingEnabled, l10n: l10n),
-                    const SizedBox(height: 14),
-                    SettingsSectionCard(
-                      icon: Icons.toggle_on_rounded,
-                      title: l10n.ownerCustomerBookingEnableBooking,
-                      subtitle: l10n.ownerCustomerBookingSectionAvailability,
-                      child: SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        value: d.customerBookingEnabled,
-                        onChanged: (v) => setState(() {
-                          _draft = _draft!.copyWith(customerBookingEnabled: v);
-                        }),
-                      ),
-                    ),
-                    SettingsSectionCard(
-                      icon: Icons.rule_folder_outlined,
-                      title: l10n.ownerCustomerBookingSectionRules,
-                      subtitle: l10n.ownerCustomerBookingSettingsSubtitle,
-                      child: Column(
-                        children: [
-                          _switch(
-                            l10n.ownerCustomerBookingAutoConfirm,
-                            d.autoConfirmBookings,
-                            (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                autoConfirmBookings: v,
-                              ),
-                            ),
-                          ),
-                          _switch(
-                            l10n.ownerCustomerBookingSameDay,
-                            d.allowSameDayBooking,
-                            (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                allowSameDayBooking: v,
-                              ),
-                            ),
-                          ),
-                          _switch(
-                            l10n.ownerCustomerBookingRequirePhone,
-                            d.requireCustomerPhone,
-                            (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                requireCustomerPhone: v,
-                              ),
-                            ),
-                          ),
-                          _switch(
-                            l10n.ownerCustomerBookingRequireName,
-                            d.requireCustomerName,
-                            (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                requireCustomerName: v,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SettingsSectionCard(
-                      icon: Icons.schedule_rounded,
-                      title: l10n.ownerCustomerBookingTimeRulesTitle,
-                      subtitle: l10n.ownerCustomerBookingSectionRules,
-                      child: Column(
-                        children: [
-                          _dropdownInt(
-                            label: l10n.ownerCustomerBookingMinNotice,
-                            value: d.minimumNoticeMinutes,
-                            options: _minNoticeOptions,
-                            display: (n) => n == 1440
-                                ? l10n.ownerCustomerBookingMinutesDay
-                                : l10n.ownerCustomerBookingMinutesShort(n),
-                            onChanged: (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                minimumNoticeMinutes: v,
-                              ),
-                            ),
-                          ),
-                          _dropdownInt(
-                            label: l10n.ownerCustomerBookingMaxDaysAhead,
-                            value: d.maxBookingDaysAhead,
-                            options: _maxDaysOptions,
-                            display: (n) => '$n',
-                            onChanged: (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                maxBookingDaysAhead: v,
-                              ),
-                            ),
-                          ),
-                          _dropdownInt(
-                            label: l10n.ownerCustomerBookingSlotDuration,
-                            value: d.slotDurationMinutes,
-                            options: _slotOptions,
-                            display: (n) =>
-                                l10n.ownerCustomerBookingMinutesShort(n),
-                            onChanged: (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                slotDurationMinutes: v,
-                              ),
-                            ),
-                          ),
-                          _dropdownInt(
-                            label: l10n.ownerCustomerBookingBuffer,
-                            value: d.bufferMinutes,
-                            options: _bufferOptions,
-                            display: (n) =>
-                                l10n.ownerCustomerBookingMinutesShort(n),
-                            onChanged: (v) => setState(
-                              () => _draft = _draft!.copyWith(bufferMinutes: v),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SettingsSectionCard(
-                      icon: Icons.event_busy_outlined,
-                      title: l10n.ownerCustomerBookingCancellationTitle,
-                      subtitle: l10n.ownerCustomerBookingSectionRules,
-                      child: Column(
-                        children: [
-                          _switch(
-                            l10n.ownerCustomerBookingAllowCancel,
-                            d.allowCustomerCancellation,
-                            (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                allowCustomerCancellation: v,
-                              ),
-                            ),
-                          ),
-                          _dropdownInt(
-                            label: l10n.ownerCustomerBookingCancelNotice,
-                            value: d.cancellationNoticeHours,
-                            options: _cancelHoursOptions,
-                            display: (n) =>
-                                l10n.ownerCustomerBookingHoursShort(n),
-                            onChanged: (v) => setState(
-                              () => _draft = _draft!.copyWith(
-                                cancellationNoticeHours: v,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SettingsSectionCard(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      title: l10n.ownerCustomerBookingPublicMessageTitle,
-                      subtitle: l10n.ownerCustomerBookingPublicMessageHint,
-                      child: TextField(
-                        controller: _messageController,
-                        onChanged: (_) => setState(() {}),
-                        maxLines: 3,
-                        maxLength: 250,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: ZuranoPremiumUiColors.lightSurface,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: ZuranoPremiumUiColors.border,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: ZuranoPremiumUiColors.border,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          SafeArea(
-            minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                onPressed:
-                    !_dirty ||
-                        saveAsync.isLoading ||
-                        user == null ||
-                        user.uid.isEmpty
-                    ? null
-                    : () => _save(salonId, user.uid),
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: saveAsync.isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator.adaptive(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(l10n.ownerCustomerBookingSaveCta),
+                },
               ),
             ),
-          ),
+            SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  onPressed:
+                      !_dirty ||
+                          saveAsync.isLoading ||
+                          user == null ||
+                          user.uid.isEmpty
+                      ? null
+                      : () => _save(salonId, user.uid),
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: saveAsync.isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator.adaptive(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(l10n.ownerCustomerBookingSaveCta),
+                ),
+              ),
+            ),
           ],
         ),
       ),

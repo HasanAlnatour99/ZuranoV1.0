@@ -5,6 +5,7 @@ import 'package:genui/genui.dart' show generateId;
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/formatting/app_money_format.dart';
+import '../../../core/text/team_member_name.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../payroll/data/models/payroll_result_model.dart';
 import '../../payroll/data/payroll_constants.dart';
@@ -143,7 +144,7 @@ class SmartWorkspaceSurfaceBuilder {
               .map(
                 (employee) => SmartWorkspaceOption(
                   id: employee.id,
-                  label: employee.name,
+                  label: formatTeamMemberName(employee.name),
                   subtitle: employee.role,
                 ),
               )
@@ -160,7 +161,7 @@ class SmartWorkspaceSurfaceBuilder {
           SmartWorkspaceComponent(
             id: generateId(),
             type: SmartWorkspaceComponentType.summaryCard,
-            title: data.selectedEmployee!.name,
+            title: formatTeamMemberName(data.selectedEmployee!.name),
             value: '${data.entries.length}',
             caption: l10n.smartWorkspacePayrollSetupEntriesCount(
               data.entries.length,
@@ -197,8 +198,9 @@ class SmartWorkspaceSurfaceBuilder {
                 id: generateId(),
                 label: l10n.smartWorkspaceOpenEmployeeSetup,
                 type: SmartWorkspaceActionType.navigate,
-                route: AppRoutes.ownerEmployeePayrollSetup(
+                route: AppRoutes.ownerTeamMemberDetails(
                   data.selectedEmployee!.id,
+                  tab: 'payroll',
                 ),
                 primary: true,
               ),
@@ -406,7 +408,7 @@ class SmartWorkspaceSurfaceBuilder {
               .map(
                 (employee) => SmartWorkspaceOption(
                   id: employee.id,
-                  label: employee.name,
+                  label: formatTeamMemberName(employee.name),
                   subtitle: employee.role,
                 ),
               )
@@ -425,10 +427,10 @@ class SmartWorkspaceSurfaceBuilder {
           title: l10n.smartWorkspaceNetPayTitle,
           value: formatAppMoney(
             data.statement.netPay,
-            'USD',
+            data.currencyCode,
             Locale(localeCode),
           ),
-          caption: selectedEmployee?.name,
+          caption: formatTeamMemberName(selectedEmployee?.name),
           tone: SmartWorkspaceStatusTone.positive,
         ),
         SmartWorkspaceComponent(
@@ -441,10 +443,10 @@ class SmartWorkspaceSurfaceBuilder {
           id: generateId(),
           type: SmartWorkspaceComponentType.earningsBreakdownCard,
           title: l10n.smartWorkspaceEarningsBreakdownTitle,
-          lines: _payrollLines(data.earnings, 'USD', localeCode),
+          lines: _payrollLines(data.earnings, data.currencyCode, localeCode),
           value: formatAppMoney(
             data.statement.totalEarnings,
-            'USD',
+            data.currencyCode,
             Locale(localeCode),
           ),
         ),
@@ -452,10 +454,10 @@ class SmartWorkspaceSurfaceBuilder {
           id: generateId(),
           type: SmartWorkspaceComponentType.deductionsBreakdownCard,
           title: l10n.smartWorkspaceDeductionsBreakdownTitle,
-          lines: _payrollLines(data.deductions, 'USD', localeCode),
+          lines: _payrollLines(data.deductions, data.currencyCode, localeCode),
           value: formatAppMoney(
             data.statement.totalDeductions,
-            'USD',
+            data.currencyCode,
             Locale(localeCode),
           ),
         ),
@@ -633,7 +635,7 @@ class SmartWorkspaceSurfaceBuilder {
               .map(
                 (employee) => SmartWorkspaceOption(
                   id: employee.id,
-                  label: employee.name,
+                  label: formatTeamMemberName(employee.name),
                   subtitle: employee.role,
                 ),
               )

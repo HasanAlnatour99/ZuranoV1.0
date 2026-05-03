@@ -37,9 +37,7 @@ class ZuranoHeaderIconButton extends StatelessWidget {
                   ? Colors.white.withValues(alpha: 0.26)
                   : Colors.white.withValues(alpha: 0.16),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.20),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
             ),
             child: Center(child: icon),
           ),

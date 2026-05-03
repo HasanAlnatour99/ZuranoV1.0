@@ -56,11 +56,25 @@ class DeviceGeolocationService {
   Future<Position?> tryGetCurrentPosition({
     Duration timeout = const Duration(seconds: 8),
     LocationAccuracy accuracy = LocationAccuracy.medium,
+
+    /// When set, a last-known fix older than this is ignored (avoids wrong "nearby").
+    Duration? maxLastKnownAge,
   }) async {
     try {
       return await getCurrentPosition(timeout: timeout, accuracy: accuracy);
     } on Object {
-      return await Geolocator.getLastKnownPosition();
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown == null) {
+        return null;
+      }
+      final maxAge = maxLastKnownAge;
+      if (maxAge != null) {
+        final age = DateTime.now().difference(lastKnown.timestamp);
+        if (age > maxAge) {
+          return null;
+        }
+      }
+      return lastKnown;
     }
   }
 

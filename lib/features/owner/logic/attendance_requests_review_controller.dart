@@ -24,26 +24,38 @@ class AttendanceRequestsReviewController
   @override
   AttendanceRequestsReviewState build() {
     _subscription?.close();
+    // Do not use fireImmediately: true — the listener runs synchronously during
+    // build() before [Notifier.state] exists, which throws "uninitialized provider".
     _subscription = ref.listen<AsyncValue<List<AttendanceRecord>>>(
       pendingAttendanceRequestsStreamProvider,
-      (previous, next) => _applySnapshot(next),
-      fireImmediately: true,
+      (previous, next) {
+        state = _mergeSnapshot(next, state);
+      },
+      fireImmediately: false,
     );
     ref.onDispose(() {
       _subscription?.close();
       _subscription = null;
     });
-    return const AttendanceRequestsReviewState();
+    return _mergeSnapshot(
+      ref.read(pendingAttendanceRequestsStreamProvider),
+      const AttendanceRequestsReviewState(),
+    );
   }
 
-  void _applySnapshot(AsyncValue<List<AttendanceRecord>> snapshot) {
-    snapshot.when(
+  /// Maps stream [snapshot] onto [current] without reading [Notifier.state]
+  /// (required for the initial build before state is mounted).
+  static AttendanceRequestsReviewState _mergeSnapshot(
+    AsyncValue<List<AttendanceRecord>> snapshot,
+    AttendanceRequestsReviewState current,
+  ) {
+    return snapshot.when(
       data: (records) {
         final visibleIds = records.map((r) => r.id).toSet();
-        final stillProcessing = state.processingIds
+        final stillProcessing = current.processingIds
             .where(visibleIds.contains)
             .toSet();
-        state = state.copyWith(
+        return current.copyWith(
           requests: records,
           isLoading: false,
           errorMessage: null,
@@ -51,12 +63,13 @@ class AttendanceRequestsReviewController
         );
       },
       loading: () {
-        if (!state.isLoading) {
-          state = state.copyWith(isLoading: true);
+        if (!current.isLoading) {
+          return current.copyWith(isLoading: true);
         }
+        return current;
       },
       error: (error, _) {
-        state = state.copyWith(
+        return current.copyWith(
           isLoading: false,
           errorMessage: error.toString(),
         );

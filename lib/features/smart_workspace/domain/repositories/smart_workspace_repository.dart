@@ -29,6 +29,7 @@ class PayrollExplanationWorkspaceData {
     required this.employees,
     required this.bundle,
     required this.statement,
+    required this.currencyCode,
     this.selectedEmployee,
   });
 
@@ -36,6 +37,7 @@ class PayrollExplanationWorkspaceData {
   final List<Employee> employees;
   final PayrollCalculationBundle bundle;
   final PayrollEmployeeStatement statement;
+  final String currencyCode;
   final Employee? selectedEmployee;
 
   List<PayrollResultModel> get earnings => statement.results

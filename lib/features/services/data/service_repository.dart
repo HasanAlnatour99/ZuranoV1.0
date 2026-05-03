@@ -52,7 +52,14 @@ class ServiceRepository {
       throw ArgumentError.value(
         service.name,
         'name',
-        'Service name is required.',
+        'Service English name is required.',
+      );
+    }
+    if (service.nameAr.trim().isEmpty) {
+      throw ArgumentError.value(
+        service.nameAr,
+        'nameAr',
+        'Service Arabic name is required.',
       );
     }
     final catKey = service.categoryKey?.trim();
@@ -97,6 +104,12 @@ class ServiceRepository {
     final payload = Map<String, dynamic>.from(service.toJson());
     if (service.categoryKey?.trim() != ServiceCategoryKeys.other) {
       payload['customCategoryName'] = FieldValue.delete();
+    }
+    final iconTrim = service.iconKey?.trim();
+    if (iconTrim == null || iconTrim.isEmpty) {
+      payload['iconKey'] = FieldValue.delete();
+    } else {
+      payload['iconKey'] = iconTrim;
     }
     return _serviceDoc(salonId, service.id).set(
       FirestoreWritePayload.withServerTimestampForUpdate(payload),

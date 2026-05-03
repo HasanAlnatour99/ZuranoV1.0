@@ -5,6 +5,7 @@ import '../../../core/constants/sale_reporting.dart';
 import '../../../core/constants/violation_types.dart';
 import '../../../core/firestore/firestore_paths.dart';
 import '../../../core/firestore/firestore_write_payload.dart';
+import '../../../core/text/team_member_name.dart';
 import '../../employees/data/employee_repository.dart';
 import '../../employees/data/models/employee.dart';
 import '../../sales/data/sales_repository.dart';
@@ -129,13 +130,17 @@ class PayrollService {
         amt = roundMoney(grossBefore * v.percent! / 100);
       }
       sum += amt;
+      final label = v.violationType == ViolationTypes.exceededBreakTime &&
+              (v.minutesLate ?? 0) > 0
+          ? '${ViolationTypes.exceededBreakTime} · ${v.minutesLate}m'
+          : v.violationType;
       lines.add(
         PayrollDeductionLine(
           kind: 'violation',
           amount: amt,
           violationId: v.id,
           bookingId: v.bookingId,
-          label: v.violationType,
+          label: label,
         ),
       );
     }
@@ -240,7 +245,7 @@ class PayrollService {
       id: '',
       salonId: salonId,
       employeeId: employee.id,
-      employeeName: employee.name,
+      employeeName: formatTeamMemberName(employee.name),
       periodStart: periodStart,
       periodEnd: periodEnd,
       baseAmount: baseAmount,

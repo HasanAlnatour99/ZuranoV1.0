@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_routes.dart'
-    show AppRouteNames, AppRoutes;
+import '../../../../core/constants/app_routes.dart' show AppRoutes;
 import '../../../../core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employee_today/providers/employee_today_providers.dart';
@@ -19,7 +18,9 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
   void _popThen(BuildContext context, void Function(GoRouter router) fn) {
     final router = GoRouter.of(context);
     Navigator.of(context).pop();
-    fn(router);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fn(router);
+    });
   }
 
   @override
@@ -79,10 +80,7 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
                 subtitle: l10n.employeeQuickActionAddSaleSubtitle,
                 color: const Color(0xFF7C3AED),
                 onTap: () => _popThen(context, (router) {
-                  router.pushNamed(
-                    AppRouteNames.addSale,
-                    queryParameters: const {'source': 'employee'},
-                  );
+                  router.push(AppRoutes.employeeAddSale);
                 }),
               ),
             attendanceAsync.maybeWhen(

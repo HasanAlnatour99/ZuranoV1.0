@@ -25,6 +25,9 @@ class FinanceSummaryCard extends StatelessWidget {
     required this.expensesTrendColor,
     required this.payrollTrendColor,
     required this.netTrendColor,
+    required this.netProfitIcon,
+    this.netProfitIconColor,
+    this.netProfitIconBackground,
     this.netLossWarning,
     this.onMorePressed,
   });
@@ -46,6 +49,9 @@ class FinanceSummaryCard extends StatelessWidget {
   final Color expensesTrendColor;
   final Color payrollTrendColor;
   final Color netTrendColor;
+  final IconData netProfitIcon;
+  final Color? netProfitIconColor;
+  final Color? netProfitIconBackground;
   final String? netLossWarning;
   final VoidCallback? onMorePressed;
 
@@ -194,12 +200,14 @@ class FinanceSummaryCard extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsetsDirectional.only(start: 6),
                     child: FinanceKpiTile(
-                      icon: Icons.trending_up_rounded,
+                      icon: netProfitIcon,
                       label: netLabel,
                       value: netValue,
                       trend: netTrend,
-                      iconColor: FinanceDashboardColors.greenProfit,
-                      iconBackground: FinanceDashboardColors.greenProfitSoft,
+                      iconColor:
+                          netProfitIconColor ?? FinanceDashboardColors.greenProfit,
+                      iconBackground: netProfitIconBackground ??
+                          FinanceDashboardColors.greenProfitSoft,
                       trendColor: netTrendColor,
                     ),
                   ),

@@ -1,5 +1,6 @@
 import '../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../data/models/et_attendance_settings.dart';
+import 'attendance_work_punch_limits.dart';
 
 class AttendanceResolution {
   const AttendanceResolution({
@@ -29,18 +30,8 @@ class AttendanceValidationResult {
 class AttendanceStateResolver {
   const AttendanceStateResolver();
 
-  static const int maxPunchesPerDayDefault = 4;
+  /// Upper bound on punch documents read per day (includes break in/out rows).
   static const int maxPunchesPerDayAbsoluteCap = 20;
-
-  int _effectiveMaxPunches(EtAttendanceSettings settings) {
-    final configured = settings.maxPunchesPerDay;
-    if (configured <= 0) {
-      return maxPunchesPerDayDefault;
-    }
-    return configured > maxPunchesPerDayAbsoluteCap
-        ? maxPunchesPerDayAbsoluteCap
-        : configured;
-  }
 
   AttendanceResolution resolve({
     required EtAttendanceSettings settings,
@@ -65,20 +56,17 @@ class AttendanceStateResolver {
             'Salon attendance location is not configured. Please contact the owner.',
       );
     }
-    if (attendanceRequired && settings.gpsRequired && !isInsideZone) {
+    final lastForZone =
+        punchSequence.isNotEmpty ? punchSequence.last : null;
+    final midOpenBreak = lastForZone == AttendancePunchType.breakOut.name;
+    if (attendanceRequired &&
+        settings.gpsRequired &&
+        !isInsideZone &&
+        !midOpenBreak) {
       return const AttendanceResolution(
         allowedTypes: {},
         nextType: null,
         blockMessage: 'You are outside the allowed salon zone.',
-      );
-    }
-
-    final maxPunches = _effectiveMaxPunches(settings);
-    if (punchSequence.length >= maxPunches) {
-      return const AttendanceResolution(
-        allowedTypes: {},
-        nextType: null,
-        blockMessage: 'You already completed your attendance for today.',
       );
     }
 
@@ -99,8 +87,18 @@ class AttendanceStateResolver {
 
     if (last == AttendancePunchType.punchOut.name) {
       return const AttendanceResolution(
-        allowedTypes: {AttendancePunchType.punchIn},
-        nextType: AttendancePunchType.punchIn,
+        allowedTypes: {},
+        nextType: null,
+        blockMessage: 'You already completed your attendance for today.',
+      );
+    }
+
+    final workPunches = workPunchCountInSequenceNames(punchSequence);
+    if (workPunches >= kMaxWorkPunchesPerDay) {
+      return const AttendanceResolution(
+        allowedTypes: {},
+        nextType: null,
+        blockMessage: 'You already completed your attendance for today.',
       );
     }
 

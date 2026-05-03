@@ -8,6 +8,8 @@ import '../features/attendance_admin/data/repositories/attendance_requests_admin
 import '../features/employee_dashboard/data/repositories/attendance_request_repository.dart';
 import '../features/employee_dashboard/data/repositories/employee_attendance_repository.dart';
 import '../features/employee_dashboard/data/repositories/employee_dashboard_repository.dart';
+import '../features/team/data/team_deck_firestore_repository.dart';
+import '../features/team/data/team_member_cards_repository.dart';
 import '../features/team_member_attendance/data/repositories/team_member_attendance_repository.dart';
 import '../features/bookings/data/barber_metrics_repository.dart';
 import '../features/bookings/data/booking_repository.dart';
@@ -28,6 +30,7 @@ import '../features/payroll/data/repositories/payslip_repository.dart';
 import '../features/payroll/data/payroll_service.dart';
 import '../features/payroll/logic/payroll_run_usecase.dart';
 import '../features/payroll/logic/quickpay_usecase.dart';
+import '../features/sales/data/repositories/add_sale_repository.dart';
 import '../features/sales/data/sales_repository.dart';
 import '../features/sales/data/salon_sales_settings_repository.dart';
 import '../features/salon/data/salon_repository.dart';
@@ -106,6 +109,13 @@ final salesRepositoryProvider = Provider<SalesRepository>((ref) {
   );
 });
 
+final addSaleRepositoryProvider = Provider<AddSaleRepository>((ref) {
+  return AddSaleRepository(
+    ref.read(firestoreProvider),
+    ref.read(salesRepositoryProvider),
+  );
+});
+
 final salonSalesSettingsRepositoryProvider =
     Provider<SalonSalesSettingsRepository>((ref) {
       return SalonSalesSettingsRepository(
@@ -115,6 +125,14 @@ final salonSalesSettingsRepositoryProvider =
 
 final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
   return AttendanceRepository(firestore: ref.read(firestoreProvider));
+});
+
+final teamDeckFirestoreRepositoryProvider =
+    Provider<TeamDeckFirestoreRepository>((ref) {
+  return TeamDeckFirestoreRepository(
+    ref.read(firestoreProvider),
+    ref.read(attendanceRepositoryProvider),
+  );
 });
 
 final teamMemberAttendanceRepositoryProvider =
@@ -185,6 +203,8 @@ final payrollCalculationServiceProvider = Provider<PayrollCalculationService>((
     salesRepository: ref.read(salesRepositoryProvider),
     attendanceRepository: ref.read(attendanceRepositoryProvider),
     violationRepository: ref.read(violationRepositoryProvider),
+    salonRepository: ref.read(salonRepositoryProvider),
+    payrollRunRepository: ref.read(payrollRunRepositoryProvider),
   );
 });
 
@@ -194,6 +214,9 @@ final payrollRunUseCaseProvider = Provider<PayrollRunUseCase>((ref) {
     payrollRunRepository: ref.read(payrollRunRepositoryProvider),
     payrollElementRepository: ref.read(payrollElementRepositoryProvider),
     violationRepository: ref.read(violationRepositoryProvider),
+    payslipRepository: ref.read(payslipRepositoryProvider),
+    salonRepository: ref.read(salonRepositoryProvider),
+    employeeRepository: ref.read(employeeRepositoryProvider),
     connectivityService: ref.read(connectivityServiceProvider),
     logger: ref.read(appLoggerProvider),
   );
@@ -261,4 +284,9 @@ final attendanceRequestsAdminRepositoryProvider =
       return AttendanceRequestsAdminRepository(
         firestore: ref.read(firestoreProvider),
       );
+    });
+
+final teamMemberCardsRepositoryProvider =
+    Provider<TeamMemberCardsRepository>((ref) {
+      return TeamMemberCardsRepository(ref.read(firestoreProvider));
     });

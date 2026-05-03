@@ -6,20 +6,20 @@ import 'overview_design_tokens.dart';
 import 'overview_metric_card.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
-/// 2×2 KPI band: revenue, bookings, checked-in barbers, pending requests.
+/// 2×2 KPI band: revenue, services (completed sales today), working now, pending approvals.
 class OverviewKpiGridSection extends StatelessWidget {
   const OverviewKpiGridSection({
     super.key,
     required this.state,
     required this.locale,
-    this.onBookingsTap,
+    this.onServicesTap,
     this.onCheckedInTap,
     this.onPendingTap,
   });
 
   final OwnerOverviewState state;
   final Locale locale;
-  final VoidCallback? onBookingsTap;
+  final VoidCallback? onServicesTap;
   final VoidCallback? onCheckedInTap;
   final VoidCallback? onPendingTap;
 
@@ -34,13 +34,12 @@ class OverviewKpiGridSection extends StatelessWidget {
     final revDiff = state.todayRevenue - state.yesterdayRevenue;
     final revDelta = _moneyDeltaLine(l10n, revDiff, state.currencyCode, locale);
 
-    final bookDelta = _countDeltaLine(
+    final servicesDelta = _countDeltaLine(
       l10n,
-      state.bookingsToday - state.bookingsYesterdayCount,
+      state.completedSalesTodayCount - state.completedSalesYesterdayCount,
     );
 
-    final pendingRequests =
-        state.pendingBookingsCount + state.pendingApprovalsCount;
+    final pendingApprovals = state.pendingApprovalsCount;
 
     return GridView(
       shrinkWrap: true,
@@ -64,36 +63,38 @@ class OverviewKpiGridSection extends StatelessWidget {
           onTap: () {},
         ),
         OverviewMetricCard(
-          icon: AppIcons.event_outlined,
-          title: l10n.ownerOverviewStatBookingsToday,
-          value: '${state.bookingsToday}',
+          icon: AppIcons.design_services_outlined,
+          title: l10n.ownerOverviewStatServicesToday,
+          value: '${state.completedSalesTodayCount}',
           color: OwnerOverviewTokens.blue,
-          comparison: bookDelta,
+          comparison: servicesDelta,
           comparisonPositive:
-              state.bookingsToday == state.bookingsYesterdayCount
+              state.completedSalesTodayCount ==
+                  state.completedSalesYesterdayCount
               ? null
-              : state.bookingsToday > state.bookingsYesterdayCount,
-          onTap: onBookingsTap,
+              : state.completedSalesTodayCount >
+                    state.completedSalesYesterdayCount,
+          onTap: onServicesTap,
         ),
         OverviewMetricCard(
-          icon: AppIcons.how_to_reg_outlined,
-          title: l10n.ownerOverviewStatCheckedIn,
-          value: '${state.checkedInBarbersToday}',
+          icon: AppIcons.groups_outlined,
+          title: l10n.ownerOverviewStatWorkingNow,
+          value: '${state.checkedInEmployeesToday}',
           color: OwnerOverviewTokens.green,
           comparison: l10n.ownerOverviewTeamActiveBarbersLabel(
-            state.activeBarberCount,
+            state.totalEmployeesCount,
           ),
           comparisonPositive: null,
           onTap: onCheckedInTap,
         ),
         OverviewMetricCard(
-          icon: AppIcons.rule_folder_outlined,
-          title: l10n.ownerOverviewKpiPendingRequests,
-          value: '$pendingRequests',
+          icon: AppIcons.fact_check_outlined,
+          title: l10n.ownerOverviewKpiPendingApprovals,
+          value: '$pendingApprovals',
           color: OwnerOverviewTokens.orange,
-          comparison: pendingRequests > 0 ? l10n.ownerOverviewReview : null,
+          comparison: pendingApprovals > 0 ? l10n.ownerOverviewReview : null,
           comparisonPositive: null,
-          onTap: pendingRequests > 0 ? onPendingTap : null,
+          onTap: pendingApprovals > 0 ? onPendingTap : null,
         ),
       ],
     );

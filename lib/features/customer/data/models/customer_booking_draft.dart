@@ -16,6 +16,8 @@ class CustomerBookingDraft {
     this.customerPhoneNormalized,
     this.customerGender,
     this.customerNote,
+    this.guestNicknameKey,
+    this.guestDisplayName,
     this.subtotal = 0,
     this.discountAmount = 0,
     this.totalAmount = 0,
@@ -34,6 +36,12 @@ class CustomerBookingDraft {
   final String? customerPhoneNormalized;
   final String? customerGender;
   final String? customerNote;
+
+  /// Lowercase unique key under `guestProfiles/{guestNicknameKey}`.
+  final String? guestNicknameKey;
+
+  /// Human-facing unique nickname (e.g. Hasan-ZR7421).
+  final String? guestDisplayName;
   final double subtotal;
   final double discountAmount;
   final double totalAmount;
@@ -49,10 +57,18 @@ class CustomerBookingDraft {
       customerName!.trim().isNotEmpty &&
       customerPhoneNormalized != null &&
       customerPhoneNormalized!.trim().isNotEmpty;
+
+  bool get hasGuestNickname =>
+      guestNicknameKey != null &&
+      guestNicknameKey!.trim().isNotEmpty &&
+      guestDisplayName != null &&
+      guestDisplayName!.trim().isNotEmpty;
   int get serviceCount => selectedServices.length;
-  List<String> get serviceNames => selectedServices
-      .map((service) => service.displayTitle)
-      .toList(growable: false);
+
+  List<String> serviceNamesForLanguageCode(String languageCode) =>
+      selectedServices
+          .map((s) => s.localizedTitleForLanguageCode(languageCode))
+          .toList(growable: false);
 
   CustomerBookingDraft copyWith({
     String? salonId,
@@ -67,6 +83,8 @@ class CustomerBookingDraft {
     Object? customerPhoneNormalized = _unset,
     Object? customerGender = _unset,
     Object? customerNote = _unset,
+    Object? guestNicknameKey = _unset,
+    Object? guestDisplayName = _unset,
     double? subtotal,
     double? discountAmount,
     double? totalAmount,
@@ -103,6 +121,12 @@ class CustomerBookingDraft {
       customerNote: identical(customerNote, _unset)
           ? this.customerNote
           : customerNote as String?,
+      guestNicknameKey: identical(guestNicknameKey, _unset)
+          ? this.guestNicknameKey
+          : guestNicknameKey as String?,
+      guestDisplayName: identical(guestDisplayName, _unset)
+          ? this.guestDisplayName
+          : guestDisplayName as String?,
       subtotal: subtotal ?? this.subtotal,
       discountAmount: discountAmount ?? this.discountAmount,
       totalAmount: totalAmount ?? this.totalAmount,

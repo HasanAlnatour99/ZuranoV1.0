@@ -247,6 +247,7 @@ export const salonStaffCreateWithAuth = onCall(
           : 0,
         permissions,
         mustChangePassword: true,
+        hiredAt: FieldValue.serverTimestamp(),
         createdBy: callerUid,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),

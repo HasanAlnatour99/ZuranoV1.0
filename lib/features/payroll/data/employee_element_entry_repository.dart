@@ -129,11 +129,11 @@ class EmployeeElementEntryRepository {
     bool activeOnly = false,
   }) async {
     Query<Map<String, dynamic>> query = _entries(salonId)
-        .where('employeeId', isEqualTo: employeeId)
-        .orderBy('updatedAt', descending: true);
+        .where('employeeId', isEqualTo: employeeId);
     if (activeOnly) {
       query = query.where('status', isEqualTo: PayrollEntryStatuses.active);
     }
+    query = query.orderBy('updatedAt', descending: true);
     final snapshot = await query.get();
     return snapshot.docs
         .map((doc) => EmployeeElementEntryModel.fromJson(doc.data()))
@@ -161,11 +161,11 @@ class EmployeeElementEntryRepository {
     bool activeOnly = false,
   }) {
     Query<Map<String, dynamic>> query = _entries(salonId)
-        .where('employeeId', isEqualTo: employeeId)
-        .orderBy('updatedAt', descending: true);
+        .where('employeeId', isEqualTo: employeeId);
     if (activeOnly) {
       query = query.where('status', isEqualTo: PayrollEntryStatuses.active);
     }
+    query = query.orderBy('updatedAt', descending: true);
     return query.snapshots().map(
       (snapshot) => snapshot.docs
           .map((doc) => EmployeeElementEntryModel.fromJson(doc.data()))

@@ -171,7 +171,8 @@ Widget _buildOwnerHeroHeader({
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              fontSize: OwnerOverviewTypography.heroAvatarInitials,
+                              fontSize:
+                                  OwnerOverviewTypography.heroAvatarInitials,
                             ),
                           )
                         : null,
@@ -293,9 +294,12 @@ class OwnerDashboardHeroTabScaffold extends StatelessWidget {
         children: [
           OwnerDashboardHeroHeader(user: user, compact: compactHero),
           Expanded(
-            child: Transform.translate(
-              offset: Offset(0, enableBodyOverlap ? -18 : 0),
-              child: body,
+            child: Padding(
+              padding: EdgeInsets.only(top: enableBodyOverlap ? 0 : 16),
+              child: Transform.translate(
+                offset: Offset(0, enableBodyOverlap ? -18 : 0),
+                child: body,
+              ),
             ),
           ),
         ],

@@ -27,11 +27,12 @@ class CustomerFilterChips extends StatelessWidget {
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 32, 0),
       child: Row(
         children: [
           for (final e in items)
             Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsetsDirectional.only(end: 10),
               child: ChoiceChip(
                 showCheckmark: e.$1 == 'All',
                 selected: selectedKey == e.$1,

@@ -216,6 +216,7 @@ class TeamMemberSalesTab extends ConsumerWidget {
                           currencyCode,
                           locale,
                         ),
+                  trailing: const SizedBox.shrink(),
                 ),
                 const SizedBox(height: 12),
                 insightAsync.when(

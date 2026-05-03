@@ -17,6 +17,7 @@ import '../widgets/employee_shell_hero_header.dart';
 import '../../application/employee_dashboard_providers.dart';
 import '../widgets/employee_bottom_nav_bar.dart';
 import '../widgets/employee_quick_action_fab.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class EmployeeSalesScreen extends ConsumerWidget {
   const EmployeeSalesScreen({super.key});
@@ -40,7 +41,7 @@ class EmployeeSalesScreen extends ConsumerWidget {
     }
 
     final salon = ref.watch(sessionSalonStreamProvider).asData?.value;
-    final currencyCode = salon?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final rate = employeeAsync.maybeWhen(
       data: (e) => e?.effectiveCommissionRate ?? e?.commissionRate ?? 0,

@@ -31,7 +31,7 @@ void main() {
         now: now,
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.notStarted);
     });
@@ -42,7 +42,7 @@ void main() {
         now: now.add(const Duration(minutes: 1)),
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.checkedIn);
     });
@@ -59,7 +59,7 @@ void main() {
         now: DateTime(2026, 4, 28, 18, 30),
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.missingPunch);
     });
@@ -81,12 +81,12 @@ void main() {
         now: DateTime(2026, 4, 28, 12, 10),
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.onBreak);
     });
 
-    test('E: break exceeds max duration returns missingPunch', () {
+    test('E: break exceeds max duration still returns onBreak', () {
       final status = calculateTodayStatus(
         punches: [
           _punch(
@@ -103,9 +103,9 @@ void main() {
         now: DateTime(2026, 4, 28, 13),
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
-      expect(status, AttendanceStatus.missingPunch);
+      expect(status, AttendanceStatus.onBreak);
     });
 
     test('F: punch in then punch out returns checkedOut', () {
@@ -125,7 +125,7 @@ void main() {
         now: DateTime(2026, 4, 28, 18, 1),
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.checkedOut);
     });
@@ -142,9 +142,48 @@ void main() {
         now: now,
         shiftEndAt: DateTime(2026, 4, 28, 18),
         maxBreakMinutesPerDay: 30,
-        maxPunchesPerDay: 6,
+        maxWorkPunchesPerDay: 2,
       );
       expect(status, AttendanceStatus.invalidSequence);
+    });
+
+    test('G: multiple breaks do not trip work punch cap', () {
+      final t0 = DateTime(2026, 4, 28, 9);
+      final status = calculateTodayStatus(
+        punches: [
+          _punch(id: '1', type: AttendancePunchType.punchIn, at: t0),
+          _punch(
+            id: '2',
+            type: AttendancePunchType.breakOut,
+            at: t0.add(const Duration(hours: 1)),
+          ),
+          _punch(
+            id: '3',
+            type: AttendancePunchType.breakIn,
+            at: t0.add(const Duration(hours: 1, minutes: 15)),
+          ),
+          _punch(
+            id: '4',
+            type: AttendancePunchType.breakOut,
+            at: t0.add(const Duration(hours: 2)),
+          ),
+          _punch(
+            id: '5',
+            type: AttendancePunchType.breakIn,
+            at: t0.add(const Duration(hours: 2, minutes: 10)),
+          ),
+          _punch(
+            id: '6',
+            type: AttendancePunchType.punchOut,
+            at: t0.add(const Duration(hours: 8)),
+          ),
+        ],
+        now: t0.add(const Duration(hours: 9)),
+        shiftEndAt: DateTime(2026, 4, 28, 18),
+        maxBreakMinutesPerDay: 120,
+        maxWorkPunchesPerDay: 2,
+      );
+      expect(status, AttendanceStatus.checkedOut);
     });
   });
 }

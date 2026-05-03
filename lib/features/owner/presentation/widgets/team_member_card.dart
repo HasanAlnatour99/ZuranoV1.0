@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../../core/formatting/staff_role_localized.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 import '../../../attendance/data/models/attendance_record.dart';
@@ -92,7 +93,7 @@ class TeamMemberCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
+                        TeamMemberNameText(
                           data.employee.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -121,10 +122,7 @@ class TeamMemberCard extends StatelessWidget {
                           frozen: frozen,
                         ),
                         const SizedBox(height: 8),
-                        _AttendanceStatusRow(
-                          l10n: l10n,
-                          data: data,
-                        ),
+                        _AttendanceStatusRow(l10n: l10n, data: data),
                       ],
                     ),
                   ),
@@ -225,7 +223,7 @@ class _TeamMemberAvatar extends StatelessWidget {
     final theme = Theme.of(context);
     final url = employee.avatarUrl?.trim();
     final hasPhoto = url != null && url.isNotEmpty;
-    final initials = _initials(employee.name);
+    final initials = _initials(formatTeamMemberName(employee.name));
     final active = employee.isActive;
 
     return SizedBox(
@@ -367,10 +365,7 @@ class _AccountStatusChip extends StatelessWidget {
 }
 
 class _AttendanceStatusRow extends StatelessWidget {
-  const _AttendanceStatusRow({
-    required this.l10n,
-    required this.data,
-  });
+  const _AttendanceStatusRow({required this.l10n, required this.data});
 
   final AppLocalizations l10n;
   final TeamBarberCardData data;
@@ -419,9 +414,7 @@ class _AttendanceStatusRow extends StatelessWidget {
         a.minutesLate > 0 ||
         a.status.toLowerCase() == 'late') {
       icon = AppIcons.timelapse_outlined;
-      label = l10n.teamMemberLateAt(
-        timeFormat.format(a.checkInAt!.toLocal()),
-      );
+      label = l10n.teamMemberLateAt(timeFormat.format(a.checkInAt!.toLocal()));
       color = TeamMemberCard._orangeBreak;
     } else {
       icon = AppIcons.check_circle_outline;

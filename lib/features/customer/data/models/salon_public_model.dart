@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/utils/currency_for_country.dart';
+
 /// Denormalized public salon row under `publicSalons/{salonId}` for guest browse.
 class SalonPublicModel {
   const SalonPublicModel({
     required this.id,
     required this.salonName,
     required this.area,
+    required this.currencyCode,
     this.phone,
     this.whatsapp,
     this.coverImageUrl,
@@ -28,6 +31,9 @@ class SalonPublicModel {
   final String id;
   final String salonName;
   final String area;
+
+  /// ISO 4217 — from public row or derived from `countryCode` when missing.
+  final String currencyCode;
   final String? phone;
   final String? whatsapp;
   final String? coverImageUrl;
@@ -94,10 +100,18 @@ class SalonPublicModel {
     final data = raw is Map<String, dynamic> ? raw : const <String, dynamic>{};
     final name = (data['salonName'] as String?)?.trim();
     final area = (data['area'] as String?)?.trim();
+    final countryIso = (data['countryCode'] as String?)?.trim();
+    final rawCcy = (data['currencyCode'] as String?)?.trim();
+    final currencyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: rawCcy,
+      salonCountryIso:
+          (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
+    );
     return SalonPublicModel(
       id: doc.id,
       salonName: (name != null && name.isNotEmpty) ? name : 'Salon',
       area: (area != null && area.isNotEmpty) ? area : '',
+      currencyCode: currencyCode,
       phone: (data['phone'] as String?)?.trim(),
       whatsapp: (data['whatsapp'] as String?)?.trim(),
       coverImageUrl: (data['coverImageUrl'] as String?)?.trim(),

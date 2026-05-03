@@ -18,16 +18,13 @@ import '../features/auth/presentation/screens/first_time_role_selection_screen.d
 import '../features/auth/presentation/screens/change_temporary_password_screen.dart';
 import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/employee_dashboard/presentation/screens/attendance_request_screen.dart';
-import '../features/employee_dashboard/presentation/screens/employee_sales_screen.dart';
-import '../features/payroll/presentation/screens/employee_payroll_screen.dart';
+import '../features/employee_dashboard/presentation/screens/employee_main_swipe_shell_screen.dart';
 import '../features/payroll/presentation/screens/payslip_details_screen.dart';
 import '../features/payroll/presentation/screens/payslip_history_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_calendar_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_details_screen.dart';
-import '../features/employee_attendance/presentation/screens/employee_attendance_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_correction_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_policy_screen.dart';
-import '../features/employee_today/presentation/screens/employee_today_screen.dart';
 import '../features/bookings/data/models/booking.dart';
 import '../features/customer/presentation/screens/booking_confirmation_screen.dart';
 import '../features/customer/presentation/screens/booking_success_screen.dart';
@@ -36,13 +33,12 @@ import '../features/customer/presentation/screens/customer_booking_details_scree
 import '../features/customer/presentation/screens/customer_booking_reschedule_screen.dart';
 import '../features/customer/presentation/screens/customer_feedback_screen.dart';
 import '../features/customer/presentation/screens/customer_booking_screen.dart';
-import '../features/customer/presentation/screens/customer_home_screen.dart';
+import '../features/customer_home/presentation/screens/customer_main_swipe_shell_screen.dart';
 import '../features/customer/presentation/screens/customer_details_screen.dart';
+import '../features/customer/presentation/screens/customer_guest_nickname_screen.dart';
 import '../features/customer/presentation/screens/date_time_selection_screen.dart';
-import '../features/customer/presentation/screens/my_booking_lookup_screen.dart';
 import '../features/customer/presentation/screens/my_bookings_screen.dart';
 import '../features/customer/presentation/screens/salon_detail_screen.dart';
-import '../features/customer/presentation/screens/salon_discovery_screen.dart';
 import '../features/customer/presentation/screens/salon_profile_screen.dart';
 import '../features/customer/presentation/screens/service_selection_screen.dart';
 import '../features/customer/presentation/screens/team_member_selection_screen.dart';
@@ -50,6 +46,9 @@ import '../features/customer/presentation/screens/booking_review_screen.dart';
 import '../features/customer/data/models/customer_booking_create_result.dart';
 import '../features/notifications/presentation/screens/notification_preferences_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
+import '../features/notifications/presentation/screens/notification_settings_screen.dart';
+import '../features/notifications/presentation/screens/role_notification_screen.dart';
+import '../features/notifications/domain/enums/notification_role_scope.dart';
 import '../features/onboarding/presentation/screens/customer_onboarding_screen.dart';
 import '../features/onboarding/presentation/screens/select_country_screen.dart';
 import '../features/onboarding/presentation/screens/select_language_screen.dart';
@@ -63,6 +62,7 @@ import '../providers/session_provider.dart';
 import 'owner_routes.dart';
 import 'router_guards.dart';
 import 'router_navigation_keys.dart';
+import 'router_page_key.dart';
 
 /// Drives [GoRouter.refreshListenable] so [redirect] re-runs when auth, session,
 /// or onboarding prefs change — without replacing the [GoRouter] instance.
@@ -105,19 +105,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.splash,
         pageBuilder: (context, state) =>
-            appFadePage(key: state.pageKey, child: const SplashScreen()),
+            appFadePage(key: goRouterPageKey(state), child: const SplashScreen()),
       ),
       GoRoute(
         path: AppRoutes.onboardingLanguage,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const SelectLanguageScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.onboardingCountry,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const SelectCountryScreen(),
         ),
       ),
@@ -132,14 +132,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.roleSelection,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const RoleSelectionScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.userSelection,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const UserSelectionScreen(),
         ),
       ),
@@ -150,7 +150,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.customerOnboarding,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const CustomerOnboardingScreen(),
         ),
       ),
@@ -161,14 +161,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.customerAuth,
         pageBuilder: (context, state) =>
-            appFadePage(key: state.pageKey, child: const CustomerLoginScreen()),
+            appFadePage(key: goRouterPageKey(state), child: const CustomerLoginScreen()),
       ),
       GoRoute(
         name: AppRouteNames.customerSalonDiscovery,
         path: AppRoutes.customerSalonDiscovery,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const SalonDiscoveryScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: CustomerMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
@@ -177,7 +179,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: SalonProfileScreen(salonId: id),
           );
         },
@@ -188,7 +190,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: ServiceSelectionScreen(salonId: id),
           );
         },
@@ -199,7 +201,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: TeamMemberSelectionScreen(salonId: id),
           );
         },
@@ -210,7 +212,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: DateTimeSelectionScreen(salonId: id),
           );
         },
@@ -221,8 +223,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: CustomerDetailsScreen(salonId: id),
+          );
+        },
+      ),
+      GoRoute(
+        name: AppRouteNames.customerGuestNickname,
+        path: '${AppRoutes.customerBook}/:salonId/guest-nickname',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['salonId'] ?? '';
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: CustomerGuestNicknameScreen(salonId: id),
           );
         },
       ),
@@ -232,7 +245,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['salonId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: BookingReviewScreen(salonId: id),
           );
         },
@@ -245,7 +258,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final bookingId = state.pathParameters['bookingId'] ?? '';
           final extra = state.extra;
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: BookingSuccessScreen(
               salonId: salonId,
               bookingId: bookingId,
@@ -262,7 +275,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final bookingId = state.pathParameters['bookingId'] ?? '';
           final extra = state.extra;
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: CustomerFeedbackScreen(
               salonId: salonId,
               bookingId: bookingId,
@@ -281,7 +294,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final bookingId = state.pathParameters['bookingId'] ?? '';
           final extra = state.extra;
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: CustomerBookingRescheduleScreen(
               salonId: salonId,
               bookingId: bookingId,
@@ -299,7 +312,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final salonId = state.pathParameters['salonId'] ?? '';
           final bookingId = state.pathParameters['bookingId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: CustomerBookingDetailsScreen(
               salonId: salonId,
               bookingId: bookingId,
@@ -310,9 +323,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         name: AppRouteNames.customerMyBooking,
         path: AppRoutes.customerMyBooking,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const MyBookingLookupScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: CustomerMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
@@ -322,7 +337,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const AppSettingsScreen(),
         ),
       ),
@@ -349,12 +364,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.ownerLogin,
         pageBuilder: (context, state) =>
-            appFadePage(key: state.pageKey, child: const OwnerLoginScreen()),
+            appFadePage(key: goRouterPageKey(state), child: const OwnerLoginScreen()),
       ),
       GoRoute(
         path: AppRoutes.staffLogin,
         pageBuilder: (context, state) =>
-            appFadePage(key: state.pageKey, child: const StaffLoginScreen()),
+            appFadePage(key: goRouterPageKey(state), child: const StaffLoginScreen()),
       ),
       GoRoute(
         path: AppRoutes.ownerSignup,
@@ -373,12 +388,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signup,
         pageBuilder: (context, state) =>
-            appFadePage(key: state.pageKey, child: const SignUpScreen()),
+            appFadePage(key: goRouterPageKey(state), child: const SignUpScreen()),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
         pageBuilder: (context, state) => appFadePage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const ForgotPasswordScreen(),
         ),
       ),
@@ -386,7 +401,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: AppRouteNames.changeTemporaryPassword,
         path: AppRoutes.changeTemporaryPassword,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const ChangeTemporaryPasswordScreen(),
         ),
       ),
@@ -401,14 +416,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.createSalon,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const CreateSalonScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.firstTimeRoleSelection,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const FirstTimeRoleSelectionScreen(),
         ),
       ),
@@ -419,35 +434,90 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.accountProfileBootstrap,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const AccountProfileBootstrapScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.notifications,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const NotificationsScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.notificationPreferences,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const NotificationPreferencesScreen(),
         ),
       ),
       GoRoute(
+        path: '${AppRoutes.customerNotificationsBase}/:salonId',
+        pageBuilder: (context, state) {
+          final salonId = state.pathParameters['salonId'] ?? '';
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: RoleNotificationScreen(
+              salonId: salonId,
+              scope: NotificationRoleScope.customer,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.employeeNotificationsBase}/:salonId',
+        pageBuilder: (context, state) {
+          final salonId = state.pathParameters['salonId'] ?? '';
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: RoleNotificationScreen(
+              salonId: salonId,
+              scope: NotificationRoleScope.employee,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.ownerNotificationsBase}/:salonId',
+        pageBuilder: (context, state) {
+          final salonId = state.pathParameters['salonId'] ?? '';
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: RoleNotificationScreen(
+              salonId: salonId,
+              scope: NotificationRoleScope.ownerAdmin,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '${AppRoutes.notificationsSettingsBase}/:salonId',
+        pageBuilder: (context, state) {
+          final salonId = state.pathParameters['salonId'] ?? '';
+          final userId =
+              ref.read(sessionUserProvider).asData?.value?.uid ??
+              ref.read(firebaseAuthProvider).currentUser?.uid ??
+              '';
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: NotificationSettingsScreen(salonId: salonId, userId: userId),
+          );
+        },
+      ),
+      GoRoute(
         path: AppRoutes.customerHome,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const CustomerHomeScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: CustomerMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
         routes: [
           GoRoute(
             path: 'my-bookings',
             pageBuilder: (context, state) => appFadeThroughPage(
-              key: state.pageKey,
+              key: goRouterPageKey(state),
               child: const MyBookingsScreen(),
             ),
           ),
@@ -456,7 +526,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) {
               final id = state.pathParameters['salonId'] ?? '';
               return appFadeThroughPage(
-                key: state.pageKey,
+                key: goRouterPageKey(state),
                 child: SalonDetailScreen(salonId: id),
               );
             },
@@ -468,7 +538,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final extra = state.extra;
                   final reschedule = extra is Booking ? extra : null;
                   return appFadeThroughPage(
-                    key: state.pageKey,
+                    key: goRouterPageKey(state),
                     child: CustomerBookingScreen(
                       salonId: id,
                       rescheduleBooking: reschedule,
@@ -484,7 +554,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final salonId = state.pathParameters['salonId'] ?? '';
               final bookingId = state.pathParameters['bookingId'] ?? '';
               return appFadeThroughPage(
-                key: state.pageKey,
+                key: goRouterPageKey(state),
                 child: BookingConfirmationScreen(
                   salonId: salonId,
                   bookingId: bookingId,
@@ -507,15 +577,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.employeeSales,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const EmployeeSalesScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: EmployeeMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.employeePayrollHistory,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const PayslipHistoryScreen(),
         ),
       ),
@@ -524,29 +596,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['payslipId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: PayslipDetailsScreen(payslipId: id),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.employeePayroll,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const EmployeePayrollScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: EmployeeMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.employeeAttendanceCalendar,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const EmployeeAttendanceCalendarScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.employeeAttendanceCorrectionNested,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const AttendanceCorrectionScreen(),
         ),
       ),
@@ -555,23 +629,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) {
           final id = state.pathParameters['attendanceDayId'] ?? '';
           return appFadeThroughPage(
-            key: state.pageKey,
+            key: goRouterPageKey(state),
             child: EmployeeAttendanceDetailsScreen(attendanceDayId: id),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.employeeAttendance,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const EmployeeAttendanceScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: EmployeeMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.employeeToday,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
-          child: const EmployeeTodayScreen(),
+        pageBuilder: (context, state) => appFadePage(
+          key: goRouterPageKey(state),
+          child: EmployeeMainSwipeShellScreen(
+            currentPath: state.matchedLocation,
+          ),
         ),
       ),
       GoRoute(
@@ -581,14 +659,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.employeeAttendancePolicy,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const EmployeeAttendancePolicyScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.employeeAttendanceRequest,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const AttendanceRequestScreen(),
         ),
       ),
@@ -602,14 +680,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.debugMaps,
         name: AppRouteNames.debugMaps,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const GoogleMapsTestScreen(),
         ),
       ),
       GoRoute(
         path: AppRoutes.adminDashboard,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const AdminDashboardScreen(),
         ),
       ),

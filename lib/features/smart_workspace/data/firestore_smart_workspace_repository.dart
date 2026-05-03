@@ -1,3 +1,4 @@
+import '../../../core/utils/currency_for_country.dart';
 import '../../attendance/data/attendance_repository.dart';
 import '../../attendance/data/models/attendance_record.dart';
 import '../../employees/data/employee_repository.dart';
@@ -121,11 +122,18 @@ class FirestoreSmartWorkspaceRepository implements SmartWorkspaceRepository {
       orElse: () => bundle.employeeStatements.first,
     );
 
+    final salon = await _salonRepository.getSalon(salonId);
+    final currencyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: salon?.currencyCode,
+      salonCountryIso: salon?.countryCode,
+    );
+
     return PayrollExplanationWorkspaceData(
       selectedPeriod: DateTime(period.year, period.month),
       employees: employees,
       bundle: bundle,
       statement: statement,
+      currencyCode: currencyCode,
       selectedEmployee: selectedEmployee,
     );
   }
@@ -218,7 +226,10 @@ class FirestoreSmartWorkspaceRepository implements SmartWorkspaceRepository {
     }
 
     return AnalyticsWorkspaceData(
-      currencyCode: salon?.currencyCode ?? 'USD',
+      currencyCode: resolvedSalonMoneyCurrency(
+        salonCurrencyCode: salon?.currencyCode,
+        salonCountryIso: salon?.countryCode,
+      ),
       rangeLabel: range.label,
       totalRevenue: totalRevenue,
       totalExpenses: totalExpenses,

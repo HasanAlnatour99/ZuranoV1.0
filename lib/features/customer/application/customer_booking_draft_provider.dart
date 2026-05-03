@@ -76,6 +76,20 @@ class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
     );
   }
 
+  void setGuestNickname({
+    required String guestNicknameKey,
+    required String guestDisplayName,
+  }) {
+    state = state.copyWith(
+      guestNicknameKey: guestNicknameKey.trim().toLowerCase(),
+      guestDisplayName: guestDisplayName.trim(),
+    );
+  }
+
+  void clearGuestNickname() {
+    state = state.copyWith(guestNicknameKey: null, guestDisplayName: null);
+  }
+
   void reset() {
     state = CustomerBookingDraft.empty();
   }
@@ -97,6 +111,8 @@ class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
       anyAvailableEmployee: false,
       selectedStartAt: null,
       selectedEndAt: null,
+      guestNicknameKey: null,
+      guestDisplayName: null,
       subtotal: subtotal,
       totalAmount: (subtotal - discount).clamp(0, double.infinity).toDouble(),
       durationMinutes: duration,

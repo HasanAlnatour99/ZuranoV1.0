@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../team_member_profile/presentation/tabs/team_member_sales_tab.dart';
 import '../../logic/team_management_providers.dart';
 
@@ -21,7 +22,7 @@ class BarberSalesTab extends ConsumerWidget {
     return TeamMemberSalesTab(
       salonId: data.employee.salonId,
       employeeId: data.employee.id,
-      employeeName: data.employee.name,
+      employeeName: formatTeamMemberName(data.employee.name),
       currencyCode: currencyCode,
       onAddSale: onAddSale,
     );

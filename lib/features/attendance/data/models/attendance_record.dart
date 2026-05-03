@@ -85,3 +85,11 @@ String _statusFromJson(Object? value) =>
 
 String _approvalStatusFromJson(Object? value) =>
     nullableLooseStringFromJson(value) ?? AttendanceApprovalStatuses.pending;
+
+/// Owner metrics: on break still counts as on the floor / working.
+extension AttendanceRecordWorkingSession on AttendanceRecord {
+  static const String statusOnBreak = 'onBreak';
+
+  bool get countsAsWorkingOnSalon =>
+      checkInAt != null && (checkOutAt == null || status == statusOnBreak);
+}

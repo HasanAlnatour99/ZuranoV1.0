@@ -36,8 +36,11 @@ class CustomerBookingCreateController
     required String salonId,
     required CustomerBookingDraft draft,
     required CustomerBookingSettings bookingSettings,
+    required String customerUiLanguageCode,
   }) async {
     state = const AsyncValue.loading();
+    final anonymousGuest =
+        ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
     final result = await AsyncValue.guard(
       () => ref
           .read(customerBookingCreateServiceProvider)
@@ -45,6 +48,8 @@ class CustomerBookingCreateController
             salonId: salonId,
             draft: draft,
             bookingSettings: bookingSettings,
+            customerUiLanguageCode: customerUiLanguageCode,
+            anonymousGuestRequiresNickname: anonymousGuest,
           ),
     );
     state = result;

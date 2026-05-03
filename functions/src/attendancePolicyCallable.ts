@@ -30,7 +30,6 @@ export const generateAttendancePolicyReadable = onCall(
 
     const settingsSnap = await db.doc(`salons/${salonId}/settings/attendance`).get();
     const s = settingsSnap.data() ?? {};
-    const maxPunches = typeof s.maxPunchesPerDay === "number" ? s.maxPunchesPerDay : 4;
     const maxBreaks = typeof s.maxBreaksPerDay === "number" ? s.maxBreaksPerDay : 15;
     const lateGrace = typeof s.graceLateMinutes === "number" ? s.graceLateMinutes : 10;
     const earlyGrace =
@@ -51,7 +50,7 @@ export const generateAttendancePolicyReadable = onCall(
         "Policy summary: follow salon punch rules, stay inside the GPS zone when required, and use correction requests if you miss a punch.",
       employeeRules: [
         "You must punch in when your shift starts.",
-        `You can record up to ${maxPunches} punches per day.`,
+        "You record one punch in and one punch out per day (breaks are separate).",
         `You can take up to ${maxBreaks} breaks per day.`,
         "Break Out must always be followed by Break In.",
       ],

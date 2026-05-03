@@ -29,7 +29,7 @@ class SalonPublicCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context);
-    final price = formatMoney(salon.startingPrice, 'QAR', locale);
+    final price = formatMoney(salon.startingPrice, salon.currencyCode, locale);
 
     return Material(
       color: scheme.surface,

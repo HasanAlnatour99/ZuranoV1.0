@@ -61,14 +61,6 @@ class AttendanceRulesSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           AttendanceStepperRow(
-            label: l10n.ownerAttendanceRulesMaxPunchesLabel,
-            value: draft.maxPunchesPerDay,
-            min: 2,
-            max: 10,
-            onChanged: (v) => onChanged(draft.copyWith(maxPunchesPerDay: v)),
-          ),
-          const SizedBox(height: 12),
-          AttendanceStepperRow(
             label: l10n.ownerAttendanceRulesMaxBreaksLabel,
             value: draft.maxBreaksPerDay,
             min: 0,

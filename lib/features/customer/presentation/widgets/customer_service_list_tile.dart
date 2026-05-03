@@ -5,18 +5,25 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/zurano_service_category_icon.dart';
 import '../../data/models/customer_service_public_model.dart';
 
 class CustomerServiceListTile extends StatelessWidget {
-  const CustomerServiceListTile({super.key, required this.service});
+  const CustomerServiceListTile({
+    super.key,
+    required this.service,
+    required this.currencyCode,
+  });
 
   final CustomerServicePublicModel service;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final price = formatMoney(service.price, 'QAR', locale);
+    final lang = locale.languageCode;
+    final price = formatMoney(service.price, currencyCode, locale);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.small),
@@ -31,12 +38,20 @@ class CustomerServiceListTile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ZuranoServiceCategoryIcon(
+                  categoryKey: service.resolvedCategoryKeyForIcon,
+                  iconKey: service.iconKey,
+                  size: 44,
+                  iconSize: 22,
+                  borderRadius: 12,
+                ),
+                const SizedBox(width: AppSpacing.small),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        service.displayTitle,
+                        service.localizedTitleForLanguageCode(lang),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColorsLight.textPrimary,

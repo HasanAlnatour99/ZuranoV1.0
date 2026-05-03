@@ -8,6 +8,7 @@ import '../core/motion/app_page_transitions.dart';
 import '../features/attendance_admin/presentation/screens/attendance_requests_admin_screen.dart';
 import '../features/owner/presentation/screens/attendance_requests_review_screen.dart';
 import '../features/owner/presentation/screens/barber_details_screen.dart';
+import '../features/team_member_attendance/presentation/screens/team_member_attendance_history_screen.dart';
 import '../features/customers/presentation/screens/add_customer_screen.dart';
 import '../features/customers/presentation/screens/create_booking_screen.dart';
 import '../features/customers/presentation/screens/customer_details_screen.dart';
@@ -23,7 +24,7 @@ import '../features/owner/presentation/widgets/overview/owner_dashboard_hero_hea
 import '../features/owner/presentation/widgets/team_operations_module.dart';
 import '../features/payroll/presentation/screens/employee_payroll_setup_screen.dart';
 import '../features/payroll/presentation/screens/payroll_dashboard_screen.dart';
-import '../features/payroll/presentation/screens/payroll_elements_screen.dart';
+import '../features/payroll/presentation/screens/payroll_reversal_screen.dart';
 import '../features/payroll/presentation/screens/payroll_run_review_screen.dart';
 import '../features/payroll/presentation/screens/payslip_screen.dart';
 import '../features/payroll/presentation/screens/quick_pay_screen.dart';
@@ -33,8 +34,13 @@ import '../features/sales/presentation/screens/sale_details_screen.dart';
 import '../features/sales/presentation/screens/sales_screen.dart';
 import '../features/services/presentation/screens/services_screen.dart';
 import '../features/owner/settings/customer_booking/presentation/screens/owner_customer_booking_settings_screen.dart';
+import '../features/owner_settings/shifts/presentation/screens/shifts_settings_screen.dart';
+import '../features/owner_settings/shifts/presentation/screens/create_shift_template_screen.dart';
+import '../features/owner_settings/shifts/presentation/screens/weekly_shifts_screen.dart';
+import '../features/owner_settings/shifts/presentation/screens/apply_schedule_screen.dart';
 import '../features/owner/settings/attendance/presentation/screens/owner_attendance_settings_screen.dart';
 import '../features/settings/presentation/screens/app_settings_screen.dart';
+import '../features/settings/presentation/screens/owner_payroll_cadence_settings_screen.dart';
 import '../features/smart_workspace/presentation/screens/smart_workspace_page.dart';
 import '../core/theme/app_colors.dart';
 import '../features/money/presentation/widgets/money_dashboard_module.dart';
@@ -42,13 +48,14 @@ import '../core/session/app_session_status.dart';
 import '../core/widgets/app_skeleton.dart';
 import '../providers/session_provider.dart';
 import 'router_navigation_keys.dart';
+import 'router_page_key.dart';
 
 Page<Object?> _ownerTeamOperationsPage(
   BuildContext context,
   GoRouterState state,
 ) {
   return appFadeThroughPage(
-    key: state.pageKey,
+    key: goRouterPageKey(state),
     child: Consumer(
       builder: (context, ref, _) {
         final session = ref.watch(sessionUserProvider);
@@ -94,9 +101,15 @@ Widget _ownerOverviewTabResolvingUser(BuildContext context) {
 }
 
 final List<RouteBase> ownerRoutes = [
-  StatefulShellRoute.indexedStack(
+  StatefulShellRoute(
     builder: (context, state, navigationShell) {
       return OwnerDashboardScreen(navigationShell: navigationShell);
+    },
+    navigatorContainerBuilder: (context, navigationShell, children) {
+      return IndexedStack(
+        index: navigationShell.currentIndex,
+        children: children,
+      );
     },
     branches: [
       StatefulShellBranch(
@@ -105,7 +118,7 @@ final List<RouteBase> ownerRoutes = [
           GoRoute(
             path: AppRoutes.ownerMoney,
             pageBuilder: (context, state) => appFadeThroughPage(
-              key: state.pageKey,
+              key: goRouterPageKey(state),
               child: Consumer(
                 builder: (context, ref, _) {
                   final session = ref.watch(sessionUserProvider);
@@ -134,7 +147,7 @@ final List<RouteBase> ownerRoutes = [
           GoRoute(
             path: AppRoutes.ownerCustomers,
             pageBuilder: (context, state) => appFadeThroughPage(
-              key: state.pageKey,
+              key: goRouterPageKey(state),
               child: Consumer(
                 builder: (context, ref, _) {
                   final session = ref.watch(sessionUserProvider);
@@ -155,7 +168,7 @@ final List<RouteBase> ownerRoutes = [
                 path: ':customerId',
                 parentNavigatorKey: appRootNavigatorKey,
                 pageBuilder: (context, state) => appFadeThroughPage(
-                  key: state.pageKey,
+                  key: goRouterPageKey(state),
                   child: CustomerDetailsScreen(
                     customerId: state.pathParameters['customerId'] ?? '',
                   ),
@@ -165,7 +178,7 @@ final List<RouteBase> ownerRoutes = [
                     path: 'edit',
                     parentNavigatorKey: appRootNavigatorKey,
                     pageBuilder: (context, state) => appFadeThroughPage(
-                      key: state.pageKey,
+                      key: goRouterPageKey(state),
                       child: EditCustomerScreen(
                         customerId: state.pathParameters['customerId'] ?? '',
                       ),
@@ -192,7 +205,7 @@ final List<RouteBase> ownerRoutes = [
           GoRoute(
             path: AppRoutes.ownerOverview,
             pageBuilder: (context, state) => appFadeThroughPage(
-              key: state.pageKey,
+              key: goRouterPageKey(state),
               child: Consumer(
                 builder: (context, ref, _) {
                   // Must match [OwnerDashboardScreen]: the stream can briefly yield
@@ -227,7 +240,7 @@ final List<RouteBase> ownerRoutes = [
                     return _ownerOverviewTabResolvingUser(context);
                   }
 
-                  return OwnerOverviewSection(user: user);
+                   return OwnerOverviewSection(user: user);
                 },
               ),
             ),
@@ -240,7 +253,7 @@ final List<RouteBase> ownerRoutes = [
     path: AppRoutes.ownerSettings,
     parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const AppSettingsScreen(),
     ),
     routes: [
@@ -253,15 +266,66 @@ final List<RouteBase> ownerRoutes = [
         path: 'attendance',
         name: AppRouteNames.ownerAttendanceSettings,
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const OwnerAttendanceSettingsScreen(),
         ),
       ),
       GoRoute(
         path: 'customer-booking',
         pageBuilder: (context, state) => appFadeThroughPage(
-          key: state.pageKey,
+          key: goRouterPageKey(state),
           child: const OwnerCustomerBookingSettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'payroll-cadence',
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const OwnerPayrollCadenceSettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'shifts',
+        name: AppRouteNames.ownerShiftsSettings,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const ShiftsSettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'shifts/create',
+        name: AppRouteNames.ownerCreateShiftTemplate,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const CreateShiftTemplateScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'shifts/:shiftId/edit',
+        name: AppRouteNames.ownerEditShiftTemplate,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: CreateShiftTemplateScreen(
+            shiftId: state.pathParameters['shiftId'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: 'shifts/weekly',
+        name: AppRouteNames.ownerWeeklyShifts,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const WeeklyShiftsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'shifts/apply',
+        name: AppRouteNames.ownerApplySchedule,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: ApplyScheduleScreen(
+            weekTemplateId: state.uri.queryParameters['weekTemplateId'] ?? '',
+          ),
         ),
       ),
     ],
@@ -277,28 +341,28 @@ final List<RouteBase> ownerRoutes = [
     name: AppRouteNames.addTeamMember,
     parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const AddTeamMemberGatewayScreen(),
     ),
   ),
   GoRoute(
     path: AppRoutes.customers,
     pageBuilder: (context, state) =>
-        appFadeThroughPage(key: state.pageKey, child: const CustomersScreen()),
+        appFadeThroughPage(key: goRouterPageKey(state), child: const CustomersScreen()),
   ),
   // Static path must be registered before `/customers/:customerId` so
   // `/customers/new` opens [AddCustomerScreen], not details with id "new".
   GoRoute(
     path: AppRoutes.customerNew,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const AddCustomerScreen(),
     ),
   ),
   GoRoute(
     path: '${AppRoutes.customers}/:customerId',
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: CustomerDetailsScreen(
         customerId: state.pathParameters['customerId'] ?? '',
       ),
@@ -308,7 +372,7 @@ final List<RouteBase> ownerRoutes = [
     path: AppRoutes.bookingsNew,
     name: AppRouteNames.bookings,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: CreateBookingScreen(
         initialCustomerId: state.uri.queryParameters['customerId'],
         initialServiceId: state.uri.queryParameters['serviceId'],
@@ -322,7 +386,7 @@ final List<RouteBase> ownerRoutes = [
   GoRoute(
     path: AppRoutes.ownerBentoDashboard,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const BentoDashboardScreen(),
     ),
   ),
@@ -330,7 +394,7 @@ final List<RouteBase> ownerRoutes = [
     path: AppRoutes.ownerServices,
     name: AppRouteNames.services,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: Consumer(
         builder: (context, ref, _) {
           final session = ref.watch(sessionUserProvider);
@@ -359,34 +423,38 @@ final List<RouteBase> ownerRoutes = [
   GoRoute(
     path: AppRoutes.ownerDashboardAssistant,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const SmartWorkspacePage(),
     ),
   ),
   GoRoute(
     path: AppRoutes.ownerPayroll,
+    parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const PayrollDashboardScreen(),
     ),
   ),
   GoRoute(
-    path: AppRoutes.ownerPayrollElements,
-    pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
-      child: const PayrollElementsScreen(),
-    ),
-  ),
-  GoRoute(
     path: AppRoutes.ownerQuickPay,
+    parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) =>
-        appFadeThroughPage(key: state.pageKey, child: const QuickPayScreen()),
+        appFadeThroughPage(key: goRouterPageKey(state), child: const QuickPayScreen()),
   ),
   GoRoute(
     path: AppRoutes.ownerPayrollRunReview,
+    parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const PayrollRunReviewScreen(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerPayrollReverse,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const PayrollReversalScreen(),
     ),
   ),
   GoRoute(
@@ -401,13 +469,13 @@ final List<RouteBase> ownerRoutes = [
     path: AppRoutes.ownerSales,
     name: AppRouteNames.revenue,
     pageBuilder: (context, state) =>
-        appFadeThroughPage(key: state.pageKey, child: const SalesScreen()),
+        appFadeThroughPage(key: goRouterPageKey(state), child: const SalesScreen()),
   ),
   GoRoute(
     path: AppRoutes.ownerSalesAdd,
     name: AppRouteNames.addSale,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: AddSaleScreen(
         entryMode: addSaleEntryModeFromSourceQuery(
           state.uri.queryParameters['source'],
@@ -415,13 +483,14 @@ final List<RouteBase> ownerRoutes = [
         initialBarberId: state.uri.queryParameters['employeeId'],
         initialServiceId: state.uri.queryParameters['serviceId'],
         initialCustomerId: state.uri.queryParameters['customerId'],
+        initialBookingCode: state.uri.queryParameters['bookingCode'],
       ),
     ),
   ),
   GoRoute(
     path: '${AppRoutes.ownerSaleDetailsBase}/:saleId',
     pageBuilder: (context, state) => appSharedAxisPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: SaleDetailsScreen(saleId: state.pathParameters['saleId'] ?? ''),
     ),
   ),
@@ -429,27 +498,37 @@ final List<RouteBase> ownerRoutes = [
     path: AppRoutes.ownerExpenses,
     name: AppRouteNames.expenses,
     pageBuilder: (context, state) =>
-        appFadeThroughPage(key: state.pageKey, child: const ExpensesScreen()),
+        appFadeThroughPage(key: goRouterPageKey(state), child: const ExpensesScreen()),
   ),
   GoRoute(
     path: AppRoutes.ownerExpensesAdd,
     name: AppRouteNames.addExpense,
     pageBuilder: (context, state) =>
-        appFadeThroughPage(key: state.pageKey, child: const AddExpenseScreen()),
+        appFadeThroughPage(key: goRouterPageKey(state), child: const AddExpenseScreen()),
+  ),
+  GoRoute(
+    path: '${AppRoutes.ownerTeamMemberDetailsBase}/:employeeId/attendance-history',
+    pageBuilder: (context, state) => appSharedAxisPage(
+      key: goRouterPageKey(state),
+      child: TeamMemberAttendanceHistoryScreen(
+        employeeId: state.pathParameters['employeeId'] ?? '',
+      ),
+    ),
   ),
   GoRoute(
     path: '${AppRoutes.ownerTeamMemberDetailsBase}/:employeeId',
     pageBuilder: (context, state) => appSharedAxisPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: BarberDetailsScreen(
         employeeId: state.pathParameters['employeeId'] ?? '',
+        initialTab: state.uri.queryParameters['tab'],
       ),
     ),
   ),
   GoRoute(
     path: '${AppRoutes.ownerEmployeePayrollSetupBase}/:employeeId',
     pageBuilder: (context, state) => appSharedAxisPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: EmployeePayrollSetupScreen(
         employeeId: state.pathParameters['employeeId'] ?? '',
       ),
@@ -458,7 +537,7 @@ final List<RouteBase> ownerRoutes = [
   GoRoute(
     path: '${AppRoutes.payrollPayslipBase}/:runId/:employeeId',
     pageBuilder: (context, state) => appSharedAxisPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: PayslipScreen(
         runId: state.pathParameters['runId'] ?? '',
         employeeId: state.pathParameters['employeeId'] ?? '',
@@ -468,14 +547,14 @@ final List<RouteBase> ownerRoutes = [
   GoRoute(
     path: AppRoutes.attendanceRequestsReview,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const AttendanceRequestsReviewScreen(),
     ),
   ),
   GoRoute(
     path: AppRoutes.attendanceRequestsAdmin,
     pageBuilder: (context, state) => appFadeThroughPage(
-      key: state.pageKey,
+      key: goRouterPageKey(state),
       child: const AttendanceRequestsAdminScreen(),
     ),
   ),

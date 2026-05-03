@@ -532,6 +532,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a price greater than zero.';
 
   @override
+  String get ownerServiceValidationArabicNameRequired =>
+      'Enter the Arabic service name.';
+
+  @override
   String get ownerServiceDeleteConfirmTitle => 'Delete service?';
 
   @override
@@ -608,6 +612,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerServiceCategoryPickerLabel => 'Category';
 
   @override
+  String get ownerServiceCategoryIconPreviewHint =>
+      'This icon appears in booking, sales, and customer apps.';
+
+  @override
   String get ownerServiceCategoryNone => 'None';
 
   @override
@@ -617,7 +625,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerEditService => 'Edit service';
 
   @override
-  String get ownerServiceName => 'Service name';
+  String get ownerServiceName => 'Service name (English)';
+
+  @override
+  String get ownerServiceNameArabic => 'Service name (Arabic)';
 
   @override
   String get ownerAddServiceSheetSubtitle =>
@@ -650,6 +661,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ownerServiceNamePlaceholder => 'e.g. Classic Haircut';
+
+  @override
+  String get ownerServiceNameArabicPlaceholder => 'e.g. قصة شعر كلاسيكية';
 
   @override
   String get ownerServiceDescriptionPlaceholderLong =>
@@ -1903,6 +1917,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Payroll data could not be loaded right now.';
 
   @override
+  String get payrollEmployeeAlreadyPaidForPeriod =>
+      'This team member already has a paid payroll for this period.';
+
+  @override
+  String get payrollAllStaffAlreadyPaidForPeriod =>
+      'Everyone on your list already has a paid payroll for this period.';
+
+  @override
   String get payrollSummaryEarnings => 'Earnings';
 
   @override
@@ -1932,11 +1954,197 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get ownerPayrollFinanceBreadcrumb => 'Finance · Payroll';
+
+  @override
+  String get ownerPayrollRunReviewBreadcrumb =>
+      'Finance · Payroll · Run review';
+
+  @override
+  String get payrollRunReviewEngineHint =>
+      'Includes commissions from sales, attendance, violations, and your payroll elements.';
+
+  @override
+  String get payrollRunReviewConfigureSectionTitle => 'Period & team';
+
+  @override
+  String get payrollRunReviewCadenceLabel => 'Payroll period type';
+
+  @override
+  String get payrollRunReviewCadenceMonthly => 'Monthly';
+
+  @override
+  String get payrollRunReviewCadenceWeekly => 'Weekly';
+
+  @override
+  String get payrollRunWeeklyPaidDaysHint =>
+      'Pay is calculated only for the calendar days you select (inclusive).';
+
+  @override
+  String get payrollRunWeeklyStartLabel => 'Start date';
+
+  @override
+  String get payrollRunWeeklyEndLabel => 'End date';
+
+  @override
+  String get payrollRunWeeklyRangeInvalid =>
+      'Choose a valid weekly range (1–31 days, end on or after start).';
+
+  @override
+  String get payrollRunNoMatchingStaffForCadence =>
+      'No team members use this payroll period. Assign monthly or weekly under Team → payroll period, or switch the period type above.';
+
+  @override
+  String get payrollRunReviewViewPayslip => 'View payslip';
+
+  @override
+  String get payrollRollbackConfirmTitle => 'Rollback this payroll run?';
+
+  @override
+  String get payrollRollbackConfirmMessage =>
+      'This reverses payslip snapshots and linked adjustments for this run. If the run is paid, payslips are removed from staff apps—confirm this matches your bank and accounting records. Continue?';
+
+  @override
+  String get payrollRollbackConfirmAction => 'Rollback';
+
+  @override
+  String get payrollRunReviewStatusPaidHint =>
+      'Paid run. Use rollback below only if you must reverse payouts—payslips disappear from staff apps and linked violations reopen where applicable.';
+
+  @override
+  String get payrollRunReviewStatusRolledBackHint =>
+      'This run was rolled back. You can recalculate when ready.';
+
+  @override
+  String get payrollRunReviewKpiHeadcountTrend => 'In this run';
+
+  @override
+  String get payrollRunReviewWorkflowTitle => 'Next steps';
+
+  @override
+  String get payrollRunReviewWorkflowSubtitle =>
+      'Approve when ready, then mark paid after you pay out.';
+
+  @override
+  String get payrollRunReviewTeamPreviewTitle => 'Team breakdown';
+
+  @override
+  String get payrollDashboardKpiTrendLabel => 'This month';
+
+  @override
+  String get payrollDashboardKpiThisWeek => 'This week';
+
+  @override
+  String get payrollDashboardKpiRunsLabel => 'Payroll runs';
+
+  @override
+  String get payrollDashboardKpiRunsHint => 'Runs in this month';
+
+  @override
+  String get payrollDashboardKpiRunsHintWeek => 'Runs in this ISO week';
+
+  @override
+  String payrollDashboardSubtitleWeek(String weekLabel) {
+    return '$weekLabel payroll engine overview.';
+  }
+
+  @override
+  String payrollIsoWeekShortLabel(int weekYear, String weekNumberPadded) {
+    return '$weekYear-W$weekNumberPadded';
+  }
+
+  @override
+  String get payrollWeekPickerHelp => 'Pick any day in the payroll week';
+
+  @override
+  String get payrollStatusBreakdownSubtitleWeek =>
+      'Counts for the selected ISO week.';
+
+  @override
+  String get payrollRecentRunsSectionSubtitleWeek =>
+      'Finalized runs in the selected ISO week.';
+
+  @override
+  String get settingsPayrollCadenceTitle => 'Payroll period';
+
+  @override
+  String get settingsPayrollCadenceSubtitle =>
+      'Default calendar for payroll runs, QuickPay, and the payroll hub.';
+
+  @override
+  String get settingsPayrollCadenceSave => 'Save';
+
+  @override
+  String get settingsPayrollCadenceSaved => 'Payroll period updated';
+
+  @override
+  String get settingsPayrollCadenceMonthly => 'Monthly';
+
+  @override
+  String get settingsPayrollCadenceWeekly => 'Weekly (ISO weeks)';
+
+  @override
+  String get teamPayrollPeriodLabel => 'Payroll period';
+
+  @override
+  String get teamPayrollPeriodHint =>
+      'Defaults to your salon payroll period. Change only if this person should use the other cadence.';
+
+  @override
+  String get teamPayrollPeriodInherit => 'Same as salon default';
+
+  @override
+  String teamPayrollPeriodInheritDetail(String periodLabel) {
+    return 'Same as salon · $periodLabel';
+  }
+
+  @override
+  String get teamPayrollPeriodMonthly => 'Monthly';
+
+  @override
+  String get teamPayrollPeriodWeekly => 'Weekly (ISO weeks)';
+
+  @override
+  String get payrollRecentRunsSectionSubtitle =>
+      'Finalized runs in the selected month.';
+
+  @override
+  String get payrollStatusBreakdownSubtitle => 'Counts for the selected month.';
+
+  @override
   String get payrollQuickPayTitle => 'QuickPay';
 
   @override
+  String get payrollQuickPayScreenSubtitle =>
+      'Choose who to pay and which month. Calculate, then save as draft, approve, or mark paid—the same workflow as your payroll runs.';
+
+  @override
   String get payrollQuickPayShortcutSubtitle =>
-      'Calculate and process one employee quickly.';
+      'Pick staff and month, calculate, then pay for this period.';
+
+  @override
+  String get payrollQuickPaySetupCardTitle => 'Period and staff';
+
+  @override
+  String get payrollQuickPayStaffSheetTitle => 'Choose staff';
+
+  @override
+  String get payrollQuickPayStaffPickerLabel => 'Staff member';
+
+  @override
+  String get payrollQuickPayStaffEmpty => 'No eligible staff for payroll.';
+
+  @override
+  String get payrollQuickPayStatementCardTitle => 'Pay statement';
+
+  @override
+  String get payrollQuickPayRunStatusLabel => 'Run status';
+
+  @override
+  String get payrollQuickPaySearchHint => 'Search by name';
+
+  @override
+  String get payrollQuickPaySearchEmpty => 'No matching staff.';
 
   @override
   String get payrollRunReviewTitle => 'Payroll run review';
@@ -1966,6 +2174,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get payrollMissingSetupEmpty =>
       'All active employees have a recurring payroll setup.';
+
+  @override
+  String get payrollDashboardSetupCardTitle => 'Payroll setup';
+
+  @override
+  String get payrollSetupEveryoneReadyHeading => 'Team is ready';
+
+  @override
+  String get payrollSetupNeedsAttentionSubtitle =>
+      'Add at least one recurring \"basic salary\" payroll entry for each teammate below (opens their payroll setup).';
+
+  @override
+  String get payrollSetupWhereToConfigureTitle => 'Where to configure';
+
+  @override
+  String get payrollSetupShortcutCatalogTitle => 'Payroll catalog';
+
+  @override
+  String get payrollSetupShortcutCatalogSubtitle =>
+      'Seed defaults, earning and deduction rules';
+
+  @override
+  String get payrollSetupShortcutTeamTitle => 'Team';
+
+  @override
+  String get payrollSetupShortcutTeamSubtitle =>
+      'Open a barber profile → Payroll to add salary entries';
 
   @override
   String get payrollActionSetUp => 'Set up';
@@ -2068,6 +2303,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payrollActionRollback => 'Rollback';
 
   @override
+  String get payrollReversalTitle => 'Reverse payroll';
+
+  @override
+  String get payrollReversalShortcutSubtitle =>
+      'Pick a run, then reverse the whole run or one team member.';
+
+  @override
+  String get payrollReversalScreenTitle => 'Reverse a payroll run';
+
+  @override
+  String get payrollReversalScreenSubtitle =>
+      'Choose a draft, approved, or paid run. Paid runs remove payslips from staff apps—confirm carefully.';
+
+  @override
+  String get payrollReversalScopeWholeRun => 'Whole run';
+
+  @override
+  String get payrollReversalScopeOneMember => 'One team member';
+
+  @override
+  String get payrollReversalSelectRunHint => 'Select a payroll run';
+
+  @override
+  String get payrollReversalSelectMemberHint => 'Select a team member';
+
+  @override
+  String get payrollReversalNoRunsMessage =>
+      'No reversible payroll runs right now.';
+
+  @override
+  String get payrollReversalPartialUnavailableHint =>
+      'This run only includes one person—use whole run to reverse it.';
+
+  @override
+  String get payrollReversalConfirmTitle => 'Reverse payroll?';
+
+  @override
+  String get payrollReversalConfirmWholeRunMessage =>
+      'This will roll back the entire run, restore linked violations where applicable, and remove payslips for this period.';
+
+  @override
+  String payrollReversalConfirmOneMemberMessage(String employeeName) {
+    return 'This will remove $employeeName from this run, roll back their linked violations where applicable, and delete their payslip for this period.';
+  }
+
+  @override
+  String get payrollReversalSuccess => 'Payroll reversal completed.';
+
+  @override
   String get payrollEmployeeSetupTitle => 'Employee payroll setup';
 
   @override
@@ -2112,15 +2396,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payrollRunAllEmployees => 'All active employees';
 
   @override
+  String get payrollRunAllMatchingStaff => 'All matching staff';
+
+  @override
   String get payrollRunValidation =>
       'Choose a payroll period before calculating.';
 
   @override
-  String get payrollRunReviewEmptyTitle => 'No payroll run draft yet';
+  String get payrollRunReviewHistoryTitle => 'Payroll history';
 
   @override
-  String get payrollRunReviewEmptySubtitle =>
-      'Pick a period and calculate the run to review grouped payroll totals.';
+  String get payrollRunReviewHistorySubtitle =>
+      'Approved and paid payroll runs (drafts are hidden). Tap an approved run to pay or roll back.';
+
+  @override
+  String get payrollRunReviewHistoryEmpty =>
+      'No payroll transactions yet. Calculate a run above to get started.';
+
+  @override
+  String get payrollHistoryApprovedSheetTitle => 'Approved — not paid yet';
+
+  @override
+  String get payrollHistoryApprovedSheetBody =>
+      'Mark as paid after you transfer funds, or roll back to undo this approval.';
+
+  @override
+  String get payrollHistoryMarkedPaidSnack => 'Marked as paid.';
+
+  @override
+  String get payrollHistoryRollbackSnack => 'Payroll run rolled back.';
 
   @override
   String payrollRunEmployeeSummary(int lineCount, String netPay) {
@@ -2210,6 +2514,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsPrefMarketingHint =>
       'Occasional updates from your salon or the app.';
+
+  @override
+  String get notificationsFilterAll => 'All';
+
+  @override
+  String get notificationsFilterUnread => 'Unread';
+
+  @override
+  String get notificationsEmptyTitle => 'No notifications yet';
+
+  @override
+  String get notificationsEmptySubtitle =>
+      'Updates about bookings, attendance, payroll, and team activity will appear here.';
+
+  @override
+  String get notificationsFirestoreIndexBuildingSubtitle =>
+      'Your inbox will load shortly — Firestore is finishing the notification index. Pull to refresh or try again in a minute.';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all as read';
+
+  @override
+  String get notificationsSettingBookingUpdates => 'Booking updates';
+
+  @override
+  String get notificationsSettingAttendanceUpdates => 'Attendance updates';
+
+  @override
+  String get notificationsSettingPayrollUpdates => 'Payroll updates';
+
+  @override
+  String get notificationsSettingApprovals => 'Approval requests';
+
+  @override
+  String get notificationsSettingSystemAlerts => 'System alerts';
 
   @override
   String get notificationsInboxTooltip => 'Notifications';
@@ -3933,6 +4272,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerOverviewRevenueMonthHintEmpty => 'No sales recorded yet.';
 
   @override
+  String get ownerOverviewRevenueMonthSubtitle =>
+      'Revenue trend for the current month';
+
+  @override
+  String get ownerOverviewRevenueMonthEmpty => 'No revenue yet this month';
+
+  @override
+  String ownerOverviewRevenueMonthTotal(String amount) {
+    return 'Month total: $amount';
+  }
+
+  @override
+  String get ownerOverviewRevenuePeriodDay => 'Day';
+
+  @override
+  String get ownerOverviewRevenuePeriodMonth => 'Month';
+
+  @override
+  String get ownerOverviewRevenuePeriodWeek => 'Week';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourTitle => 'Revenue today';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourSubtitle =>
+      'By hour (your local time)';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourEmpty => 'No revenue yet today';
+
+  @override
+  String ownerOverviewRevenueTodayByHourTotal(String amount) {
+    return 'Today total: $amount';
+  }
+
+  @override
   String get ownerOverviewRevenueThisWeekTitle => 'Revenue this week';
 
   @override
@@ -3948,7 +4323,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get ownerOverviewTeamPerformanceTitle => 'Team performance';
+
+  @override
+  String get ownerOverviewTeamPerformanceSubtitle =>
+      'Top barbers by today’s revenue';
+
+  @override
+  String get ownerOverviewTeamPerformanceEmpty =>
+      'No services recorded yet today';
+
+  @override
+  String get ownerOverviewTeamPerformanceError =>
+      'Could not load team performance';
+
+  @override
+  String get ownerOverviewTeamPerformanceFallbackName => 'Team member';
+
+  @override
+  String ownerOverviewTeamPerformanceServicesToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count services today',
+      one: '1 service today',
+      zero: '0 services today',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get ownerOverviewKpiPendingRequests => 'Pending requests';
+
+  @override
+  String get ownerOverviewKpiPendingApprovals => 'Pending approvals';
 
   @override
   String get ownerOverviewDashboardTagline =>
@@ -3989,6 +4397,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String ownerOverviewTodayInsightPendingApprovals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attendance requests need your review.',
+      one: '1 attendance request needs your review.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get ownerOverviewRecentServicesTitle => 'Recent services';
 
   @override
@@ -4010,7 +4429,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ownerOverviewBestBarberSubtitle(String amount) {
-    return 'Best barber today · $amount';
+    return 'Best team member today · $amount';
   }
 
   @override
@@ -4073,10 +4492,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerOverviewStatBookingsToday => 'Bookings today';
 
   @override
+  String get ownerOverviewStatServicesToday => 'Services today';
+
+  @override
   String get ownerOverviewStatCompletedToday => 'Completed today';
 
   @override
   String get ownerOverviewStatCheckedIn => 'Checked in';
+
+  @override
+  String get ownerOverviewStatWorkingNow => 'Working now';
 
   @override
   String get ownerOverviewQuickActionsTitle => 'Quick actions';
@@ -4636,6 +5061,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamFilterTopPerformers => 'Top Performers';
 
   @override
+  String get teamFilterTopServices => 'Top Services';
+
+  @override
+  String get teamFilterTopPerformance => 'Top Performance';
+
+  @override
+  String get teamFilterOldest => 'Old';
+
+  @override
+  String get teamFilterNewest => 'New';
+
+  @override
   String get teamFilterNeedsAttention => 'Needs attention';
 
   @override
@@ -4653,6 +5090,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamFilterAction => 'Filter team';
+
+  @override
+  String get teamSortAction => 'Sort team';
+
+  @override
+  String get teamSortSheetTitle => 'Sort by';
+
+  @override
+  String get teamSortNameAsc => 'Name A–Z';
+
+  @override
+  String get teamSortNameDesc => 'Name Z–A';
+
+  @override
+  String get teamSortRole => 'Role';
+
+  @override
+  String get teamSortJoinedNewest => 'Newest hire first';
+
+  @override
+  String get teamSortJoinedOldest => 'Oldest hire first';
+
+  @override
+  String get teamSortSalesToday => 'Today\'s sales';
+
+  @override
+  String get teamSortSalesMonth => 'This month\'s sales';
 
   @override
   String get teamEmptyTitle => 'No team members yet';
@@ -4820,6 +5284,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamFieldPhone => 'Phone';
+
+  @override
+  String get teamFieldHiringDate => 'Hiring date';
+
+  @override
+  String get teamFieldHiringDateHint =>
+      'Monthly base salary in payroll is prorated by calendar days from this date.';
 
   @override
   String get teamFieldRole => 'Role';
@@ -5101,7 +5572,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamFieldCommissionPercentagePercent => 'Commission rate (%)';
 
   @override
-  String get teamFieldCommissionFixedSar => 'Fixed amount (SAR)';
+  String teamFieldCommissionFixedAmount(String currencyCode) {
+    return 'Fixed amount ($currencyCode)';
+  }
 
   @override
   String get teamCommissionPercentInputHint => 'Enter a rate like 2, 10, or 25';
@@ -5170,13 +5643,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a valid rate and/or fixed amount.';
 
   @override
-  String teamCommissionSummaryFixed(String amount) {
-    return '$amount SAR';
+  String teamCommissionSummaryFixed(String amount, String currencyCode) {
+    return '$amount $currencyCode';
   }
 
   @override
-  String teamCommissionSummaryMixed(String percent, String amount) {
-    return '$percent% + $amount SAR';
+  String teamCommissionSummaryMixed(
+    String percent,
+    String amount,
+    String currencyCode,
+  ) {
+    return '$percent% + $amount $currencyCode';
   }
 
   @override
@@ -5266,10 +5743,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamMemberAttendanceStatusNone => 'No record';
 
   @override
-  String get teamMemberAttendanceCheckInLabel => 'Check-in';
+  String get teamMemberAttendanceCheckInLabel => 'Punch in';
 
   @override
-  String get teamMemberAttendanceCheckOutLabel => 'Check-out';
+  String get teamMemberAttendanceCheckOutLabel => 'Punch out';
 
   @override
   String get teamMemberAttendanceAddManual => 'Add attendance manually';
@@ -5287,7 +5764,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamMemberAttendanceSummaryLateMonthHint => 'This month';
 
   @override
-  String get teamMemberAttendanceSummaryMissingCheckout => 'Missing check-outs';
+  String get teamMemberAttendanceSummaryMissingCheckout => 'Missing punch-outs';
 
   @override
   String get teamMemberAttendanceSummaryMissingCheckoutHint => 'times';
@@ -5297,6 +5774,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamMemberAttendanceSummaryPendingRequestsHint => 'corrections';
+
+  @override
+  String get teamMemberAttendanceNoShiftAssigned =>
+      'No shift assigned. Open Weekly Shifts to set one.';
 
   @override
   String get teamMemberAttendanceSummaryDaysUnit => 'days';
@@ -5357,10 +5838,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamMemberAttendanceHistoryTitle => 'Recent attendance';
 
   @override
+  String get teamMemberAttendanceFullHistoryTitle => 'All attendance';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterTitle => 'Date range';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterFrom => 'From';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterTo => 'To';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterApply => 'Apply';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterClear => 'Clear';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterSelectDate => 'Select date';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterNeedBothDates =>
+      'Select both start and end dates.';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterEmptyRange =>
+      'No attendance in this range.';
+
+  @override
   String get teamMemberAttendanceViewAll => 'View all';
 
   @override
   String get teamMemberAttendanceHistoryEmpty => 'No attendance records yet';
+
+  @override
+  String get teamMemberAttendanceRecordStatusCheckedIn => 'Checked in';
 
   @override
   String get teamMemberAttendanceRecordStatusPresent => 'Completed';
@@ -5376,6 +5889,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamMemberAttendanceRecordStatusAbsent => 'Absent';
+
+  @override
+  String get teamMemberAttendanceRecordStatusOnBreak => 'On break';
 
   @override
   String get teamMemberAttendanceManualSaved => 'Attendance record saved.';
@@ -5428,6 +5944,145 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamMemberAttendanceReviewConfirmReject => 'Reject';
 
   @override
+  String get attendanceAdjustmentSheetTitle => 'Adjust attendance';
+
+  @override
+  String get attendanceAdjustmentSheetSubtitle =>
+      'Changes are saved on the server and recorded in the audit log. Payroll summaries may update for this month.';
+
+  @override
+  String get attendanceAdjustmentShiftOffDay => 'Off day';
+
+  @override
+  String get attendanceAdjustmentDateLabel => 'Date';
+
+  @override
+  String get attendanceAdjustmentShiftLabel => 'Shift';
+
+  @override
+  String get attendanceAdjustmentStatusLabel => 'Status';
+
+  @override
+  String get attendanceAdjustmentStatusPresent => 'Present';
+
+  @override
+  String get attendanceAdjustmentStatusLateChips => 'Late';
+
+  @override
+  String get attendanceAdjustmentStatusAbsentChip => 'Absent';
+
+  @override
+  String get attendanceAdjustmentStatusDayOff => 'Day off';
+
+  @override
+  String get attendanceAdjustmentNotSet => 'Not set';
+
+  @override
+  String get attendanceAdjustmentLateMinLabel => 'Late (min)';
+
+  @override
+  String get attendanceAdjustmentEarlyExitLabel => 'Early exit (min)';
+
+  @override
+  String get attendanceAdjustmentMissingCheckoutLabelShort => 'Missing out';
+
+  @override
+  String attendanceAdjustmentMinutesValue(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String attendanceAdjustmentYesWithMinutes(int minutes) {
+    return 'Yes (+$minutes pen.)';
+  }
+
+  @override
+  String get attendanceAdjustmentNoAbbr => 'No';
+
+  @override
+  String get attendanceAdjustmentErrorReasonRequired =>
+      'Please select a reason for this adjustment.';
+
+  @override
+  String get attendanceAdjustmentSaveSuccess => 'Correction saved.';
+
+  @override
+  String attendanceAdjustmentCloudError(String code) {
+    return 'Could not save: $code';
+  }
+
+  @override
+  String get attendanceAdjustmentSaveFailed =>
+      'Could not save attendance. Try again.';
+
+  @override
+  String get attendanceAdjustmentTimesLabel => 'Punch times';
+
+  @override
+  String get attendanceAdjustmentBreakOutLabel => 'Break start';
+
+  @override
+  String get attendanceAdjustmentBreakInLabel => 'Break end';
+
+  @override
+  String get attendanceAdjustmentMissingCheckoutWarning =>
+      'Punch-out is missing. Minutes may include the missing check-out penalty from salon settings.';
+
+  @override
+  String get attendanceAdjustmentReasonLabel => 'Reason';
+
+  @override
+  String get attendanceAdjustmentReasonPlaceholder => 'Select a reason';
+
+  @override
+  String get attendanceAdjustmentReasonForgot => 'Forgot punch';
+
+  @override
+  String get attendanceAdjustmentReasonGps => 'GPS / device issue';
+
+  @override
+  String get attendanceAdjustmentReasonSchedule => 'Schedule correction';
+
+  @override
+  String get attendanceAdjustmentReasonPayroll => 'Payroll sync';
+
+  @override
+  String get attendanceAdjustmentReasonOther => 'Other';
+
+  @override
+  String get attendanceAdjustmentManagerNoteLabel => 'Internal note (optional)';
+
+  @override
+  String get attendanceAdjustmentAuditFootnote =>
+      'This action creates an adjustment record and updates monthly payroll summaries when applicable.';
+
+  @override
+  String get attendanceAdjustmentSaveCta => 'Save correction';
+
+  @override
+  String get attendanceAdjustmentFirestoreDocLabel => 'Firestore path · ';
+
+  @override
+  String get attendanceAdjustmentSessionExpired =>
+      'Your session expired. Please sign in again.';
+
+  @override
+  String get attendanceAdjustmentPermissionDeniedSave =>
+      'You don\'t have permission to save this correction.';
+
+  @override
+  String get attendanceAdjustmentServerUnavailableSave =>
+      'Could not reach the server. Please try again.';
+
+  @override
+  String get attendanceAdjustmentSaveFailedMapped =>
+      'Could not save the correction. Please try again.';
+
+  @override
+  String get attendanceAdjustmentLoadContextFailed =>
+      'Could not load this screen. Please try again.';
+
+  @override
   String get teamDetailsLoadErrorTitle => 'Could not load team member details';
 
   @override
@@ -5452,7 +6107,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamDetailsStatusLabel => 'Status';
 
   @override
-  String get teamDetailsJoinDate => 'Join date';
+  String get teamDetailsJoinDate => 'Hiring date';
 
   @override
   String get teamDetailsCommissionRate => 'Commission %';
@@ -5464,7 +6119,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamProfileStatusFrozen => 'Frozen';
 
   @override
-  String get teamProfileJoinDateMissing => 'Join date not available';
+  String get teamProfileJoinDateMissing => 'Hiring date not available';
 
   @override
   String get teamProfileSectionContact => 'Contact';
@@ -5529,6 +6184,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get teamValueDisabled => 'Disabled';
+
+  @override
+  String get teamCardTeamMemberSubtitle => 'Team member';
+
+  @override
+  String get teamCardNameMissing => 'Unnamed';
+
+  @override
+  String get teamMemberPerformanceUnrated => 'Unrated';
+
+  @override
+  String teamCardEmployeeId(String id) {
+    return 'ID · $id';
+  }
+
+  @override
+  String get teamCardChipLabelStatus => 'Status';
+
+  @override
+  String get teamCardChipLabelAttendToday => 'Attend today';
+
+  @override
+  String get teamCardAttendWorking => 'Working';
+
+  @override
+  String get teamCardAttendCompleted => 'Completed';
+
+  @override
+  String get teamCardAttendAbsent => 'Absent';
+
+  @override
+  String get teamCardAttendTodayOff => 'Today off';
+
+  @override
+  String get teamCardAttendNoCheckIn => 'No check-in';
+
+  @override
+  String get teamCardSwipeBrowseHint => 'Swipe to browse team';
+
+  @override
+  String teamDeckFooterMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count team members',
+      one: '1 team member',
+    );
+    return '$_temp0';
+  }
 
   @override
   String teamCommissionPercentValue(String value) {
@@ -5635,6 +6339,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamMemberSalesNotAvailableShort => '—';
 
   @override
+  String get teamMemberSalesReceiptTapToEnlarge =>
+      'Receipt photo, tap to enlarge';
+
+  @override
+  String get teamMemberSalesReceiptViewerTitle => 'Receipt';
+
+  @override
   String get teamNoAttendanceTodayTitle => 'No attendance yet today';
 
   @override
@@ -5714,6 +6425,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamServicesServiceInactive => 'Inactive';
 
   @override
+  String get teamServicesEditAssignmentCardSubtitle =>
+      'Manage the services this barber can perform.';
+
+  @override
+  String get teamServicesAssignedSectionSubtitle =>
+      'Services this barber is currently offering.';
+
+  @override
+  String get teamServicesAssignServicesAction => 'Assign services';
+
+  @override
+  String get teamServicesAssignmentSelectAll => 'Select all';
+
+  @override
+  String get teamServicesAssignmentClearSelection => 'Clear selection';
+
+  @override
+  String get teamServicesRetryAction => 'Try again';
+
+  @override
+  String get teamServicesLoadErrorTitle => 'Could not load assignments';
+
+  @override
+  String get teamServicesUnnamedService => 'Unnamed service';
+
+  @override
   String get teamBookingPrepPublicDisplayName => 'Public display name';
 
   @override
@@ -5759,8 +6496,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneyDashboardTrendTitle => 'Sales vs expenses';
 
   @override
-  String get moneyDashboardTrendSubtitle =>
-      'Track how revenue and costs moved across the selected month.';
+  String get moneyDashboardTrendSubtitleDaily =>
+      'Track how revenue and costs moved day by day in the selected month.';
+
+  @override
+  String get moneyDashboardTrendSubtitleWeekly =>
+      'Track how revenue and costs moved by week in the selected month.';
+
+  @override
+  String get moneyDashboardTrendSubtitleMonthly =>
+      'Track how revenue and costs moved across recent months.';
+
+  @override
+  String get moneyDashboardTrendSubtitleYearly =>
+      'Track how revenue and costs moved across recent calendar years.';
 
   @override
   String get moneyDashboardSalesLegend => 'Sales';
@@ -5818,7 +6567,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyDashboardNetLossWarning =>
-      'Net profit is negative after payroll. Trim discretionary expenses, revisit pricing, and review payroll timing for this month.';
+      'Net profit is negative for this month (completed sales minus expenses and payroll in this period). Trim discretionary spending, revisit pricing, and check payroll runs when they apply.';
 
   @override
   String moneyDashboardTrendPeakSalesSummary(Object day, Object amount) {
@@ -5848,6 +6597,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moneyDashboardChartGranularityDaily => 'Daily';
+
+  @override
+  String get moneyDashboardChartGranularityWeekly => 'Weekly';
+
+  @override
+  String get moneyDashboardChartGranularityMonthly => 'Monthly';
+
+  @override
+  String get moneyDashboardChartGranularityYearly => 'Yearly';
+
+  @override
+  String get moneyDashboardChartGranularityPickerTitle => 'Chart period';
 
   @override
   String get moneyDashboardKpiTrendNoData => '—';
@@ -6106,6 +6867,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addSaleAddAnotherService => 'Add another service';
 
   @override
+  String get addSaleAllServicesSectionTitle => 'All services';
+
+  @override
+  String get addSaleSelectedServiceLineSubtitle => 'In this sale';
+
+  @override
+  String get addSaleClearSearchTooltip => 'Clear search';
+
+  @override
   String get addSaleBarberLabel => 'Service provider';
 
   @override
@@ -6356,10 +7126,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeeTodayPunchOut => 'Punch out';
 
   @override
-  String get employeeTodayBreakOut => 'Break out';
+  String get employeeTodayBreakOut => 'Leave for break';
 
   @override
-  String get employeeTodayBreakIn => 'Break in';
+  String get employeeTodayBreakIn => 'Return from break';
+
+  @override
+  String employeeTodayBreakCountdownRemaining(String time) {
+    return 'Remaining break time: $time';
+  }
+
+  @override
+  String employeeTodayBreakCountdownExceeded(String time) {
+    return 'Break exceeded by $time';
+  }
+
+  @override
+  String get employeeTodayBreakOutsideShift =>
+      'You can only start a break during your scheduled shift hours.';
 
   @override
   String get employeeTodayCompletedForToday => 'Completed for today';
@@ -6629,6 +7413,136 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerAddSaleAutoPrice => 'Auto-filled price';
 
   @override
+  String get addSaleModeBookingCode => 'Booking code';
+
+  @override
+  String get addSaleModeManual => 'Manual sale';
+
+  @override
+  String get addSaleDualSubtitle =>
+      'Add from a guest booking code or record a manual sale.';
+
+  @override
+  String get addSaleBookingCodeFieldLabel => 'Booking code';
+
+  @override
+  String get addSaleBookingCodeHint => 'Enter booking code';
+
+  @override
+  String get addSaleBookingCodeExample => 'Example: ZR-AB12CD';
+
+  @override
+  String get addSaleRetrieveBooking => 'Retrieve booking';
+
+  @override
+  String get addSaleCreateFromBooking => 'Create sale';
+
+  @override
+  String get addSaleBookingFound => 'Booking found';
+
+  @override
+  String get addSaleBookingSectionPayment => 'Payment';
+
+  @override
+  String get addSaleBookingSectionAppointment => 'Appointment';
+
+  @override
+  String get addSaleBookingSectionServices => 'Services';
+
+  @override
+  String get addSaleBookingSubtotal => 'Subtotal';
+
+  @override
+  String get addSaleBookingDiscount => 'Discount';
+
+  @override
+  String get addSaleBookingTotal => 'Total';
+
+  @override
+  String get addSaleBookingStatus => 'Booking status';
+
+  @override
+  String get addSalePaymentStatusPending => 'Pending';
+
+  @override
+  String get addSalePaymentStatusPaid => 'Paid';
+
+  @override
+  String get addSalePaymentStatusFailed => 'Failed';
+
+  @override
+  String get addSalePaymentStatusRefunded => 'Refunded';
+
+  @override
+  String get addSalePaymentMethodUnspecified => 'Unspecified';
+
+  @override
+  String get addSaleBookingErrorEmptyCode => 'Please enter a booking code.';
+
+  @override
+  String get addSaleBookingErrorNotFound => 'Booking code not found.';
+
+  @override
+  String get addSaleBookingErrorWrongSalon =>
+      'This booking does not belong to this salon.';
+
+  @override
+  String get addSaleBookingErrorCancelled => 'This booking is cancelled.';
+
+  @override
+  String get addSaleBookingErrorSaleExists =>
+      'A sale was already created for this booking.';
+
+  @override
+  String get addSaleBookingErrorNoServices => 'This booking has no services.';
+
+  @override
+  String get addSaleBookingErrorZeroTotal => 'Total must be greater than zero.';
+
+  @override
+  String get addSaleBookingErrorBarberMismatch =>
+      'Booking barber does not match.';
+
+  @override
+  String get addSaleBookingErrorNotYourBooking =>
+      'You can only use bookings assigned to you.';
+
+  @override
+  String get addSaleBookingErrorNoPreview => 'Retrieve the booking first.';
+
+  @override
+  String get addSaleBookingErrorNoSession => 'Sign in again to continue.';
+
+  @override
+  String get addSaleBookingErrorBarberMissing =>
+      'Assigned barber was not found.';
+
+  @override
+  String get addSaleBookingErrorUnknown => 'Something went wrong. Try again.';
+
+  @override
+  String get addSaleBookingSaleCreated => 'Sale created';
+
+  @override
+  String get addSaleBookingSalon => 'Salon';
+
+  @override
+  String get addSaleBookingCodeLabel => 'Booking code';
+
+  @override
+  String get addSaleBookingCustomer => 'Customer';
+
+  @override
+  String get addSaleBookingBarber => 'Barber';
+
+  @override
+  String get addSalePaymentMethodWallet => 'Wallet';
+
+  @override
+  String get addSaleBookingErrorManualNameRequired =>
+      'Customer name is required.';
+
+  @override
   String get authV2WelcomeTitle => 'Operations, simplified.';
 
   @override
@@ -6834,6 +7748,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authV2OrDivider => 'OR';
 
   @override
+  String get guestAuthOrDivider => 'or';
+
+  @override
+  String get guestAuthContinueAsGuest => 'Continue as guest';
+
+  @override
+  String get guestAuthGuestSubtitle =>
+      'No account needed. Discover salons and book in seconds.';
+
+  @override
+  String guestAuthSignInFailed(String details) {
+    return 'Unable to continue as guest: $details';
+  }
+
+  @override
+  String get guestAuthSessionTimeout =>
+      'Your profile is taking too long to load. Check your connection and try again.';
+
+  @override
+  String get guestNicknameScreenTitle => 'How should we call you?';
+
+  @override
+  String get guestNicknameScreenSubtitle =>
+      'Pick a nickname for the salon team. We’ll make it unique.';
+
+  @override
+  String get guestNicknameFieldLabel => 'Nickname';
+
+  @override
+  String get guestNicknameSuggestedLabel => 'Your display name';
+
+  @override
+  String get guestNicknameContinue => 'Continue';
+
+  @override
+  String get guestNicknameErrorTooShort => 'Enter at least 2 characters.';
+
+  @override
+  String get guestNicknameErrorInvalid => 'Use letters and numbers only.';
+
+  @override
+  String get guestNicknameErrorReserveFailed =>
+      'Could not reserve that name. Try again.';
+
+  @override
+  String get customerBookingReviewMissingGuestNickname =>
+      'Please set your guest nickname first.';
+
+  @override
   String get authV2ContinueGoogle => 'Continue with Google';
 
   @override
@@ -6978,8 +7941,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String customersCountBadge(int count) {
-    return '$count customers';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count customers',
+      one: '1 customer',
+      zero: '0 customers',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String get customersGoldenInfoTitle => 'Golden customers';
+
+  @override
+  String get customersGoldenInfoSubtitle =>
+      'Track visits, bookings, and spending.';
+
+  @override
+  String get customersGoldenInfoDismissSemantics => 'Dismiss tip';
+
+  @override
+  String get customersInsightsThisMonth => 'This month';
+
+  @override
+  String get customersInsightsNewThisMonth => 'New customers';
+
+  @override
+  String get customersInsightsReturningThisMonth => 'Returning';
+
+  @override
+  String get customersInsightsTotalCustomers => 'Total active';
+
+  @override
+  String get customersInsightsTotalSpent => 'Total spending';
+
+  @override
+  String get customersInsightsLoadError => 'Could not load insights.';
+
+  @override
+  String customersLastServiceLine(String serviceName) {
+    return 'Last service: $serviceName';
+  }
+
+  @override
+  String get customersActionCall => 'Call customer';
+
+  @override
+  String get customersActionMessage => 'Message on WhatsApp';
+
+  @override
+  String get customersActionViewProfile => 'View profile';
+
+  @override
+  String get customersActionCouldNotOpen => 'Could not open the link.';
+
+  @override
+  String get customersListFooterTitle => 'Build your customer list';
+
+  @override
+  String get customersListFooterSubtitle =>
+      'Add walk-in customers, link bookings, and track loyalty automatically.';
+
+  @override
+  String get customersFilterEmptyTitle => 'No matches';
+
+  @override
+  String get customersFilterEmptySubtitle =>
+      'Try another search or chip, or clear filters.';
+
+  @override
+  String get customersClearFilters => 'Clear filters';
+
+  @override
+  String get customersSearchEmptyTitle => 'No search results';
+
+  @override
+  String get customersSearchEmptySubtitle =>
+      'Try a different name or phone, or clear the search.';
+
+  @override
+  String get customersClearSearch => 'Clear search';
 
   @override
   String get customersAddCustomerFab => 'Add customer';
@@ -7768,8 +8810,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeePolicySummaryTitle => 'Policy summary';
 
   @override
-  String employeePolicyGpsSummary(int maxPunches, int maxBreaks) {
-    return 'Your salon uses GPS attendance when enabled. Punch limits: $maxPunches per day, up to $maxBreaks breaks.';
+  String employeePolicyGpsSummary(int maxBreaks) {
+    return 'Your salon uses GPS attendance when enabled. Record one punch in and one punch out per day; up to $maxBreaks breaks.';
   }
 
   @override
@@ -7847,9 +8889,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeePolicyDeductionsSection => 'Deductions';
 
   @override
-  String employeePolicyRuleMaxPunchesOneLine(int max) {
-    return 'You can record up to $max punches per calendar day.';
-  }
+  String get employeePolicyRuleWorkPunchesOneLine =>
+      'Each day you record one punch in and one punch out; breaks are separate.';
 
   @override
   String employeePolicyRuleMaxBreakMinutesOneLine(int minutes) {
@@ -8332,4 +9373,613 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addSaleUnableToLoadServices => 'Unable to load services';
+
+  @override
+  String get ownerShiftsTileTitle => 'Shifts & Staff Schedule';
+
+  @override
+  String get ownerShiftsTileSubtitle => 'Manage templates and weekly roster';
+
+  @override
+  String get ownerShiftsTitle => 'Shifts';
+
+  @override
+  String get ownerShiftsSubtitle => 'Create and manage shift templates';
+
+  @override
+  String get ownerShiftsRetry => 'Retry';
+
+  @override
+  String get ownerShiftsLoadError => 'Could not load shift templates';
+
+  @override
+  String get ownerShiftsSummaryTotalShifts => 'Total Shifts';
+
+  @override
+  String get ownerShiftsSummaryAssignedStaff => 'Assigned Staff';
+
+  @override
+  String get ownerShiftsSummaryOffDayRules => 'Off Days Rules';
+
+  @override
+  String get ownerShiftsSummaryTemplates => 'Templates';
+
+  @override
+  String get ownerShiftsSummaryEmployees => 'Employees';
+
+  @override
+  String get ownerShiftsSummaryRuleSet => 'Rule set';
+
+  @override
+  String get ownerShiftsTemplatesSectionTitle => 'Shift Templates';
+
+  @override
+  String get ownerShiftsEmptyStateTitle => 'No shift templates yet';
+
+  @override
+  String get ownerShiftsEmptyStateSubtitle =>
+      'Create your first shift template to start weekly scheduling.';
+
+  @override
+  String get ownerShiftsEmptyStateHelper =>
+      'Recommended: Day Shift, Night Shift, and Off Day.';
+
+  @override
+  String get ownerShiftsDuration => 'Duration';
+
+  @override
+  String get ownerShiftsBreak => 'Break';
+
+  @override
+  String get ownerShiftsEmployees => 'Employees';
+
+  @override
+  String get ownerShiftsOvernightBadge => 'Overnight';
+
+  @override
+  String get ownerShiftsOffDay => 'Off Day';
+
+  @override
+  String get ownerShiftsOpenWeeklyRosterTitle => 'Open weekly roster';
+
+  @override
+  String get ownerShiftsOpenWeeklyRosterSubtitle =>
+      'View and manage staff shifts for the week';
+
+  @override
+  String get ownerShiftsCreateTemplateCta => 'Create Shift Template';
+
+  @override
+  String get ownerShiftsDeactivateError => 'Could not deactivate this shift';
+
+  @override
+  String get ownerShiftsDeleteConfirmMessage =>
+      'Are you sure you want to delete this shift template?';
+
+  @override
+  String get ownerShiftsCreateTemplatePlaceholder =>
+      'Create Shift Template screen coming next';
+
+  @override
+  String get ownerShiftsEditTemplatePlaceholder =>
+      'Edit Shift Template screen coming next';
+
+  @override
+  String get ownerShiftsWeeklyPlaceholder => 'Weekly Shifts screen coming next';
+
+  @override
+  String get ownerShiftsApplyPlaceholder => 'Apply Schedule screen coming next';
+
+  @override
+  String get ownerShiftCreateTitle => 'Create Shift';
+
+  @override
+  String get ownerShiftEditTitle => 'Edit Shift';
+
+  @override
+  String get ownerShiftCreateSubtitle => 'Define working hours for employees';
+
+  @override
+  String get ownerShiftEditSubtitle => 'Update working hours for employees';
+
+  @override
+  String get ownerShiftNameLabel => 'Shift name';
+
+  @override
+  String get ownerShiftNameHint => 'Day Shift';
+
+  @override
+  String get ownerShiftTypeLabel => 'Shift type';
+
+  @override
+  String get ownerShiftTypeWorking => 'Working Shift';
+
+  @override
+  String get ownerShiftTypeOff => 'Off Day';
+
+  @override
+  String get ownerShiftStartTimeLabel => 'Start time';
+
+  @override
+  String get ownerShiftEndTimeLabel => 'End time';
+
+  @override
+  String get ownerShiftBreakMinutesLabel => 'Break allowance (minutes)';
+
+  @override
+  String get ownerShiftBreakMinutesHint => '30';
+
+  @override
+  String get ownerShiftNotesLabel => 'Notes (optional)';
+
+  @override
+  String get ownerShiftNotesHint => 'Add notes for this shift...';
+
+  @override
+  String get ownerShiftColorLabel => 'Color';
+
+  @override
+  String get ownerShiftDefaultLabel => 'Default shift';
+
+  @override
+  String get ownerShiftDefaultHint =>
+      'New staff will use this shift by default.';
+
+  @override
+  String get ownerShiftCancelCta => 'Cancel';
+
+  @override
+  String get ownerShiftSaveCta => 'Save Shift';
+
+  @override
+  String get ownerShiftSaveSuccess => 'Shift saved successfully';
+
+  @override
+  String get ownerShiftSaveError => 'Could not save shift';
+
+  @override
+  String get ownerShiftPreviewTitleFallback => 'Shift Preview';
+
+  @override
+  String get ownerShiftValidationNameRequired => 'Shift name is required.';
+
+  @override
+  String get ownerShiftValidationNameLength =>
+      'Shift name must be 30 characters or less.';
+
+  @override
+  String get ownerShiftValidationTimeRequired =>
+      'Start and end time are required for working shifts.';
+
+  @override
+  String get ownerShiftValidationDurationPositive =>
+      'Shift duration must be greater than zero.';
+
+  @override
+  String get ownerShiftValidationDurationMax =>
+      'Shift duration must be 16 hours or less.';
+
+  @override
+  String get ownerShiftValidationBreakMin =>
+      'Break minutes cannot be negative.';
+
+  @override
+  String get ownerShiftValidationBreakMax =>
+      'Break minutes must be less than shift duration.';
+
+  @override
+  String get ownerShiftValidationDefaultRequired =>
+      'At least one shift template must be set as default.';
+
+  @override
+  String get ownerWeeklyShiftsTitle => 'Weekly Shifts';
+
+  @override
+  String get ownerWeeklyShiftsSubtitle => 'Manage team schedule';
+
+  @override
+  String get ownerWeeklyShiftsThisWeek => 'This Week';
+
+  @override
+  String get ownerWeeklyShiftsNextWeek => 'Next Week';
+
+  @override
+  String get ownerWeeklyShiftsApplyToMonth => 'Apply to Month';
+
+  @override
+  String get ownerWeeklyShiftsTemplatesStripTitle => 'Drag a shift onto a day';
+
+  @override
+  String get ownerWeeklyShiftsDragStripBody => 'Drag a shift\nonto a day';
+
+  @override
+  String get ownerWeeklyShiftsTipCardBody =>
+      'Tap a cell to mark off, assign a different shift, or remove the current assignment.';
+
+  @override
+  String get ownerShiftsTemplatesReorder => 'Reorder';
+
+  @override
+  String get ownerWeeklyShiftsNoTemplates => 'Create shift templates first';
+
+  @override
+  String get ownerWeeklyShiftsNoEmployees => 'Add employees first';
+
+  @override
+  String get ownerWeeklyShiftsLoadError =>
+      'Could not load weekly schedule data';
+
+  @override
+  String get ownerWeeklyShiftsEmptyCell => '+';
+
+  @override
+  String get ownerWeeklyShiftsEmployeesHeader => 'Employees';
+
+  @override
+  String get ownerWeeklyShiftsMarkOffAction => 'Mark Off';
+
+  @override
+  String get ownerWeeklyShiftsRemoveAssignmentAction => 'Remove assignment';
+
+  @override
+  String get ownerWeeklyShiftsAssignAction => 'Assign';
+
+  @override
+  String get ownerApplyScheduleSectionTarget => 'Apply this plan to';
+
+  @override
+  String get ownerApplyScheduleTitle => 'Apply Schedule';
+
+  @override
+  String get ownerApplyScheduleSubtitle => 'Repeat this weekly plan';
+
+  @override
+  String get ownerApplyScheduleOptionThisWeek => 'This Week Only';
+
+  @override
+  String get ownerApplyScheduleOptionRemainingMonth =>
+      'Remaining Weeks of This Month';
+
+  @override
+  String get ownerApplyScheduleOptionRemainingMonthSubtitle =>
+      'Apply from this week to the end of the month';
+
+  @override
+  String get ownerApplyScheduleOptionCustomRange => 'Custom Date Range';
+
+  @override
+  String get ownerApplyScheduleSelectCustomRange =>
+      'Select start and end dates';
+
+  @override
+  String get ownerApplyScheduleCalendarPreview => 'Calendar Preview';
+
+  @override
+  String get ownerApplyScheduleRepeatEveryWeek => 'Repeat every week';
+
+  @override
+  String get ownerApplyScheduleSkipExistingAssignments =>
+      'Skip existing assignments';
+
+  @override
+  String get ownerApplyScheduleIncludeOffDays => 'Include off days';
+
+  @override
+  String get ownerApplyScheduleInfoCard =>
+      'Applying this schedule will update employee roster for selected dates.';
+
+  @override
+  String get ownerApplyScheduleCta => 'Apply Schedule';
+
+  @override
+  String get ownerApplyScheduleSuccessTitle => 'Schedule applied successfully';
+
+  @override
+  String ownerApplyScheduleSuccessBody(int writes, int skipped) {
+    return 'Created/updated $writes schedules. Skipped $skipped existing schedules.';
+  }
+
+  @override
+  String get ownerApplyScheduleOk => 'OK';
+
+  @override
+  String ownerApplySchedulePreviewSummary(int assignments, int offDays) {
+    return 'Assignments: $assignments • Off days: $offDays';
+  }
+
+  @override
+  String get zuranoDiscoverGuestName => 'Guest';
+
+  @override
+  String get zuranoHomeHeadlineLine1 => 'Where self-care';
+
+  @override
+  String get zuranoHomeHeadlineLine2Prefix => 'meets ';
+
+  @override
+  String get zuranoHomeHeadlineHighlight => 'style';
+
+  @override
+  String get zuranoHomeLocationLoading => 'Finding location…';
+
+  @override
+  String get zuranoHomeLocationUnavailable => 'Location unavailable';
+
+  @override
+  String get zuranoHomeLocationNearYou => 'Near you';
+
+  @override
+  String zuranoHomeLocationCityCountry(String city, String country) {
+    return '$city, $country';
+  }
+
+  @override
+  String get zuranoDiscoverSomethingWrong => 'Something went wrong';
+
+  @override
+  String get zuranoDiscoverRecommendedTitle => 'Recommended for you';
+
+  @override
+  String get zuranoDiscoverSeeAll => 'See all';
+
+  @override
+  String get zuranoDiscoverExploreAll => 'Explore all';
+
+  @override
+  String get zuranoDiscoverFiltersLabel => 'Filters';
+
+  @override
+  String get zuranoDiscoverFiltersComingSoon =>
+      'Saved filters arrive in a future update.';
+
+  @override
+  String get zuranoDiscoverSearchHint => 'Search salons, services, areas...';
+
+  @override
+  String get zuranoRewardsBannerTitle => 'Glow more, pay less ✨';
+
+  @override
+  String get zuranoRewardsBannerSubtitle =>
+      'Earn points on every booking and unlock exclusive rewards.';
+
+  @override
+  String get zuranoRewardsBannerCta => 'View offers';
+
+  @override
+  String get zuranoTrendingServicesTitle => 'Services trending now';
+
+  @override
+  String get zuranoNearbyTitle => 'Nearby salons';
+
+  @override
+  String get zuranoNearbyViewMap => 'View map';
+
+  @override
+  String get zuranoNearbyMapSnack => 'Map view arrives in a future update.';
+
+  @override
+  String get zuranoNearbyBookNow => 'Book now';
+
+  @override
+  String zuranoNearbyLocationLineKm(String cityCountry, String kmFormatted) {
+    return '$cityCountry • $kmFormatted km';
+  }
+
+  @override
+  String zuranoNearbyKilometersOnly(String kmFormatted) {
+    return '$kmFormatted km';
+  }
+
+  @override
+  String zuranoNearbyLocationTwoParts(String first, String second) {
+    return '$first • $second';
+  }
+
+  @override
+  String get zuranoBottomNavHome => 'Home';
+
+  @override
+  String get zuranoBottomNavBookings => 'Bookings';
+
+  @override
+  String get zuranoBottomNavRewards => 'Rewards';
+
+  @override
+  String get zuranoBottomNavProfile => 'Profile';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryAll => 'All';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryHair => 'Hair';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryNails => 'Nails';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryBeauty => 'Beauty';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryBarbers => 'Barbers';
+
+  @override
+  String get zuranoDiscoverFallbackCategorySpa => 'Spa';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryMakeup => 'Makeup';
+
+  @override
+  String get zuranoDiscoverIndexBuildingMessage =>
+      'We are preparing salon data. Please try again shortly.';
+
+  @override
+  String get zuranoDiscoverSectionLoadFailed =>
+      'Unable to load this section. Please try again.';
+
+  @override
+  String get zuranoDiscoverRecommendedEmpty => 'No recommended salons yet';
+
+  @override
+  String get zuranoDiscoverTrendingServicesEmpty => 'No trending services yet';
+
+  @override
+  String zuranoDiscoverNearbyEmptyInCountry(String countryName) {
+    return 'No salons available in $countryName yet';
+  }
+
+  @override
+  String get estimatedPayout => 'Estimated payout';
+
+  @override
+  String get commission => 'Commission';
+
+  @override
+  String get services => 'Services';
+
+  @override
+  String get addBonus => 'Add bonus';
+
+  @override
+  String get addDeduction => 'Add deduction';
+
+  @override
+  String get generatePayslip => 'Generate payslip';
+
+  @override
+  String get reverseLastPayrollMonth => 'Reverse last payroll month';
+
+  @override
+  String get fixedCommissionAmount => 'Fixed commission amount';
+
+  @override
+  String get earningsBreakdown => 'Earnings breakdown';
+
+  @override
+  String get servicesRevenue => 'Services revenue';
+
+  @override
+  String get commissionToday => 'Commission today';
+
+  @override
+  String get commissionThisMonth => 'Commission this month';
+
+  @override
+  String get bonuses => 'Bonuses';
+
+  @override
+  String get deductions => 'Deductions';
+
+  @override
+  String get payrollFormula => 'Payroll formula';
+
+  @override
+  String get payrollHistory => 'Payroll history';
+
+  @override
+  String get noPayrollRecordsYet => 'No payroll records yet';
+
+  @override
+  String get generatedPayslipsWillAppearHere =>
+      'Generated payslips will appear here.';
+
+  @override
+  String get generateFirstPayslip => 'Generate first payslip';
+
+  @override
+  String get payrollLocked => 'Payroll locked';
+
+  @override
+  String get payrollPaidLockedMessage =>
+      'This payroll is already paid and can no longer be edited.';
+
+  @override
+  String get payrollPayslipGeneratedLockedMessage =>
+      'A payslip was generated for this month. Use Reverse last payroll month to edit or delete adjustments, then regenerate if needed.';
+
+  @override
+  String get employeeInactivePayrollMessage =>
+      'This employee is inactive/frozen, so payroll actions are disabled.';
+
+  @override
+  String get addPayrollAdjustment => 'Add payroll adjustment';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get elementName => 'Element name';
+
+  @override
+  String get notRecurring => 'Not recurring';
+
+  @override
+  String get recurringOneYear => 'Recurring (until removed)';
+
+  @override
+  String get deletePayrollElementTitle => 'Delete payroll element?';
+
+  @override
+  String deletePayrollElementMessage(String name) {
+    return 'Remove \"$name\" from payroll elements? Recurring items will stop for future months.';
+  }
+
+  @override
+  String get keepElement => 'Keep';
+
+  @override
+  String get deleteElement => 'Delete';
+
+  @override
+  String get payrollElementDeleted => 'Payroll element deleted.';
+
+  @override
+  String get payrollAdjustmentDeleteNoneMatched =>
+      'Could not remove that adjustment (nothing matched in the database). Pull to refresh and try again.';
+
+  @override
+  String get reverseLastPayrollMonthTitle => 'Reverse last payroll month?';
+
+  @override
+  String get reverseLastPayrollMonthMessage =>
+      'This will mark the latest payroll month as reversed. You can regenerate it if needed.';
+
+  @override
+  String get reversePayrollMonthSuccess =>
+      'Last payroll month reversed successfully.';
+
+  @override
+  String get reason => 'Reason';
+
+  @override
+  String get noteOptional => 'Note (optional)';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get bonusAddedSuccessfully => 'Bonus added successfully.';
+
+  @override
+  String get deductionAddedSuccessfully => 'Deduction added successfully.';
+
+  @override
+  String get payslipGeneratedSuccessfully => 'Payslip generated successfully.';
+
+  @override
+  String get payrollLoadFailed => 'Failed to load payroll.';
+
+  @override
+  String get payrollHistoryLoadFailed => 'Failed to load payroll history.';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get updatePayrollAdjustment => 'Update payroll adjustment';
+
+  @override
+  String get payrollElementUpdated => 'Payroll element updated.';
+
+  @override
+  String get update => 'Update';
 }

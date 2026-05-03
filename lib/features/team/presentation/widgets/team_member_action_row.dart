@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 
+import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
+
 class TeamMemberActionRow extends StatelessWidget {
   const TeamMemberActionRow({
     super.key,
     required this.canContact,
-    required this.canBook,
     required this.callLabel,
     required this.whatsappLabel,
-    required this.bookingLabel,
     required this.onCall,
     required this.onWhatsApp,
-    required this.onAddBooking,
+    this.canBook = true,
+    this.bookingLabel,
+    this.onAddBooking,
+    this.showBookingAction = true,
   });
 
   final bool canContact;
   final bool canBook;
   final String callLabel;
   final String whatsappLabel;
-  final String bookingLabel;
+  final String? bookingLabel;
   final VoidCallback onCall;
   final VoidCallback onWhatsApp;
-  final VoidCallback onAddBooking;
+  final VoidCallback? onAddBooking;
+  final bool showBookingAction;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Row(
       children: [
         Expanded(
@@ -33,7 +35,6 @@ class TeamMemberActionRow extends StatelessWidget {
             icon: Icons.phone_rounded,
             label: callLabel,
             enabled: canContact,
-            accent: scheme.primary,
             onTap: onCall,
           ),
         ),
@@ -43,20 +44,20 @@ class TeamMemberActionRow extends StatelessWidget {
             icon: Icons.chat_rounded,
             label: whatsappLabel,
             enabled: canContact,
-            accent: scheme.primary,
             onTap: onWhatsApp,
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.event_available_rounded,
-            label: bookingLabel,
-            enabled: canBook,
-            accent: scheme.primary,
-            onTap: onAddBooking,
+        if (showBookingAction) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: _ActionButton(
+              icon: Icons.event_available_rounded,
+              label: bookingLabel ?? '',
+              enabled: canBook,
+              onTap: onAddBooking ?? () {},
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -67,21 +68,18 @@ class _ActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.enabled,
-    required this.accent,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool enabled;
-  final Color accent;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final color = enabled ? accent : scheme.outline;
 
     return Material(
       color: scheme.surface,
@@ -96,7 +94,7 @@ class _ActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: enabled
-                  ? accent.withValues(alpha: 0.28)
+                  ? TeamMemberProfileColors.border.withValues(alpha: 0.65)
                   : scheme.outlineVariant,
             ),
             boxShadow: [
@@ -110,7 +108,28 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: color, size: 22),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: enabled
+                      ? TeamMemberProfileColors.softPurple
+                      : scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: enabled
+                        ? TeamMemberProfileColors.border.withValues(alpha: 0.65)
+                        : scheme.outlineVariant,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: enabled
+                      ? TeamMemberProfileColors.primary
+                      : scheme.outline,
+                  size: 22,
+                ),
+              ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(

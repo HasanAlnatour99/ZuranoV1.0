@@ -7,9 +7,12 @@ class AttendanceCorrectionRequestModel {
     required this.employeeId,
     required this.employeeName,
     required this.attendanceId,
+    required this.attendanceDayId,
     required this.attendanceDate,
     required this.dateKey,
     required this.requestType,
+    required this.requestedPunchType,
+    required this.requestedPunchTime,
     required this.requestedCheckInAt,
     required this.requestedCheckOutAt,
     required this.reason,
@@ -21,10 +24,21 @@ class AttendanceCorrectionRequestModel {
   final String salonId;
   final String employeeId;
   final String employeeName;
+
+  /// Legacy `salons/.../attendance/{id}` doc id when present.
   final String attendanceId;
+
+  /// Employee day id (`{dateKey}_{employeeId}`) for punch-based corrections.
+  final String attendanceDayId;
+
   final String attendanceDate;
   final int dateKey;
   final String requestType;
+
+  /// `AttendancePunchType.name` from employee correction requests.
+  final String requestedPunchType;
+  final DateTime? requestedPunchTime;
+
   final DateTime? requestedCheckInAt;
   final DateTime? requestedCheckOutAt;
   final String reason;
@@ -46,9 +60,29 @@ class AttendanceCorrectionRequestModel {
     final int dateKeyParsed = switch (dateKeyRaw) {
       int v => v,
       num v => v.toInt(),
-      String v => int.tryParse(v.replaceAll('-', '')) ?? 0,
+      String v => int.tryParse(v.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
       _ => 0,
     };
+
+    final attendanceDayId = data['attendanceDayId']?.toString() ?? '';
+    final requestedPunchType = data['requestedPunchType']?.toString() ?? '';
+    final requestedPunchTime = readTimestamp('requestedPunchTime');
+
+    var attendanceDate = data['attendanceDate']?.toString() ?? '';
+    if (attendanceDate.isEmpty &&
+        dateKeyRaw is String &&
+        dateKeyRaw.length == 8 &&
+        RegExp(r'^\d{8}$').hasMatch(dateKeyRaw)) {
+      attendanceDate =
+          '${dateKeyRaw.substring(0, 4)}-${dateKeyRaw.substring(4, 6)}-${dateKeyRaw.substring(6, 8)}';
+    }
+    if (attendanceDate.isEmpty && dateKeyParsed > 0) {
+      final s = dateKeyParsed.toString().padLeft(8, '0');
+      if (s.length == 8) {
+        attendanceDate =
+            '${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6, 8)}';
+      }
+    }
 
     return AttendanceCorrectionRequestModel(
       id: doc.id,
@@ -56,9 +90,12 @@ class AttendanceCorrectionRequestModel {
       employeeId: data['employeeId']?.toString() ?? '',
       employeeName: data['employeeName']?.toString() ?? '',
       attendanceId: data['attendanceId']?.toString() ?? '',
-      attendanceDate: data['attendanceDate']?.toString() ?? '',
+      attendanceDayId: attendanceDayId,
+      attendanceDate: attendanceDate,
       dateKey: dateKeyParsed,
       requestType: data['requestType']?.toString() ?? '',
+      requestedPunchType: requestedPunchType,
+      requestedPunchTime: requestedPunchTime,
       requestedCheckInAt: readTimestamp('requestedCheckInAt'),
       requestedCheckOutAt: readTimestamp('requestedCheckOutAt'),
       reason: data['reason']?.toString() ?? '',

@@ -1,193 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
+import '../../../attendance/presentation/attendance_adjustment_form_state.dart';
+import '../../../attendance/presentation/widgets/attendance_adjustment_sheet.dart';
+import '../../application/team_member_attendance_providers.dart';
 import '../../data/models/attendance_record_model.dart';
+import 'team_member_attendance_history_row.dart';
 
-class RecentAttendanceHistoryCard extends StatelessWidget {
+class RecentAttendanceHistoryCard extends ConsumerWidget {
   const RecentAttendanceHistoryCard({
     super.key,
     required this.records,
     required this.emptyMessage,
+    required this.canManageAttendance,
+    required this.salonId,
+    required this.employeeId,
+    required this.employeeName,
+    required this.args,
   });
 
   final List<AttendanceRecordModel> records;
   final String emptyMessage;
+  final bool canManageAttendance;
+  final String salonId;
+  final String employeeId;
+  final String employeeName;
+  final TeamMemberAttendanceArgs args;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toString();
     final timeFormat = DateFormat.jm(localeTag);
     final dateFormat = DateFormat.yMMMEd(localeTag);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: TeamMemberProfileColors.card,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: TeamMemberProfileColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: ZuranoTokens.surface,
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusSection),
+        border: Border.all(color: ZuranoTokens.sectionBorder),
+        boxShadow: ZuranoTokens.sectionShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(
-                Icons.history_rounded,
-                color: TeamMemberProfileColors.primary,
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: ZuranoTokens.lightPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.history_rounded,
+                  color: ZuranoTokens.primary,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   l10n.teamMemberAttendanceHistoryTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: TeamMemberProfileColors.textPrimary,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: ZuranoTokens.textDark,
                   ),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // Full history route can be wired when a dedicated screen exists.
-                },
-                child: Text(l10n.teamMemberAttendanceViewAll),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => context.push(
+                    AppRoutes.ownerTeamMemberAttendanceHistory(employeeId),
+                  ),
+                  borderRadius: BorderRadius.circular(ZuranoTokens.radiusButton),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                      shaderCallback: (bounds) =>
+                          ZuranoTokens.primaryGradient.createShader(bounds),
+                      child: Text(
+                        l10n.teamMemberAttendanceViewAll,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           if (records.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 26),
               child: Text(
                 emptyMessage,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: TeamMemberProfileColors.textSecondary,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: ZuranoTokens.textGray,
+                  height: 1.35,
                 ),
               ),
             )
           else
             ...records.map(
-              (record) => _AttendanceHistoryTile(
+              (record) => TeamMemberAttendanceHistoryRow(
                 record: record,
                 dateFormat: dateFormat,
                 timeFormat: timeFormat,
+                canOpenAdjustment: canManageAttendance,
+                onOpenAdjustment: () async {
+                  final day = record.attendanceCalendarDay();
+                  if (day == null) return;
+                  final ok = await AttendanceAdjustmentSheet.open(
+                    context,
+                    params: AttendanceAdjustmentParams(
+                      salonId: salonId,
+                      employeeId: employeeId,
+                      attendanceDate: day,
+                      employeeDisplayName: employeeName,
+                    ),
+                    prefillAttendancePayload:
+                        record.toAttendanceAdjustmentPrefillPayload(),
+                  );
+                  if (ok != true || !context.mounted) return;
+                  ref.invalidate(todayAttendanceProvider(args));
+                  ref.invalidate(recentAttendanceProvider(args));
+                  ref.invalidate(attendanceSummaryProvider(args));
+                },
               ),
             ),
         ],
       ),
     );
-  }
-}
-
-class _AttendanceHistoryTile extends StatelessWidget {
-  const _AttendanceHistoryTile({
-    required this.record,
-    required this.dateFormat,
-    required this.timeFormat,
-  });
-
-  final AttendanceRecordModel record;
-  final DateFormat dateFormat;
-  final DateFormat timeFormat;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final parsed = DateTime.tryParse(record.attendanceDate);
-    final dateLabel = parsed != null
-        ? dateFormat.format(parsed.toLocal())
-        : record.attendanceDate;
-
-    final statusLabel = _statusLabel(l10n, record.status);
-    final statusColor = _statusColor(record.status);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: TeamMemberProfileColors.softPurple.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.calendar_today_rounded,
-            color: TeamMemberProfileColors.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              dateLabel,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w800),
-            ),
-          ),
-          Flexible(
-            child: Text(
-              '${_formatTime(record.checkInAt, timeFormat)} · ${_formatTime(record.checkOutAt, timeFormat)}',
-              textAlign: TextAlign.end,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: TeamMemberProfileColors.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              statusLabel,
-              style: TextStyle(
-                color: statusColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _formatTime(DateTime? value, DateFormat timeFormat) {
-    if (value == null) return '--:--';
-    return timeFormat.format(value.toLocal());
-  }
-
-  static String _statusLabel(AppLocalizations l10n, String status) {
-    return switch (status) {
-      'present' => l10n.teamMemberAttendanceRecordStatusPresent,
-      'late' => l10n.teamMemberAttendanceRecordStatusLate,
-      'incomplete' => l10n.teamMemberAttendanceRecordStatusIncomplete,
-      'manual' => l10n.teamMemberAttendanceRecordStatusManual,
-      'absent' => l10n.teamMemberAttendanceRecordStatusAbsent,
-      _ => status,
-    };
-  }
-
-  static Color _statusColor(String status) {
-    return switch (status) {
-      'present' => const Color(0xFF16A34A),
-      'late' => const Color(0xFFF97316),
-      'incomplete' => const Color(0xFFF59E0B),
-      'manual' => TeamMemberProfileColors.primary,
-      'absent' => const Color(0xFFDC2626),
-      _ => TeamMemberProfileColors.textSecondary,
-    };
   }
 }

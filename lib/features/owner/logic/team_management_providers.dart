@@ -10,14 +10,35 @@ import '../../../providers/repository_providers.dart';
 import '../../../providers/salon_streams_provider.dart';
 import '../../../providers/session_provider.dart';
 
-enum TeamFilter { all, active, checkedIn, inactive, topSellers, needsAttention }
+enum TeamFilter {
+  all,
+  active,
+  checkedIn,
+  inactive,
+  topSellers,
+  needsAttention,
+  topServices,
+  topPerformance,
+}
 
 enum TeamMemberStatus { active, checkedIn, late, inactive }
+
+/// Owner team list ordering when the active [TeamFilter] does not define order.
+enum TeamSort {
+  nameAsc,
+  nameDesc,
+  roleThenName,
+  joinedNewest,
+  joinedOldest,
+  salesTodayHigh,
+  salesMonthHigh,
+}
 
 class TeamSummaryData {
   const TeamSummaryData({
     required this.totalBarbers,
     required this.checkedInToday,
+    required this.workingNow,
     required this.salesToday,
     required this.commissionToday,
     required this.totalMembers,
@@ -26,6 +47,8 @@ class TeamSummaryData {
 
   final int totalBarbers;
   final int checkedInToday;
+  /// Checked in and not checked out (or on break); matches [TeamAnalyticsData.workingNow].
+  final int workingNow;
   final double salesToday;
   final double commissionToday;
   final int totalMembers;
@@ -196,15 +219,11 @@ class _TeamSourceData {
     required this.employees,
     required this.sales,
     required this.attendanceToday,
-    required this.payroll,
-    required this.services,
   });
 
   final List<Employee> employees;
   final List<Sale> sales;
   final List<AttendanceRecord> attendanceToday;
-  final List<PayrollRecord> payroll;
-  final List<SalonService> services;
 }
 
 class TeamFilterNotifier extends Notifier<TeamFilter> {
@@ -221,6 +240,13 @@ class TeamSearchQueryNotifier extends Notifier<String> {
   void setQuery(String value) => state = value;
 }
 
+class TeamSortNotifier extends Notifier<TeamSort> {
+  @override
+  TeamSort build() => TeamSort.nameAsc;
+
+  void setSort(TeamSort sort) => state = sort;
+}
+
 final teamFilterProvider =
     NotifierProvider.autoDispose<TeamFilterNotifier, TeamFilter>(
       TeamFilterNotifier.new,
@@ -231,12 +257,21 @@ final teamSearchQueryProvider =
       TeamSearchQueryNotifier.new,
     );
 
+final teamSortProvider =
+    NotifierProvider.autoDispose<TeamSortNotifier, TeamSort>(
+      TeamSortNotifier.new,
+    );
+
 final teamSummaryProvider = Provider<AsyncValue<TeamSummaryData>>((ref) {
   final source = ref.watch(_teamSourceDataProvider);
   return source.whenData((data) {
     final members = _staffMembers(data.employees);
     final attendanceByEmployee = _attendanceByEmployee(data.attendanceToday);
     final salesToday = _salesForToday(data.sales);
+    final workingNow = members.where((employee) {
+      final attendance = attendanceByEmployee[employee.id];
+      return attendance?.countsAsWorkingOnSalon ?? false;
+    }).length;
     return TeamSummaryData(
       totalBarbers: members
           .where((employee) => employee.role == UserRoles.barber)
@@ -246,6 +281,7 @@ final teamSummaryProvider = Provider<AsyncValue<TeamSummaryData>>((ref) {
             (employee) => attendanceByEmployee[employee.id]?.checkInAt != null,
           )
           .length,
+      workingNow: workingNow,
       salesToday: salesToday.fold<double>(0, (sum, sale) => sum + sale.total),
       commissionToday: salesToday.fold<double>(
         0,
@@ -258,7 +294,7 @@ final teamSummaryProvider = Provider<AsyncValue<TeamSummaryData>>((ref) {
             (employee) =>
                 employee.isActive &&
                 employee.attendanceRequired &&
-                attendanceByEmployee[employee.id]?.checkInAt == null,
+                attendanceByEmployee[employee.id] == null,
           )
           .length,
     );
@@ -273,7 +309,7 @@ final teamAnalyticsProvider = Provider<AsyncValue<TeamAnalyticsData>>((ref) {
     final attendanceByEmployee = _attendanceByEmployee(data.attendanceToday);
     final workingNow = members.where((employee) {
       final attendance = attendanceByEmployee[employee.id];
-      return attendance?.checkInAt != null && attendance?.checkOutAt == null;
+      return attendance?.countsAsWorkingOnSalon ?? false;
     }).length;
     final absentToday = members
         .where(
@@ -374,6 +410,7 @@ final filteredTeamBarberCardsProvider =
     Provider<AsyncValue<List<TeamBarberCardData>>>((ref) {
       final cardsAsync = ref.watch(teamBarberCardsProvider);
       final filter = ref.watch(teamFilterProvider);
+      final sort = ref.watch(teamSortProvider);
       final query = ref.watch(teamSearchQueryProvider).trim().toLowerCase();
       return cardsAsync.whenData((cards) {
         final filtered = cards
@@ -383,10 +420,13 @@ final filteredTeamBarberCardsProvider =
                 TeamFilter.active =>
                   card.employee.isActive &&
                       card.status != TeamMemberStatus.inactive,
-                TeamFilter.checkedIn => card.todayAttendance?.checkInAt != null,
+                TeamFilter.checkedIn =>
+                  card.todayAttendance?.countsAsWorkingOnSalon ?? false,
                 TeamFilter.inactive => card.status == TeamMemberStatus.inactive,
                 TeamFilter.topSellers => card.isTopSeller,
                 TeamFilter.needsAttention => card.needsAttention,
+                TeamFilter.topServices => card.monthlyMetrics.servicesMonth > 0,
+                TeamFilter.topPerformance => card.monthlyMetrics.salesMonth > 0,
               };
               if (!matchesFilter) {
                 return false;
@@ -398,11 +438,48 @@ final filteredTeamBarberCardsProvider =
             })
             .toList(growable: false);
 
-        if (filter == TeamFilter.topSellers) {
-          filtered.sort(
-            (a, b) =>
-                b.todayMetrics.salesToday.compareTo(a.todayMetrics.salesToday),
-          );
+        switch (filter) {
+          case TeamFilter.topSellers:
+            filtered.sort(
+              (a, b) =>
+                  b.todayMetrics.salesToday.compareTo(a.todayMetrics.salesToday),
+            );
+            break;
+          case TeamFilter.topServices:
+            filtered.sort(
+              (a, b) => b.monthlyMetrics.servicesMonth.compareTo(
+                a.monthlyMetrics.servicesMonth,
+              ),
+            );
+            break;
+          case TeamFilter.topPerformance:
+            filtered.sort((a, b) {
+              final salesCompare = b.monthlyMetrics.salesMonth.compareTo(
+                a.monthlyMetrics.salesMonth,
+              );
+              if (salesCompare != 0) {
+                return salesCompare;
+              }
+              final servicesCompare = b.monthlyMetrics.servicesMonth.compareTo(
+                a.monthlyMetrics.servicesMonth,
+              );
+              if (servicesCompare != 0) {
+                return servicesCompare;
+              }
+              return b.monthlyMetrics.commissionMonth.compareTo(
+                a.monthlyMetrics.commissionMonth,
+              );
+            });
+            break;
+          case TeamFilter.all:
+          case TeamFilter.active:
+          case TeamFilter.checkedIn:
+          case TeamFilter.inactive:
+          case TeamFilter.needsAttention:
+            break;
+        }
+        if (!_teamFilterUsesBuiltinSort(filter)) {
+          _sortTeamBarberCards(filtered, sort);
         }
         return filtered;
       });
@@ -567,17 +644,13 @@ final _teamSourceDataProvider = Provider<AsyncValue<_TeamSourceData>>((ref) {
   final employeesAsync = ref.watch(employeesStreamProvider);
   final salesAsync = ref.watch(salesStreamProvider);
   final attendanceAsync = ref.watch(salonAttendanceTodayStreamProvider);
-  final payrollAsync = ref.watch(payrollStreamProvider);
-  final servicesAsync = ref.watch(servicesStreamProvider);
 
   return _combineAsyncValues<_TeamSourceData>(
-    [employeesAsync, salesAsync, attendanceAsync, payrollAsync, servicesAsync],
+    [employeesAsync, salesAsync, attendanceAsync],
     () => _TeamSourceData(
       employees: employeesAsync.requireValue,
       sales: salesAsync.requireValue,
       attendanceToday: attendanceAsync.requireValue,
-      payroll: payrollAsync.requireValue,
-      services: servicesAsync.requireValue,
     ),
   );
 });
@@ -818,4 +891,96 @@ bool _isInCurrentMonthPayroll(PayrollRecord record) {
 
 extension _IterableFirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
+}
+
+/// Prefer [Employee.hiredAt], then [Employee.createdAt], for team ordering.
+DateTime _employeeTenureSortKey(Employee e) {
+  final hire = e.hiredAt;
+  if (hire != null) {
+    return hire;
+  }
+  final created = e.createdAt;
+  if (created != null) {
+    return created;
+  }
+  return DateTime.fromMillisecondsSinceEpoch(0);
+}
+
+bool _teamFilterUsesBuiltinSort(TeamFilter filter) {
+  return switch (filter) {
+    TeamFilter.topSellers ||
+    TeamFilter.topServices ||
+    TeamFilter.topPerformance =>
+      true,
+    TeamFilter.all ||
+    TeamFilter.active ||
+    TeamFilter.checkedIn ||
+    TeamFilter.inactive ||
+    TeamFilter.needsAttention =>
+      false,
+  };
+}
+
+void _sortTeamBarberCards(List<TeamBarberCardData> list, TeamSort sort) {
+  int roleRank(String role) {
+    if (role == UserRoles.admin) {
+      return 0;
+    }
+    if (role == UserRoles.barber) {
+      return 1;
+    }
+    return 2;
+  }
+
+  int nameCompare(TeamBarberCardData a, TeamBarberCardData b) =>
+      a.employee.name.toLowerCase().compareTo(b.employee.name.toLowerCase());
+
+  int compare(TeamBarberCardData a, TeamBarberCardData b) {
+    switch (sort) {
+      case TeamSort.nameAsc:
+        return nameCompare(a, b);
+      case TeamSort.nameDesc:
+        return nameCompare(b, a);
+      case TeamSort.roleThenName:
+        final r = roleRank(a.employee.role).compareTo(
+          roleRank(b.employee.role),
+        );
+        if (r != 0) {
+          return r;
+        }
+        return nameCompare(a, b);
+      case TeamSort.joinedNewest:
+        final ad = _employeeTenureSortKey(a.employee);
+        final bd = _employeeTenureSortKey(b.employee);
+        final c = bd.compareTo(ad);
+        if (c != 0) {
+          return c;
+        }
+        return nameCompare(a, b);
+      case TeamSort.joinedOldest:
+        final ad = _employeeTenureSortKey(a.employee);
+        final bd = _employeeTenureSortKey(b.employee);
+        final c = ad.compareTo(bd);
+        if (c != 0) {
+          return c;
+        }
+        return nameCompare(a, b);
+      case TeamSort.salesTodayHigh:
+        final c = b.todayMetrics.salesToday.compareTo(a.todayMetrics.salesToday);
+        if (c != 0) {
+          return c;
+        }
+        return nameCompare(a, b);
+      case TeamSort.salesMonthHigh:
+        final c = b.monthlyMetrics.salesMonth.compareTo(
+          a.monthlyMetrics.salesMonth,
+        );
+        if (c != 0) {
+          return c;
+        }
+        return nameCompare(a, b);
+    }
+  }
+
+  list.sort(compare);
 }

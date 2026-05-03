@@ -15,6 +15,15 @@ _PayrollRunModel _$PayrollRunModelFromJson(Map<String, dynamic> json) =>
       employeeName: nullableLooseStringFromJson(json['employeeName']),
       year: json['year'] == null ? 0 : looseIntFromJson(json['year']),
       month: json['month'] == null ? 0 : looseIntFromJson(json['month']),
+      periodGranularity: json['periodGranularity'] == null
+          ? PayrollRunPeriodGranularities.monthly
+          : _periodGranularityFromJson(json['periodGranularity']),
+      isoWeekYear: json['isoWeekYear'] == null
+          ? 0
+          : looseIntFromJson(json['isoWeekYear']),
+      isoWeekNumber: json['isoWeekNumber'] == null
+          ? 0
+          : looseIntFromJson(json['isoWeekNumber']),
       status: json['status'] == null
           ? PayrollRunStatuses.draft
           : _statusFromJson(json['status']),
@@ -38,6 +47,12 @@ _PayrollRunModel _$PayrollRunModelFromJson(Map<String, dynamic> json) =>
       paidAt: nullableFirestoreDateTimeFromJson(json['paidAt']),
       paidBy: nullableLooseStringFromJson(json['paidBy']),
       updatedAt: nullableFirestoreDateTimeFromJson(json['updatedAt']),
+      payrollWindowStartUtc: nullableFirestoreDateTimeFromJson(
+        json['payrollWindowStartUtc'],
+      ),
+      payrollWindowEndUtc: nullableFirestoreDateTimeFromJson(
+        json['payrollWindowEndUtc'],
+      ),
     );
 
 Map<String, dynamic> _$PayrollRunModelToJson(_PayrollRunModel instance) =>
@@ -49,6 +64,9 @@ Map<String, dynamic> _$PayrollRunModelToJson(_PayrollRunModel instance) =>
       'employeeName': instance.employeeName,
       'year': instance.year,
       'month': instance.month,
+      'periodGranularity': instance.periodGranularity,
+      'isoWeekYear': instance.isoWeekYear,
+      'isoWeekNumber': instance.isoWeekNumber,
       'status': instance.status,
       'totalEarnings': instance.totalEarnings,
       'totalDeductions': instance.totalDeductions,
@@ -62,4 +80,10 @@ Map<String, dynamic> _$PayrollRunModelToJson(_PayrollRunModel instance) =>
       'paidAt': nullableFirestoreDateTimeToJson(instance.paidAt),
       'paidBy': instance.paidBy,
       'updatedAt': nullableFirestoreDateTimeToJson(instance.updatedAt),
+      'payrollWindowStartUtc': nullableFirestoreDateTimeToJson(
+        instance.payrollWindowStartUtc,
+      ),
+      'payrollWindowEndUtc': nullableFirestoreDateTimeToJson(
+        instance.payrollWindowEndUtc,
+      ),
     };

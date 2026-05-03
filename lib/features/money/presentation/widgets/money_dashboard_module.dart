@@ -9,7 +9,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 import '../../logic/money_dashboard_providers.dart';
@@ -20,6 +19,7 @@ import 'finance_quick_actions.dart';
 import 'finance_summary_card.dart';
 import 'finance_top_header.dart';
 import 'sales_expenses_chart_card.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class MoneyDashboardModule extends ConsumerWidget {
   const MoneyDashboardModule({super.key, this.ownerShellHeroEmbedded = false});
@@ -35,9 +35,7 @@ class MoneyDashboardModule extends ConsumerWidget {
     final prevAsync = ref.watch(moneyPreviousMonthSummaryProvider);
     final trendAsync = ref.watch(moneyTrendSeriesProvider);
     final insightsAsync = ref.watch(moneyInsightsProvider);
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final isLoading =
         summaryAsync.isLoading ||
@@ -252,6 +250,15 @@ class _MoneyDashboardLoadedBody extends StatelessWidget {
           expensesTrendColor: expTrend.color,
           payrollTrendColor: payTrend.color,
           netTrendColor: netTrend.color,
+          netProfitIcon: summary.netProfit >= 0
+              ? Icons.trending_up_rounded
+              : Icons.trending_down_rounded,
+          netProfitIconColor: summary.netProfit >= 0
+              ? null
+              : FinanceDashboardColors.expensePink,
+          netProfitIconBackground: summary.netProfit >= 0
+              ? null
+              : FinanceDashboardColors.expensePinkSoft,
           netLossWarning: summary.netProfit < 0
               ? l10n.moneyDashboardNetLossWarning
               : null,
@@ -261,7 +268,6 @@ class _MoneyDashboardLoadedBody extends StatelessWidget {
         SalesExpensesChartCard(
           points: trendPoints,
           title: l10n.moneyDashboardTrendTitle,
-          subtitle: l10n.moneyDashboardTrendSubtitle,
           salesLegend: l10n.moneyDashboardSalesLegend,
           expensesLegend: l10n.moneyDashboardExpensesLegend,
           locale: locale,
@@ -280,7 +286,8 @@ class _MoneyDashboardLoadedBody extends StatelessWidget {
           salesSubtitle: l10n.moneyDashboardQuickSalesBody,
           expensesTitle: l10n.expensesScreenTitle,
           expensesSubtitle: l10n.moneyDashboardQuickExpensesBody,
-          onPayroll: () => context.push(AppRoutes.ownerPayroll),
+          onPayroll: () =>
+              context.push('${AppRoutes.ownerPayroll}?from=finance'),
           onSales: () => context.push(AppRoutes.ownerSales),
           onExpenses: () => context.push(AppRoutes.ownerExpenses),
         ),

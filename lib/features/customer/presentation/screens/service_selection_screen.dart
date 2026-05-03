@@ -9,6 +9,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_availability_providers.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../application/customer_salon_profile_providers.dart';
 import '../../data/models/customer_service_public_model.dart';
@@ -89,9 +90,10 @@ class _ServiceSelectionScreenState
     );
     final draft = ref.watch(customerBookingDraftProvider);
     final selectedIds = draft.selectedServices.map((s) => s.id).toSet();
+    final moneyCode = watchCustomerSalonMoneyCode(ref, widget.salonId);
     final total = formatMoney(
       draft.totalAmount,
-      'QAR',
+      moneyCode,
       Localizations.localeOf(context),
     );
 
@@ -320,6 +322,7 @@ class _ServiceSelectionScreenState
                               SelectableCustomerServiceCard(
                                 service: service,
                                 selected: selectedIds.contains(service.id),
+                                currencyCode: moneyCode,
                                 onTap: () => ref
                                     .read(customerBookingDraftProvider.notifier)
                                     .toggleService(service),

@@ -60,7 +60,8 @@ class EmployeeAttendanceScreen extends ConsumerWidget {
             return ListView.separated(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               itemCount: rows.isEmpty ? 3 : rows.length + 2,
-              separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 12 : 8),
+              separatorBuilder: (_, index) =>
+                  SizedBox(height: index == 0 ? 12 : 8),
               itemBuilder: (context, i) {
                 if (i == 0) {
                   return EmployeeShellHeroHeader(
@@ -69,14 +70,16 @@ class EmployeeAttendanceScreen extends ConsumerWidget {
                     photoUrl: sessionUser?.photoUrl,
                     unreadCount: unread,
                     onTapSettings: () => context.push(AppRoutes.settings),
-                    onTapNotifications: () => context.push(AppRoutes.notifications),
+                    onTapNotifications: () =>
+                        context.push(AppRoutes.notifications),
                   );
                 }
                 if (i == 1) {
                   return Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: TextButton.icon(
-                      onPressed: () => context.push(AppRoutes.employeeAttendanceRequest),
+                      onPressed: () =>
+                          context.push(AppRoutes.employeeAttendanceRequest),
                       icon: const Icon(Icons.edit_calendar_outlined),
                       label: Text(l10n.employeeHistoryRequestCta),
                     ),
@@ -88,7 +91,9 @@ class EmployeeAttendanceScreen extends ConsumerWidget {
                     child: Text(
                       l10n.employeeHistoryEmpty,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: ZuranoPremiumUiColors.textSecondary),
+                      style: TextStyle(
+                        color: ZuranoPremiumUiColors.textSecondary,
+                      ),
                     ),
                   );
                 }

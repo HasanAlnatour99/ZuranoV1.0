@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/booking/availability_schedule.dart';
 import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/booking_status_localized.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_modal_sheet.dart';
@@ -21,6 +22,7 @@ import '../../../services/data/models/service.dart';
 import '../../logic/owner_bookings_notifier.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 bool _sameLocalCalendarDay(DateTime a, DateTime b) {
@@ -114,7 +116,7 @@ class _OwnerBookingDetailsSheetState
           ),
           const SizedBox(height: AppSpacing.small),
           SelectableText(
-            '${l10n.bookingBarber}: ${b.barberName ?? b.barberId}',
+            '${l10n.bookingBarber}: ${(b.barberName?.trim().isNotEmpty == true) ? formatTeamMemberName(b.barberName) : b.barberId}',
           ),
           const SizedBox(height: AppSpacing.small),
           SelectableText('${l10n.bookingService}: ${b.serviceName ?? '—'}'),
@@ -930,7 +932,7 @@ class _OwnerNewBookingSheetState extends ConsumerState<OwnerNewBookingSheet> {
     final localeTag = locale.toString();
     final timeFmt = DateFormat.jm(localeTag);
     final dateFmt = DateFormat.yMMMd(localeTag);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final servicesList = servicesAsync.asData?.value;
     final activeServices = servicesList == null
@@ -1065,7 +1067,7 @@ class _OwnerNewBookingSheetState extends ConsumerState<OwnerNewBookingSheet> {
               children: barbers.map((b) {
                 final selected = _barber?.id == b.id;
                 return ChoiceChip(
-                  label: Text(b.name),
+                  label: TeamMemberNameText(b.name),
                   selected: selected,
                   onSelected: (_) => setState(() {
                     _barber = b;

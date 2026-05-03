@@ -14,6 +14,7 @@ export function serviceToPublicServicePayload(
 ): Record<string, unknown> {
   const nameRaw = `${s.name ?? ""}`.trim();
   const name = nameRaw.length > 0 ? nameRaw : "Service";
+  const nameAr = `${s.nameAr ?? ""}`.trim();
   const displayNameRaw = `${s.displayName ?? ""}`.trim();
   const displayName = displayNameRaw.length > 0 ? displayNameRaw : name;
 
@@ -46,6 +47,7 @@ export function serviceToPublicServicePayload(
   return {
     salonId,
     name,
+    nameAr,
     displayName,
     category,
     categoryLabel,

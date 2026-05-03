@@ -8,12 +8,16 @@ import 'package:barber_shop_app/features/salon/data/models/salon.dart';
 import 'package:barber_shop_app/features/customers/presentation/screens/customers_screen.dart';
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
+import 'package:barber_shop_app/providers/app_settings_providers.dart';
+import 'package:barber_shop_app/providers/notification_providers.dart';
 import 'package:barber_shop_app/providers/salon_streams_provider.dart';
 import 'package:barber_shop_app/providers/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../helpers/create_test_shared_preferences.dart';
 
 MaterialApp _l10nMaterialApp({required Widget home}) => MaterialApp(
   supportedLocales: AppLocalizations.supportedLocales,
@@ -40,6 +44,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith((ref) => Stream.value(_owner())),
           customersListProvider.overrideWith(
             (ref, salonId) => Stream.value([
@@ -68,10 +73,12 @@ void main() {
   }, tags: ['golden']);
 
   testWidgets('golden - Customer Details screen', (tester) async {
+    final prefs = await createTestSharedPreferences();
     await tester.binding.setSurfaceSize(const Size(430, 932));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           sessionUserProvider.overrideWith((ref) => Stream.value(_owner())),
           customerDetailsProvider.overrideWith(
             (ref, args) => Stream.value(

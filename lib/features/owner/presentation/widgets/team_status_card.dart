@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_surface_card.dart';
@@ -316,9 +317,12 @@ class _TeamBarberRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = row.name.isNotEmpty
-        ? row.name.characters.first.toUpperCase()
-        : '?';
+    final displayName = formatTeamMemberName(row.name);
+    final initial = displayName.isNotEmpty
+        ? displayName.characters.first.toUpperCase()
+        : (row.name.trim().isNotEmpty
+            ? row.name.trim().characters.first.toUpperCase()
+            : '?');
     final statusLabel = _statusLabel(l10n, row.status);
     final activity = (row.activityDetail ?? '').trim();
 
@@ -342,7 +346,7 @@ class _TeamBarberRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                TeamMemberNameText(
                   row.name,
                   textAlign: TextAlign.start,
                   style: theme.textTheme.titleSmall?.copyWith(

@@ -18,7 +18,8 @@ import '../../../../providers/notification_providers.dart';
 import '../../../../providers/auth_session_actions.dart';
 import '../../../../providers/session_provider.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
-import '../widgets/owner_bottom_nav_bar.dart';
+import '../../../../shared/navigation/zurano_swipe_shell.dart';
+import '../widgets/owner_zurano_bottom_nav.dart';
 
 Future<void> _toggleDashboardLocale(WidgetRef ref) async {
   final loc = ref.read(appLocalePreferenceProvider);
@@ -127,9 +128,14 @@ class _OwnerAiAssistantAppBarButtonState
 }
 
 class OwnerDashboardScreen extends ConsumerStatefulWidget {
-  const OwnerDashboardScreen({super.key, required this.navigationShell});
+  const OwnerDashboardScreen({
+    super.key,
+    required this.navigationShell,
+    this.branchPages = const <Widget>[],
+  });
 
   final StatefulNavigationShell navigationShell;
+  final List<Widget> branchPages;
 
   @override
   ConsumerState<OwnerDashboardScreen> createState() =>
@@ -284,15 +290,32 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
       ),
     ];
 
+    void goToBranch(int i) {
+      widget.navigationShell.goBranch(
+        i,
+        initialLocation: i == widget.navigationShell.currentIndex,
+      );
+    }
+
+    final ownerBottomNav = OwnerZuranoBottomNav(
+      selectedIndex: widget.navigationShell.currentIndex,
+      onDestinationSelected: goToBranch,
+      onCenterTap: () => _showOwnerShellQuickActions(context),
+    );
+
+    final shellBody = widget.branchPages.isNotEmpty
+        ? ZuranoSwipeShell(
+            pages: widget.branchPages,
+            currentIndex: widget.navigationShell.currentIndex,
+            onIndexChanged: goToBranch,
+            bottomNavigationBar: ownerBottomNav,
+          )
+        : widget.navigationShell;
+
     return AdaptiveAppShell(
       destinations: destinations,
       selectedIndex: widget.navigationShell.currentIndex,
-      onDestinationSelected: (i) {
-        widget.navigationShell.goBranch(
-          i,
-          initialLocation: i == widget.navigationShell.currentIndex,
-        );
-      },
+      onDestinationSelected: goToBranch,
       appBarTitle: usesOwnerHeroInBody ? null : Text(l10n.ownerDashboardTitle),
       appBarActions: usesOwnerHeroInBody ? const <Widget>[] : appBarActions,
       railLeading: Icon(
@@ -301,17 +324,11 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
         size: 28,
       ),
       railActions: railActions,
-      body: widget.navigationShell,
-      bottomNavigationBar: OwnerBottomNavBar(
-        selectedIndex: widget.navigationShell.currentIndex,
-        onDestinationSelected: (i) {
-          widget.navigationShell.goBranch(
-            i,
-            initialLocation: i == widget.navigationShell.currentIndex,
-          );
-        },
-        onCenterAddTap: () => _showOwnerShellQuickActions(context),
-      ),
+      body: shellBody,
+      bottomNavigationBar: widget.branchPages.isNotEmpty
+          ? null
+          : ownerBottomNav,
+      extendBody: true,
     );
   }
 }

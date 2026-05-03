@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
+
 class TeamMemberSummaryCards extends StatelessWidget {
   const TeamMemberSummaryCards({
     super.key,
@@ -62,39 +64,38 @@ class TeamMemberSummaryCards extends StatelessWidget {
       );
     }
 
-    final scheme = Theme.of(context).colorScheme;
     final currency = NumberFormat.simpleCurrency(name: currencyCode);
 
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.shopping_bag_outlined,
-            label: salesTitle,
-            value: isError ? '—' : currency.format(todaySales),
-            scheme: scheme,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _SummaryCard(
+              icon: Icons.shopping_bag_outlined,
+              label: salesTitle,
+              value: isError ? '—' : currency.format(todaySales),
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.content_cut_rounded,
-            label: servicesTitle,
-            value: isError ? '—' : '$servicesCount',
-            scheme: scheme,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _SummaryCard(
+              icon: Icons.content_cut_rounded,
+              label: servicesTitle,
+              value: isError ? '—' : '$servicesCount',
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _SummaryCard(
-            icon: Icons.check_circle_outline_rounded,
-            label: attendanceTitle,
-            value: attendanceLabel,
-            scheme: scheme,
-            compactValueFont: true,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _SummaryCard(
+              icon: Icons.check_circle_outline_rounded,
+              label: attendanceTitle,
+              value: attendanceLabel,
+              compactValueFont: true,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -104,22 +105,21 @@ class _SummaryCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    required this.scheme,
     this.compactValueFont = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
-  final ColorScheme scheme;
   final bool compactValueFont;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
 
     return Container(
-      height: 132,
+      constraints: const BoxConstraints(minHeight: 132),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: scheme.surface,
@@ -136,12 +136,11 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SoftIcon(icon: icon, scheme: scheme),
-          const Spacer(),
+          _SoftIcon(icon: icon),
+          const SizedBox(height: 12),
           Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            softWrap: true,
             style: textTheme.labelMedium?.copyWith(
               color: scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
@@ -150,12 +149,12 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            softWrap: true,
             style: textTheme.titleMedium?.copyWith(
-              color: scheme.primary,
+              color: TeamMemberProfileColors.primary,
               fontWeight: FontWeight.w900,
               fontSize: compactValueFont ? 14 : 18,
+              height: 1.25,
             ),
           ),
         ],
@@ -165,10 +164,9 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _SoftIcon extends StatelessWidget {
-  const _SoftIcon({required this.icon, required this.scheme});
+  const _SoftIcon({required this.icon});
 
   final IconData icon;
-  final ColorScheme scheme;
 
   @override
   Widget build(BuildContext context) {
@@ -176,10 +174,17 @@ class _SoftIcon extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.55),
+        color: TeamMemberProfileColors.softPurple,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: TeamMemberProfileColors.border.withValues(alpha: 0.65),
+        ),
       ),
-      child: Icon(icon, color: scheme.primary, size: 22),
+      child: Icon(
+        icon,
+        color: TeamMemberProfileColors.primary,
+        size: 22,
+      ),
     );
   }
 }

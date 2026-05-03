@@ -69,6 +69,7 @@ class AdaptiveAppShell extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.bottomNavigationBar,
+    this.extendBody = false,
   }) : assert(destinations.length >= 2);
 
   final List<AdaptiveShellDestination> destinations;
@@ -98,6 +99,7 @@ class AdaptiveAppShell extends StatelessWidget {
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
+  final bool extendBody;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +126,7 @@ class AdaptiveAppShell extends StatelessWidget {
           floatingActionButton: floatingActionButton,
           floatingActionButtonLocation: floatingActionButtonLocation,
           bottomNavigationBar: bottomNavigationBar,
+          extendBody: extendBody,
           child: body,
         );
       },
@@ -142,6 +145,7 @@ class _NarrowShell extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.bottomNavigationBar,
+    this.extendBody = false,
   });
 
   final List<AdaptiveShellDestination> destinations;
@@ -153,11 +157,13 @@ class _NarrowShell extends StatelessWidget {
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
+  final bool extendBody;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      extendBody: extendBody,
       resizeToAvoidBottomInset: true,
       backgroundColor: scheme.surface,
       appBar: appBarTitle == null

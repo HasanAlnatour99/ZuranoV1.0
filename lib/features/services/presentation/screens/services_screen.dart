@@ -5,7 +5,8 @@ import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../core/widgets/zurano/zurano_gradient_button.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/repository_providers.dart';
-import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/salon_streams_provider.dart'
+    show servicesStreamProvider;
 import '../../../owner/presentation/widgets/add_barber/add_barber_header.dart';
 import '../../data/models/service.dart';
 import '../../data/service_category_helpers.dart';
@@ -15,6 +16,7 @@ import '../widgets/service_category_chips.dart';
 import '../widgets/service_form_sheet.dart';
 import '../widgets/service_search_bar.dart';
 import '../widgets/service_stats_row.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 /// Owner-facing services catalog: search, category filters, stats, and actions.
@@ -52,10 +54,11 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
       return list;
     }
     return list.where((s) {
-      final name = (s.serviceName.isNotEmpty ? s.serviceName : s.name)
+      final nameEn = (s.serviceName.isNotEmpty ? s.serviceName : s.name)
           .toLowerCase();
+      final nameAr = s.nameAr.toLowerCase();
       final cat = displayCategoryLineForService(s, l10n)?.toLowerCase() ?? '';
-      return name.contains(q) || cat.contains(q);
+      return nameEn.contains(q) || nameAr.contains(q) || cat.contains(q);
     }).toList();
   }
 
@@ -98,8 +101,7 @@ class _ServicesScreenState extends ConsumerState<ServicesScreen> {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final servicesAsync = ref.watch(servicesStreamProvider);
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
-    final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'QAR';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final bottomSafe = MediaQuery.paddingOf(context).bottom;
     const ctaHeight = 56.0;
     const ctaBottomMargin = 16.0;

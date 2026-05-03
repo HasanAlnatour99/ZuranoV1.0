@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
 import '../../data/models/sale.dart';
+import '../utils/sale_customer_display.dart';
 import '../../domain/employee_sales_period.dart';
 import '../../domain/employee_sales_summary.dart';
 import 'employee_sales_period_notifier.dart';
@@ -86,8 +87,8 @@ final employeeSalesSummaryProvider = Provider.autoDispose<EmployeeSalesSummary>(
       if (cid != null && cid.isNotEmpty) {
         customerKeys.add('id:$cid');
       } else {
-        final name = (sale.customerName ?? '').trim();
-        customerKeys.add(name.isEmpty ? 'walkin:${sale.id}' : 'name:$name');
+        final name = visibleSaleCustomerName(sale);
+        customerKeys.add(name == 'Guest' ? 'walkin:${sale.id}' : 'name:$name');
       }
     }
 

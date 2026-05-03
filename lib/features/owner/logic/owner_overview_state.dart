@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+/// Revenue chart range on the owner overview screen (default: month).
+enum OwnerOverviewRevenueChartPeriod { day, week, month }
+
 /// Floor status for a barber row on the owner overview team widget.
 enum OwnerTeamBarberStatus { checkedIn, notCheckedIn, onService, late }
 
@@ -108,6 +111,7 @@ class OwnerOverviewState {
     this.hasMonthRevenue = false,
     this.hasTodayRevenue = false,
     this.completedSalesTodayCount = 0,
+    this.completedSalesYesterdayCount = 0,
     this.bookingsYesterdayCount = 0,
     this.activeBarberCount = 0,
     this.checkedInBarbersToday = 0,
@@ -116,6 +120,8 @@ class OwnerOverviewState {
     this.topServiceThisWeekUses = 0,
     this.teamBarberPreview = const [],
     this.last7DaysDailyRevenue = const [0, 0, 0, 0, 0, 0, 0],
+    this.todayHourlyRevenue = _kDefaultTodayHourlyRevenue,
+    this.currentMonthDailyRevenue = const [],
     this.servicePreviewTop3 = const [],
     this.latestSale,
     this.isLoading = false,
@@ -219,6 +225,12 @@ class OwnerOverviewState {
   /// Number of completed sale documents recorded today (local calendar).
   final int completedSalesTodayCount;
 
+  /// Completed sale documents on the previous local calendar day.
+  final int completedSalesYesterdayCount;
+
+  /// Completed sales revenue by hour (0–23) for the local current day.
+  final List<double> todayHourlyRevenue;
+
   /// Active bookings (non-cancelled) scheduled for yesterday (local day).
   final int bookingsYesterdayCount;
 
@@ -244,6 +256,11 @@ class OwnerOverviewState {
   ///
   /// Index `0` is six days before "today", index `6` is today.
   final List<double> last7DaysDailyRevenue;
+
+  /// Completed sales total per local calendar day in the current month.
+  ///
+  /// Index `0` is day 1, length matches the number of days in [DateTime.month].
+  final List<double> currentMonthDailyRevenue;
 
   /// Up to three active services (name + price) for the overview list.
   final List<OwnerOverviewServicePreview> servicePreviewTop3;
@@ -288,6 +305,7 @@ class OwnerOverviewState {
     bool? hasMonthRevenue,
     bool? hasTodayRevenue,
     int? completedSalesTodayCount,
+    int? completedSalesYesterdayCount,
     int? bookingsYesterdayCount,
     int? activeBarberCount,
     int? checkedInBarbersToday,
@@ -296,6 +314,8 @@ class OwnerOverviewState {
     int? topServiceThisWeekUses,
     List<OwnerTeamBarberPreview>? teamBarberPreview,
     List<double>? last7DaysDailyRevenue,
+    List<double>? todayHourlyRevenue,
+    List<double>? currentMonthDailyRevenue,
     List<OwnerOverviewServicePreview>? servicePreviewTop3,
     Object? latestSale = _sentinel,
     bool? isLoading,
@@ -359,6 +379,8 @@ class OwnerOverviewState {
       hasTodayRevenue: hasTodayRevenue ?? this.hasTodayRevenue,
       completedSalesTodayCount:
           completedSalesTodayCount ?? this.completedSalesTodayCount,
+      completedSalesYesterdayCount:
+          completedSalesYesterdayCount ?? this.completedSalesYesterdayCount,
       bookingsYesterdayCount:
           bookingsYesterdayCount ?? this.bookingsYesterdayCount,
       activeBarberCount: activeBarberCount ?? this.activeBarberCount,
@@ -374,6 +396,9 @@ class OwnerOverviewState {
       teamBarberPreview: teamBarberPreview ?? this.teamBarberPreview,
       last7DaysDailyRevenue:
           last7DaysDailyRevenue ?? this.last7DaysDailyRevenue,
+      todayHourlyRevenue: todayHourlyRevenue ?? this.todayHourlyRevenue,
+      currentMonthDailyRevenue:
+          currentMonthDailyRevenue ?? this.currentMonthDailyRevenue,
       servicePreviewTop3: servicePreviewTop3 ?? this.servicePreviewTop3,
       latestSale: identical(latestSale, _sentinel)
           ? this.latestSale
@@ -400,6 +425,7 @@ class OwnerOverviewState {
       completedBookingsToday: 3,
       completedBookingsYesterday: 2,
       completedSalesTodayCount: 3,
+      completedSalesYesterdayCount: 2,
       pendingBookingsCount: 1,
       checkedInEmployeesToday: 2,
       checkedInBarbersToday: 2,
@@ -434,6 +460,11 @@ class OwnerOverviewState {
         ),
       ],
       last7DaysDailyRevenue: const [120, 180, 90, 210, 160, 240, 195],
+      todayHourlyRevenue: List<double>.generate(24, (int i) => i == 14 ? 65.0 : 0),
+      currentMonthDailyRevenue: List<double>.generate(
+        30,
+        (int i) => (i.isEven ? 80.0 : 40.0) + i * 2,
+      ),
       servicePreviewTop3: const [
         OwnerOverviewServicePreview(name: 'Haircut', price: 25),
         OwnerOverviewServicePreview(name: 'Beard trim', price: 15),
@@ -448,5 +479,9 @@ class OwnerOverviewState {
     );
   }
 }
+
+const List<double> _kDefaultTodayHourlyRevenue = <double>[
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
 
 const Object _sentinel = Object();

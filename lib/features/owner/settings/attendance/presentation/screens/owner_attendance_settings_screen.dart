@@ -103,9 +103,6 @@ class _OwnerAttendanceSettingsScreenState
     if (s.allowedRadiusMeters < 10 || s.allowedRadiusMeters > 500) {
       return l10n.ownerAttendanceSettingsValidationRadius;
     }
-    if (s.maxPunchesPerDay < 2 || s.maxPunchesPerDay > 10) {
-      return l10n.ownerAttendanceSettingsValidationMaxPunches;
-    }
     if (s.maxBreaksPerDay < 0 || s.maxBreaksPerDay > 5) {
       return l10n.ownerAttendanceSettingsValidationMaxBreaks;
     }

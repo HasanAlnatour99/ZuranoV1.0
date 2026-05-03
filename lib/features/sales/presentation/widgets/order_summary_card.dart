@@ -80,13 +80,6 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Icon(
-                Icons.auto_awesome_rounded,
-                size: 18,
-                color: FinanceDashboardColors.primaryPurple.withValues(
-                  alpha: 0.45,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),

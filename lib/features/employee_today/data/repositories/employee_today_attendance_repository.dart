@@ -1,18 +1,28 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/constants/attendance_approval.dart';
+import '../../../../core/constants/violation_types.dart';
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../core/firestore/firestore_write_payload.dart';
+import '../../../../core/firestore/report_period.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../attendance_exception.dart';
+import '../../domain/break_allowance_math.dart';
 import '../models/et_attendance_day.dart';
 import '../models/et_attendance_punch.dart';
 import '../models/et_attendance_settings.dart';
 import '../models/et_correction_request.dart';
+import '../../../owner_settings/shifts/data/models/employee_schedule_model.dart';
 import '../../domain/attendance_analysis_service.dart';
 import '../../domain/attendance_status.dart';
 import '../../domain/attendance_state_resolver.dart';
+import '../../domain/attendance_work_punch_limits.dart';
 
 class EmployeeTodayAttendanceRepository {
   EmployeeTodayAttendanceRepository({
@@ -26,16 +36,6 @@ class EmployeeTodayAttendanceRepository {
   static const _resolver = AttendanceStateResolver();
   static const _uuid = Uuid();
 
-  static int _effectiveMaxPunches(EtAttendanceSettings settings) {
-    final configured = settings.maxPunchesPerDay;
-    if (configured <= 0) {
-      return AttendanceStateResolver.maxPunchesPerDayDefault;
-    }
-    return configured > AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
-        ? AttendanceStateResolver.maxPunchesPerDayAbsoluteCap
-        : configured;
-  }
-
   static String compactDateKey(DateTime d) {
     final y = d.year.toString().padLeft(4, '0');
     final m = d.month.toString().padLeft(2, '0');
@@ -45,6 +45,25 @@ class EmployeeTodayAttendanceRepository {
 
   static String attendanceDayId(String employeeId, String dateKey) =>
       '${dateKey}_$employeeId';
+
+  /// Same id shape as owner `salons/{salonId}/attendance` daily rows
+  /// (`employeeId_yyyyMMdd`) so Team + profile attendance streams update.
+  static String legacySalonAttendanceDocId({
+    required String employeeId,
+    required DateTime date,
+  }) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '${employeeId}_$y$m$d';
+  }
+
+  static String _isoAttendanceDateKey(DateTime date) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
 
   DocumentReference<Map<String, dynamic>> _settingsRef(String salonId) =>
       _firestore.doc(FirestorePaths.salonAttendanceSettingsDoc(salonId));
@@ -61,10 +80,29 @@ class EmployeeTodayAttendanceRepository {
     FirestorePaths.salonAttendanceDayPunchesCollection(salonId, dayId),
   );
 
+  CollectionReference<Map<String, dynamic>> _dayBreaksCol(
+    String salonId,
+    String dayId,
+  ) => _firestore.collection(
+    FirestorePaths.salonAttendanceDayBreaksCollection(salonId, dayId),
+  );
+
   CollectionReference<Map<String, dynamic>> _correctionsCol(String salonId) =>
       _firestore.collection(
         FirestorePaths.salonAttendanceCorrectionRequests(salonId),
       );
+
+  DocumentReference<Map<String, dynamic>> _scheduleRef(
+    String salonId,
+    String employeeId,
+    DateTime date,
+  ) {
+    final dk = compactDateKey(date);
+    final scheduleId = '${employeeId}_$dk';
+    return _firestore.doc(
+      FirestorePaths.salonEmployeeSchedule(salonId, scheduleId),
+    );
+  }
 
   Stream<EtAttendanceSettings> watchAttendanceSettings(String salonId) {
     FirestoreWritePayload.assertSalonId(salonId);
@@ -152,6 +190,20 @@ class EmployeeTodayAttendanceRepository {
         );
   }
 
+  Stream<EmployeeScheduleModel?> watchEmployeeScheduleForDate({
+    required String salonId,
+    required String employeeId,
+    required DateTime date,
+  }) {
+    FirestoreWritePayload.assertSalonId(salonId);
+    return _scheduleRef(salonId, employeeId, date).snapshots().map((doc) {
+      if (!doc.exists) {
+        return null;
+      }
+      return EmployeeScheduleModel.fromFirestore(doc);
+    });
+  }
+
   Stream<List<EtCorrectionRequest>> watchEmployeeCorrectionRequests({
     required String salonId,
     required String employeeId,
@@ -203,6 +255,8 @@ class EmployeeTodayAttendanceRepository {
     required AttendancePunchType type,
     required Position? position,
     required EtAttendanceSettings settings,
+    String? shiftStartHhmm,
+    String? shiftEndHhmm,
   }) async {
     if (uid.isEmpty) {
       throw AttendanceException('You must be signed in to submit a punch.');
@@ -215,6 +269,24 @@ class EmployeeTodayAttendanceRepository {
     }
 
     final now = DateTime.now();
+    final calendarDay = DateTime(now.year, now.month, now.day);
+    final shiftStartHm = shiftStartHhmm ?? settings.standardShiftStart;
+    final shiftEndHm = shiftEndHhmm ?? settings.standardShiftEnd;
+    final breakWindowStart = shiftBoundaryOnCalendarDay(
+      calendarDay,
+      shiftStartHm,
+    );
+    final breakWindowEnd = shiftBoundaryOnCalendarDay(calendarDay, shiftEndHm);
+
+    if (type == AttendancePunchType.breakOut &&
+        breakWindowStart != null &&
+        breakWindowEnd != null &&
+        breakWindowEnd.isAfter(breakWindowStart)) {
+      if (now.isBefore(breakWindowStart) || now.isAfter(breakWindowEnd)) {
+        throw AttendanceException(AttendanceExceptionCodes.outsideShiftBreak);
+      }
+    }
+
     final dk = compactDateKey(now);
     final dayId = attendanceDayId(employeeId, dk);
     final dayRef = _dayRef(salonId, dayId);
@@ -264,8 +336,6 @@ class EmployeeTodayAttendanceRepository {
     final punchRef = punchesCol.doc();
     final punchTime = now;
 
-    final effectiveMaxPunches = _effectiveMaxPunches(settings);
-
     // Transaction.get() only accepts DocumentReference; read punch list first.
     final punchesSnapBeforeTx = await punchesCol
         .orderBy('punchTime', descending: false)
@@ -278,12 +348,20 @@ class EmployeeTodayAttendanceRepository {
     await _firestore.runTransaction((tx) async {
       final daySnap = await tx.get(dayRef);
       final sortedPunches = sortedPunchesBeforeTx;
-      final seq = List<String>.from(
-        daySnap.data()?['punchSequence'] as List? ?? const [],
-      );
-      final punchIds = List<String>.from(
-        daySnap.data()?['punchIds'] as List? ?? const [],
-      );
+      final seqFromPunches =
+          sortedPunches.map((p) => p.type.name).toList(growable: false);
+      final idsFromPunches =
+          sortedPunches.map((p) => p.id).toList(growable: false);
+      final seq = seqFromPunches.isNotEmpty
+          ? seqFromPunches
+          : List<String>.from(
+              daySnap.data()?['punchSequence'] as List? ?? const [],
+            );
+      final punchIds = idsFromPunches.isNotEmpty
+          ? idsFromPunches
+          : List<String>.from(
+              daySnap.data()?['punchIds'] as List? ?? const [],
+            );
 
       final v = _resolver.validateRequestedPunch(
         settings: settings,
@@ -298,8 +376,12 @@ class EmployeeTodayAttendanceRepository {
         );
       }
 
-      if (sortedPunches.length >= effectiveMaxPunches) {
-        throw AttendanceException('You reached today\'s maximum punches.');
+      if (type == AttendancePunchType.punchIn ||
+          type == AttendancePunchType.punchOut) {
+        final workSoFar = workPunchCountInPunches(sortedPunches);
+        if (workSoFar >= kMaxWorkPunchesPerDay) {
+          throw AttendanceException('You reached today\'s maximum punches.');
+        }
       }
 
       if (sortedPunches.isNotEmpty) {
@@ -315,28 +397,48 @@ class EmployeeTodayAttendanceRepository {
         }
       }
 
+      DateTime? breakReturnStartedAt;
+      var breakReturnAllowedMin = 0;
+      var breakReturnActualMin = 0;
+      var breakReturnExceededMin = 0;
+      var breakInDailyCapSnapshot = 0;
+      var breakInCompletedBeforeSnapshot = 0;
+      String? breakSessionDocId;
+      String? exceededViolationDocId;
+
       if (type == AttendancePunchType.breakIn) {
-        int breakMs = 0;
-        DateTime? breakOpen;
-        for (final p in sortedPunches) {
-          if (p.type == AttendancePunchType.breakOut) {
-            breakOpen = p.punchTime;
-          } else if (p.type == AttendancePunchType.breakIn) {
-            final open = breakOpen;
-            if (open != null) {
-              breakMs += p.punchTime.difference(open).inMilliseconds;
-              breakOpen = null;
-            }
-          }
+        if (sortedPunches.isEmpty ||
+            sortedPunches.last.type != AttendancePunchType.breakOut) {
+          throw AttendanceException('This punch sequence is not valid.');
         }
-        if (breakOpen != null) {
-          breakMs += punchTime.difference(breakOpen).inMilliseconds;
-        }
-        final breakMin = (breakMs / 60000).ceil();
-        if (breakMin > settings.maxBreakMinutesPerDay) {
-          throw AttendanceException(
-            'Your break time exceeded the allowed daily limit.',
-          );
+        breakReturnStartedAt = sortedPunches.last.punchTime;
+        final dailyCap = settings.maxBreakMinutesPerDay <= 0
+            ? 60
+            : settings.maxBreakMinutesPerDay;
+        final completedBefore = completedClosedBreakMinutesClamped(
+          sortedPunches,
+          breakWindowStart,
+          breakWindowEnd,
+        );
+        breakInDailyCapSnapshot = dailyCap;
+        breakInCompletedBeforeSnapshot = completedBefore;
+        breakReturnAllowedMin = math.max(0, dailyCap - completedBefore);
+        breakReturnActualMin = clampedIntervalMinutesCeil(
+          breakReturnStartedAt,
+          punchTime,
+          breakWindowStart,
+          breakWindowEnd,
+        );
+        breakReturnExceededMin = math.max(
+          0,
+          breakReturnActualMin - breakReturnAllowedMin,
+        );
+        breakSessionDocId = _dayBreaksCol(salonId, dayId).doc().id;
+        if (breakReturnExceededMin > 0) {
+          exceededViolationDocId = _firestore
+              .collection(FirestorePaths.salonViolations(salonId))
+              .doc()
+              .id;
         }
       }
 
@@ -361,19 +463,22 @@ class EmployeeTodayAttendanceRepository {
           createdBy: uid,
         ),
       ];
-      final shiftEndAt = _shiftEndForDay(punchTime, settings.standardShiftEnd);
+      final missingPunchShiftEnd = _shiftEndForDay(
+        punchTime,
+        settings.standardShiftEnd,
+      );
       final calculatedStatus = calculateTodayStatus(
         punches: projectedPunches,
         now: now,
-        shiftEndAt: shiftEndAt,
+        shiftEndAt: missingPunchShiftEnd,
         maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
-        maxPunchesPerDay: effectiveMaxPunches,
+        maxWorkPunchesPerDay: kMaxWorkPunchesPerDay,
       );
       final missingReason = _missingPunchReason(
         status: calculatedStatus,
         punches: projectedPunches,
         now: now,
-        shiftEndAt: shiftEndAt,
+        shiftEndAt: missingPunchShiftEnd,
         maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
       );
 
@@ -388,7 +493,6 @@ class EmployeeTodayAttendanceRepository {
         isInsideSalonZone: inside,
         distanceFromSalonMeters: distance,
       );
-
       tx.set(punchRef, {
         'id': punchRef.id,
         'salonId': salonId,
@@ -407,11 +511,11 @@ class EmployeeTodayAttendanceRepository {
         'createdBy': uid,
       });
 
-      tx.set(dayRef, {
+      final dayFields = <String, dynamic>{
         'id': dayId,
         'salonId': salonId,
         'employeeId': employeeId,
-        'employeeName': employeeName,
+        'employeeName': formatTeamMemberName(employeeName),
         'workDate':
             '${punchTime.year.toString().padLeft(4, '0')}-${punchTime.month.toString().padLeft(2, '0')}-${punchTime.day.toString().padLeft(2, '0')}',
         'dateKey': dk,
@@ -430,14 +534,106 @@ class EmployeeTodayAttendanceRepository {
         'correctionRequestId': daySnap.data()?['correctionRequestId'],
         'updatedAt': FieldValue.serverTimestamp(),
         if (!daySnap.exists) 'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
+      if (type == AttendancePunchType.breakIn) {
+        if (breakReturnExceededMin > 0) {
+          dayFields['exceededBreakMinutes'] = FieldValue.increment(
+            breakReturnExceededMin,
+          );
+          dayFields['payrollImpactStatus'] = 'PENDING_PROCESSING';
+        }
+        dayFields['hasBreakViolation'] =
+            (daySnap.data()?['hasBreakViolation'] == true) ||
+            breakReturnExceededMin > 0;
+      }
+      tx.set(dayRef, dayFields, SetOptions(merge: true));
+
+      if (type == AttendancePunchType.breakIn &&
+          breakSessionDocId != null &&
+          breakReturnStartedAt != null) {
+        final breakRef = _dayBreaksCol(salonId, dayId).doc(breakSessionDocId);
+        final breakPayload = <String, dynamic>{
+          'breakId': breakSessionDocId,
+          'salonId': salonId,
+          'employeeId': employeeId,
+          'attendanceDayId': dayId,
+          'startedAt': Timestamp.fromDate(breakReturnStartedAt),
+          'endedAt': FieldValue.serverTimestamp(),
+          'allowedMinutes': breakReturnAllowedMin,
+          'actualMinutes': breakReturnActualMin,
+          'exceededMinutes': breakReturnExceededMin,
+          'createdAt': FieldValue.serverTimestamp(),
+        };
+        final vid = exceededViolationDocId;
+        if (vid != null) {
+          breakPayload['createdViolationId'] = vid;
+        }
+        tx.set(breakRef, breakPayload);
+
+        if (exceededViolationDocId != null && breakReturnExceededMin > 0) {
+          final violationStatus = settings.autoCreateViolations
+              ? ViolationStatuses.approved
+              : ViolationStatuses.pending;
+          final vRef = _firestore.doc(
+            FirestorePaths.salonViolation(salonId, exceededViolationDocId),
+          );
+          final occurredAt = punchTime;
+          final rp = ReportPeriod.denormalizedFieldsFor(occurredAt);
+          const penaltyPerExceededMinute = 1.0;
+          final penaltyAmount =
+              breakReturnExceededMin * penaltyPerExceededMinute;
+          tx.set(vRef, {
+            'id': exceededViolationDocId,
+            'salonId': salonId,
+            'employeeId': employeeId,
+            'employeeName': formatTeamMemberName(employeeName),
+            'sourceType': ViolationSourceTypes.attendanceBreak,
+            'violationType': ViolationTypes.exceededBreakTime,
+            'status': violationStatus,
+            'occurredAt': Timestamp.fromDate(occurredAt),
+            'reportYear': rp['reportYear'],
+            'reportMonth': rp['reportMonth'],
+            'reportPeriodKey': rp['reportPeriodKey'],
+            'minutesLate': breakReturnExceededMin,
+            'amount': penaltyAmount,
+            'ruleSnapshot': {
+              'attendanceDayId': dayId,
+              'allowedBreakMinutes': breakReturnAllowedMin,
+              'actualBreakMinutes': breakReturnActualMin,
+              'dailyBreakCapMinutes': breakInDailyCapSnapshot,
+              'completedBreakMinutesBefore': breakInCompletedBeforeSnapshot,
+            },
+            'createdByUid': uid,
+            'createdByRole': 'employee',
+            if (violationStatus == ViolationStatuses.approved) ...<String, dynamic>{
+              'approvedByUid': 'SYSTEM',
+              'approvedAt': FieldValue.serverTimestamp(),
+            },
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+            'payrollImpactStatus': 'PENDING_PROCESSING',
+          });
+        }
+      }
     });
+
+    if (kDebugMode &&
+        (type == AttendancePunchType.breakIn ||
+            type == AttendancePunchType.breakOut)) {
+      debugPrint(
+        'ATTENDANCE_TX_SUCCESS: employeeId=$employeeId dayId=$dayId '
+        'punch=${type.name}',
+      );
+    }
 
     await _refreshDaySummary(
       salonId: salonId,
       dayId: dayId,
       calendarDay: DateTime(now.year, now.month, now.day),
       settings: settings,
+      employeeId: employeeId,
+      employeeName: formatTeamMemberName(employeeName),
+      employeeAuthUid: uid,
     );
   }
 
@@ -473,10 +669,6 @@ class EmployeeTodayAttendanceRepository {
         now.isAfter(shiftEndAt)) {
       return 'missingPunchOutAfterShiftEnd';
     }
-    if (last.type == AttendancePunchType.breakOut &&
-        now.difference(last.punchTime).inMinutes > maxBreakMinutesPerDay) {
-      return 'missingBreakInAfterBreakOut';
-    }
     return 'missingPunch';
   }
 
@@ -507,6 +699,9 @@ class EmployeeTodayAttendanceRepository {
     required String dayId,
     required DateTime calendarDay,
     required EtAttendanceSettings settings,
+    required String employeeId,
+    required String employeeName,
+    required String? employeeAuthUid,
   }) async {
     final snaps = await _punchesCol(
       salonId,
@@ -525,7 +720,7 @@ class EmployeeTodayAttendanceRepository {
       now: DateTime.now(),
       shiftEndAt: shiftEndAt,
       maxBreakMinutesPerDay: settings.maxBreakMinutesPerDay,
-      maxPunchesPerDay: _effectiveMaxPunches(settings),
+      maxWorkPunchesPerDay: kMaxWorkPunchesPerDay,
     );
     final missingReason = _missingPunchReason(
       status: todayStatus,
@@ -585,6 +780,126 @@ class EmployeeTodayAttendanceRepository {
           : null,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    await _syncSalonAttendanceLegacyMirror(
+      salonId: salonId,
+      employeeId: employeeId,
+      employeeName: formatTeamMemberName(employeeName),
+      employeeAuthUid: employeeAuthUid,
+      calendarDay: calendarDay,
+      punches: punches,
+      calc: calc,
+    );
+  }
+
+  /// Mirrors Employee Today punch state into `salons/{salonId}/attendance`
+  /// so owner Team analytics and team-member attendance tabs (which listen on
+  /// that collection) stay in sync in real time.
+  Future<void> _syncSalonAttendanceLegacyMirror({
+    required String salonId,
+    required String employeeId,
+    required String employeeName,
+    required String? employeeAuthUid,
+    required DateTime calendarDay,
+    required List<EtAttendancePunch> punches,
+    required AttendanceDayCalculation calc,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final docId = legacySalonAttendanceDocId(
+      employeeId: employeeId,
+      date: calendarDay,
+    );
+    final ref = _firestore.doc(
+      FirestorePaths.salonAttendanceRecord(salonId, docId),
+    );
+
+    final dayStart = DateTime(
+      calendarDay.year,
+      calendarDay.month,
+      calendarDay.day,
+    );
+    final dateKeyStr = _isoAttendanceDateKey(dayStart);
+
+    String? preservedEmployeeUid;
+    if (employeeAuthUid == null || employeeAuthUid.isEmpty) {
+      final existing = await ref.get();
+      final u = existing.data()?['employeeUid']?.toString().trim();
+      if (u != null && u.isNotEmpty) {
+        preservedEmployeeUid = u;
+      }
+    }
+    final uidToWrite = (employeeAuthUid != null && employeeAuthUid.isNotEmpty)
+        ? employeeAuthUid
+        : preservedEmployeeUid;
+
+    if (punches.isEmpty) {
+      await ref.set(<String, dynamic>{
+        'id': docId,
+        'salonId': salonId,
+        'employeeId': employeeId,
+        'employeeName': formatTeamMemberName(employeeName),
+        'workDate': Timestamp.fromDate(dayStart),
+        'dateKey': dateKeyStr,
+        'status': 'absent',
+        'checkInAt': FieldValue.delete(),
+        'checkOutAt': FieldValue.delete(),
+        'minutesLate': 0,
+        'needsCorrection': false,
+        'approvalStatus': AttendanceApprovalStatuses.approved,
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (uidToWrite != null && uidToWrite.isNotEmpty) 'employeeUid': uidToWrite,
+      }, SetOptions(merge: true));
+      return;
+    }
+
+    DateTime? checkOutAt;
+    if (punches.isNotEmpty) {
+      final last = punches.last.type;
+      final closedByPunchOut =
+          last == AttendancePunchType.punchOut &&
+          (calc.status == 'checkedOut' || calc.status == 'incomplete');
+      if (closedByPunchOut) {
+        checkOutAt = calc.lastPunchOutAt;
+      }
+    }
+
+    String legacyStatus;
+    if (calc.firstPunchInAt == null) {
+      legacyStatus = 'absent';
+    } else if (calc.isLateAfterGrace) {
+      legacyStatus = 'late';
+    } else if (calc.status == 'onBreak') {
+      legacyStatus = 'onBreak';
+    } else if (calc.status == 'incomplete') {
+      legacyStatus = 'incomplete';
+    } else {
+      legacyStatus = 'present';
+    }
+
+    final payload = <String, dynamic>{
+      'id': docId,
+      'salonId': salonId,
+      'employeeId': employeeId,
+      'employeeName': formatTeamMemberName(employeeName),
+      'workDate': Timestamp.fromDate(dayStart),
+      'dateKey': dateKeyStr,
+      'status': legacyStatus,
+      'minutesLate': calc.lateMinutes,
+      'needsCorrection': calc.hasMissingPunch,
+      'approvalStatus': AttendanceApprovalStatuses.approved,
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (calc.firstPunchInAt != null)
+        'checkInAt': Timestamp.fromDate(calc.firstPunchInAt!)
+      else
+        'checkInAt': FieldValue.delete(),
+      if (checkOutAt != null)
+        'checkOutAt': Timestamp.fromDate(checkOutAt)
+      else
+        'checkOutAt': FieldValue.delete(),
+      if (uidToWrite != null && uidToWrite.isNotEmpty) 'employeeUid': uidToWrite,
+    };
+
+    await ref.set(payload, SetOptions(merge: true));
   }
 
   Future<_MonthlyPolicySummary> _computeMonthlyPolicySummary({
@@ -730,7 +1045,7 @@ class EmployeeTodayAttendanceRepository {
     }
 
     final merged = [...existingSequence, requestedType.name];
-    if (merged.length > _effectiveMaxPunches(settings)) {
+    if (workPunchCountInSequenceNames(merged) > kMaxWorkPunchesPerDay) {
       throw AttendanceException(
         'This punch would exceed the daily punch limit.',
       );
@@ -751,7 +1066,7 @@ class EmployeeTodayAttendanceRepository {
       'salonId': salonId,
       'employeeId': employeeId,
       'employeeUid': uid,
-      'employeeName': employeeName,
+      'employeeName': formatTeamMemberName(employeeName),
       'attendanceDayId': attendanceDayId,
       'dateKey': dateKey,
       'requestedPunchType': requestedType.name,
@@ -786,6 +1101,8 @@ class EmployeeTodayAttendanceRepository {
     if (request.status != 'pending') {
       throw AttendanceException('This correction request is already reviewed.');
     }
+    final correctionEmployeeUid =
+        reqSnap.data()?['employeeUid']?.toString().trim();
 
     final settingsSnap = await _settingsRef(salonId).get();
     final settings = settingsSnap.exists
@@ -828,7 +1145,7 @@ class EmployeeTodayAttendanceRepository {
         'Approved correction creates an invalid punch sequence.',
       );
     }
-    if (projectedPunches.length > _effectiveMaxPunches(settings)) {
+    if (workPunchCountInPunches(projectedPunches) > kMaxWorkPunchesPerDay) {
       throw AttendanceException(
         'This correction exceeds the daily punch limit.',
       );
@@ -885,7 +1202,7 @@ class EmployeeTodayAttendanceRepository {
         'id': request.attendanceDayId,
         'salonId': salonId,
         'employeeId': request.employeeId,
-        'employeeName': request.employeeName,
+        'employeeName': formatTeamMemberName(request.employeeName),
         'dateKey': request.dateKey,
         'hasPendingCorrectionRequest': false,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -921,6 +1238,12 @@ class EmployeeTodayAttendanceRepository {
         request.requestedPunchTime.day,
       ),
       settings: settings,
+      employeeId: request.employeeId,
+      employeeName: formatTeamMemberName(request.employeeName),
+      employeeAuthUid:
+          correctionEmployeeUid != null && correctionEmployeeUid.isNotEmpty
+          ? correctionEmployeeUid
+          : null,
     );
 
     await _syncDayPendingCorrectionFlag(

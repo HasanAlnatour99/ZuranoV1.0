@@ -619,6 +619,68 @@ class AuthRepository {
     }
   }
 
+  /// Anonymous Firebase Auth + `users/{uid}` customer guest row (upgradeable via link).
+  Future<void> signInAsAnonymousGuestCustomer() async {
+    if (kDebugMode) {
+      debugPrint(
+        '[GUEST_AUTH] before_signInAnonymously '
+        'currentUid=${_auth.currentUser?.uid ?? "(none)"} '
+        'isAnonymous=${_auth.currentUser?.isAnonymous}',
+      );
+    }
+
+    final credential = await _auth.signInAnonymously();
+    final user = credential.user;
+
+    if (kDebugMode) {
+      debugPrint(
+        '[GUEST_AUTH] after_signInAnonymously '
+        'uid=${user?.uid ?? "(null)"} isAnonymous=${user?.isAnonymous}',
+      );
+    }
+
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-authenticated',
+        message: 'Unable to start guest session.',
+      );
+    }
+
+    final guestUser = AppUser(
+      uid: user.uid,
+      email: '',
+      name: 'Guest',
+      role: UserRoles.customer,
+      isActive: true,
+      salonId: null,
+      employeeId: null,
+      onboardingCompleted: true,
+      authProvider: 'anonymous',
+    );
+
+    if (kDebugMode) {
+      debugPrint(
+        '[GUEST_AUTH] before_user_profile_merge path=users/${user.uid}',
+      );
+    }
+
+    await _userRepository.createOrUpdateUser(guestUser, merge: true);
+    await _userRepository.mergeProfileFields({
+      'accountType': 'guest',
+      'isAnonymous': true,
+      'guestStatus': 'active',
+    });
+
+    if (kDebugMode) {
+      debugPrint(
+        '[GUEST_AUTH] after_user_profile_merge path=users/${user.uid}',
+      );
+    }
+
+    AppBootLog.session('anonymous_guest_sign_in', {'authUid': user.uid});
+    _lastCredentialUid = user.uid;
+  }
+
   Future<void> logout() async {
     // #region agent log
     agentSessionLog(

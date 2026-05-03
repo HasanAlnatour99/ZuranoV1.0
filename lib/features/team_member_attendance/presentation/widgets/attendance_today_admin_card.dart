@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../attendance/presentation/attendance_adjustment_form_state.dart';
+import '../../../attendance/presentation/widgets/attendance_adjustment_sheet.dart';
 import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
 import '../../application/team_member_attendance_providers.dart';
 import '../../data/models/attendance_record_model.dart';
-import 'manual_attendance_edit_sheet.dart';
+import '../../../owner_settings/shifts/data/models/employee_schedule_model.dart';
 
-class AttendanceTodayAdminCard extends StatelessWidget {
+class AttendanceTodayAdminCard extends ConsumerWidget {
   const AttendanceTodayAdminCard({
     super.key,
     required this.employeeName,
     required this.record,
+    required this.assignedSchedule,
     required this.canManageAttendance,
     required this.salonId,
     required this.employeeId,
@@ -20,13 +26,14 @@ class AttendanceTodayAdminCard extends StatelessWidget {
 
   final String employeeName;
   final AttendanceRecordModel? record;
+  final EmployeeScheduleModel? assignedSchedule;
   final bool canManageAttendance;
   final String salonId;
   final String employeeId;
   final TeamMemberAttendanceArgs args;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toString();
     final timeFormat = DateFormat.jm(localeTag);
@@ -51,6 +58,11 @@ class AttendanceTodayAdminCard extends StatelessWidget {
         : isOpen
         ? const Color(0xFF16A34A)
         : TeamMemberProfileColors.primary;
+    final hasSchedule =
+        assignedSchedule != null &&
+        (assignedSchedule!.shiftName.isNotEmpty ||
+            (assignedSchedule!.startTime?.isNotEmpty ?? false) ||
+            (assignedSchedule!.endTime?.isNotEmpty ?? false));
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -155,6 +167,71 @@ class AttendanceTodayAdminCard extends StatelessWidget {
               ),
             ],
           ),
+          if (hasSchedule) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                color: TeamMemberProfileColors.softPurple.withValues(
+                  alpha: 0.34,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: TeamMemberProfileColors.border),
+              ),
+              child: _ScheduleDetails(
+                schedule: assignedSchedule!,
+                localeTag: localeTag,
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 10),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => context.pushNamed(AppRouteNames.ownerWeeklyShifts),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: TeamMemberProfileColors.softPurple.withValues(
+                      alpha: 0.28,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: TeamMemberProfileColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_outlined,
+                        size: 18,
+                        color: TeamMemberProfileColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.teamMemberAttendanceNoShiftAssigned,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: TeamMemberProfileColors.textPrimary,
+                              ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: TeamMemberProfileColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (canManageAttendance) ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -168,19 +245,23 @@ class AttendanceTodayAdminCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-                onPressed: () {
-                  showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => ManualAttendanceEditSheet(
+                onPressed: () async {
+                  final today = DateTime.now();
+                  final day = DateTime(today.year, today.month, today.day);
+                  final ok = await AttendanceAdjustmentSheet.open(
+                    context,
+                    params: AttendanceAdjustmentParams(
                       salonId: salonId,
                       employeeId: employeeId,
-                      employeeName: employeeName,
-                      record: record,
-                      args: args,
+                      attendanceDate: day,
+                      employeeDisplayName: employeeName,
                     ),
+                    prefillAttendancePayload: record?.toAttendanceAdjustmentPrefillPayload(),
                   );
+                  if (ok != true || !context.mounted) return;
+                  ref.invalidate(todayAttendanceProvider(args));
+                  ref.invalidate(recentAttendanceProvider(args));
+                  ref.invalidate(attendanceSummaryProvider(args));
                 },
                 icon: Icon(hasRecord ? Icons.edit_rounded : Icons.add_rounded),
                 label: Text(
@@ -204,9 +285,98 @@ class AttendanceTodayAdminCard extends StatelessWidget {
       'incomplete' => l10n.teamMemberAttendanceRecordStatusIncomplete,
       'manual' => l10n.teamMemberAttendanceRecordStatusManual,
       'absent' => l10n.teamMemberAttendanceRecordStatusAbsent,
+      'onBreak' => l10n.teamMemberAttendanceRecordStatusOnBreak,
       'dayOff' => status,
       _ => status,
     };
+  }
+}
+
+class _ScheduleDetails extends StatelessWidget {
+  const _ScheduleDetails({required this.schedule, required this.localeTag});
+
+  final EmployeeScheduleModel schedule;
+  final String localeTag;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final shiftLabel = l10n.employeeTodayShiftLabel;
+    final shiftName = schedule.shiftName.trim().isNotEmpty
+        ? schedule.shiftName.trim()
+        : '--';
+    final shiftTimeText = _scheduleTimeText(schedule, localeTag);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.schedule_outlined,
+              size: 18,
+              color: TeamMemberProfileColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              shiftLabel,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: TeamMemberProfileColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          shiftName,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: TeamMemberProfileColors.textPrimary,
+          ),
+        ),
+        if (shiftTimeText != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            shiftTimeText,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: TeamMemberProfileColors.textSecondary,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String? _scheduleTimeText(EmployeeScheduleModel schedule, String localeTag) {
+    if (schedule.shiftType == 'off') {
+      return null;
+    }
+    final start = _parseTimeOnToday(schedule.startTime);
+    final end = _parseTimeOnToday(schedule.endTime);
+    if (start == null || end == null) {
+      return null;
+    }
+    final fmt = DateFormat.jm(localeTag);
+    return '${fmt.format(start)} - ${fmt.format(end)}';
+  }
+
+  DateTime? _parseTimeOnToday(String? hhmm) {
+    if (hhmm == null || !hhmm.contains(':')) {
+      return null;
+    }
+    final parts = hhmm.split(':');
+    if (parts.length != 2) {
+      return null;
+    }
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) {
+      return null;
+    }
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, h, m);
   }
 }
 

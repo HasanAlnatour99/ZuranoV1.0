@@ -23,6 +23,8 @@ class FirebaseErrorMessage {
           return 'Password must be at least 6 characters.';
         case 'too-many-requests':
           return 'Too many attempts. Please wait and try again.';
+        case 'operation-not-allowed':
+          return 'This sign-in method is not available. Ask your salon admin or try again later.';
         case 'network-request-failed':
           return 'Network error. Check your connection and try again.';
         case 'user-disabled':

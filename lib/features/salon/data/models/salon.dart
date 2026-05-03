@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/booking/availability_schedule.dart';
+import '../../../../core/constants/payroll_period_constants.dart';
 import '../../../../core/firestore/firestore_serializers.dart';
+import '../../../../core/utils/currency_for_country.dart';
 import '../../../onboarding/domain/value_objects/user_address.dart';
 import 'penalty_settings.dart';
 
@@ -28,6 +30,7 @@ class Salon {
     this.location,
     this.weeklyAvailability,
     this.penaltySettings = const PenaltySettings(),
+    this.defaultPayrollPeriod = SalonPayrollPeriods.monthly,
     this.createdAt,
     this.updatedAt,
   });
@@ -80,6 +83,9 @@ class Salon {
 
   final PenaltySettings penaltySettings;
 
+  /// `monthly` (default) | `weekly` — default payroll cadence; staff may override on their profile.
+  final String defaultPayrollPeriod;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -97,18 +103,25 @@ class Salon {
     }
 
     final settingsRaw = json['settings'];
-    var currency = FirestoreSerializers.string(json['currencyCode']) ?? 'USD';
+    var currency = FirestoreSerializers.string(json['currencyCode'])?.trim();
     var tz = FirestoreSerializers.string(json['timeZone']);
     if (settingsRaw is Map) {
       final m = Map<String, dynamic>.from(settingsRaw);
-      final ccy = FirestoreSerializers.string(m['currencyCode']);
-      if (ccy != null && ccy.trim().isNotEmpty) {
+      final ccy = FirestoreSerializers.string(m['currencyCode'])?.trim();
+      if (ccy != null && ccy.isNotEmpty) {
         currency = ccy;
       }
       final tzFromSettings = FirestoreSerializers.string(m['timezone']);
       if (tzFromSettings != null && tzFromSettings.isNotEmpty) {
         tz = tzFromSettings;
       }
+    }
+
+    final countryIso =
+        FirestoreSerializers.string(json['countryCode']) ??
+        details?.countryCode;
+    if (currency == null || currency.isEmpty) {
+      currency = currencyCodeForCountryIso(countryIso ?? '');
     }
 
     GeoPoint? geo;
@@ -130,9 +143,7 @@ class Salon {
       ownerUid: ownerUid,
       ownerName: FirestoreSerializers.string(json['ownerName']) ?? '',
       ownerEmail: FirestoreSerializers.string(json['ownerEmail']) ?? '',
-      countryCode:
-          FirestoreSerializers.string(json['countryCode']) ??
-          details?.countryCode,
+      countryCode: countryIso,
       countryName:
           FirestoreSerializers.string(json['countryName']) ??
           details?.countryName,
@@ -152,6 +163,9 @@ class Salon {
         json['weeklyAvailability'],
       ),
       penaltySettings: PenaltySettings.fromJson(json['penaltySettings']),
+      defaultPayrollPeriod: SalonPayrollPeriods.normalize(
+        FirestoreSerializers.string(json['defaultPayrollPeriod']),
+      ),
       createdAt: FirestoreSerializers.dateTime(json['createdAt']),
       updatedAt: FirestoreSerializers.dateTime(json['updatedAt']),
     );
@@ -199,6 +213,7 @@ class Salon {
             },
         },
       'penaltySettings': penaltySettings.toJson(),
+      'defaultPayrollPeriod': defaultPayrollPeriod,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -226,6 +241,7 @@ class Salon {
     Object? location = _sentinel,
     Object? weeklyAvailability = _sentinel,
     PenaltySettings? penaltySettings,
+    String? defaultPayrollPeriod,
     Object? createdAt = _sentinel,
     Object? updatedAt = _sentinel,
   }) {
@@ -269,6 +285,9 @@ class Salon {
           ? this.weeklyAvailability
           : weeklyAvailability as WeeklyAvailability?,
       penaltySettings: penaltySettings ?? this.penaltySettings,
+      defaultPayrollPeriod: defaultPayrollPeriod != null
+          ? SalonPayrollPeriods.normalize(defaultPayrollPeriod)
+          : this.defaultPayrollPeriod,
       createdAt: identical(createdAt, _sentinel)
           ? this.createdAt
           : createdAt as DateTime?,

@@ -14,8 +14,13 @@ abstract class SalonService with _$SalonService {
   const factory SalonService({
     @JsonKey(fromJson: looseStringFromJson) required String id,
     @JsonKey(fromJson: looseStringFromJson) required String salonId,
+
+    /// English catalogue name (sorting, staff POS, default customer LTR).
     @JsonKey(fromJson: looseStringFromJson) required String name,
     @Default('') @JsonKey(fromJson: looseStringFromJson) String serviceName,
+
+    /// Arabic display name (customer RTL; optional on legacy documents until edited).
+    @Default('') @JsonKey(fromJson: looseStringFromJson) String nameAr,
     @JsonKey(fromJson: looseIntFromJson) required int durationMinutes,
     @JsonKey(fromJson: looseDoubleFromJson) required double price,
     @JsonKey(fromJson: nullableLooseStringFromJson) String? description,
@@ -31,6 +36,9 @@ abstract class SalonService with _$SalonService {
 
     /// Legacy display-only category (pre–categoryKey). Kept for backward compatibility.
     @JsonKey(fromJson: nullableLooseStringFromJson) String? category,
+
+    /// Optional override key for service tile icon (same vocabulary as [categoryKey]).
+    @JsonKey(fromJson: nullableLooseStringFromJson) String? iconKey,
 
     /// Optional marketing image URL (owner catalog / future customer UI).
     @JsonKey(fromJson: nullableLooseStringFromJson) String? imageUrl,
@@ -56,6 +64,16 @@ abstract class SalonService with _$SalonService {
 
   factory SalonService.fromJson(Map<String, dynamic> json) =>
       _$SalonServiceFromJson(_normalizedSalonServiceJson(json));
+
+  /// Pass `Localizations.localeOf(context).languageCode` (e.g. `ar`, `en`).
+  String localizedTitleForLanguageCode(String languageCode) {
+    if (languageCode == 'ar') {
+      final ar = nameAr.trim();
+      if (ar.isNotEmpty) return ar;
+    }
+    final en = serviceName.trim().isNotEmpty ? serviceName.trim() : name;
+    return en;
+  }
 }
 
 Map<String, dynamic> _normalizedSalonServiceJson(Map<String, dynamic> json) {
@@ -67,6 +85,9 @@ Map<String, dynamic> _normalizedSalonServiceJson(Map<String, dynamic> json) {
           true
       ? FirestoreSerializers.string(json['serviceName'])!.trim()
       : name;
+
+  normalized['nameAr'] = (FirestoreSerializers.string(json['nameAr']) ?? '')
+      .trim();
 
   var categoryKey = FirestoreSerializers.string(json['categoryKey'])?.trim();
   var categoryLabel = FirestoreSerializers.string(
@@ -112,6 +133,11 @@ Map<String, dynamic> _normalizedSalonServiceJson(Map<String, dynamic> json) {
   );
   if (displayLine != null && displayLine.isNotEmpty) {
     normalized['category'] = displayLine;
+  }
+
+  final iconKey = FirestoreSerializers.string(json['iconKey'])?.trim();
+  if (iconKey != null && iconKey.isNotEmpty) {
+    normalized['iconKey'] = iconKey;
   }
 
   return normalized;

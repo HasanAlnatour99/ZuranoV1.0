@@ -6,6 +6,7 @@ import '../features/employees/data/models/employee.dart';
 import '../features/expenses/data/models/expense.dart';
 import '../features/insights/data/models/salon_insight.dart';
 import '../features/payroll/data/models/payroll_record.dart';
+import '../features/payroll/data/models/payslip_model.dart';
 import '../features/sales/data/models/sale.dart';
 import '../features/salon/data/models/salon.dart';
 import '../features/services/data/models/service.dart';
@@ -228,6 +229,60 @@ final salesByMonthStreamProvider =
             salonId,
             reportYear: month.year,
             reportMonth: month.month,
+            limit: 2500,
+          );
+        },
+      );
+    });
+
+/// Expenses whose [Expense.reportYear] / [Expense.reportMonth] match [SalesMonthKey].
+final expensesByMonthStreamProvider =
+    StreamProvider.family<List<Expense>, SalesMonthKey>((ref, month) {
+      final repo = ref.watch(expenseRepositoryProvider);
+      return _guardedSalonStream<List<Expense>>(
+        ref,
+        emptyValue: const <Expense>[],
+        onSalon: (salonId) {
+          return repo.watchExpenses(
+            salonId,
+            reportYear: month.year,
+            reportMonth: month.month,
+            limit: 800,
+          );
+        },
+      );
+    });
+
+/// Payroll rows for the salon calendar month ([PayrollRecord.year] / [month]).
+final payrollByMonthStreamProvider =
+    StreamProvider.family<List<PayrollRecord>, SalesMonthKey>((ref, month) {
+      final repo = ref.watch(payrollRepositoryProvider);
+      return _guardedSalonStream<List<PayrollRecord>>(
+        ref,
+        emptyValue: const <PayrollRecord>[],
+        onSalon: (salonId) {
+          return repo.watchPayroll(
+            salonId,
+            year: month.year,
+            month: month.month,
+            limit: 240,
+          );
+        },
+      );
+    });
+
+/// Payslips for the salon calendar month (used with payroll runs; see [PayslipModel.payrollRunId]).
+final payslipsByMonthStreamProvider =
+    StreamProvider.family<List<PayslipModel>, SalesMonthKey>((ref, month) {
+      final repo = ref.watch(payslipRepositoryProvider);
+      return _guardedSalonStream<List<PayslipModel>>(
+        ref,
+        emptyValue: const <PayslipModel>[],
+        onSalon: (salonId) {
+          return repo.watchPayslipsForSalonCalendarMonth(
+            salonId: salonId,
+            year: month.year,
+            month: month.month,
           );
         },
       );

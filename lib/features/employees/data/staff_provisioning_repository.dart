@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:cloud_functions/cloud_functions.dart';
 
+import '../../../core/text/team_member_name.dart';
 import '../domain/staff_provisioning_exception.dart';
 import '../domain/employee_role.dart';
 import 'models/staff_provisioning_result.dart';
@@ -29,6 +30,7 @@ class StaffProvisioningRepository {
     required bool isActive,
     required Map<String, bool> permissions,
   }) async {
+    final formattedDisplayName = formatTeamMemberName(displayName);
     final normalizedEmail = email.trim().toLowerCase();
     if (normalizedEmail.isEmpty) {
       throw const StaffProvisioningException(
@@ -40,8 +42,8 @@ class StaffProvisioningRepository {
     try {
       developer.log(
         'staff_provisioning invoke ${StaffInviteRemoteDataSource.callableName} '
-        'sanitizedPayload={displayNameLen: ${displayName.length}, '
-        'displayNameTrimmedEmpty: ${displayName.trim().isEmpty}, '
+        'sanitizedPayload={displayNameLen: ${formattedDisplayName.length}, '
+        'displayNameTrimmedEmpty: ${formattedDisplayName.isEmpty}, '
         'email: $normalizedEmail, username: ${username.trim()}, '
         'role: $normalizedRole }',
         name: 'staff_provisioning',
@@ -50,7 +52,7 @@ class StaffProvisioningRepository {
         salonId: salonId,
         email: normalizedEmail,
         username: username.trim(),
-        displayName: displayName,
+        displayName: formattedDisplayName,
         password: password,
         role: normalizedRole,
         phone: phone,

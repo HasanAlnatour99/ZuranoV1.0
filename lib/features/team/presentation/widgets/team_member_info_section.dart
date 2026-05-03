@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
+
 class TeamMemberInfoRowData {
   TeamMemberInfoRowData({
     required this.icon,
@@ -8,6 +10,8 @@ class TeamMemberInfoRowData {
     this.trailingIcon,
     this.onTap,
     this.valueColor,
+    this.valueBackgroundColor,
+    this.valueBorderColor,
     this.showChevron = true,
   });
 
@@ -17,6 +21,8 @@ class TeamMemberInfoRowData {
   final IconData? trailingIcon;
   final VoidCallback? onTap;
   final Color? valueColor;
+  final Color? valueBackgroundColor;
+  final Color? valueBorderColor;
   final bool showChevron;
 }
 
@@ -95,10 +101,17 @@ class _InfoRow extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: scheme.primaryContainer.withValues(alpha: 0.45),
+              color: TeamMemberProfileColors.softPurple,
               borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: TeamMemberProfileColors.border.withValues(alpha: 0.65),
+              ),
             ),
-            child: Icon(data.icon, color: scheme.primary, size: 22),
+            child: Icon(
+              data.icon,
+              color: TeamMemberProfileColors.primary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -113,22 +126,75 @@ class _InfoRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  data.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleSmall?.copyWith(
-                    color: data.valueColor ?? scheme.onSurface,
-                    fontWeight: FontWeight.w800,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final valueText = Text(
+                      data.value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleSmall?.copyWith(
+                        color: data.valueColor ?? scheme.onSurface,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    );
+                    if (data.valueBackgroundColor == null) {
+                      return valueText;
+                    }
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: data.valueBackgroundColor,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color:
+                              data.valueBorderColor ??
+                              scheme.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: valueText,
+                    );
+                  },
                 ),
               ],
             ),
           ),
           if (data.trailingIcon != null)
-            Icon(data.trailingIcon, color: scheme.primary, size: 22)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TeamMemberProfileColors.softPurple,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: TeamMemberProfileColors.border.withValues(alpha: 0.65),
+                ),
+              ),
+              child: Icon(
+                data.trailingIcon,
+                color: TeamMemberProfileColors.primary,
+                size: 22,
+              ),
+            )
           else if (data.showChevron)
-            Icon(Icons.chevron_right_rounded, color: scheme.outline, size: 26)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: TeamMemberProfileColors.softPurple,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: TeamMemberProfileColors.border.withValues(alpha: 0.65),
+                ),
+              ),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: TeamMemberProfileColors.primary,
+                size: 24,
+              ),
+            )
           else
             const SizedBox(width: 8),
         ],

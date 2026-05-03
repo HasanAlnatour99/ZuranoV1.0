@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
 import '../../application/team_member_attendance_providers.dart';
 import '../../data/models/attendance_correction_request_model.dart';
 import 'correction_review_sheet.dart';
@@ -29,59 +30,78 @@ class AttendanceCorrectionRequestsCard extends StatelessWidget {
         : requests.take(3).toList();
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: ZuranoTokens.surface,
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusSection),
+        border: Border.all(color: ZuranoTokens.sectionBorder),
+        boxShadow: ZuranoTokens.sectionShadow,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.assignment_rounded,
-                color: TeamMemberProfileColors.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.teamMemberAttendanceCorrectionsTitle,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: TeamMemberProfileColors.textPrimary,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    color: ZuranoTokens.lightPurple,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.assignment_rounded,
+                    color: ZuranoTokens.primary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    l10n.teamMemberAttendanceCorrectionsTitle,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: ZuranoTokens.textDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (visibleRequests.isEmpty)
+            SizedBox(
+              height: 200,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _EmptyState(
+                    title: l10n.teamMemberAttendanceCorrectionEmptyTitle,
+                    subtitle: l10n.teamMemberAttendanceCorrectionEmptySubtitle,
+                  ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (visibleRequests.isEmpty)
-            _EmptyState(
-              title: l10n.teamMemberAttendanceCorrectionEmptyTitle,
-              subtitle: l10n.teamMemberAttendanceCorrectionEmptySubtitle,
             )
           else
-            ...visibleRequests.map(
-              (request) => _RequestTile(
-                request: request,
-                canManageAttendance: canManageAttendance,
-                salonId: salonId,
-                args: args,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+              child: Column(
+                children: visibleRequests
+                    .map(
+                      (request) => _RequestTile(
+                        request: request,
+                        canManageAttendance: canManageAttendance,
+                        salonId: salonId,
+                        args: args,
+                      ),
+                    )
+                    .toList(growable: false),
               ),
             ),
         ],
       ),
-    );
-  }
-
-  BoxDecoration _cardDecoration() {
-    return BoxDecoration(
-      color: TeamMemberProfileColors.card,
-      borderRadius: BorderRadius.circular(26),
-      border: Border.all(color: TeamMemberProfileColors.border),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.04),
-          blurRadius: 22,
-          offset: const Offset(0, 10),
-        ),
-      ],
     );
   }
 }
@@ -103,30 +123,63 @@ class _RequestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isPending = request.status == 'pending';
+    final localeTag = Localizations.localeOf(context).toString();
+    final timeFormat = DateFormat.jm(localeTag);
+    final dateFormat = DateFormat.yMMMd(localeTag);
+
+    final metaLine = _requestMetaLine(
+      context,
+      request,
+      dateFormat,
+      timeFormat,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: TeamMemberProfileColors.softPurple.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(18),
+        color: ZuranoTokens.searchFill,
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusInput),
+        border: Border.all(color: ZuranoTokens.sectionBorder),
+        boxShadow: ZuranoTokens.softCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
+              const Icon(
                 Icons.history_toggle_off_rounded,
-                color: TeamMemberProfileColors.primary,
+                color: ZuranoTokens.primary,
+                size: 22,
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  _requestTypeLabel(context, request.requestType),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _requestTypeLabel(context, request),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: ZuranoTokens.textDark,
+                        height: 1.25,
+                      ),
+                    ),
+                    if (metaLine != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        metaLine,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: ZuranoTokens.textGray,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               _StatusChip(status: request.status),
@@ -138,17 +191,28 @@ class _RequestTile extends StatelessWidget {
                 ? l10n.teamMemberAttendanceNoReason
                 : request.reason,
             textAlign: TextAlign.start,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: TeamMemberProfileColors.textSecondary,
+            style: const TextStyle(
+              fontSize: 13,
+              color: ZuranoTokens.textGray,
               height: 1.4,
             ),
           ),
           if (isPending && canManageAttendance) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFDC2626),
+                      side: const BorderSide(color: Color(0xFFFECACA)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          ZuranoTokens.radiusButton,
+                        ),
+                      ),
+                    ),
                     onPressed: () {
                       showModalBottomSheet<void>(
                         context: context,
@@ -167,25 +231,48 @@ class _RequestTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: TeamMemberProfileColors.primary,
-                      foregroundColor: Colors.white,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: ZuranoTokens.primaryGradient,
+                      borderRadius: BorderRadius.circular(
+                        ZuranoTokens.radiusButton,
+                      ),
+                      boxShadow: ZuranoTokens.fabGlow,
                     ),
-                    onPressed: () {
-                      showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => CorrectionReviewSheet(
-                          salonId: salonId,
-                          request: request,
-                          intent: CorrectionReviewIntent.approve,
-                          args: args,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(
+                          ZuranoTokens.radiusButton,
                         ),
-                      );
-                    },
-                    child: Text(l10n.teamMemberAttendanceApprove),
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => CorrectionReviewSheet(
+                              salonId: salonId,
+                              request: request,
+                              intent: CorrectionReviewIntent.approve,
+                              args: args,
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: Text(
+                              l10n.teamMemberAttendanceApprove,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -196,16 +283,70 @@ class _RequestTile extends StatelessWidget {
     );
   }
 
-  static String _requestTypeLabel(BuildContext context, String value) {
+  static String _requestTypeLabel(
+    BuildContext context,
+    AttendanceCorrectionRequestModel request,
+  ) {
     final l10n = AppLocalizations.of(context)!;
-    return switch (value) {
+    if (request.requestedPunchType.isNotEmpty) {
+      return _punchTypeLabel(l10n, request.requestedPunchType);
+    }
+    return switch (request.requestType) {
       'missing_check_in' => l10n.teamMemberAttendanceRequestTypeMissingCheckIn,
-      'missing_checkout' => l10n.teamMemberAttendanceRequestTypeMissingCheckout,
+      'missing_checkout' =>
+        l10n.teamMemberAttendanceRequestTypeMissingCheckout,
       'wrong_check_in' => l10n.teamMemberAttendanceRequestTypeWrongCheckIn,
       'wrong_check_out' => l10n.teamMemberAttendanceRequestTypeWrongCheckOut,
       'absence_correction' => l10n.teamMemberAttendanceRequestTypeAbsence,
       _ => l10n.teamMemberAttendanceRequestTypeGeneric,
     };
+  }
+
+  static String _punchTypeLabel(AppLocalizations l10n, String punch) {
+    if (punch == 'breakOut' || punch == 'breakIn') {
+      return l10n.teamMemberAttendanceRequestTypeGeneric;
+    }
+    return switch (punch) {
+      'punchIn' => l10n.teamMemberAttendanceRequestTypeMissingCheckIn,
+      'punchOut' => l10n.teamMemberAttendanceRequestTypeMissingCheckout,
+      _ => l10n.teamMemberAttendanceRequestTypeGeneric,
+    };
+  }
+
+  static String? _requestMetaLine(
+    BuildContext context,
+    AttendanceCorrectionRequestModel request,
+    DateFormat dateFormat,
+    DateFormat timeFormat,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    if (request.requestedPunchTime != null) {
+      final t = request.requestedPunchTime!.toLocal();
+      return '${dateFormat.format(t)} · ${timeFormat.format(t)}';
+    }
+    if (request.attendanceDate.isNotEmpty) {
+      final parsed = DateTime.tryParse(request.attendanceDate);
+      if (parsed != null) {
+        return dateFormat.format(parsed.toLocal());
+      }
+      return request.attendanceDate;
+    }
+    if (request.requestedCheckInAt != null ||
+        request.requestedCheckOutAt != null) {
+      final parts = <String>[];
+      if (request.requestedCheckInAt != null) {
+        parts.add(
+          '${l10n.teamMemberAttendanceCheckInLabel}: ${timeFormat.format(request.requestedCheckInAt!.toLocal())}',
+        );
+      }
+      if (request.requestedCheckOutAt != null) {
+        parts.add(
+          '${l10n.teamMemberAttendanceCheckOutLabel}: ${timeFormat.format(request.requestedCheckOutAt!.toLocal())}',
+        );
+      }
+      return parts.join(' · ');
+    }
+    return null;
   }
 }
 
@@ -228,7 +369,7 @@ class _StatusChip extends StatelessWidget {
       'approved' => const Color(0xFF16A34A),
       'rejected' => const Color(0xFFDC2626),
       'pending' => const Color(0xFFF59E0B),
-      _ => TeamMemberProfileColors.textSecondary,
+      _ => ZuranoTokens.textGray,
     };
 
     return Container(
@@ -236,6 +377,7 @@ class _StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
       ),
       child: Text(
         label,
@@ -257,32 +399,36 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Column(
-        children: [
-          Icon(
-            Icons.assignment_turned_in_rounded,
-            color: TeamMemberProfileColors.primary.withValues(alpha: 0.45),
-            size: 42,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.assignment_turned_in_rounded,
+          color: ZuranoTokens.primary.withValues(alpha: 0.45),
+          size: 42,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            color: ZuranoTokens.textDark,
           ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 13,
+            color: ZuranoTokens.textGray,
+            height: 1.35,
           ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: TeamMemberProfileColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

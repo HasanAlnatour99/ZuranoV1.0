@@ -106,6 +106,136 @@ const COPY: Record<
       body: "قسيمة راتبك لهذه الفترة متاحة.",
     },
   },
+  expense_added: {
+    en: {
+      title: "New expense",
+      body: "{title} — {amount} {currency}",
+    },
+    ar: {
+      title: "مصروف جديد",
+      body: "{title} — {amount} {currency}",
+    },
+  },
+  sale_recorded: {
+    en: {
+      title: "Sale recorded",
+      body: "{employeeName} recorded {services} ({total} {currency})",
+    },
+    ar: {
+      title: "تسجيل بيع",
+      body: "{employeeName} سجّل {services} ({total} {currency})",
+    },
+  },
+  attendance_check_in: {
+    en: {
+      title: "Checked in",
+      body: "{employeeName} checked in.",
+    },
+    ar: {
+      title: "تسجيل حضور",
+      body: "سجّل {employeeName} الحضور.",
+    },
+  },
+  attendance_late: {
+    en: {
+      title: "Late arrival",
+      body: "{employeeName} was marked late.",
+    },
+    ar: {
+      title: "تأخير",
+      body: "تم تسجيل تأخير لـ {employeeName}.",
+    },
+  },
+  attendance_correction_requested: {
+    en: {
+      title: "Attendance correction",
+      body: "A correction request needs review.",
+    },
+    ar: {
+      title: "تصحيح حضور",
+      body: "طلب تصحيح حضور يحتاج مراجعة.",
+    },
+  },
+  service_created: {
+    en: {
+      title: "New service",
+      body: "{serviceName} was added.",
+    },
+    ar: {
+      title: "خدمة جديدة",
+      body: "تمت إضافة {serviceName}.",
+    },
+  },
+  service_updated: {
+    en: {
+      title: "Service updated",
+      body: "{serviceName} was updated.",
+    },
+    ar: {
+      title: "تحديث خدمة",
+      body: "تم تحديث {serviceName}.",
+    },
+  },
+  service_deleted: {
+    en: {
+      title: "Service removed",
+      body: "{serviceName} was removed.",
+    },
+    ar: {
+      title: "إزالة خدمة",
+      body: "تمت إزالة {serviceName}.",
+    },
+  },
+  employee_created: {
+    en: {
+      title: "Team member added",
+      body: "{name} joined the team.",
+    },
+    ar: {
+      title: "عضو فريق جديد",
+      body: "انضم {name} إلى الفريق.",
+    },
+  },
+  employee_reactivated: {
+    en: {
+      title: "Team member active",
+      body: "{name} is active again.",
+    },
+    ar: {
+      title: "تفعيل عضو",
+      body: "أصبح {name} نشطًا مجددًا.",
+    },
+  },
+  employee_frozen: {
+    en: {
+      title: "Team member deactivated",
+      body: "{name} was deactivated.",
+    },
+    ar: {
+      title: "تعطيل عضو",
+      body: "تم تعطيل {name}.",
+    },
+  },
+  daily_summary: {
+    en: {
+      title: "Daily summary",
+      body: "{summary}",
+    },
+    ar: {
+      title: "ملخص يومي",
+      body: "{summary}",
+    },
+  },
+  monthly_summary: {
+    en: {
+      title: "Monthly summary",
+      body: "{summary}",
+    },
+    ar: {
+      title: "ملخص شهري",
+      body: "{summary}",
+    },
+  },
 };
 
 function replacePlaceholders(

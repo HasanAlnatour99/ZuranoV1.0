@@ -3,35 +3,43 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/repository_providers.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
 import '../../../team_member_attendance/application/team_member_attendance_providers.dart';
 import '../../../team_member_attendance/presentation/team_member_attendance_tab.dart';
 import '../../../employees/data/models/employee.dart';
 import '../../logic/team_management_providers.dart';
 import '../widgets/add_barber_sheet.dart';
-import '../widgets/barber_booking_prep_tab.dart';
 import '../widgets/barber_overview_tab.dart';
 import '../widgets/barber_payroll_tab.dart';
 import '../widgets/barber_sales_tab.dart';
-import '../widgets/barber_services_tab.dart';
+import '../../../barbers/presentation/tabs/barber_services_tab.dart';
+import '../../../../providers/money_currency_providers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
 class BarberDetailsScreen extends ConsumerStatefulWidget {
-  const BarberDetailsScreen({super.key, required this.employeeId});
+  const BarberDetailsScreen({
+    super.key,
+    required this.employeeId,
+    this.initialTab,
+  });
 
   final String employeeId;
+
+  /// Route query `tab` opens that tab: `overview`, `sales`, `attendance`, `payroll`, `services`.
+  final String? initialTab;
 
   @override
   ConsumerState<BarberDetailsScreen> createState() =>
@@ -42,6 +50,7 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   String? _tabBoundEmployeeId;
+  bool _profilePhotoPickInProgress = false;
 
   @override
   void dispose() {
@@ -49,20 +58,39 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
     super.dispose();
   }
 
-  void _syncTabController(String employeeId) {
+  void _syncTabController(String employeeId, {String? initialTab}) {
     if (_tabController != null && _tabBoundEmployeeId == employeeId) {
       return;
     }
     _tabController?.dispose();
     _tabBoundEmployeeId = employeeId;
-    _tabController = TabController(length: 6, vsync: this);
+    final initialIndex = _tabIndexFromQuery(initialTab);
+    _tabController = TabController(
+      length: 5,
+      vsync: this,
+      initialIndex: initialIndex.clamp(0, 4),
+    );
+  }
+
+  /// Query `tab`: `overview` | `sales` | `attendance` | `payroll` | `services`.
+  static int _tabIndexFromQuery(String? initialTab) {
+    final t = initialTab?.toLowerCase().trim() ?? '';
+    if (t.isEmpty || t == 'overview') {
+      return 0;
+    }
+    return switch (t) {
+      'sales' => 1,
+      'attendance' => 2,
+      'payroll' => 3,
+      'services' => 4,
+      _ => 0,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final detailsAsync = ref.watch(barberDetailsProvider(widget.employeeId));
-    final salonAsync = ref.watch(sessionSalonStreamProvider);
 
     return detailsAsync.when(
       loading: () => Scaffold(
@@ -103,9 +131,12 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
         );
       },
       data: (data) {
-        _syncTabController(data.employee.id);
+        _syncTabController(
+          data.employee.id,
+          initialTab: widget.initialTab,
+        );
         final tabController = _tabController!;
-        final currencyCode = salonAsync.asData?.value?.currencyCode ?? 'USD';
+        final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
         final canManageAttendance =
             ref.watch(canManageTeamMemberAttendanceProvider).asData?.value ??
             false;
@@ -116,69 +147,81 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _DetailsTopBar(
-                  title: data.employee.name,
-                  onBack: () => context.pop(),
-                  onCamera: () => _updateProfilePhoto(context, data.employee),
-                  onEdit: () => showAddBarberSheet(
-                    context,
-                    salonId: data.employee.salonId,
-                    existing: data.employee,
+                Material(
+                  color: TeamMemberProfileColors.canvas,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _DetailsTopBar(
+                        title: formatTeamMemberName(data.employee.name),
+                        onBack: () => context.pop(),
+                        onCamera: () => _updateProfilePhoto(context, data.employee),
+                        onEdit: () => showAddBarberSheet(
+                          context,
+                          salonId: data.employee.salonId,
+                          existing: data.employee,
+                        ),
+                        cameraTooltip: l10n.addBarberProfilePhotoButton,
+                        editTooltip: l10n.teamMemberEditAction,
+                      ),
+                      TabBar(
+                        controller: tabController,
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.start,
+                        labelColor: TeamMemberProfileColors.primary,
+                        unselectedLabelColor: TeamMemberProfileColors.textSecondary,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                        indicatorColor: TeamMemberProfileColors.primary,
+                        indicatorWeight: 3,
+                        dividerColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        tabs: [
+                          Tab(text: l10n.teamDetailsTabOverview),
+                          Tab(text: l10n.teamDetailsTabSales),
+                          Tab(text: l10n.teamDetailsTabAttendance),
+                          Tab(text: l10n.teamDetailsTabPayroll),
+                          Tab(text: l10n.teamDetailsTabServices),
+                        ],
+                      ),
+                    ],
                   ),
-                  cameraTooltip: l10n.addBarberProfilePhotoButton,
-                  editTooltip: l10n.teamMemberEditAction,
-                ),
-                TabBar(
-                  controller: tabController,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  labelColor: TeamMemberProfileColors.primary,
-                  unselectedLabelColor: TeamMemberProfileColors.textSecondary,
-                  labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
-                  ),
-                  indicatorColor: TeamMemberProfileColors.primary,
-                  indicatorWeight: 3,
-                  dividerColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  tabs: [
-                    Tab(text: l10n.teamDetailsTabOverview),
-                    Tab(text: l10n.teamDetailsTabSales),
-                    Tab(text: l10n.teamDetailsTabAttendance),
-                    Tab(text: l10n.teamDetailsTabPayroll),
-                    Tab(text: l10n.teamDetailsTabServices),
-                    Tab(text: l10n.teamDetailsTabBookingPrep),
-                  ],
                 ),
                 Expanded(
-                  child: TabBarView(
-                    controller: tabController,
-                    children: [
-                      BarberOverviewTab(data: data, currencyCode: currencyCode),
-                      BarberSalesTab(
-                        data: data,
-                        currencyCode: currencyCode,
-                        onAddSale: () => context.push(
-                          AppRoutes.addSalePrefill(
-                            employeeId: data.employee.id,
+                  child: ClipRect(
+                    child: TabBarView(
+                      controller: tabController,
+                      children: [
+                        BarberOverviewTab(data: data, currencyCode: currencyCode),
+                        BarberSalesTab(
+                          data: data,
+                          currencyCode: currencyCode,
+                          onAddSale: () => context.push(
+                            AppRoutes.addSalePrefill(
+                              employeeId: data.employee.id,
+                            ),
                           ),
                         ),
-                      ),
-                      TeamMemberAttendanceTab(
-                        salonId: data.employee.salonId,
-                        employeeId: data.employee.id,
-                        employeeName: data.employee.name,
-                        canManageAttendance: canManageAttendance,
-                      ),
-                      BarberPayrollTab(data: data, currencyCode: currencyCode),
-                      BarberServicesTab(data: data, currencyCode: currencyCode),
-                      BarberBookingPrepTab(data: data),
-                    ],
+                        TeamMemberAttendanceTab(
+                          salonId: data.employee.salonId,
+                          employeeId: data.employee.id,
+                          employeeName: formatTeamMemberName(data.employee.name),
+                          canManageAttendance: canManageAttendance,
+                        ),
+                        BarberPayrollTab(data: data, currencyCode: currencyCode),
+                        BarberServicesTab(
+                          salonId: data.employee.salonId,
+                          employeeId: data.employee.id,
+                          salonFallbackCurrencyCode: currencyCode,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -193,6 +236,10 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
     BuildContext context,
     Employee employee,
   ) async {
+    if (_profilePhotoPickInProgress) {
+      return;
+    }
+    _profilePhotoPickInProgress = true;
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
@@ -217,6 +264,21 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
       if (context.mounted) {
         showAppSuccessSnackBar(context, 'Profile photo updated.');
       }
+    } on PlatformException catch (error, stackTrace) {
+      if (error.code == 'already_active') {
+        return;
+      }
+      developer.log(
+        'Failed to update employee photo',
+        name: 'team.barberDetails',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update profile photo.')),
+        );
+      }
     } catch (error, stackTrace) {
       developer.log(
         'Failed to update employee photo',
@@ -229,6 +291,8 @@ class _BarberDetailsScreenState extends ConsumerState<BarberDetailsScreen>
           const SnackBar(content: Text('Failed to update profile photo.')),
         );
       }
+    } finally {
+      _profilePhotoPickInProgress = false;
     }
   }
 }
@@ -304,21 +368,28 @@ class _RoundedIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: TeamMemberProfileColors.softPurple,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
+    return SizedBox.square(
+      dimension: 52,
+      child: Material(
+        color: TeamMemberProfileColors.softPurple,
         borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          width: 52,
-          height: 52,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: TeamMemberProfileColors.border),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: TeamMemberProfileColors.border),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                color: TeamMemberProfileColors.primary,
+                size: 24,
+              ),
+            ),
           ),
-          child: Icon(icon, color: TeamMemberProfileColors.primary, size: 24),
         ),
       ),
     );

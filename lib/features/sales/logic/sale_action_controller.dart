@@ -42,6 +42,8 @@ class SaleActionController {
       reportMonth: sale.reportMonth,
       commissionRateUsed: sale.commissionRateUsed,
       commissionAmount: 0, // No commission for voided sales
+      receiptPhotoUrl: sale.receiptPhotoUrl,
+      receiptStoragePath: sale.receiptStoragePath,
       updatedAt: DateTime.now(),
     );
 
@@ -75,6 +77,8 @@ class SaleActionController {
       reportMonth: sale.reportMonth,
       commissionRateUsed: sale.commissionRateUsed,
       commissionAmount: 0, // Commission is nullified on refund
+      receiptPhotoUrl: sale.receiptPhotoUrl,
+      receiptStoragePath: sale.receiptStoragePath,
       updatedAt: DateTime.now(),
     );
 

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/zurano_service_category_icon.dart';
 import '../../data/models/customer_service_public_model.dart';
 
 class SelectableCustomerServiceCard extends StatelessWidget {
@@ -13,18 +14,21 @@ class SelectableCustomerServiceCard extends StatelessWidget {
     required this.service,
     required this.selected,
     required this.onTap,
+    required this.currencyCode,
   });
 
   final CustomerServicePublicModel service;
   final bool selected;
   final VoidCallback onTap;
+  final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context);
-    final price = formatMoney(service.price, 'QAR', locale);
+    final lang = locale.languageCode;
+    final price = formatMoney(service.price, currencyCode, locale);
     final image = service.imageUrl?.trim();
 
     return Padding(
@@ -59,14 +63,14 @@ class SelectableCustomerServiceCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _ServiceIcon(imageUrl: image),
+                _ServiceIcon(imageUrl: image, service: service),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        service.displayTitle,
+                        service.localizedTitleForLanguageCode(lang),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: AppColorsLight.textPrimary,
@@ -144,9 +148,10 @@ class SelectableCustomerServiceCard extends StatelessWidget {
 }
 
 class _ServiceIcon extends StatelessWidget {
-  const _ServiceIcon({required this.imageUrl});
+  const _ServiceIcon({required this.imageUrl, required this.service});
 
   final String? imageUrl;
+  final CustomerServicePublicModel service;
 
   @override
   Widget build(BuildContext context) {
@@ -160,24 +165,34 @@ class _ServiceIcon extends StatelessWidget {
             ? Image.network(
                 url,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const _ServiceIconFallback(),
+                errorBuilder: (_, _, _) =>
+                    _ServiceIconFallback(service: service),
               )
-            : const _ServiceIconFallback(),
+            : _ServiceIconFallback(service: service),
       ),
     );
   }
 }
 
 class _ServiceIconFallback extends StatelessWidget {
-  const _ServiceIconFallback();
+  const _ServiceIconFallback({required this.service});
+
+  final CustomerServicePublicModel service;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: AppBrandColors.secondary,
-      child: Icon(
-        Icons.content_cut_rounded,
-        color: AppBrandColors.primary.withValues(alpha: 0.45),
+      child: Center(
+        child: ZuranoServiceCategoryIcon(
+          categoryKey: service.resolvedCategoryKeyForIcon,
+          iconKey: service.iconKey,
+          size: 48,
+          iconSize: 24,
+          backgroundColor: Colors.white.withValues(alpha: 0.35),
+          iconColor: AppBrandColors.primary.withValues(alpha: 0.85),
+          borderRadius: 14,
+        ),
       ),
     );
   }

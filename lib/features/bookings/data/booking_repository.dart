@@ -12,6 +12,7 @@ import '../../../core/firestore/firestore_paths.dart';
 import '../../../core/firestore/firestore_serializers.dart';
 import '../../../core/firestore/firestore_write_payload.dart';
 import '../../../core/firestore/report_period.dart';
+import '../../../core/text/team_member_name.dart';
 import 'booking_time_overlap_exception.dart';
 import 'models/booking.dart';
 
@@ -124,7 +125,8 @@ class BookingRepository {
     final report = ReportPeriod.denormalizedFieldsFor(booking.startAt);
     final dayKey = _dayKeyFromUtc(startAtUtc);
     final lockRef = _barberDayLockDoc(salonId, booking.barberId, dayKey);
-    final barberName = booking.barberName?.trim() ?? '';
+    final barberNameRaw = booking.barberName?.trim() ?? '';
+    final barberName = formatTeamMemberName(barberNameRaw);
     final serviceName = booking.serviceName?.trim() ?? '';
     final notes = booking.notes?.trim() ?? '';
     final data = <String, dynamic>{
@@ -389,6 +391,10 @@ class BookingRepository {
     data.remove('createdAt');
     data.remove('updatedAt');
     data['status'] = nextStatus;
+    final bn = data['barberName'];
+    if (bn is String && bn.trim().isNotEmpty) {
+      data['barberName'] = formatTeamMemberName(bn);
+    }
 
     return _bookings(salonId)
         .doc(booking.id)

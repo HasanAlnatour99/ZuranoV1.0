@@ -7,11 +7,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../services/data/models/service.dart';
 import '../providers/add_sale_controller.dart';
-import '../utils/pos_service_icon.dart';
 import 'service_quick_card.dart';
 import 'selected_service_tile.dart';
 
-class ServiceSelectionCard extends StatelessWidget {
+class ServiceSelectionCard extends StatefulWidget {
   const ServiceSelectionCard({
     super.key,
     required this.l10n,
@@ -23,7 +22,6 @@ class ServiceSelectionCard extends StatelessWidget {
     required this.onSearchChanged,
     required this.onServiceTap,
     required this.onRemoveLine,
-    this.serviceStripScrollController,
     this.showManageServicesLink = true,
   });
 
@@ -36,19 +34,69 @@ class ServiceSelectionCard extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<SalonService> onServiceTap;
   final ValueChanged<String> onRemoveLine;
-  final ScrollController? serviceStripScrollController;
 
   /// When false, the link to salon service management is hidden (e.g. employee role).
   final bool showManageServicesLink;
 
   @override
+  State<ServiceSelectionCard> createState() => _ServiceSelectionCardState();
+}
+
+class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
+  late final TextEditingController _searchController;
+
+  /// Nullable + lazy getters so hot reload (which does not rerun [initState] on
+  /// preserved [State]) still creates controllers on first [build].
+  ScrollController? _selectedLinesScrollController;
+  ScrollController? _servicesListScrollController;
+
+  ScrollController get _effectiveSelectedLinesScroll =>
+      _selectedLinesScrollController ??= ScrollController();
+
+  ScrollController get _effectiveServicesListScroll =>
+      _servicesListScrollController ??= ScrollController();
+
+  static const double _servicesListMaxHeight = 280;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(text: widget.searchQuery);
+  }
+
+  @override
+  void didUpdateWidget(ServiceSelectionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchQuery != widget.searchQuery &&
+        widget.searchQuery != _searchController.text) {
+      _searchController.value = TextEditingValue(
+        text: widget.searchQuery,
+        selection: TextSelection.collapsed(offset: widget.searchQuery.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _selectedLinesScrollController?.dispose();
+    _servicesListScrollController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final q = searchQuery.trim().toLowerCase();
-    final filtered = services.where((s) {
+    final l10n = widget.l10n;
+    final q = widget.searchQuery.trim().toLowerCase();
+    final filtered = widget.services.where((s) {
       if (q.isEmpty) return true;
-      final name = s.serviceName.trim().isNotEmpty ? s.serviceName : s.name;
-      return name.toLowerCase().contains(q);
+      final nameEn = (s.serviceName.trim().isNotEmpty ? s.serviceName : s.name)
+          .toLowerCase();
+      final nameAr = s.nameAr.toLowerCase();
+      return nameEn.contains(q) || nameAr.contains(q);
     }).toList();
+
+    final selectedMaxHeight = (widget.lines.length * 56.0).clamp(0.0, 156.0);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 6, 20, 14),
@@ -94,7 +142,7 @@ class ServiceSelectionCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showManageServicesLink)
+              if (widget.showManageServicesLink)
                 TextButton(
                   onPressed: () => context.push(AppRoutes.ownerServices),
                   style: TextButton.styleFrom(
@@ -113,7 +161,8 @@ class ServiceSelectionCard extends StatelessWidget {
               border: Border.all(color: FinanceDashboardColors.border),
             ),
             child: TextField(
-              onChanged: onSearchChanged,
+              controller: _searchController,
+              onChanged: widget.onSearchChanged,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.search_rounded,
@@ -122,6 +171,20 @@ class ServiceSelectionCard extends StatelessWidget {
                     alpha: 0.76,
                   ),
                 ),
+                suffixIcon: widget.searchQuery.trim().isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: l10n.addSaleClearSearchTooltip,
+                        onPressed: () {
+                          _searchController.clear();
+                          widget.onSearchChanged('');
+                        },
+                        icon: Icon(
+                          Icons.clear_rounded,
+                          color: FinanceDashboardColors.textSecondary
+                              .withValues(alpha: 0.74),
+                        ),
+                      ),
                 hintText: l10n.addSaleSearchServicesHint,
                 hintStyle: const TextStyle(
                   color: FinanceDashboardColors.textSecondary,
@@ -135,14 +198,75 @@ class ServiceSelectionCard extends StatelessWidget {
               ),
             ),
           ),
+          if (widget.lines.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              l10n.addSaleSelectedServicesTitle(widget.lines.length),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: FinanceDashboardColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: FinanceDashboardColors.background.withValues(
+                  alpha: 0.72,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: FinanceDashboardColors.border),
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: selectedMaxHeight),
+                child: Scrollbar(
+                  controller: _effectiveSelectedLinesScroll,
+                  thumbVisibility: widget.lines.length > 2,
+                  child: ListView(
+                    controller: _effectiveSelectedLinesScroll,
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: widget.lines.length > 2
+                        ? const ClampingScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    children: [
+                      for (final line in widget.lines)
+                        SelectedServiceTile(
+                          dense: true,
+                          title: '${line.serviceName} × ${line.quantity}',
+                          subtitle: l10n.addSaleSelectedServiceLineSubtitle,
+                          priceLabel: formatAppMoney(
+                            line.lineTotal,
+                            widget.currencyCode,
+                            widget.locale,
+                          ),
+                          categoryKey: line.categoryKey,
+                          iconKey: line.iconKey,
+                          onRemove: () => widget.onRemoveLine(line.serviceId),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
+          Text(
+            l10n.addSaleAllServicesSectionTitle,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              color: FinanceDashboardColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
           SizedBox(
-            height: 138,
+            height: _servicesListMaxHeight,
             child: filtered.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: services.isEmpty
+                      child: widget.services.isEmpty
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -176,114 +300,40 @@ class ServiceSelectionCard extends StatelessWidget {
                             ),
                     ),
                   )
-                : ListView.separated(
-                    controller: serviceStripScrollController,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, index) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final s = filtered[index];
-                      final name = s.serviceName.trim().isNotEmpty
-                          ? s.serviceName.trim()
-                          : s.name.trim();
-                      final selected = lines.any((e) => e.serviceId == s.id);
-                      return ServiceQuickCard(
-                        title: name,
-                        priceLabel: formatAppMoney(
-                          s.price,
-                          currencyCode,
-                          locale,
-                        ),
-                        icon: posServiceIconForCategoryKey(s.categoryKey),
-                        isSelected: selected,
-                        onTap: () => onServiceTap(s),
-                      );
-                    },
+                : Scrollbar(
+                    controller: _effectiveServicesListScroll,
+                    thumbVisibility: filtered.length > 4,
+                    child: ListView.separated(
+                      controller: _effectiveServicesListScroll,
+                      padding: EdgeInsets.zero,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: filtered.length,
+                      separatorBuilder: (context, _) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final s = filtered[index];
+                        final name = s.localizedTitleForLanguageCode(
+                          widget.locale.languageCode,
+                        );
+                        final selected = widget.lines.any(
+                          (e) => e.serviceId == s.id,
+                        );
+                        return ServiceQuickCard(
+                          compact: true,
+                          title: name,
+                          priceLabel: formatAppMoney(
+                            s.price,
+                            widget.currencyCode,
+                            widget.locale,
+                          ),
+                          categoryKey: s.categoryKey,
+                          iconKey: s.iconKey,
+                          isSelected: selected,
+                          onTap: () => widget.onServiceTap(s),
+                        );
+                      },
+                    ),
                   ),
-          ),
-          if (lines.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Text(
-              l10n.addSaleSelectedServicesTitle(lines.length),
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                color: FinanceDashboardColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: FinanceDashboardColors.background.withValues(
-                  alpha: 0.72,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: FinanceDashboardColors.border),
-              ),
-              child: Column(
-                children: [
-                  for (final line in lines)
-                    SelectedServiceTile(
-                      title: '${line.serviceName} × ${line.quantity}',
-                      priceLabel: formatAppMoney(
-                        line.lineTotal,
-                        currencyCode,
-                        locale,
-                      ),
-                      onRemove: () => onRemoveLine(line.serviceId),
-                    ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Material(
-            color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.28),
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () {
-                final c = serviceStripScrollController;
-                if (c != null && c.hasClients) {
-                  c.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 320),
-                    curve: Curves.easeOutCubic,
-                  );
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: FinanceDashboardColors.primaryPurple.withValues(
-                      alpha: 0.24,
-                    ),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.add_rounded,
-                      color: FinanceDashboardColors.primaryPurple,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.addSaleAddAnotherService,
-                      style: const TextStyle(
-                        color: FinanceDashboardColors.deepPurple,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ),
         ],
       ),

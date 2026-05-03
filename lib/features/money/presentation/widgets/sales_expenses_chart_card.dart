@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -7,12 +10,11 @@ import '../../../../l10n/app_localizations.dart';
 import '../../logic/money_dashboard_providers.dart';
 import 'premium_finance_card.dart';
 
-class SalesExpensesChartCard extends StatelessWidget {
+class SalesExpensesChartCard extends ConsumerWidget {
   const SalesExpensesChartCard({
     super.key,
     required this.points,
     required this.title,
-    required this.subtitle,
     required this.salesLegend,
     required this.expensesLegend,
     required this.locale,
@@ -20,16 +22,67 @@ class SalesExpensesChartCard extends StatelessWidget {
 
   final List<MoneyTrendPoint> points;
   final String title;
-  final String subtitle;
   final String salesLegend;
   final String expensesLegend;
   final Locale locale;
 
-  static const List<int> _labelDayIndices = [0, 7, 14, 21, 28];
+  /// Spacing for bottom X labels so fl_chart does not build one child per day
+  /// (which overlaps on narrow screens). Targets about six ticks across the span.
+  static double _xAxisBottomInterval(int pointCount) {
+    if (pointCount <= 1) return 1;
+    final span = pointCount - 1;
+    const maxTicks = 6;
+    return math.max(1.0, (span / (maxTicks - 1)).ceilToDouble());
+  }
+
+  static String _trendSubtitle(
+    AppLocalizations l10n,
+    MoneyChartGranularity g,
+  ) {
+    return switch (g) {
+      MoneyChartGranularity.daily => l10n.moneyDashboardTrendSubtitleDaily,
+      MoneyChartGranularity.weekly => l10n.moneyDashboardTrendSubtitleWeekly,
+      MoneyChartGranularity.monthly => l10n.moneyDashboardTrendSubtitleMonthly,
+      MoneyChartGranularity.yearly => l10n.moneyDashboardTrendSubtitleYearly,
+    };
+  }
+
+  static String _granularityLabel(
+    AppLocalizations l10n,
+    MoneyChartGranularity g,
+  ) {
+    return switch (g) {
+      MoneyChartGranularity.daily => l10n.moneyDashboardChartGranularityDaily,
+      MoneyChartGranularity.weekly =>
+        l10n.moneyDashboardChartGranularityWeekly,
+      MoneyChartGranularity.monthly =>
+        l10n.moneyDashboardChartGranularityMonthly,
+      MoneyChartGranularity.yearly =>
+        l10n.moneyDashboardChartGranularityYearly,
+    };
+  }
+
+  static String _formatPointDate(
+    Locale locale,
+    MoneyChartGranularity g,
+    DateTime date,
+  ) {
+    final loc = locale.toString();
+    switch (g) {
+      case MoneyChartGranularity.daily:
+      case MoneyChartGranularity.weekly:
+        return DateFormat.MMMd(loc).format(date);
+      case MoneyChartGranularity.monthly:
+        return DateFormat.yMMM(loc).format(date);
+      case MoneyChartGranularity.yearly:
+        return DateFormat.y(loc).format(date);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final g = ref.watch(moneyChartGranularityProvider);
     final n = points.length;
     if (n == 0) {
       return const SizedBox.shrink();
@@ -47,16 +100,14 @@ class SalesExpensesChartCard extends StatelessWidget {
       if (p.sales > maxVal) maxVal = p.sales;
       if (p.expenses > maxVal) maxVal = p.expenses;
     }
+    // Avoid forcing a huge Y floor (old clamp to 800): small totals vanished
+    // near the baseline. When everything is zero, keep a small range so the
+    // flat line is still visible above the axis.
     final maxY = maxVal <= 0
-        ? 8000.0
-        : (maxVal * 1.12).clamp(800.0, double.infinity);
+        ? 1.0
+        : math.max(maxVal * 1.15, 1e-9);
 
-    final lastIndex = n - 1;
-    final labelIndices = <int>{
-      for (final k in _labelDayIndices)
-        if (k < n) k,
-      lastIndex,
-    }..removeWhere((i) => i < 0);
+    final bottomInterval = _xAxisBottomInterval(n);
 
     return PremiumFinanceCard(
       child: Column(
@@ -81,7 +132,7 @@ class SalesExpensesChartCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtitle,
+                      _trendSubtitle(l10n, g),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -95,38 +146,62 @@ class SalesExpensesChartCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: FinanceDashboardColors.lightPurple.withValues(
-                    alpha: 0.35,
+              PopupMenuButton<MoneyChartGranularity>(
+                tooltip: l10n.moneyDashboardChartGranularityPickerTitle,
+                onSelected: (value) => ref
+                    .read(moneyChartGranularityProvider.notifier)
+                    .select(value),
+                itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: MoneyChartGranularity.daily,
+                    child: Text(l10n.moneyDashboardChartGranularityDaily),
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: FinanceDashboardColors.border),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.moneyDashboardChartGranularityDaily,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: FinanceDashboardColors.deepPurple,
-                      ),
+                  PopupMenuItem(
+                    value: MoneyChartGranularity.weekly,
+                    child: Text(l10n.moneyDashboardChartGranularityWeekly),
+                  ),
+                  PopupMenuItem(
+                    value: MoneyChartGranularity.monthly,
+                    child: Text(l10n.moneyDashboardChartGranularityMonthly),
+                  ),
+                  PopupMenuItem(
+                    value: MoneyChartGranularity.yearly,
+                    child: Text(l10n.moneyDashboardChartGranularityYearly),
+                  ),
+                ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: FinanceDashboardColors.lightPurple.withValues(
+                      alpha: 0.35,
                     ),
-                    const SizedBox(width: 2),
-                    Icon(
-                      Icons.expand_more_rounded,
-                      size: 18,
-                      color: FinanceDashboardColors.deepPurple.withValues(
-                        alpha: 0.85,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: FinanceDashboardColors.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _granularityLabel(l10n, g),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: FinanceDashboardColors.deepPurple,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.expand_more_rounded,
+                        size: 18,
+                        color: FinanceDashboardColors.deepPurple.withValues(
+                          alpha: 0.85,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -187,17 +262,14 @@ class SalesExpensesChartCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 28,
-                      interval: 1,
+                      interval: bottomInterval,
                       getTitlesWidget: (value, meta) {
-                        final i = value.round();
-                        if (i < 0 || i >= n || !labelIndices.contains(i)) {
-                          return const SizedBox.shrink();
-                        }
+                        final i = value.round().clamp(0, n - 1);
                         final d = points[i].date;
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            DateFormat.MMMd(locale.toString()).format(d),
+                            _formatPointDate(locale, g, d),
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -217,7 +289,7 @@ class SalesExpensesChartCard extends StatelessWidget {
                       return [
                         for (final s in touchedSpots)
                           LineTooltipItem(
-                            '${DateFormat.MMMd(locale.toString()).format(points[s.x.toInt()].date)}\n'
+                            '${_formatPointDate(locale, g, points[s.x.toInt().clamp(0, n - 1)].date)}\n'
                             '${NumberFormat.compact(locale: locale.toString()).format(s.y)}',
                             const TextStyle(
                               color: Colors.white,

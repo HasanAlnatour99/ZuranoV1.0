@@ -7,11 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/payroll_period_constants.dart';
+import '../../../../core/utils/currency_for_country.dart';
 import '../../../../core/constants/user_roles.dart';
 import '../../../../core/formatting/staff_role_localized.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/localized_input_validators.dart';
 import '../../../../core/widgets/app_modal_sheet.dart';
+import '../../../../core/widgets/app_select_field.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import 'add_barber/add_barber_header.dart';
 import 'add_barber/add_barber_password_checklist.dart';
@@ -22,6 +25,8 @@ import 'add_barber/sticky_create_barber_footer.dart';
 import 'add_barber/work_settings_switch_tile.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/repository_providers.dart';
+import '../../../../providers/salon_streams_provider.dart';
+import '../../../payroll/domain/effective_payroll_period.dart';
 import '../../../employees/data/models/employee.dart';
 import '../../../employees/data/models/staff_provisioning_result.dart';
 import '../../../employees/domain/commission_type.dart';
@@ -109,6 +114,12 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
   String? _commissionPctError;
   String? _commissionFixedError;
 
+  /// UTC calendar date for payroll proration (aligned with Cloud Function month boundaries).
+  late DateTime _hiredAt;
+  /// [SalonPayrollPeriods.monthly] | [SalonPayrollPeriods.weekly] — matches salon
+  /// default is stored as null on save.
+  late String _payrollPeriodOverrideChoice;
+
   @override
   void initState() {
     super.initState();
@@ -143,6 +154,12 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
     _attendanceRequired = existing?.attendanceRequired ?? true;
     _isBookable = existing?.isBookable ?? _selectedRole == UserRoles.barber;
     _isActive = existing?.isActive ?? true;
+    _hiredAt = _initialHireDateUtc(existing);
+    final salon = ref.read(sessionSalonStreamProvider).asData?.value;
+    _payrollPeriodOverrideChoice = effectivePayrollPeriodFor(
+      salonDefaultPayrollPeriod: salon?.defaultPayrollPeriod ?? '',
+      employeePayrollPeriodOverride: existing?.payrollPeriodOverride,
+    );
 
     _commissionPctController.addListener(_onFormFieldChanged);
     _commissionFixedController.addListener(_onFormFieldChanged);
@@ -186,6 +203,42 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
   static String _trimTrailingZeros(double v) {
     final s = v.toStringAsFixed(2);
     return s.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+
+  static DateTime _initialHireDateUtc(Employee? existing) {
+    final n = DateTime.now().toUtc();
+    final todayUtc = DateTime.utc(n.year, n.month, n.day);
+    if (existing?.hiredAt != null) {
+      final h = existing!.hiredAt!;
+      return DateTime.utc(h.year, h.month, h.day);
+    }
+    if (existing?.createdAt != null) {
+      final c = existing!.createdAt!;
+      return DateTime.utc(c.year, c.month, c.day);
+    }
+    return todayUtc;
+  }
+
+  Future<void> _pickHiredAt() async {
+    if (_saving) {
+      return;
+    }
+    final initialLocal = DateTime(
+      _hiredAt.year,
+      _hiredAt.month,
+      _hiredAt.day,
+    );
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialLocal,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(DateTime.now().year + 1, 12, 31),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _hiredAt = DateTime.utc(picked.year, picked.month, picked.day);
+      });
+    }
   }
 
   @override
@@ -440,6 +493,20 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
                       ? _requirePasswordChangeOnFirstLogin
                       : existing.mustChangePassword,
                   avatarUrl: profilePhotoUrl,
+                  hiredAt: _hiredAt,
+                  payrollPeriodOverride: _normalizeRole(role) == UserRoles.owner
+                      ? null
+                      : () {
+                          final salon =
+                              ref.read(sessionSalonStreamProvider).asData?.value;
+                          final def = SalonPayrollPeriods.normalize(
+                            salon?.defaultPayrollPeriod,
+                          );
+                          final choice = SalonPayrollPeriods.normalize(
+                            _payrollPeriodOverrideChoice,
+                          );
+                          return choice == def ? null : choice;
+                        }(),
                 ),
         commissionPct: commissionPercent,
         commissionFixed: numbers.fixed,
@@ -912,6 +979,11 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final localeName = Localizations.localeOf(context).toString();
+    final salonForMoney = ref.watch(sessionSalonStreamProvider).asData?.value;
+    final salonMoneyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: salonForMoney?.currencyCode,
+      salonCountryIso: salonForMoney?.countryCode,
+    );
     final media = MediaQuery.of(context);
     final maxH = media.size.height * 0.92;
     final w = media.size.width;
@@ -1260,6 +1332,112 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
+              l10n.teamFieldHiringDate,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.small),
+            InkWell(
+              onTap: _saving ? null : _pickHiredAt,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE9DDFE)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFE9DDFE)),
+                      ),
+                      child: const Icon(
+                        Icons.event_rounded,
+                        color: Color(0xFF7C3AED),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.teamFieldHiringDate,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat.yMMMd(localeName).format(
+                              DateTime(
+                                _hiredAt.year,
+                                _hiredAt.month,
+                                _hiredAt.day,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF111827),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Text(
+              l10n.teamFieldHiringDateHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            ),
+            if (_normalizeRole(_selectedRole) != UserRoles.owner) ...[
+              const SizedBox(height: AppSpacing.medium),
+              AppSelectField<String>(
+                label: l10n.teamPayrollPeriodLabel,
+                hintText: l10n.teamPayrollPeriodHint,
+                sheetTitle: l10n.teamPayrollPeriodLabel,
+                value: _payrollPeriodOverrideChoice,
+                options: [
+                  AppSelectOption(
+                    value: SalonPayrollPeriods.monthly,
+                    label: l10n.teamPayrollPeriodMonthly,
+                  ),
+                  AppSelectOption(
+                    value: SalonPayrollPeriods.weekly,
+                    label: l10n.teamPayrollPeriodWeekly,
+                  ),
+                ],
+                onChanged: (v) {
+                  if (v == null || _saving) {
+                    return;
+                  }
+                  setState(() => _payrollPeriodOverrideChoice = v);
+                },
+                enabled: !_saving,
+              ),
+            ],
+            const SizedBox(height: AppSpacing.medium),
+            Text(
               l10n.teamFieldCommissionType,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -1349,7 +1527,7 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
                     ),
                   if (showFixed)
                     AppTextField(
-                      label: l10n.teamFieldCommissionFixedSar,
+                      label: l10n.teamFieldCommissionFixedAmount(salonMoneyCode),
                       controller: _commissionFixedController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,

@@ -529,6 +529,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerServiceValidationPriceInvalid => 'أدخل سعراً أكبر من صفر.';
 
   @override
+  String get ownerServiceValidationArabicNameRequired =>
+      'أدخل اسم الخدمة بالعربية.';
+
+  @override
   String get ownerServiceDeleteConfirmTitle => 'حذف الخدمة؟';
 
   @override
@@ -608,6 +612,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerServiceCategoryPickerLabel => 'التصنيف';
 
   @override
+  String get ownerServiceCategoryIconPreviewHint =>
+      'تظهر هذه الأيقونة في الحجز والمبيعات وتطبيق العميل.';
+
+  @override
   String get ownerServiceCategoryNone => 'بدون';
 
   @override
@@ -617,7 +625,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerEditService => 'تعديل الخدمة';
 
   @override
-  String get ownerServiceName => 'اسم الخدمة';
+  String get ownerServiceName => 'اسم الخدمة (بالإنجليزية)';
+
+  @override
+  String get ownerServiceNameArabic => 'اسم الخدمة (بالعربية)';
 
   @override
   String get ownerAddServiceSheetSubtitle => 'أنشئ خدمة قابلة للحجز لعملائك';
@@ -646,7 +657,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerServiceActiveSubtitle => 'إظهار هذه الخدمة للعملاء';
 
   @override
-  String get ownerServiceNamePlaceholder => 'مثال: قص شعر كلاسيكي';
+  String get ownerServiceNamePlaceholder => 'مثال: Classic Haircut';
+
+  @override
+  String get ownerServiceNameArabicPlaceholder => 'مثال: قصة شعر كلاسيكية';
 
   @override
   String get ownerServiceDescriptionPlaceholderLong =>
@@ -1910,6 +1924,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payrollGenericError => 'تعذّر تحميل بيانات الرواتب الآن.';
 
   @override
+  String get payrollEmployeeAlreadyPaidForPeriod =>
+      'هذا العضو لديه بالفعل راتب مدفوع لهذه الفترة.';
+
+  @override
+  String get payrollAllStaffAlreadyPaidForPeriod =>
+      'جميع الأشخاص في قائمتك لديهم بالفعل راتب مدفوع لهذه الفترة.';
+
+  @override
   String get payrollSummaryEarnings => 'الاستحقاقات';
 
   @override
@@ -1939,11 +1961,197 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get ownerPayrollFinanceBreadcrumb => 'المالية · الرواتب';
+
+  @override
+  String get ownerPayrollRunReviewBreadcrumb =>
+      'المالية · الرواتب · مراجعة التشغيل';
+
+  @override
+  String get payrollRunReviewEngineHint =>
+      'يشمل العمولات من المبيعات، والحضور، والمخالفات، وعناصر الرواتب لديك.';
+
+  @override
+  String get payrollRunReviewConfigureSectionTitle => 'الفترة والفريق';
+
+  @override
+  String get payrollRunReviewCadenceLabel => 'نوع فترة الرواتب';
+
+  @override
+  String get payrollRunReviewCadenceMonthly => 'شهري';
+
+  @override
+  String get payrollRunReviewCadenceWeekly => 'أسبوعي';
+
+  @override
+  String get payrollRunWeeklyPaidDaysHint =>
+      'يُحتسب الراتب فقط للأيام التقويمية التي تختارها (شاملة البداية والنهاية).';
+
+  @override
+  String get payrollRunWeeklyStartLabel => 'تاريخ البداية';
+
+  @override
+  String get payrollRunWeeklyEndLabel => 'تاريخ النهاية';
+
+  @override
+  String get payrollRunWeeklyRangeInvalid =>
+      'اختر فترة أسبوعية صالحة (1–31 يومًا، والنهاية في أو بعد البداية).';
+
+  @override
+  String get payrollRunNoMatchingStaffForCadence =>
+      'لا يوجد أعضاء فريق يستخدمون فترة الرواتب هذه. عيّن شهريًا أو أسبوعيًا من الفريق → فترة الرواتب، أو غيّر نوع الفترة أعلاه.';
+
+  @override
+  String get payrollRunReviewViewPayslip => 'عرض قسيمة الراتب';
+
+  @override
+  String get payrollRollbackConfirmTitle => 'تراجع عن تشغيل الرواتب هذا؟';
+
+  @override
+  String get payrollRollbackConfirmMessage =>
+      'سيؤدي ذلك إلى عكس لقطات قسائم الرواتب والتعديلات المرتبطة بهذا التشغيل. إذا كان التشغيل مدفوعاً، تُزال القسائم من تطبيق الموظفين—تأكد أن ذلك يطابق سجلاتك المصرفية والمحاسبية. المتابعة؟';
+
+  @override
+  String get payrollRollbackConfirmAction => 'تراجع';
+
+  @override
+  String get payrollRunReviewStatusPaidHint =>
+      'تشغيل مدفوع. استخدم التراجع أدناه فقط عند الحاجة لعكس المدفوعات—تختفي القسائم من تطبيق الموظفين وتُعاد المخالفات المرتبطة حيث ينطبق ذلك.';
+
+  @override
+  String get payrollRunReviewStatusRolledBackHint =>
+      'تم التراجع عن هذا التشغيل. يمكنك إعادة الاحتساب عند الجاهزية.';
+
+  @override
+  String get payrollRunReviewKpiHeadcountTrend => 'في هذا التشغيل';
+
+  @override
+  String get payrollRunReviewWorkflowTitle => 'الخطوات التالية';
+
+  @override
+  String get payrollRunReviewWorkflowSubtitle =>
+      'اعتمِد عند الجاهزية، ثم علّق كمدفوع بعد التحويل.';
+
+  @override
+  String get payrollRunReviewTeamPreviewTitle => 'تفصيل الفريق';
+
+  @override
+  String get payrollDashboardKpiTrendLabel => 'هذا الشهر';
+
+  @override
+  String get payrollDashboardKpiThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get payrollDashboardKpiRunsLabel => 'تشغيلات الرواتب';
+
+  @override
+  String get payrollDashboardKpiRunsHint => 'عدد التشغيلات في هذا الشهر';
+
+  @override
+  String get payrollDashboardKpiRunsHintWeek =>
+      'عدد التشغيلات في أسبوع ISO المحدد';
+
+  @override
+  String payrollDashboardSubtitleWeek(String weekLabel) {
+    return 'نظرة عامة على الرواتب لـ $weekLabel.';
+  }
+
+  @override
+  String payrollIsoWeekShortLabel(int weekYear, String weekNumberPadded) {
+    return '$weekYear-W$weekNumberPadded';
+  }
+
+  @override
+  String get payrollWeekPickerHelp => 'اختر أي يوم داخل أسبوع الرواتب';
+
+  @override
+  String get payrollStatusBreakdownSubtitleWeek => 'الأعداد لأسبوع ISO المحدد.';
+
+  @override
+  String get payrollRecentRunsSectionSubtitleWeek =>
+      'عمليات الرواتب المُنجَزة في أسبوع ISO المحدد.';
+
+  @override
+  String get settingsPayrollCadenceTitle => 'فترة الرواتب';
+
+  @override
+  String get settingsPayrollCadenceSubtitle =>
+      'التقويم الافتراضي لتشغيلات الرواتب والدفع السريع ومركز الرواتب.';
+
+  @override
+  String get settingsPayrollCadenceSave => 'حفظ';
+
+  @override
+  String get settingsPayrollCadenceSaved => 'تم تحديث فترة الرواتب';
+
+  @override
+  String get settingsPayrollCadenceMonthly => 'شهري';
+
+  @override
+  String get settingsPayrollCadenceWeekly => 'أسبوعي (أسابيع ISO)';
+
+  @override
+  String get teamPayrollPeriodLabel => 'فترة الرواتب';
+
+  @override
+  String get teamPayrollPeriodHint =>
+      'تبدأ من إعداد فترة الرواتب في الصالون. غيّرها فقط إذا كان يجب أن يستخدم هذا الشخص الإيقاع الآخر.';
+
+  @override
+  String get teamPayrollPeriodInherit => 'نفس إعداد الصالون';
+
+  @override
+  String teamPayrollPeriodInheritDetail(String periodLabel) {
+    return 'مثل الصالون · $periodLabel';
+  }
+
+  @override
+  String get teamPayrollPeriodMonthly => 'شهري';
+
+  @override
+  String get teamPayrollPeriodWeekly => 'أسبوعي (أسابيع ISO)';
+
+  @override
+  String get payrollRecentRunsSectionSubtitle =>
+      'عمليات الرواتب المُنجَزة في الشهر المحدد.';
+
+  @override
+  String get payrollStatusBreakdownSubtitle => 'الأعداد للشهر المحدد.';
+
+  @override
   String get payrollQuickPayTitle => 'الدفع السريع';
 
   @override
+  String get payrollQuickPayScreenSubtitle =>
+      'اختر من تدفع له وأي شهر. احسب ثم احفظ كمسودة أو اعتمد أو سجّل كمدفوع—نفس مسار تشغيلات الرواتب.';
+
+  @override
   String get payrollQuickPayShortcutSubtitle =>
-      'احسب وروّج راتب موظف واحد بسرعة.';
+      'اختر الموظف والشهر واحسب ثم ادفع لهذه الفترة.';
+
+  @override
+  String get payrollQuickPaySetupCardTitle => 'الفترة والموظف';
+
+  @override
+  String get payrollQuickPayStaffSheetTitle => 'اختر الموظف';
+
+  @override
+  String get payrollQuickPayStaffPickerLabel => 'عضو الفريق';
+
+  @override
+  String get payrollQuickPayStaffEmpty => 'لا يوجد موظفون مؤهلون للرواتب.';
+
+  @override
+  String get payrollQuickPayStatementCardTitle => 'كشف الدفع';
+
+  @override
+  String get payrollQuickPayRunStatusLabel => 'حالة التشغيل';
+
+  @override
+  String get payrollQuickPaySearchHint => 'ابحث بالاسم';
+
+  @override
+  String get payrollQuickPaySearchEmpty => 'لا يوجد تطابق.';
 
   @override
   String get payrollRunReviewTitle => 'مراجعة تشغيل الرواتب';
@@ -1971,6 +2179,33 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get payrollMissingSetupEmpty =>
       'كل الموظفين النشطين لديهم إعداد رواتب متكرر.';
+
+  @override
+  String get payrollDashboardSetupCardTitle => 'إعداد الرواتب';
+
+  @override
+  String get payrollSetupEveryoneReadyHeading => 'الفريق جاهز للرواتب';
+
+  @override
+  String get payrollSetupNeedsAttentionSubtitle =>
+      'أضِف على الأقل بندًا متكرّرًا لـ\"راتب أساسي\" لكل زميل بالأسفل (يفتح إعداد رواتبه).';
+
+  @override
+  String get payrollSetupWhereToConfigureTitle => 'أين تُضبَط الإعدادات';
+
+  @override
+  String get payrollSetupShortcutCatalogTitle => 'كتالوج الرواتب';
+
+  @override
+  String get payrollSetupShortcutCatalogSubtitle =>
+      'إضافة الافتراضيات وقواعد الاستحقاق والخصومات';
+
+  @override
+  String get payrollSetupShortcutTeamTitle => 'الفريق';
+
+  @override
+  String get payrollSetupShortcutTeamSubtitle =>
+      'من ملفّ الحلّاق ثم قسم الرواتب لإضافة بنود الراتب';
 
   @override
   String get payrollActionSetUp => 'إعداد';
@@ -2073,6 +2308,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payrollActionRollback => 'تراجع';
 
   @override
+  String get payrollReversalTitle => 'عكس الرواتب';
+
+  @override
+  String get payrollReversalShortcutSubtitle =>
+      'اختر تشغيلاً، ثم عكس التشغيل بالكامل أو موظفاً واحداً.';
+
+  @override
+  String get payrollReversalScreenTitle => 'عكس تشغيل رواتب';
+
+  @override
+  String get payrollReversalScreenSubtitle =>
+      'اختر مسودة أو معتمداً أو مدفوعاً. التشغيلات المدفوعة تزيل قسائم الراتب من تطبيق الموظفين—راجع بعناية.';
+
+  @override
+  String get payrollReversalScopeWholeRun => 'التشغيل بالكامل';
+
+  @override
+  String get payrollReversalScopeOneMember => 'موظف واحد';
+
+  @override
+  String get payrollReversalSelectRunHint => 'اختر تشغيل الرواتب';
+
+  @override
+  String get payrollReversalSelectMemberHint => 'اختر موظفاً';
+
+  @override
+  String get payrollReversalNoRunsMessage =>
+      'لا توجد تشغيلات رواتب قابلة للعكس حالياً.';
+
+  @override
+  String get payrollReversalPartialUnavailableHint =>
+      'هذا التشغيل يشمل شخصاً واحداً فقط—استخدم «التشغيل بالكامل» للعكس.';
+
+  @override
+  String get payrollReversalConfirmTitle => 'عكس الرواتب؟';
+
+  @override
+  String get payrollReversalConfirmWholeRunMessage =>
+      'سيتم التراجع عن التشغيل بالكامل واستعادة المخالفات المرتبطة حيث ينطبق ذلك وحذف قسائم الراتب لهذه الفترة.';
+
+  @override
+  String payrollReversalConfirmOneMemberMessage(String employeeName) {
+    return 'سيتم إزالة $employeeName من هذا التشغيل والتراجع عن مخالفاتهم المرتبطة حيث ينطبق ذلك وحذف قسيمة راتبهم لهذه الفترة.';
+  }
+
+  @override
+  String get payrollReversalSuccess => 'تم إكمال عكس الرواتب.';
+
+  @override
   String get payrollEmployeeSetupTitle => 'إعداد رواتب الموظف';
 
   @override
@@ -2116,14 +2400,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get payrollRunAllEmployees => 'كل الموظفين النشطين';
 
   @override
+  String get payrollRunAllMatchingStaff => 'كل الموظفين المطابقين';
+
+  @override
   String get payrollRunValidation => 'اختر فترة الرواتب قبل الاحتساب.';
 
   @override
-  String get payrollRunReviewEmptyTitle => 'لا توجد مسودة تشغيل بعد';
+  String get payrollRunReviewHistoryTitle => 'سجل الرواتب';
 
   @override
-  String get payrollRunReviewEmptySubtitle =>
-      'اختر الفترة واحتسب التشغيل لمراجعة إجماليات الرواتب المجمعة.';
+  String get payrollRunReviewHistorySubtitle =>
+      'تشغيلات معتمدة ومدفوعة (المسودات مخفية). المسّ تشغيلاً معتمداً للدفع أو التراجع.';
+
+  @override
+  String get payrollRunReviewHistoryEmpty =>
+      'لا توجد عمليات رواتب بعد. احتسب تشغيلاً أعلاه للبدء.';
+
+  @override
+  String get payrollHistoryApprovedSheetTitle => 'معتمد — غير مدفوع بعد';
+
+  @override
+  String get payrollHistoryApprovedSheetBody =>
+      'علّق كمدفوع بعد تحويل الأموال، أو تراجع لإلغاء الاعتماد.';
+
+  @override
+  String get payrollHistoryMarkedPaidSnack => 'تم التعليق كمدفوع.';
+
+  @override
+  String get payrollHistoryRollbackSnack => 'تم التراجع عن تشغيل الرواتب.';
 
   @override
   String payrollRunEmployeeSummary(int lineCount, String netPay) {
@@ -2212,6 +2516,41 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notificationsPrefMarketingHint =>
       'تحديثات خفيفة من الصالون أو التطبيق.';
+
+  @override
+  String get notificationsFilterAll => 'الكل';
+
+  @override
+  String get notificationsFilterUnread => 'غير المقروءة';
+
+  @override
+  String get notificationsEmptyTitle => 'لا توجد إشعارات بعد';
+
+  @override
+  String get notificationsEmptySubtitle =>
+      'ستظهر هنا تحديثات الحجوزات والحضور والرواتب ونشاط الفريق.';
+
+  @override
+  String get notificationsFirestoreIndexBuildingSubtitle =>
+      'سيُحمَّل صندوق الوارد قريبًا — جاري إعداد فهرس الإشعارات في Firestore. اسحب للتحديث أو أعد المحاولة بعد دقيقة.';
+
+  @override
+  String get notificationsMarkAllRead => 'تحديد الكل كمقروء';
+
+  @override
+  String get notificationsSettingBookingUpdates => 'تحديثات الحجوزات';
+
+  @override
+  String get notificationsSettingAttendanceUpdates => 'تحديثات الحضور';
+
+  @override
+  String get notificationsSettingPayrollUpdates => 'تحديثات الرواتب';
+
+  @override
+  String get notificationsSettingApprovals => 'طلبات الموافقة';
+
+  @override
+  String get notificationsSettingSystemAlerts => 'تنبيهات النظام';
 
   @override
   String get notificationsInboxTooltip => 'الإشعارات';
@@ -3903,6 +4242,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerOverviewRevenueMonthHintEmpty => 'لم يتم تسجيل مبيعات بعد';
 
   @override
+  String get ownerOverviewRevenueMonthSubtitle =>
+      'اتجاه الإيرادات للشهر الحالي';
+
+  @override
+  String get ownerOverviewRevenueMonthEmpty => 'لا توجد إيرادات هذا الشهر بعد';
+
+  @override
+  String ownerOverviewRevenueMonthTotal(String amount) {
+    return 'إجمالي الشهر: $amount';
+  }
+
+  @override
+  String get ownerOverviewRevenuePeriodDay => 'يوم';
+
+  @override
+  String get ownerOverviewRevenuePeriodMonth => 'شهر';
+
+  @override
+  String get ownerOverviewRevenuePeriodWeek => 'أسبوع';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourTitle => 'إيراد اليوم';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourSubtitle =>
+      'حسب الساعة (بتوقيتك المحلي)';
+
+  @override
+  String get ownerOverviewRevenueTodayByHourEmpty => 'لا إيراد مسجّل اليوم بعد';
+
+  @override
+  String ownerOverviewRevenueTodayByHourTotal(String amount) {
+    return 'إجمالي اليوم: $amount';
+  }
+
+  @override
   String get ownerOverviewRevenueThisWeekTitle => 'إيرادات هذا الأسبوع';
 
   @override
@@ -3919,7 +4294,41 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get ownerOverviewTeamPerformanceTitle => 'أداء الفريق';
+
+  @override
+  String get ownerOverviewTeamPerformanceSubtitle =>
+      'أعلى الإيرادات اليوم للحلاقين';
+
+  @override
+  String get ownerOverviewTeamPerformanceEmpty => 'لا خدمات مسجّلة اليوم بعد';
+
+  @override
+  String get ownerOverviewTeamPerformanceError => 'تعذّر تحميل أداء الفريق';
+
+  @override
+  String get ownerOverviewTeamPerformanceFallbackName => 'عضو الفريق';
+
+  @override
+  String ownerOverviewTeamPerformanceServicesToday(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count خدمة اليوم',
+      many: '$count خدمة اليوم',
+      few: '$count خدمات اليوم',
+      two: 'خدمتان اليوم',
+      one: 'خدمة واحدة اليوم',
+      zero: '0 خدمات اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get ownerOverviewKpiPendingRequests => 'طلبات معلّقة';
+
+  @override
+  String get ownerOverviewKpiPendingApprovals => 'موافقات معلّقة';
 
   @override
   String get ownerOverviewDashboardTagline =>
@@ -3968,6 +4377,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String ownerOverviewTodayInsightPendingApprovals(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب حضور يحتاج إلى مراجعتك.',
+      many: '$count طلب حضور يحتاج إلى مراجعتك.',
+      few: '$count طلبات حضور تحتاج إلى مراجعتك.',
+      two: 'طلبا حضور يحتاجان إلى مراجعتك.',
+      one: 'طلب حضور واحد يحتاج إلى مراجعتك.',
+      zero: 'لا توجد طلبات حضور للمراجعة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get ownerOverviewRecentServicesTitle => 'أحدث الخدمات';
 
   @override
@@ -3993,7 +4417,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String ownerOverviewBestBarberSubtitle(String amount) {
-    return 'أفضل حلاق اليوم · $amount';
+    return 'أفضل عضو فريق اليوم · $amount';
   }
 
   @override
@@ -4056,10 +4480,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerOverviewStatBookingsToday => 'حجوزات اليوم';
 
   @override
+  String get ownerOverviewStatServicesToday => 'خدمات اليوم';
+
+  @override
   String get ownerOverviewStatCompletedToday => 'المكتملة';
 
   @override
   String get ownerOverviewStatCheckedIn => 'الحضور';
+
+  @override
+  String get ownerOverviewStatWorkingNow => 'يعملون الآن';
 
   @override
   String get ownerOverviewQuickActionsTitle => 'إجراءات سريعة';
@@ -4653,6 +5083,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamFilterTopPerformers => 'الأفضل أداءً';
 
   @override
+  String get teamFilterTopServices => 'أعلى الخدمات';
+
+  @override
+  String get teamFilterTopPerformance => 'أعلى أداء';
+
+  @override
+  String get teamFilterOldest => 'الأقدم';
+
+  @override
+  String get teamFilterNewest => 'الأحدث';
+
+  @override
   String get teamFilterNeedsAttention => 'يحتاج متابعة';
 
   @override
@@ -4669,6 +5111,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get teamFilterAction => 'تصفية الفريق';
+
+  @override
+  String get teamSortAction => 'ترتيب الفريق';
+
+  @override
+  String get teamSortSheetTitle => 'ترتيب حسب';
+
+  @override
+  String get teamSortNameAsc => 'الاسم أ–ي';
+
+  @override
+  String get teamSortNameDesc => 'الاسم ي–أ';
+
+  @override
+  String get teamSortRole => 'الدور';
+
+  @override
+  String get teamSortJoinedNewest => 'الأحدث تعيينًا';
+
+  @override
+  String get teamSortJoinedOldest => 'الأقدم تعيينًا';
+
+  @override
+  String get teamSortSalesToday => 'مبيعات اليوم';
+
+  @override
+  String get teamSortSalesMonth => 'مبيعات الشهر';
 
   @override
   String get teamEmptyTitle => 'لا يوجد أعضاء في الفريق بعد';
@@ -4837,6 +5306,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get teamFieldPhone => 'الهاتف';
+
+  @override
+  String get teamFieldHiringDate => 'تاريخ التعيين';
+
+  @override
+  String get teamFieldHiringDateHint =>
+      'يُعدّل الراتب الأساسي الشهري في الرواتب وفق أيام الشهر اعتبارًا من هذا التاريخ.';
 
   @override
   String get teamFieldRole => 'الدور';
@@ -5118,7 +5594,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamFieldCommissionPercentagePercent => 'نسبة العمولة (%)';
 
   @override
-  String get teamFieldCommissionFixedSar => 'مبلغ ثابت (ريال)';
+  String teamFieldCommissionFixedAmount(String currencyCode) {
+    return 'مبلغ ثابت ($currencyCode)';
+  }
 
   @override
   String get teamCommissionPercentInputHint => 'أدخل النسبة مثل 2 أو 10 أو 25';
@@ -5182,13 +5660,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل نسبة و/أو مبلغًا ثابتًا صالحًا.';
 
   @override
-  String teamCommissionSummaryFixed(String amount) {
-    return '$amount ر.س';
+  String teamCommissionSummaryFixed(String amount, String currencyCode) {
+    return '$amount $currencyCode';
   }
 
   @override
-  String teamCommissionSummaryMixed(String percent, String amount) {
-    return '$percent% + $amount ر.س';
+  String teamCommissionSummaryMixed(
+    String percent,
+    String amount,
+    String currencyCode,
+  ) {
+    return '$percent% + $amount $currencyCode';
   }
 
   @override
@@ -5276,10 +5758,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamMemberAttendanceStatusNone => 'بدون سجل';
 
   @override
-  String get teamMemberAttendanceCheckInLabel => 'دخول';
+  String get teamMemberAttendanceCheckInLabel => 'تسجيل حضور';
 
   @override
-  String get teamMemberAttendanceCheckOutLabel => 'خروج';
+  String get teamMemberAttendanceCheckOutLabel => 'تسجيل انصراف';
 
   @override
   String get teamMemberAttendanceAddManual => 'إضافة حضور يدوي';
@@ -5297,7 +5779,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamMemberAttendanceSummaryLateMonthHint => 'هذا الشهر';
 
   @override
-  String get teamMemberAttendanceSummaryMissingCheckout => 'نقص تسجيل الخروج';
+  String get teamMemberAttendanceSummaryMissingCheckout => 'نقص تسجيل الانصراف';
 
   @override
   String get teamMemberAttendanceSummaryMissingCheckoutHint => 'مرة';
@@ -5307,6 +5789,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get teamMemberAttendanceSummaryPendingRequestsHint => 'تعديل حضور';
+
+  @override
+  String get teamMemberAttendanceNoShiftAssigned =>
+      'لا توجد وردية اليوم. افتح الورديات الأسبوعية لإسناد وردية.';
 
   @override
   String get teamMemberAttendanceSummaryDaysUnit => 'أيام';
@@ -5364,10 +5850,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamMemberAttendanceHistoryTitle => 'سجل الحضور الأخير';
 
   @override
+  String get teamMemberAttendanceFullHistoryTitle => 'كل سجلات الحضور';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterTitle => 'نطاق التاريخ';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterFrom => 'من';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterTo => 'إلى';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterApply => 'تطبيق';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterClear => 'مسح';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterSelectDate => 'اختر التاريخ';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterNeedBothDates =>
+      'اختر تاريخ البداية والنهاية.';
+
+  @override
+  String get teamMemberAttendanceHistoryFilterEmptyRange =>
+      'لا يوجد حضور في هذا النطاق.';
+
+  @override
   String get teamMemberAttendanceViewAll => 'عرض الكل';
 
   @override
   String get teamMemberAttendanceHistoryEmpty => 'لا توجد سجلات حضور بعد';
+
+  @override
+  String get teamMemberAttendanceRecordStatusCheckedIn => 'تم تسجيل الدخول';
 
   @override
   String get teamMemberAttendanceRecordStatusPresent => 'مكتمل';
@@ -5383,6 +5901,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get teamMemberAttendanceRecordStatusAbsent => 'غياب';
+
+  @override
+  String get teamMemberAttendanceRecordStatusOnBreak => 'في استراحة';
 
   @override
   String get teamMemberAttendanceManualSaved => 'تم حفظ سجل الحضور بنجاح';
@@ -5435,6 +5956,144 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamMemberAttendanceReviewConfirmReject => 'رفض';
 
   @override
+  String get attendanceAdjustmentSheetTitle => 'تعديل الحضور';
+
+  @override
+  String get attendanceAdjustmentSheetSubtitle =>
+      'تُحفظ التغييرات على الخادم وتُسجّل في سجل التعديلات. قد تُحدَّث ملخصات الرواتب لهذا الشهر.';
+
+  @override
+  String get attendanceAdjustmentShiftOffDay => 'يوم عطلة';
+
+  @override
+  String get attendanceAdjustmentDateLabel => 'التاريخ';
+
+  @override
+  String get attendanceAdjustmentShiftLabel => 'الوردية';
+
+  @override
+  String get attendanceAdjustmentStatusLabel => 'الحالة';
+
+  @override
+  String get attendanceAdjustmentStatusPresent => 'حاضر';
+
+  @override
+  String get attendanceAdjustmentStatusLateChips => 'متأخر';
+
+  @override
+  String get attendanceAdjustmentStatusAbsentChip => 'غائب';
+
+  @override
+  String get attendanceAdjustmentStatusDayOff => 'يوم راحة';
+
+  @override
+  String get attendanceAdjustmentNotSet => 'غير محدد';
+
+  @override
+  String get attendanceAdjustmentLateMinLabel => 'تأخير (د)';
+
+  @override
+  String get attendanceAdjustmentEarlyExitLabel => 'خروج مبكر (د)';
+
+  @override
+  String get attendanceAdjustmentMissingCheckoutLabelShort => 'بدون خروج';
+
+  @override
+  String attendanceAdjustmentMinutesValue(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String attendanceAdjustmentYesWithMinutes(int minutes) {
+    return 'نعم (+$minutes عقوبة)';
+  }
+
+  @override
+  String get attendanceAdjustmentNoAbbr => 'لا';
+
+  @override
+  String get attendanceAdjustmentErrorReasonRequired =>
+      'يُرجى اختيار سبب هذا التعديل.';
+
+  @override
+  String get attendanceAdjustmentSaveSuccess => 'تم حفظ التصحيح بنجاح.';
+
+  @override
+  String attendanceAdjustmentCloudError(String code) {
+    return 'تعذّر الحفظ: $code';
+  }
+
+  @override
+  String get attendanceAdjustmentSaveFailed => 'تعذّر حفظ الحضور. حاول مجدداً.';
+
+  @override
+  String get attendanceAdjustmentTimesLabel => 'أوقات التسجيل';
+
+  @override
+  String get attendanceAdjustmentBreakOutLabel => 'بداية الاستراحة';
+
+  @override
+  String get attendanceAdjustmentBreakInLabel => 'نهاية الاستراحة';
+
+  @override
+  String get attendanceAdjustmentMissingCheckoutWarning =>
+      'تسجيل الخروج مفقود. قد تُحتسب الدقائق وفقاً لعقوبة نقص تسجيل الخروج في إعدادات الصالون.';
+
+  @override
+  String get attendanceAdjustmentReasonLabel => 'السبب';
+
+  @override
+  String get attendanceAdjustmentReasonPlaceholder => 'اختر سبباً';
+
+  @override
+  String get attendanceAdjustmentReasonForgot => 'نسيان التسجيل';
+
+  @override
+  String get attendanceAdjustmentReasonGps => 'مشكلة GPS أو الجهاز';
+
+  @override
+  String get attendanceAdjustmentReasonSchedule => 'تصحيح الجدولة';
+
+  @override
+  String get attendanceAdjustmentReasonPayroll => 'مزامنة الرواتب';
+
+  @override
+  String get attendanceAdjustmentReasonOther => 'أخرى';
+
+  @override
+  String get attendanceAdjustmentManagerNoteLabel => 'ملاحظة داخلية (اختياري)';
+
+  @override
+  String get attendanceAdjustmentAuditFootnote =>
+      'ينشئ هذا الإجراء سجل تعديل ويحدّث ملخصات الرواتب الشهرية عند الاقتضاء.';
+
+  @override
+  String get attendanceAdjustmentSaveCta => 'حفظ التصحيح';
+
+  @override
+  String get attendanceAdjustmentFirestoreDocLabel => 'مسار Firestore · ';
+
+  @override
+  String get attendanceAdjustmentSessionExpired =>
+      'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى';
+
+  @override
+  String get attendanceAdjustmentPermissionDeniedSave =>
+      'ليس لديك صلاحية لحفظ هذا التصحيح';
+
+  @override
+  String get attendanceAdjustmentServerUnavailableSave =>
+      'تعذر الاتصال بالخادم، حاول مرة أخرى';
+
+  @override
+  String get attendanceAdjustmentSaveFailedMapped =>
+      'تعذر حفظ التصحيح، حاول مرة أخرى';
+
+  @override
+  String get attendanceAdjustmentLoadContextFailed =>
+      'تعذّر تحميل هذه الشاشة. حاول مجدداً.';
+
+  @override
   String get teamDetailsLoadErrorTitle => 'تعذّر تحميل تفاصيل عضو الفريق';
 
   @override
@@ -5459,7 +6118,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamDetailsStatusLabel => 'الحالة';
 
   @override
-  String get teamDetailsJoinDate => 'تاريخ الانضمام';
+  String get teamDetailsJoinDate => 'تاريخ التعيين';
 
   @override
   String get teamDetailsCommissionRate => 'نسبة العمولة';
@@ -5471,7 +6130,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamProfileStatusFrozen => 'مجمّد';
 
   @override
-  String get teamProfileJoinDateMissing => 'تاريخ الانضمام غير متوفر';
+  String get teamProfileJoinDateMissing => 'تاريخ التعيين غير متوفر';
 
   @override
   String get teamProfileSectionContact => 'جهة الاتصال';
@@ -5534,6 +6193,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get teamValueDisabled => 'معطّل';
+
+  @override
+  String get teamCardTeamMemberSubtitle => 'عضو الفريق';
+
+  @override
+  String get teamCardNameMissing => 'بدون اسم';
+
+  @override
+  String get teamMemberPerformanceUnrated => 'غير مقيّم';
+
+  @override
+  String teamCardEmployeeId(String id) {
+    return 'المعرّف · $id';
+  }
+
+  @override
+  String get teamCardChipLabelStatus => 'الحالة';
+
+  @override
+  String get teamCardChipLabelAttendToday => 'حضور اليوم';
+
+  @override
+  String get teamCardAttendWorking => 'يعمل الآن';
+
+  @override
+  String get teamCardAttendCompleted => 'مكتمل';
+
+  @override
+  String get teamCardAttendAbsent => 'غائب';
+
+  @override
+  String get teamCardAttendTodayOff => 'إجازة اليوم';
+
+  @override
+  String get teamCardAttendNoCheckIn => 'لم يسجّل الدخول';
+
+  @override
+  String get teamCardSwipeBrowseHint => 'اسحب لتصفح الفريق';
+
+  @override
+  String teamDeckFooterMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أعضاء في الفريق',
+      one: 'عضو فريق واحد',
+    );
+    return '$_temp0';
+  }
 
   @override
   String teamCommissionPercentValue(String value) {
@@ -5638,6 +6346,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamMemberSalesNotAvailableShort => '—';
 
   @override
+  String get teamMemberSalesReceiptTapToEnlarge => 'صورة الإيصال، اضغط للتكبير';
+
+  @override
+  String get teamMemberSalesReceiptViewerTitle => 'الإيصال';
+
+  @override
   String get teamNoAttendanceTodayTitle => 'لا يوجد حضور اليوم بعد';
 
   @override
@@ -5715,6 +6429,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get teamServicesServiceInactive => 'غير نشط';
 
   @override
+  String get teamServicesEditAssignmentCardSubtitle =>
+      'أدر الخدمات التي يمكن لمقدّم الخدمة تنفيذها.';
+
+  @override
+  String get teamServicesAssignedSectionSubtitle =>
+      'الخدمات التي يقدّمها مقدّم الخدمة حاليًا.';
+
+  @override
+  String get teamServicesAssignServicesAction => 'تخصيص الخدمات';
+
+  @override
+  String get teamServicesAssignmentSelectAll => 'تحديد الكل';
+
+  @override
+  String get teamServicesAssignmentClearSelection => 'إلغاء التحديد';
+
+  @override
+  String get teamServicesRetryAction => 'إعادة المحاولة';
+
+  @override
+  String get teamServicesLoadErrorTitle => 'تعذّر تحميل التخصيصات';
+
+  @override
+  String get teamServicesUnnamedService => 'خدمة بدون اسم';
+
+  @override
   String get teamBookingPrepPublicDisplayName => 'اسم العرض العام';
 
   @override
@@ -5759,8 +6499,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get moneyDashboardTrendTitle => 'المبيعات مقابل المصروفات';
 
   @override
-  String get moneyDashboardTrendSubtitle =>
-      'تابع حركة الإيرادات والتكاليف خلال الشهر المحدد.';
+  String get moneyDashboardTrendSubtitleDaily =>
+      'تابع حركة الإيرادات والتكاليف يومًا بيوم خلال الشهر المحدد.';
+
+  @override
+  String get moneyDashboardTrendSubtitleWeekly =>
+      'تابع حركة الإيرادات والتكاليف أسبوعيًا خلال الشهر المحدد.';
+
+  @override
+  String get moneyDashboardTrendSubtitleMonthly =>
+      'تابع حركة الإيرادات والتكاليف عبر الأشهر الأخيرة.';
+
+  @override
+  String get moneyDashboardTrendSubtitleYearly =>
+      'تابع حركة الإيرادات والتكاليف عبر السنوات الميلادية الأخيرة.';
 
   @override
   String get moneyDashboardSalesLegend => 'المبيعات';
@@ -5818,7 +6570,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get moneyDashboardNetLossWarning =>
-      'صافي الربح سالب بعد الرواتب. راجع المصروفات الاختيارية والتسعير وتوقيت الرواتب لهذا الشهر.';
+      'صافي الربح سالب لهذا الشهر (المبيعات المكتملة ناقص المصروفات والرواتب في نفس الفترة). خفّف الإنفاق الاختياري، راجع التسعير، وتأكد من جداول الرواتب عند وجودها.';
 
   @override
   String moneyDashboardTrendPeakSalesSummary(Object day, Object amount) {
@@ -5848,6 +6600,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get moneyDashboardChartGranularityDaily => 'يومي';
+
+  @override
+  String get moneyDashboardChartGranularityWeekly => 'أسبوعي';
+
+  @override
+  String get moneyDashboardChartGranularityMonthly => 'شهري';
+
+  @override
+  String get moneyDashboardChartGranularityYearly => 'سنوي';
+
+  @override
+  String get moneyDashboardChartGranularityPickerTitle => 'فترة المخطط';
 
   @override
   String get moneyDashboardKpiTrendNoData => '—';
@@ -6105,6 +6869,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addSaleAddAnotherService => 'إضافة خدمة أخرى';
 
   @override
+  String get addSaleAllServicesSectionTitle => 'كل الخدمات';
+
+  @override
+  String get addSaleSelectedServiceLineSubtitle => 'في هذا البيع';
+
+  @override
+  String get addSaleClearSearchTooltip => 'مسح البحث';
+
+  @override
   String get addSaleBarberLabel => 'مقدم الخدمة';
 
   @override
@@ -6358,10 +7131,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeeTodayPunchOut => 'تسجيل خروج';
 
   @override
-  String get employeeTodayBreakOut => 'بدء استراحة';
+  String get employeeTodayBreakOut => 'خروج للاستراحة';
 
   @override
-  String get employeeTodayBreakIn => 'إنهاء استراحة';
+  String get employeeTodayBreakIn => 'عودة من الاستراحة';
+
+  @override
+  String employeeTodayBreakCountdownRemaining(String time) {
+    return 'الوقت المتبقي للاستراحة: $time';
+  }
+
+  @override
+  String employeeTodayBreakCountdownExceeded(String time) {
+    return 'تم تجاوز الاستراحة بمقدار $time';
+  }
+
+  @override
+  String get employeeTodayBreakOutsideShift =>
+      'يمكن بدء الاستراحة فقط خلال ساعات ورديتك المجدولة.';
 
   @override
   String get employeeTodayCompletedForToday => 'اكتمل اليوم';
@@ -6623,6 +7410,132 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerAddSaleAutoPrice => 'السعر المعبأ تلقائيًا';
 
   @override
+  String get addSaleModeBookingCode => 'رمز الحجز';
+
+  @override
+  String get addSaleModeManual => 'بيع يدوي';
+
+  @override
+  String get addSaleDualSubtitle =>
+      'أضف من رمز حجز الضيف أو سجّل بيعًا يدويًا.';
+
+  @override
+  String get addSaleBookingCodeFieldLabel => 'رمز الحجز';
+
+  @override
+  String get addSaleBookingCodeHint => 'أدخل رمز الحجز';
+
+  @override
+  String get addSaleBookingCodeExample => 'مثال: ZR-AB12CD';
+
+  @override
+  String get addSaleRetrieveBooking => 'استرجاع الحجز';
+
+  @override
+  String get addSaleCreateFromBooking => 'إنشاء البيع';
+
+  @override
+  String get addSaleBookingFound => 'تم العثور على الحجز';
+
+  @override
+  String get addSaleBookingSectionPayment => 'الدفع';
+
+  @override
+  String get addSaleBookingSectionAppointment => 'الموعد';
+
+  @override
+  String get addSaleBookingSectionServices => 'الخدمات';
+
+  @override
+  String get addSaleBookingSubtotal => 'المجموع الفرعي';
+
+  @override
+  String get addSaleBookingDiscount => 'الخصم';
+
+  @override
+  String get addSaleBookingTotal => 'الإجمالي';
+
+  @override
+  String get addSaleBookingStatus => 'حالة الحجز';
+
+  @override
+  String get addSalePaymentStatusPending => 'معلق';
+
+  @override
+  String get addSalePaymentStatusPaid => 'مدفوع';
+
+  @override
+  String get addSalePaymentStatusFailed => 'فشل';
+
+  @override
+  String get addSalePaymentStatusRefunded => 'مسترد';
+
+  @override
+  String get addSalePaymentMethodUnspecified => 'غير محدد';
+
+  @override
+  String get addSaleBookingErrorEmptyCode => 'يرجى إدخال رمز الحجز.';
+
+  @override
+  String get addSaleBookingErrorNotFound => 'رمز الحجز غير موجود.';
+
+  @override
+  String get addSaleBookingErrorWrongSalon => 'هذا الحجز لا يخص هذا الصالون.';
+
+  @override
+  String get addSaleBookingErrorCancelled => 'هذا الحجز ملغى.';
+
+  @override
+  String get addSaleBookingErrorSaleExists => 'تم إنشاء بيع لهذا الحجز مسبقًا.';
+
+  @override
+  String get addSaleBookingErrorNoServices => 'لا توجد خدمات في هذا الحجز.';
+
+  @override
+  String get addSaleBookingErrorZeroTotal =>
+      'يجب أن يكون الإجمالي أكبر من صفر.';
+
+  @override
+  String get addSaleBookingErrorBarberMismatch => 'الحلاق في الحجز غير متطابق.';
+
+  @override
+  String get addSaleBookingErrorNotYourBooking =>
+      'يمكنك استخدام الحجوزات المخصّصة لك فقط.';
+
+  @override
+  String get addSaleBookingErrorNoPreview => 'استرجِع الحجز أولًا.';
+
+  @override
+  String get addSaleBookingErrorNoSession => 'سجّل الدخول مرة أخرى للمتابعة.';
+
+  @override
+  String get addSaleBookingErrorBarberMissing => 'لم يُعثر على الحلاق المخصّص.';
+
+  @override
+  String get addSaleBookingErrorUnknown => 'حدث خطأ. حاول مرة أخرى.';
+
+  @override
+  String get addSaleBookingSaleCreated => 'تم إنشاء البيع';
+
+  @override
+  String get addSaleBookingSalon => 'الصالون';
+
+  @override
+  String get addSaleBookingCodeLabel => 'رمز الحجز';
+
+  @override
+  String get addSaleBookingCustomer => 'العميل';
+
+  @override
+  String get addSaleBookingBarber => 'الحلاق';
+
+  @override
+  String get addSalePaymentMethodWallet => 'المحفظة';
+
+  @override
+  String get addSaleBookingErrorManualNameRequired => 'اسم العميل مطلوب.';
+
+  @override
   String get authV2WelcomeTitle => 'تشغيل أبسط.';
 
   @override
@@ -6825,6 +7738,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authV2OrDivider => 'أو';
 
   @override
+  String get guestAuthOrDivider => 'أو';
+
+  @override
+  String get guestAuthContinueAsGuest => 'متابعة كضيف';
+
+  @override
+  String get guestAuthGuestSubtitle =>
+      'لا حاجة لحساب. اكتشف الصالونات واحجز بسرعة.';
+
+  @override
+  String guestAuthSignInFailed(String details) {
+    return 'تعذر المتابعة كضيف: $details';
+  }
+
+  @override
+  String get guestAuthSessionTimeout =>
+      'استغرق تحميل ملفك وقتًا أطول من المتوقع. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get guestNicknameScreenTitle => 'كيف نناديك؟';
+
+  @override
+  String get guestNicknameScreenSubtitle =>
+      'اختر اسمًا يظهر لفريق الصالون. سنجعله فريدًا.';
+
+  @override
+  String get guestNicknameFieldLabel => 'الاسم المستعار';
+
+  @override
+  String get guestNicknameSuggestedLabel => 'اسم العرض';
+
+  @override
+  String get guestNicknameContinue => 'متابعة';
+
+  @override
+  String get guestNicknameErrorTooShort => 'أدخل حرفين على الأقل.';
+
+  @override
+  String get guestNicknameErrorInvalid => 'استخدم أحرفًا وأرقامًا فقط.';
+
+  @override
+  String get guestNicknameErrorReserveFailed =>
+      'تعذر حجز هذا الاسم. حاول مرة أخرى.';
+
+  @override
+  String get customerBookingReviewMissingGuestNickname =>
+      'يرجى تعيين الاسم المستعار للضيف أولًا.';
+
+  @override
   String get authV2ContinueGoogle => 'المتابعة مع Google';
 
   @override
@@ -6966,8 +7928,87 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String customersCountBadge(int count) {
-    return '$count عميلًا';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملاء',
+      one: 'عميل واحد',
+      zero: '0 عملاء',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String get customersGoldenInfoTitle => 'العملاء الذهبيون';
+
+  @override
+  String get customersGoldenInfoSubtitle =>
+      'تتبّع الزيارات والحجوزات والإنفاق.';
+
+  @override
+  String get customersGoldenInfoDismissSemantics => 'إخفاء التلميح';
+
+  @override
+  String get customersInsightsThisMonth => 'هذا الشهر';
+
+  @override
+  String get customersInsightsNewThisMonth => 'عملاء جدد';
+
+  @override
+  String get customersInsightsReturningThisMonth => 'عائدون';
+
+  @override
+  String get customersInsightsTotalCustomers => 'إجمالي النشطين';
+
+  @override
+  String get customersInsightsTotalSpent => 'إجمالي الإنفاق';
+
+  @override
+  String get customersInsightsLoadError => 'تعذّر تحميل الإحصاءات.';
+
+  @override
+  String customersLastServiceLine(String serviceName) {
+    return 'آخر خدمة: $serviceName';
+  }
+
+  @override
+  String get customersActionCall => 'اتصال بالعميل';
+
+  @override
+  String get customersActionMessage => 'مراسلة عبر واتساب';
+
+  @override
+  String get customersActionViewProfile => 'عرض الملف';
+
+  @override
+  String get customersActionCouldNotOpen => 'تعذّر فتح الرابط.';
+
+  @override
+  String get customersListFooterTitle => 'ابنِ قائمة عملائك';
+
+  @override
+  String get customersListFooterSubtitle =>
+      'أضف زبائن الحضور، اربط الحجوزات، وتتبّع الولاء تلقائياً.';
+
+  @override
+  String get customersFilterEmptyTitle => 'لا نتائج';
+
+  @override
+  String get customersFilterEmptySubtitle =>
+      'جرّب بحثاً آخر أو شريحة تصفية، أو امسح عوامل التصفية.';
+
+  @override
+  String get customersClearFilters => 'مسح عوامل التصفية';
+
+  @override
+  String get customersSearchEmptyTitle => 'لا نتائج للبحث';
+
+  @override
+  String get customersSearchEmptySubtitle =>
+      'جرّب اسماً أو هاتفاً مختلفاً، أو امسح البحث.';
+
+  @override
+  String get customersClearSearch => 'مسح البحث';
 
   @override
   String get customersAddCustomerFab => 'إضافة عميل';
@@ -7742,8 +8783,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeePolicySummaryTitle => 'ملخص السياسة';
 
   @override
-  String employeePolicyGpsSummary(int maxPunches, int maxBreaks) {
-    return 'يستخدم صالونك حضورًا بالـGPS عند التفعيل. حد البصمات: $maxPunches يوميًا، حتى $maxBreaks استراحات.';
+  String employeePolicyGpsSummary(int maxBreaks) {
+    return 'يستخدم صالونك حضورًا بالـGPS عند التفعيل. تسجيل دخول وتسجيل خروج مرة واحدة يوميًا؛ حتى $maxBreaks استراحات.';
   }
 
   @override
@@ -7820,9 +8861,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeePolicyDeductionsSection => 'الخصومات';
 
   @override
-  String employeePolicyRuleMaxPunchesOneLine(int max) {
-    return 'يمكنك تسجيل حتى $max بصمات في اليوم.';
-  }
+  String get employeePolicyRuleWorkPunchesOneLine =>
+      'كل يوم تسجّل دخولًا وخروجًا مرة واحدة؛ الاستراحات منفصلة عنهما.';
 
   @override
   String employeePolicyRuleMaxBreakMinutesOneLine(int minutes) {
@@ -8302,4 +9342,613 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addSaleUnableToLoadServices => 'تعذّر تحميل الخدمات';
+
+  @override
+  String get ownerShiftsTileTitle => 'الورديات وجدول الفريق';
+
+  @override
+  String get ownerShiftsTileSubtitle => 'إدارة القوالب والجدول الأسبوعي';
+
+  @override
+  String get ownerShiftsTitle => 'الورديات';
+
+  @override
+  String get ownerShiftsSubtitle => 'إنشاء وإدارة قوالب الورديات';
+
+  @override
+  String get ownerShiftsRetry => 'إعادة المحاولة';
+
+  @override
+  String get ownerShiftsLoadError => 'تعذّر تحميل قوالب الورديات';
+
+  @override
+  String get ownerShiftsSummaryTotalShifts => 'إجمالي الورديات';
+
+  @override
+  String get ownerShiftsSummaryAssignedStaff => 'الموظفون المعيّنون';
+
+  @override
+  String get ownerShiftsSummaryOffDayRules => 'قواعد أيام الإجازة';
+
+  @override
+  String get ownerShiftsSummaryTemplates => 'قوالب';
+
+  @override
+  String get ownerShiftsSummaryEmployees => 'موظفون';
+
+  @override
+  String get ownerShiftsSummaryRuleSet => 'مجموعة قواعد';
+
+  @override
+  String get ownerShiftsTemplatesSectionTitle => 'قوالب الورديات';
+
+  @override
+  String get ownerShiftsEmptyStateTitle => 'لا توجد قوالب ورديات بعد';
+
+  @override
+  String get ownerShiftsEmptyStateSubtitle =>
+      'أنشئ أول قالب وردية للبدء في الجدولة الأسبوعية.';
+
+  @override
+  String get ownerShiftsEmptyStateHelper =>
+      'الموصى به: وردية نهارية، وردية ليلية، ويوم إجازة.';
+
+  @override
+  String get ownerShiftsDuration => 'المدة';
+
+  @override
+  String get ownerShiftsBreak => 'الاستراحة';
+
+  @override
+  String get ownerShiftsEmployees => 'الموظفون';
+
+  @override
+  String get ownerShiftsOvernightBadge => 'ليلية';
+
+  @override
+  String get ownerShiftsOffDay => 'إجازة';
+
+  @override
+  String get ownerShiftsOpenWeeklyRosterTitle => 'فتح الجدول الأسبوعي';
+
+  @override
+  String get ownerShiftsOpenWeeklyRosterSubtitle =>
+      'عرض وإدارة ورديات الفريق خلال الأسبوع';
+
+  @override
+  String get ownerShiftsCreateTemplateCta => 'إنشاء قالب وردية';
+
+  @override
+  String get ownerShiftsDeactivateError => 'تعذّر تعطيل هذه الوردية';
+
+  @override
+  String get ownerShiftsDeleteConfirmMessage =>
+      'هل أنت متأكد أنك تريد حذف قالب الوردية هذا؟';
+
+  @override
+  String get ownerShiftsCreateTemplatePlaceholder =>
+      'شاشة إنشاء قالب الوردية ستتوفر لاحقاً';
+
+  @override
+  String get ownerShiftsEditTemplatePlaceholder =>
+      'شاشة تعديل قالب الوردية ستتوفر لاحقاً';
+
+  @override
+  String get ownerShiftsWeeklyPlaceholder =>
+      'شاشة الورديات الأسبوعية ستتوفر لاحقاً';
+
+  @override
+  String get ownerShiftsApplyPlaceholder => 'شاشة تطبيق الجدول ستتوفر لاحقاً';
+
+  @override
+  String get ownerShiftCreateTitle => 'إنشاء وردية';
+
+  @override
+  String get ownerShiftEditTitle => 'تعديل وردية';
+
+  @override
+  String get ownerShiftCreateSubtitle => 'حدد ساعات العمل للموظفين';
+
+  @override
+  String get ownerShiftEditSubtitle => 'حدّث ساعات العمل للموظفين';
+
+  @override
+  String get ownerShiftNameLabel => 'اسم الوردية';
+
+  @override
+  String get ownerShiftNameHint => 'وردية نهارية';
+
+  @override
+  String get ownerShiftTypeLabel => 'نوع الوردية';
+
+  @override
+  String get ownerShiftTypeWorking => 'وردية عمل';
+
+  @override
+  String get ownerShiftTypeOff => 'يوم إجازة';
+
+  @override
+  String get ownerShiftStartTimeLabel => 'وقت البداية';
+
+  @override
+  String get ownerShiftEndTimeLabel => 'وقت النهاية';
+
+  @override
+  String get ownerShiftBreakMinutesLabel => 'مدة الاستراحة (دقائق)';
+
+  @override
+  String get ownerShiftBreakMinutesHint => '30';
+
+  @override
+  String get ownerShiftNotesLabel => 'ملاحظات (اختياري)';
+
+  @override
+  String get ownerShiftNotesHint => 'أضف ملاحظات لهذه الوردية...';
+
+  @override
+  String get ownerShiftColorLabel => 'اللون';
+
+  @override
+  String get ownerShiftDefaultLabel => 'الوردية الافتراضية';
+
+  @override
+  String get ownerShiftDefaultHint =>
+      'سيتم تعيين هذه الوردية تلقائياً لأي موظف جديد.';
+
+  @override
+  String get ownerShiftCancelCta => 'إلغاء';
+
+  @override
+  String get ownerShiftSaveCta => 'حفظ الوردية';
+
+  @override
+  String get ownerShiftSaveSuccess => 'تم حفظ الوردية بنجاح';
+
+  @override
+  String get ownerShiftSaveError => 'تعذّر حفظ الوردية';
+
+  @override
+  String get ownerShiftPreviewTitleFallback => 'معاينة الوردية';
+
+  @override
+  String get ownerShiftValidationNameRequired => 'اسم الوردية مطلوب.';
+
+  @override
+  String get ownerShiftValidationNameLength =>
+      'يجب ألا يتجاوز اسم الوردية 30 حرفاً.';
+
+  @override
+  String get ownerShiftValidationTimeRequired =>
+      'وقت البداية والنهاية مطلوبان لوردية العمل.';
+
+  @override
+  String get ownerShiftValidationDurationPositive =>
+      'يجب أن تكون مدة الوردية أكبر من صفر.';
+
+  @override
+  String get ownerShiftValidationDurationMax =>
+      'يجب ألا تتجاوز مدة الوردية 16 ساعة.';
+
+  @override
+  String get ownerShiftValidationBreakMin =>
+      'لا يمكن أن تكون دقائق الاستراحة سالبة.';
+
+  @override
+  String get ownerShiftValidationBreakMax =>
+      'يجب أن تكون دقائق الاستراحة أقل من مدة الوردية.';
+
+  @override
+  String get ownerShiftValidationDefaultRequired =>
+      'يجب تحديد قالب وردية افتراضي واحد على الأقل.';
+
+  @override
+  String get ownerWeeklyShiftsTitle => 'الورديات الأسبوعية';
+
+  @override
+  String get ownerWeeklyShiftsSubtitle => 'إدارة جدول الفريق';
+
+  @override
+  String get ownerWeeklyShiftsThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get ownerWeeklyShiftsNextWeek => 'الأسبوع القادم';
+
+  @override
+  String get ownerWeeklyShiftsApplyToMonth => 'تطبيق على الشهر';
+
+  @override
+  String get ownerWeeklyShiftsTemplatesStripTitle => 'اسحب وردية إلى اليوم';
+
+  @override
+  String get ownerWeeklyShiftsDragStripBody => 'اسحب وردية\nإلى اليوم';
+
+  @override
+  String get ownerWeeklyShiftsTipCardBody =>
+      'اضغط على خلية لوضع علامة عطلة، أو تغيير الوردية، أو إزالة التعيين الحالي.';
+
+  @override
+  String get ownerShiftsTemplatesReorder => 'إعادة ترتيب';
+
+  @override
+  String get ownerWeeklyShiftsNoTemplates => 'أنشئ قوالب الورديات أولاً';
+
+  @override
+  String get ownerWeeklyShiftsNoEmployees => 'أضف موظفين أولاً';
+
+  @override
+  String get ownerWeeklyShiftsLoadError => 'تعذّر تحميل بيانات الجدول الأسبوعي';
+
+  @override
+  String get ownerWeeklyShiftsEmptyCell => '+';
+
+  @override
+  String get ownerWeeklyShiftsEmployeesHeader => 'الموظفون';
+
+  @override
+  String get ownerWeeklyShiftsMarkOffAction => 'تحديد إجازة';
+
+  @override
+  String get ownerWeeklyShiftsRemoveAssignmentAction => 'إزالة التعيين';
+
+  @override
+  String get ownerWeeklyShiftsAssignAction => 'تعيين';
+
+  @override
+  String get ownerApplyScheduleSectionTarget => 'طبّق هذه الخطة على';
+
+  @override
+  String get ownerApplyScheduleTitle => 'تطبيق الجدول';
+
+  @override
+  String get ownerApplyScheduleSubtitle => 'تكرار هذه الخطة الأسبوعية';
+
+  @override
+  String get ownerApplyScheduleOptionThisWeek => 'هذا الأسبوع فقط';
+
+  @override
+  String get ownerApplyScheduleOptionRemainingMonth =>
+      'الأسابيع المتبقية من هذا الشهر';
+
+  @override
+  String get ownerApplyScheduleOptionRemainingMonthSubtitle =>
+      'تطبيق من هذا الأسبوع حتى نهاية الشهر';
+
+  @override
+  String get ownerApplyScheduleOptionCustomRange => 'نطاق تاريخ مخصص';
+
+  @override
+  String get ownerApplyScheduleSelectCustomRange =>
+      'اختر تاريخ البداية والنهاية';
+
+  @override
+  String get ownerApplyScheduleCalendarPreview => 'معاينة التقويم';
+
+  @override
+  String get ownerApplyScheduleRepeatEveryWeek => 'التكرار كل أسبوع';
+
+  @override
+  String get ownerApplyScheduleSkipExistingAssignments =>
+      'تخطي التعيينات الموجودة';
+
+  @override
+  String get ownerApplyScheduleIncludeOffDays => 'تضمين أيام الإجازة';
+
+  @override
+  String get ownerApplyScheduleInfoCard =>
+      'تطبيق هذا الجدول سيحدّث جدول الموظفين للتواريخ المحددة.';
+
+  @override
+  String get ownerApplyScheduleCta => 'تطبيق الجدول';
+
+  @override
+  String get ownerApplyScheduleSuccessTitle => 'تم تطبيق الجدول بنجاح';
+
+  @override
+  String ownerApplyScheduleSuccessBody(int writes, int skipped) {
+    return 'تم إنشاء/تحديث $writes جداول. تم تخطي $skipped جداول موجودة.';
+  }
+
+  @override
+  String get ownerApplyScheduleOk => 'حسنًا';
+
+  @override
+  String ownerApplySchedulePreviewSummary(int assignments, int offDays) {
+    return 'التعيينات: $assignments • أيام الإجازة: $offDays';
+  }
+
+  @override
+  String get zuranoDiscoverGuestName => 'زائر';
+
+  @override
+  String get zuranoHomeHeadlineLine1 => 'حيث العناية الذاتية';
+
+  @override
+  String get zuranoHomeHeadlineLine2Prefix => 'تلتقي ';
+
+  @override
+  String get zuranoHomeHeadlineHighlight => 'الأناقة';
+
+  @override
+  String get zuranoHomeLocationLoading => 'جاري تحديد الموقع…';
+
+  @override
+  String get zuranoHomeLocationUnavailable => 'الموقع غير متاح';
+
+  @override
+  String get zuranoHomeLocationNearYou => 'بالقرب منك';
+
+  @override
+  String zuranoHomeLocationCityCountry(String city, String country) {
+    return '$city، $country';
+  }
+
+  @override
+  String get zuranoDiscoverSomethingWrong => 'حدث خطأ ما';
+
+  @override
+  String get zuranoDiscoverRecommendedTitle => 'موصى بها لك';
+
+  @override
+  String get zuranoDiscoverSeeAll => 'عرض الكل';
+
+  @override
+  String get zuranoDiscoverExploreAll => 'استكشف الكل';
+
+  @override
+  String get zuranoDiscoverFiltersLabel => 'التصفيات';
+
+  @override
+  String get zuranoDiscoverFiltersComingSoon =>
+      'حفظ عوامل التصفية سيُضاف لاحقًا.';
+
+  @override
+  String get zuranoDiscoverSearchHint =>
+      'ابحث عن الصالونات أو الخدمات أو المناطق...';
+
+  @override
+  String get zuranoRewardsBannerTitle => 'تألّق أكثر وتدفع أقل ✨';
+
+  @override
+  String get zuranoRewardsBannerSubtitle =>
+      'اكسب نقاطًا مع كل حجز وافتح مكافآت حصرية.';
+
+  @override
+  String get zuranoRewardsBannerCta => 'عرض العروض';
+
+  @override
+  String get zuranoTrendingServicesTitle => 'خدمات رائجة الآن';
+
+  @override
+  String get zuranoNearbyTitle => 'صالونات قريبة';
+
+  @override
+  String get zuranoNearbyViewMap => 'عرض الخريطة';
+
+  @override
+  String get zuranoNearbyMapSnack => 'عرض الخريطة سيُضاف لاحقًا.';
+
+  @override
+  String get zuranoNearbyBookNow => 'احجز الآن';
+
+  @override
+  String zuranoNearbyLocationLineKm(String cityCountry, String kmFormatted) {
+    return '$cityCountry • $kmFormatted كم';
+  }
+
+  @override
+  String zuranoNearbyKilometersOnly(String kmFormatted) {
+    return '$kmFormatted كم';
+  }
+
+  @override
+  String zuranoNearbyLocationTwoParts(String first, String second) {
+    return '$first • $second';
+  }
+
+  @override
+  String get zuranoBottomNavHome => 'الرئيسية';
+
+  @override
+  String get zuranoBottomNavBookings => 'الحجوزات';
+
+  @override
+  String get zuranoBottomNavRewards => 'المكافآت';
+
+  @override
+  String get zuranoBottomNavProfile => 'الملف';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryAll => 'الكل';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryHair => 'الشعر';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryNails => 'الأظافر';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryBeauty => 'التجميل';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryBarbers => 'الحلاقة';
+
+  @override
+  String get zuranoDiscoverFallbackCategorySpa => 'السبا';
+
+  @override
+  String get zuranoDiscoverFallbackCategoryMakeup => 'المكياج';
+
+  @override
+  String get zuranoDiscoverIndexBuildingMessage =>
+      'نعمل على تجهيز بيانات الصالونات. يرجى المحاولة قريبًا.';
+
+  @override
+  String get zuranoDiscoverSectionLoadFailed =>
+      'تعذّر تحميل هذا القسم. يرجى المحاولة لاحقًا.';
+
+  @override
+  String get zuranoDiscoverRecommendedEmpty => 'لا توجد صالونات موصى بها بعد';
+
+  @override
+  String get zuranoDiscoverTrendingServicesEmpty => 'لا توجد خدمات رائجة بعد';
+
+  @override
+  String zuranoDiscoverNearbyEmptyInCountry(String countryName) {
+    return 'لا توجد صالونات في $countryName بعد';
+  }
+
+  @override
+  String get estimatedPayout => 'الدفعة المتوقعة';
+
+  @override
+  String get commission => 'العمولة';
+
+  @override
+  String get services => 'الخدمات';
+
+  @override
+  String get addBonus => 'إضافة مكافأة';
+
+  @override
+  String get addDeduction => 'إضافة خصم';
+
+  @override
+  String get generatePayslip => 'إنشاء قسيمة راتب';
+
+  @override
+  String get reverseLastPayrollMonth => 'عكس شهر الرواتب الأخير';
+
+  @override
+  String get fixedCommissionAmount => 'قيمة العمولة الثابتة';
+
+  @override
+  String get earningsBreakdown => 'تفصيل الأرباح';
+
+  @override
+  String get servicesRevenue => 'إيراد الخدمات';
+
+  @override
+  String get commissionToday => 'عمولة اليوم';
+
+  @override
+  String get commissionThisMonth => 'عمولة هذا الشهر';
+
+  @override
+  String get bonuses => 'المكافآت';
+
+  @override
+  String get deductions => 'الخصومات';
+
+  @override
+  String get payrollFormula => 'معادلة الرواتب';
+
+  @override
+  String get payrollHistory => 'سجل الرواتب';
+
+  @override
+  String get noPayrollRecordsYet => 'لا توجد سجلات رواتب بعد';
+
+  @override
+  String get generatedPayslipsWillAppearHere =>
+      'ستظهر قسائم الرواتب المُنشأة هنا.';
+
+  @override
+  String get generateFirstPayslip => 'أنشئ أول قسيمة راتب';
+
+  @override
+  String get payrollLocked => 'الراتب مقفل';
+
+  @override
+  String get payrollPaidLockedMessage =>
+      'تم دفع هذا الراتب بالفعل ولا يمكن تعديله.';
+
+  @override
+  String get payrollPayslipGeneratedLockedMessage =>
+      'تم إنشاء قسيمة راتب لهذا الشهر. استخدم «عكس شهر الرواتب الأخير» لتعديل أو حذف التعديلات، ثم أنشئ القسيمة من جديد عند الحاجة.';
+
+  @override
+  String get employeeInactivePayrollMessage =>
+      'الموظف غير نشط/مجمّد، لذلك تم تعطيل إجراءات الرواتب.';
+
+  @override
+  String get addPayrollAdjustment => 'إضافة تعديل راتب';
+
+  @override
+  String get amount => 'المبلغ';
+
+  @override
+  String get elementName => 'اسم العنصر';
+
+  @override
+  String get notRecurring => 'غير متكرر';
+
+  @override
+  String get recurringOneYear => 'متكرر (حتى الإزالة)';
+
+  @override
+  String get deletePayrollElementTitle => 'حذف عنصر الرواتب؟';
+
+  @override
+  String deletePayrollElementMessage(String name) {
+    return 'هل تريد إزالة \"$name\" من عناصر الرواتب؟ سيتم إيقاف العناصر المتكررة للأشهر القادمة.';
+  }
+
+  @override
+  String get keepElement => 'إبقاء';
+
+  @override
+  String get deleteElement => 'حذف';
+
+  @override
+  String get payrollElementDeleted => 'تم حذف عنصر الرواتب.';
+
+  @override
+  String get payrollAdjustmentDeleteNoneMatched =>
+      'تعذّر إزالة هذا التعديل (لم يُعثر على سجل مطابق). اسحب للتحديث ثم أعد المحاولة.';
+
+  @override
+  String get reverseLastPayrollMonthTitle => 'عكس شهر الرواتب الأخير؟';
+
+  @override
+  String get reverseLastPayrollMonthMessage =>
+      'سيتم تعليم أحدث شهر رواتب كمعكوس. يمكنك إنشاءه مرة أخرى عند الحاجة.';
+
+  @override
+  String get reversePayrollMonthSuccess => 'تم عكس شهر الرواتب الأخير بنجاح.';
+
+  @override
+  String get reason => 'السبب';
+
+  @override
+  String get noteOptional => 'ملاحظة (اختياري)';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
+  String get bonusAddedSuccessfully => 'تمت إضافة المكافأة بنجاح.';
+
+  @override
+  String get deductionAddedSuccessfully => 'تمت إضافة الخصم بنجاح.';
+
+  @override
+  String get payslipGeneratedSuccessfully => 'تم إنشاء قسيمة الراتب بنجاح.';
+
+  @override
+  String get payrollLoadFailed => 'تعذّر تحميل بيانات الرواتب.';
+
+  @override
+  String get payrollHistoryLoadFailed => 'تعذّر تحميل سجل الرواتب.';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get updatePayrollAdjustment => 'تحديث تعديل الراتب';
+
+  @override
+  String get payrollElementUpdated => 'تم تحديث عنصر الرواتب.';
+
+  @override
+  String get update => 'تحديث';
 }

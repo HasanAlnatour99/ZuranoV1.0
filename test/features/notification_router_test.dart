@@ -29,7 +29,7 @@ void main() {
     );
     expect(
       router.routeInformationProvider.value.uri.path,
-      AppRoutes.ownerDashboard,
+      AppRoutes.ownerOverview,
     );
   });
 }

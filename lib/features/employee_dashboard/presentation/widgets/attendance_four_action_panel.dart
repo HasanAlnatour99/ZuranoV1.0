@@ -19,6 +19,7 @@ class AttendanceFourActionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final actionInFlight = busyType != null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -27,7 +28,7 @@ class AttendanceFourActionPanel extends StatelessWidget {
           label: l10n.employeeTodayPunchIn,
           icon: Icons.login_rounded,
           color: const Color(0xFF16A34A),
-          enabled: vm.canPunch(AttendancePunchType.punchIn),
+          enabled: !actionInFlight && vm.canPunch(AttendancePunchType.punchIn),
           loading: busyType == AttendancePunchType.punchIn,
           onTap: onPunch,
         ),
@@ -36,7 +37,7 @@ class AttendanceFourActionPanel extends StatelessWidget {
           label: l10n.employeeTodayBreakOut,
           icon: Icons.free_breakfast_outlined,
           color: const Color(0xFFF59E0B),
-          enabled: vm.canPunch(AttendancePunchType.breakOut),
+          enabled: !actionInFlight && vm.canPunch(AttendancePunchType.breakOut),
           loading: busyType == AttendancePunchType.breakOut,
           onTap: onPunch,
         ),
@@ -45,7 +46,7 @@ class AttendanceFourActionPanel extends StatelessWidget {
           label: l10n.employeeTodayBreakIn,
           icon: Icons.coffee_rounded,
           color: const Color(0xFF4F46E5),
-          enabled: vm.canPunch(AttendancePunchType.breakIn),
+          enabled: !actionInFlight && vm.canPunch(AttendancePunchType.breakIn),
           loading: busyType == AttendancePunchType.breakIn,
           onTap: onPunch,
         ),
@@ -54,7 +55,7 @@ class AttendanceFourActionPanel extends StatelessWidget {
           label: l10n.employeeTodayPunchOut,
           icon: Icons.logout_rounded,
           color: const Color(0xFFDC2626),
-          enabled: vm.canPunch(AttendancePunchType.punchOut),
+          enabled: !actionInFlight && vm.canPunch(AttendancePunchType.punchOut),
           loading: busyType == AttendancePunchType.punchOut,
           onTap: onPunch,
         ),

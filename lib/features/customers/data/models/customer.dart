@@ -20,6 +20,7 @@ class Customer {
     this.isVip = false,
     this.discountPercentage = 0,
     this.searchKeywords = const <String>[],
+    this.lastServiceName,
     this.createdAt,
     this.updatedAt,
     required this.createdBy,
@@ -51,6 +52,9 @@ class Customer {
   /// 0–100; applied automatically at POS when this customer is linked to a sale.
   final double discountPercentage;
   final List<String> searchKeywords;
+
+  /// Denormalized from last completed sale or booking when available.
+  final String? lastServiceName;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String createdBy;
@@ -77,7 +81,7 @@ class Customer {
       id: looseStringFromJson(json['id']),
       salonId: nullableLooseStringFromJson(json['salonId']),
       authUid: nullableLooseStringFromJson(json['authUid']),
-      fullName: looseStringFromJson(json['fullName']),
+      fullName: _visibleFullNameFromCustomerJson(json),
       phone:
           nullableLooseStringFromJson(json['phone']) ??
           nullableLooseStringFromJson(json['phoneNumber']) ??
@@ -88,7 +92,8 @@ class Customer {
       preferredBarberName: nullableLooseStringFromJson(
         json['preferredBarberName'],
       ),
-      category: nullableLooseStringFromJson(json['category']),
+      category: nullableLooseStringFromJson(json['category']) ??
+          nullableLooseStringFromJson(json['segment']),
       visitCount: looseIntFromJson(
         json['totalVisits'] ?? json['visitsCount'] ?? json['visitCount'],
       ),
@@ -102,6 +107,7 @@ class Customer {
               'vip'),
       discountPercentage: _discountPercentageFromJson(json),
       searchKeywords: stringListFromJson(json['searchKeywords']),
+      lastServiceName: nullableLooseStringFromJson(json['lastServiceName']),
       createdAt: nullableFirestoreDateTimeFromJson(json['createdAt']),
       updatedAt: nullableFirestoreDateTimeFromJson(json['updatedAt']),
       createdBy: nullableLooseStringFromJson(json['createdBy']) ?? '',
@@ -131,11 +137,20 @@ class Customer {
       'isVip': isVip,
       'discountPercentage': discountPercentage,
       'searchKeywords': searchKeywords,
+      if (lastServiceName != null && lastServiceName!.trim().isNotEmpty)
+        'lastServiceName': lastServiceName,
       'createdAt': nullableFirestoreDateTimeToJson(createdAt),
       'updatedAt': nullableFirestoreDateTimeToJson(updatedAt),
       'createdBy': createdBy,
       'updatedBy': updatedBy,
     };
+  }
+
+  /// Name shown in lists and headers (never the Firestore document id / uid).
+  String get visibleDisplayName {
+    final n = fullName.trim();
+    if (n.isNotEmpty) return n;
+    return 'Guest';
   }
 
   Customer copyWith({
@@ -150,6 +165,7 @@ class Customer {
     String? preferredBarberName,
     String? category,
     List<String>? searchKeywords,
+    String? lastServiceName,
     int? visitCount,
     double? totalSpent,
     DateTime? lastVisitAt,
@@ -174,6 +190,7 @@ class Customer {
       preferredBarberName: preferredBarberName ?? this.preferredBarberName,
       category: category ?? this.category,
       searchKeywords: searchKeywords ?? this.searchKeywords,
+      lastServiceName: lastServiceName ?? this.lastServiceName,
       visitCount: visitCount ?? this.visitCount,
       totalSpent: totalSpent ?? this.totalSpent,
       lastVisitAt: lastVisitAt ?? this.lastVisitAt,
@@ -196,6 +213,14 @@ double _discountPercentageFromJson(Map<String, dynamic> json) {
   if (d < 0) return 0;
   if (d > 100) return 100;
   return d;
+}
+
+String _visibleFullNameFromCustomerJson(Map<String, dynamic> json) {
+  for (final key in ['displayName', 'customerName', 'nickname', 'fullName']) {
+    final v = nullableLooseStringFromJson(json[key])?.trim();
+    if (v != null && v.isNotEmpty) return v;
+  }
+  return '';
 }
 
 bool _customerIsActiveFromJson(Map<String, dynamic> json) {

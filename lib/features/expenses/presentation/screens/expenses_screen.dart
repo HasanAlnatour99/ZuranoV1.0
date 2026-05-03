@@ -6,7 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/salon_streams_provider.dart'
+    show expensesStreamProvider;
 import '../providers/expense_providers.dart';
 import '../widgets/add_expense_bottom_button.dart';
 import '../widgets/category_breakdown_card.dart';
@@ -17,6 +18,7 @@ import '../widgets/expense_summary_card.dart';
 import '../widgets/expenses_error_view.dart';
 import '../widgets/expenses_loading_view.dart';
 import '../widgets/recent_expenses_card.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -46,9 +48,7 @@ class ExpensesScreen extends ConsumerWidget {
     }
 
     final expensesAsync = ref.watch(expensesStreamProvider);
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -184,8 +184,7 @@ Future<void> _showCategoryBreakdownSheet(
 ) async {
   final l10n = AppLocalizations.of(context)!;
   final locale = Localizations.localeOf(context);
-  final currencyCode =
-      ref.read(sessionSalonStreamProvider).asData?.value?.currencyCode ?? 'USD';
+  final currencyCode = ref.read(sessionSalonMoneyCurrencyCodeProvider);
   final rows =
       ref.read(expenseCategoryBreakdownUiRowsProvider).asData?.value ?? [];
   final total =

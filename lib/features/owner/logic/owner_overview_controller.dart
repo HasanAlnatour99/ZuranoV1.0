@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/currency_for_country.dart';
 import '../../../core/constants/attendance_approval.dart';
 import '../../../core/constants/booking_operational_states.dart';
 import '../../../core/constants/booking_statuses.dart';
@@ -146,8 +147,7 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   final checkedInEmployeesToday = input.attendanceToday
       .where(
         (a) =>
-            a.checkInAt != null &&
-            a.checkOutAt == null &&
+            a.countsAsWorkingOnSalon &&
             activeEmployeeIds.contains(a.employeeId),
       )
       .map((a) => a.employeeId)
@@ -157,9 +157,7 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   final checkedInBarberIdsToday = input.attendanceToday
       .where(
         (a) =>
-            a.checkInAt != null &&
-            a.checkOutAt == null &&
-            barberIds.contains(a.employeeId),
+            a.countsAsWorkingOnSalon && barberIds.contains(a.employeeId),
       )
       .map((a) => a.employeeId)
       .toSet();
@@ -276,6 +274,23 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
         .fold<double>(0, (a, s) => a + _saleTotal(s));
   });
 
+  final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+  final currentMonthDailyRevenue = List<double>.generate(daysInMonth, (i) {
+    final day = DateTime(now.year, now.month, i + 1);
+    return completedSales
+        .where((s) => _sameLocalDay(s.soldAt, day))
+        .fold<double>(0, (a, s) => a + _saleTotal(s));
+  });
+
+  final completedSalesYesterdayCount = yesterdaySales.length;
+  final todayHourlyRevenue = List<double>.filled(24, 0);
+  for (final s in todaySales) {
+    final h = s.soldAt.toLocal().hour;
+    if (h >= 0 && h < 24) {
+      todayHourlyRevenue[h] += _saleTotal(s);
+    }
+  }
+
   final servicePreviewCandidates =
       activeServices.map((s) {
           final label = s.serviceName.trim().isNotEmpty
@@ -293,7 +308,10 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   final salonCity = _resolveSalonCity(salon);
 
   return OwnerOverviewState(
-    currencyCode: salon?.currencyCode ?? 'USD',
+    currencyCode: resolvedSalonMoneyCurrency(
+      salonCurrencyCode: salon?.currencyCode,
+      salonCountryIso: salon?.countryCode,
+    ),
     salonName: salon?.name,
     salonCity: salonCity,
     ownerName: salon?.ownerName,
@@ -311,10 +329,13 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
     checkedInBarbersToday: checkedInBarbersToday,
     barbersNotCheckedInAlertCount: barbersNotCheckedInAlertCount,
     completedSalesTodayCount: todaySales.length,
+    completedSalesYesterdayCount: completedSalesYesterdayCount,
     topServiceThisWeekName: weekTop?.label,
     topServiceThisWeekUses: weekTop?.count ?? 0,
     teamBarberPreview: teamPreviewTop,
     last7DaysDailyRevenue: last7DaysDailyRevenue,
+    todayHourlyRevenue: todayHourlyRevenue,
+    currentMonthDailyRevenue: currentMonthDailyRevenue,
     servicePreviewTop3: servicePreviewTop3,
     latestSale: latestSale,
     pendingApprovalsCount: pendingApprovalsCount,

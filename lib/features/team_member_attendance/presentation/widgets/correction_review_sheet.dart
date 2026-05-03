@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/firebase_providers.dart';
-import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../employee_today/data/attendance_exception.dart';
+import '../../../employee_today/providers/employee_today_providers.dart';
 import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
 import '../../application/team_member_attendance_providers.dart';
 import '../../data/models/attendance_correction_request_model.dart';
@@ -46,7 +47,6 @@ class _CorrectionReviewSheetState extends ConsumerState<CorrectionReviewSheet> {
     final l10n = AppLocalizations.of(context)!;
     final nav = Navigator.of(context);
     final auth = ref.read(firebaseAuthProvider).currentUser;
-    final user = ref.read(sessionUserProvider).asData?.value;
     if (auth == null) {
       messenger?.showSnackBar(
         SnackBar(content: Text(l10n.teamAttendanceMarkError)),
@@ -54,23 +54,41 @@ class _CorrectionReviewSheetState extends ConsumerState<CorrectionReviewSheet> {
       return;
     }
 
+    final reviewerName = switch (ref.read(sessionUserProvider)) {
+      AsyncData(:final value)
+          when value != null && value.name.trim().isNotEmpty =>
+        value.name.trim(),
+      _ => auth.displayName?.trim().isNotEmpty == true
+          ? auth.displayName!.trim()
+          : (auth.email ?? 'Reviewer'),
+    };
+
     setState(() => _submitting = true);
     try {
-      await ref
-          .read(teamMemberAttendanceRepositoryProvider)
-          .reviewCorrectionRequest(
-            salonId: widget.salonId,
-            requestId: widget.request.id,
-            attendanceId: widget.request.attendanceId,
-            approved: approved,
-            reviewNote: _noteController.text.trim(),
-            reviewedBy: auth.uid,
-            reviewedByRole: user?.role ?? 'owner',
-          );
+      final repo = ref.read(employeeTodayAttendanceRepositoryProvider);
+      final note = _noteController.text.trim();
+      if (approved) {
+        await repo.approveCorrectionRequest(
+          salonId: widget.salonId,
+          requestId: widget.request.id,
+          reviewerId: auth.uid,
+          reviewerName: reviewerName,
+          reviewNote: note.isEmpty ? null : note,
+        );
+      } else {
+        await repo.rejectCorrectionRequest(
+          salonId: widget.salonId,
+          requestId: widget.request.id,
+          reviewerId: auth.uid,
+          reviewerName: reviewerName,
+          reason: note.isEmpty ? l10n.teamMemberAttendanceNoReason : note,
+        );
+      }
 
       ref.invalidate(attendanceCorrectionRequestsProvider(widget.args));
       ref.invalidate(todayAttendanceProvider(widget.args));
       ref.invalidate(recentAttendanceProvider(widget.args));
+      ref.invalidate(teamMemberFullAttendanceHistoryProvider(widget.args));
       ref.invalidate(attendanceSummaryProvider(widget.args));
 
       if (mounted) {
@@ -81,6 +99,10 @@ class _CorrectionReviewSheetState extends ConsumerState<CorrectionReviewSheet> {
               ? l10n.teamMemberAttendanceCorrectionApproved
               : l10n.teamMemberAttendanceCorrectionRejected,
         );
+      }
+    } on AttendanceException catch (e) {
+      if (mounted) {
+        messenger?.showSnackBar(SnackBar(content: Text(e.message)));
       }
     } catch (e) {
       if (mounted) {

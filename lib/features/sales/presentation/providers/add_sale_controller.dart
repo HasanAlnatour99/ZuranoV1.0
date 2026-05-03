@@ -12,7 +12,9 @@ import '../../../../features/sales/data/models/sale.dart';
 import '../../../../features/sales/data/models/salon_sales_settings.dart';
 import '../../../../features/sales/data/sales_ai_analysis_service.dart';
 import '../../../../features/services/data/models/service.dart';
+import '../../../../shared/services/service_category_icon_resolver.dart';
 import '../../../../features/users/data/models/app_user.dart';
+import '../../../../providers/app_settings_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
@@ -35,6 +37,7 @@ class CartLine {
     required this.serviceId,
     required this.serviceName,
     this.categoryKey,
+    this.iconKey,
     required this.unitPrice,
     this.quantity = 1,
   });
@@ -42,6 +45,7 @@ class CartLine {
   final String serviceId;
   final String serviceName;
   final String? categoryKey;
+  final String? iconKey;
   final double unitPrice;
   final int quantity;
 
@@ -52,6 +56,7 @@ class CartLine {
       serviceId: serviceId,
       serviceName: serviceName,
       categoryKey: categoryKey,
+      iconKey: iconKey,
       unitPrice: unitPrice,
       quantity: quantity ?? this.quantity,
     );
@@ -277,6 +282,7 @@ class AddSaleController extends Notifier<AddSaleState> {
 
   void addOrIncrementService(SalonService service) {
     final id = service.id;
+    final lang = ref.read(appLocalePreferenceProvider).languageCode;
     final next = List<CartLine>.from(state.lines);
     final idx = next.indexWhere((e) => e.serviceId == id);
     if (idx >= 0) {
@@ -286,10 +292,9 @@ class AddSaleController extends Notifier<AddSaleState> {
       next.add(
         CartLine(
           serviceId: service.id,
-          serviceName: service.serviceName.trim().isNotEmpty
-              ? service.serviceName.trim()
-              : service.name.trim(),
+          serviceName: service.localizedTitleForLanguageCode(lang),
           categoryKey: service.categoryKey,
+          iconKey: service.iconKey,
           unitPrice: service.price,
         ),
       );
@@ -344,7 +349,7 @@ class AddSaleController extends Notifier<AddSaleState> {
 
   void applyLinkedCustomer(Customer customer) {
     state = state.copyWith(
-      customerName: customer.fullName.trim(),
+      customerName: customer.visibleDisplayName.trim(),
       linkedCustomerId: customer.id.trim(),
       linkedCustomerDiscountPercent: customer.discountPercentage,
       clearSubmitError: true,
@@ -544,7 +549,10 @@ class AddSaleController extends Notifier<AddSaleState> {
         SaleLineItem.withComputedTotal(
           serviceId: line.serviceId,
           serviceName: line.serviceName,
-          serviceIcon: line.categoryKey,
+          serviceIcon: ServiceCategoryIconResolver.persistedIconKey(
+            iconKey: line.iconKey,
+            categoryKey: line.categoryKey,
+          ),
           employeeId: barber.id,
           employeeName: barber.name,
           quantity: line.quantity,

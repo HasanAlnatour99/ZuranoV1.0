@@ -37,6 +37,9 @@ export const registerDeviceToken = onCall({ region: "us-central1" }, async (requ
     locale,
     timezone,
     pushEnabled,
+    active: true,
+    invalidatedAt: FieldValue.delete(),
+    invalidReason: FieldValue.delete(),
     lastSeenAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -101,6 +104,15 @@ export const updateNotificationPreferences = onCall({ region: "us-central1" }, a
   }
   if ("marketingEnabled" in incoming) {
     merged.marketingEnabled = requireBool(incoming, "marketingEnabled");
+  }
+  if ("attendanceAlerts" in incoming) {
+    merged.attendanceAlerts = requireBool(incoming, "attendanceAlerts");
+  }
+  if ("approvalAlerts" in incoming) {
+    merged.approvalAlerts = requireBool(incoming, "approvalAlerts");
+  }
+  if ("systemAlerts" in incoming) {
+    merged.systemAlerts = requireBool(incoming, "systemAlerts");
   }
 
   await db.doc(`users/${uid}`).set(

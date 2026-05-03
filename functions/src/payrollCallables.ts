@@ -11,7 +11,9 @@ import {
   assertSalonOwnerOrAdmin,
   asNumber,
   dataOrEmpty,
+  parseFirestoreTimestamp,
   payslipIdFor,
+  prorateMonthlySalaryUtc,
 } from "./payrollShared";
 
 const db = getFirestore();
@@ -108,7 +110,15 @@ export const generateMonthlyPayroll = onCall(
         continue;
       }
 
-      const baseSalary = asNumber(emp.baseSalary, 0);
+      const monthlyContractBase = asNumber(emp.baseSalary, 0);
+      const hireDateUtc = parseFirestoreTimestamp(emp.hiredAt);
+      const salaryProration = prorateMonthlySalaryUtc({
+        monthlyAmount: monthlyContractBase,
+        hireDateUtc,
+        year,
+        month,
+      });
+      const baseSalaryApplied = salaryProration.appliedAmount;
       const commissionPercent = asNumber(emp.commissionPercentage ?? emp.commissionRate, 0);
 
       let serviceRevenue = 0;
@@ -175,7 +185,7 @@ export const generateMonthlyPayroll = onCall(
 
       const attendanceRequiredDays = defaultRequiredDays;
 
-      const dailySalary = baseSalary / Math.max(1, attendanceRequiredDays);
+      const dailySalary = monthlyContractBase / Math.max(1, attendanceRequiredDays);
 
       const lateActive = lateRule == null || lateRule.isActive !== false;
       const lateAllowed = Math.max(0, Math.floor(ruleNumber(lateRule, "monthlyAllowedCount", 2)));
@@ -256,7 +266,7 @@ export const generateMonthlyPayroll = onCall(
         violationDeduction += asNumber(vd.amount, 0);
       }
 
-      const totalEarnings = baseSalary + commissionAmount + adjustmentEarnings;
+      const totalEarnings = baseSalaryApplied + commissionAmount + adjustmentEarnings;
       const totalDeductions =
         latePenalty +
         absenceDeduction +
@@ -286,7 +296,9 @@ export const generateMonthlyPayroll = onCall(
         currency,
         status: PAYROLL_PENDING,
         employeeVisible: false,
-        baseSalary,
+        baseSalary: baseSalaryApplied,
+        baseSalaryNominal: monthlyContractBase,
+        baseSalaryProrationRatio: salaryProration.ratio,
         serviceRevenue,
         commissionPercent,
         commissionAmount,
@@ -323,12 +335,12 @@ export const generateMonthlyPayroll = onCall(
       };
 
       let lineOrder = 10;
-      if (baseSalary > 0) {
+      if (baseSalaryApplied > 0) {
         pushLine(`line_${CODES.BASE_SALARY}`, {
           elementCode: CODES.BASE_SALARY,
           elementName: "Base salary",
           type: "earning",
-          amount: baseSalary,
+          amount: baseSalaryApplied,
           sourceType: "policy",
           sourceRef: null,
           displayOrder: lineOrder++,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/text/team_member_name.dart';
+import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/utils/currency_for_country.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -36,7 +38,7 @@ class SalonDetailScreen extends ConsumerWidget {
     );
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final localeTag = Localizations.localeOf(context).toString();
+    final locale = Localizations.localeOf(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -60,9 +62,9 @@ class SalonDetailScreen extends ConsumerWidget {
           if (salon == null) {
             return Center(child: Text(l10n.customerSalonNotFound));
           }
-          final money = NumberFormat.currency(
-            locale: localeTag,
-            name: salon.currencyCode,
+          final moneyCode = resolvedSalonMoneyCurrency(
+            salonCurrencyCode: salon.currencyCode,
+            salonCountryIso: salon.countryCode,
           );
           return AppFadeIn(
             child: ListView(
@@ -144,7 +146,7 @@ class SalonDetailScreen extends ConsumerWidget {
                                 title: s.serviceName,
                                 subtitle: l10n.customerServiceMeta(
                                   s.durationMinutes,
-                                  money.format(s.price),
+                                  formatAppMoney(s.price, moneyCode, locale),
                                 ),
                               ),
                             ),
@@ -184,7 +186,7 @@ class SalonDetailScreen extends ConsumerWidget {
                                 bottom: AppSpacing.medium,
                               ),
                               child: CustomerBarberCard(
-                                name: b.name,
+                                name: formatTeamMemberName(b.name),
                                 subtitle: b.role,
                                 showVerifiedBadge: true,
                                 completedAppointments:

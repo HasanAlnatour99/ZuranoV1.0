@@ -50,7 +50,12 @@ class EmployeeShellHeroHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16, compact ? 10 : 12, 16, compact ? 14 : 16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        compact ? 10 : 12,
+        16,
+        compact ? 14 : 16,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF5B2BE0), Color(0xFF7B3FF2), Color(0xFFA77BFF)],
@@ -177,7 +182,8 @@ class _HeroActionIconButton extends StatelessWidget {
             border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: Center(
-            child: iconBuilder?.call() ??
+            child:
+                iconBuilder?.call() ??
                 Icon(icon, color: Colors.white, size: iconSize),
           ),
         ),

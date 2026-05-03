@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
+import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../../shared/widgets/zurano_empty_state.dart';
 import '../../../../shared/widgets/zurano_permission_state.dart';
@@ -27,8 +27,7 @@ class PayslipHistoryScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final scope = ref.watch(employeeWorkspaceScopeProvider);
     final session = ref.watch(sessionUserProvider).asData?.value;
-    final salon = ref.watch(sessionSalonStreamProvider).asData?.value;
-    final currency = salon?.currencyCode ?? 'QAR';
+    final currency = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final recentAsync = ref.watch(employeeRecentPayslipsProvider);
 
     if (session == null) {

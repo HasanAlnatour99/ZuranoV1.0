@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../salon/data/models/salon.dart';
 import '../../data/models/payslip_model.dart';
 
@@ -31,7 +32,9 @@ Future<void> sharePayslipPdf({
                 ),
               ),
               pw.SizedBox(height: 8),
-              pw.Text('Employee: ${payslip.employeeName}'),
+              pw.Text(
+                'Employee: ${formatTeamMemberName(payslip.employeeName)}',
+              ),
               pw.Text('Role: ${payslip.employeeRole}'),
               pw.Text(
                 'Period: ${dateFmt.format(payslip.periodStart)} – ${dateFmt.format(payslip.periodEnd)}',

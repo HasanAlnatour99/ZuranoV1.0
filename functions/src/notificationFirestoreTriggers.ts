@@ -3,7 +3,9 @@ import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/fire
 import { BookingStatuses, normalizeBookingStatus } from "./bookingShared";
 import {
   notifyBookingConfirmedForCustomer,
+  notifyExpenseCreated,
   notifyPayrollCreated,
+  notifySaleRecordedForOwners,
   notifyViolationCreated,
 } from "./notificationOrchestrator";
 
@@ -90,6 +92,68 @@ export const onPayrollCreatedNotification = onDocumentCreated(
       salonId,
       payrollId,
       employeeId,
+    });
+  },
+);
+
+export const onExpenseCreatedNotification = onDocumentCreated(
+  {
+    document: "salons/{salonId}/expenses/{expenseId}",
+    region: "us-central1",
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) {
+      return;
+    }
+    const salonId = event.params.salonId;
+    const expenseId = event.params.expenseId;
+    const d = snap.data();
+    const title =
+      typeof d.title === "string" && d.title.trim().length > 0
+        ? d.title.trim()
+        : undefined;
+    const amount = typeof d.amount === "number" ? d.amount : undefined;
+    await notifyExpenseCreated({
+      salonId,
+      expenseId,
+      title,
+      amount,
+    });
+  },
+);
+
+export const onSaleRecordedOwnerNotification = onDocumentCreated(
+  {
+    document: "salons/{salonId}/sales/{saleId}",
+    region: "us-central1",
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) {
+      return;
+    }
+    const d = snap.data();
+    const status = typeof d.status === "string" ? d.status.trim() : "completed";
+    if (status !== "completed") {
+      return;
+    }
+    const salonId = event.params.salonId;
+    const saleId = event.params.saleId;
+    const employeeName =
+      typeof d.employeeName === "string" && d.employeeName.trim().length > 0
+        ? d.employeeName.trim()
+        : undefined;
+    const total =
+      typeof d.total === "number" && Number.isFinite(d.total)
+        ? d.total
+        : undefined;
+    await notifySaleRecordedForOwners({
+      salonId,
+      saleId,
+      employeeName,
+      total,
+      documentData: d,
     });
   },
 );

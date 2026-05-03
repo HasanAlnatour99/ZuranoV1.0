@@ -16,10 +16,14 @@ class CustomersPremiumHeader extends ConsumerWidget {
     super.key,
     required this.user,
     required this.salonName,
+    this.leading,
   });
 
   final AppUser user;
   final String salonName;
+
+  /// Optional back / menu control (e.g. standalone route without [AppPageHeader]).
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,6 +31,7 @@ class CustomersPremiumHeader extends ConsumerWidget {
     final greeting = getGreeting(l10n);
     final displayName = user.name.trim().toUpperCaseFirst();
     final unread = ref.watch(unreadNotificationCountProvider);
+    final lead = leading;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -51,6 +56,10 @@ class CustomersPremiumHeader extends ConsumerWidget {
         children: [
           Row(
             children: [
+              if (lead != null) ...[
+                lead,
+                const SizedBox(width: 6),
+              ],
               CircleAvatar(
                 radius: 26,
                 backgroundColor: Colors.white.withValues(alpha: 0.22),

@@ -8,6 +8,7 @@ import '../../../../core/formatting/booking_status_localized.dart';
 import '../../../../core/motion/app_motion.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
 import '../../../../core/theme/app_radius.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
 import '../../../../core/widgets/app_fade_in.dart';
@@ -180,7 +181,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                                   booking.barberName!.isNotEmpty)
                                 _SummaryRow(
                                   label: l10n.bookingBarber,
-                                  value: booking.barberName!,
+                                  value: formatTeamMemberName(booking.barberName),
                                 ),
                               _SummaryRow(
                                 label: l10n.bookingStatus,

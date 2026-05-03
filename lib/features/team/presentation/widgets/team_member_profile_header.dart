@@ -1,10 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../../core/formatting/staff_role_localized.dart';
+import '../../../../core/text/team_member_name.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../team_member_profile/presentation/theme/team_member_profile_colors.dart';
 import '../../data/models/team_member_model.dart';
+import '../theme/team_card_palette.dart';
+import 'animated_performance_wave.dart';
 
 class TeamMemberProfileHeader extends StatelessWidget {
   const TeamMemberProfileHeader({
@@ -12,11 +18,19 @@ class TeamMemberProfileHeader extends StatelessWidget {
     required this.member,
     required this.l10n,
     required this.localeName,
+    this.performanceRating = 0,
+    this.hasPerformanceData = false,
   });
 
   final TeamMemberModel member;
   final AppLocalizations l10n;
   final String localeName;
+
+  /// 0–5 from monthly performance doc when [hasPerformanceData] is true.
+  final double performanceRating;
+
+  /// Whether a `performance/{yyyyMM}_{employeeId}` doc exists for this month.
+  final bool hasPerformanceData;
 
   @override
   Widget build(BuildContext context) {
@@ -29,120 +43,163 @@ class TeamMemberProfileHeader extends StatelessWidget {
     final resolvedUrl = hasPhoto ? rawUrl : '';
 
     return Container(
-      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
+        color: TeamCardPalette.cardBackground,
         borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: [
-            scheme.surface,
-            scheme.primaryContainer.withValues(alpha: 0.35),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+        border: Border.all(
+          color: ZuranoPremiumUiColors.border.withValues(alpha: 0.65),
         ),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: scheme.shadow.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        boxShadow: ZuranoTokens.softCardShadow,
       ),
-      child: Row(
-        children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 48,
-                backgroundColor: scheme.primaryContainer,
-                backgroundImage: hasPhoto
-                    ? CachedNetworkImageProvider(resolvedUrl)
-                    : null,
-                child: !hasPhoto
-                    ? Text(
-                        member.initials,
-                        style: textTheme.headlineSmall?.copyWith(
-                          color: scheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      )
-                    : null,
-              ),
-              Positioned(
-                right: 3,
-                bottom: 3,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: member.isActive && !member.isFrozen
-                        ? const Color(0xFF22C55E)
-                        : scheme.outline,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: scheme.surface, width: 4),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isRtl = Directionality.of(context) == TextDirection.rtl;
+            final waveW = constraints.maxWidth * 0.44;
+            return Stack(
+              clipBehavior: Clip.hardEdge,
               children: [
-                Text(
-                  member.fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: scheme.onSurface,
+                PositionedDirectional(
+                  end: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: waveW,
+                  child: AnimatedPerformanceWave(
+                    rating: performanceRating,
+                    hasPerformanceData: hasPerformanceData,
+                    mirrorHorizontally: isRtl,
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  localizedStaffRole(l10n, _roleString(member)),
-                  style: textTheme.titleMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _StatusBadge(
-                  label: _statusLabel(l10n),
-                  isPositive: member.isActive && !member.isFrozen,
-                  scheme: scheme,
-                  textTheme: textTheme,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 16,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        joinDateText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.labelLarge?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CircleAvatar(
+                            radius: 48,
+                            backgroundColor: TeamMemberProfileColors.softPurple,
+                            backgroundImage: hasPhoto
+                                ? CachedNetworkImageProvider(resolvedUrl)
+                                : null,
+                            child: !hasPhoto
+                                ? Text(
+                                    member.initials,
+                                    style: textTheme.headlineSmall?.copyWith(
+                                      color: ZuranoPremiumUiColors.primaryPurple,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          PositionedDirectional(
+                            end: 3,
+                            bottom: 3,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: member.isActive && !member.isFrozen
+                                    ? TeamCardPalette.statusOnFg
+                                    : scheme.outline,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: TeamCardPalette.cardBackground,
+                                  width: 4,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TeamMemberNameText(
+                              member.fullName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: ZuranoPremiumUiColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              localizedStaffRole(l10n, _roleString(member)),
+                              style: textTheme.titleMedium?.copyWith(
+                                color: ZuranoPremiumUiColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _StatusBadge(
+                              label: _statusLabel(l10n),
+                              kind: _statusBadgeKind(member),
+                              textTheme: textTheme,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: TeamMemberProfileColors.softPurple,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: TeamMemberProfileColors.border
+                                          .withValues(alpha: 0.65),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.calendar_today_outlined,
+                                    size: 17,
+                                    color: TeamMemberProfileColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    joinDateText,
+                                    softWrap: true,
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: ZuranoPremiumUiColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
+  }
+
+  _StatusBadgeKind _statusBadgeKind(TeamMemberModel m) {
+    if (m.isFrozen) {
+      return _StatusBadgeKind.frozen;
+    }
+    if (!m.isActive) {
+      return _StatusBadgeKind.inactive;
+    }
+    return _StatusBadgeKind.active;
   }
 
   String _roleString(TeamMemberModel m) {
@@ -160,40 +217,62 @@ class TeamMemberProfileHeader extends StatelessWidget {
     return l10n.teamStatusActive;
   }
 
+  /// Prefer [TeamMemberModel.hiredAt], then Firestore `createdAt` (legacy records).
   String _joinDateText(BuildContext context) {
+    final label = l10n.teamDetailsJoinDate;
+    final hired = member.hiredAt;
+    if (hired != null) {
+      final formatted = DateFormat.yMMMd(localeName).format(hired.toLocal());
+      return '$label: $formatted';
+    }
     final ts = member.createdAt;
     if (ts == null) return l10n.teamProfileJoinDateMissing;
-    final date = ts.toDate();
-    return DateFormat.yMMMd(localeName).format(date.toLocal());
+    final formatted = DateFormat.yMMMd(
+      localeName,
+    ).format(ts.toDate().toLocal());
+    return '$label: $formatted';
   }
 }
+
+enum _StatusBadgeKind { active, inactive, frozen }
 
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({
     required this.label,
-    required this.isPositive,
-    required this.scheme,
+    required this.kind,
     required this.textTheme,
   });
 
   final String label;
-  final bool isPositive;
-  final ColorScheme scheme;
+  final _StatusBadgeKind kind;
   final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
-    final fg = isPositive ? const Color(0xFF16A34A) : scheme.onSurfaceVariant;
-    final bg = isPositive
-        ? const Color(0xFFE7F8EF)
-        : scheme.surfaceContainerHighest;
+    final (Color fg, Color bg, Color border) = switch (kind) {
+      _StatusBadgeKind.active => (
+        TeamCardPalette.statusOnFg,
+        TeamCardPalette.statusOnBg,
+        TeamCardPalette.statusOnBorder,
+      ),
+      _StatusBadgeKind.inactive => (
+        TeamCardPalette.statusOffFg,
+        TeamCardPalette.statusOffBg,
+        TeamCardPalette.statusOffBorder,
+      ),
+      _StatusBadgeKind.frozen => (
+        ZuranoPremiumUiColors.textSecondary,
+        ZuranoPremiumUiColors.lightSurface,
+        ZuranoPremiumUiColors.border,
+      ),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: fg.withValues(alpha: 0.18)),
+        border: Border.all(color: border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

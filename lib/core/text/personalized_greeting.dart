@@ -1,4 +1,5 @@
 import '../../l10n/app_localizations.dart';
+import 'team_member_name.dart';
 
 /// Time-of-day greeting using existing localized strings (EN / AR).
 String getGreeting(AppLocalizations l10n) {
@@ -14,15 +15,5 @@ String getGreeting(AppLocalizations l10n) {
 
 extension StringDisplayNameCapitalization on String {
   /// Title-cases each whitespace-separated segment, e.g. `"alice alnatour"` → `"Alice Alnatour"`.
-  String toUpperCaseFirst() {
-    final source = trim();
-    if (source.isEmpty) return this;
-    return source.split(RegExp(r'\s+')).map(_titleCaseWord).join(' ');
-  }
-}
-
-String _titleCaseWord(String word) {
-  if (word.isEmpty) return word;
-  if (word.length == 1) return word.toUpperCase();
-  return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+  String toUpperCaseFirst() => formatTeamMemberName(this);
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/formatting/app_money_format.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/sale_payment_method_localized.dart';
 import '../../../../core/formatting/sale_status_localized.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
@@ -12,10 +13,11 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../core/widgets/app_surface_card.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../data/models/sale.dart';
+import '../utils/sale_customer_display.dart';
 import '../../logic/sale_details_provider.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class SaleDetailsScreen extends ConsumerWidget {
   const SaleDetailsScreen({super.key, required this.saleId});
@@ -26,9 +28,7 @@ class SaleDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
     final saleAsync = ref.watch(saleDetailsProvider(saleId));
 
     return Scaffold(
@@ -192,11 +192,11 @@ class _OverviewCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.medium),
           _DetailRow(
             label: l10n.salesDetailsCustomerLabel,
-            value: _valueOrDash(sale.customerName),
+            value: visibleSaleCustomerName(sale),
           ),
           _DetailRow(
             label: l10n.salesScreenBarberFilter,
-            value: sale.employeeName,
+            value: formatTeamMemberName(sale.employeeName),
           ),
           _DetailRow(
             label: l10n.salesDetailsRecordedByLabel,
@@ -315,7 +315,7 @@ class _LineItemRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${item.employeeName} · ${item.quantity} x ${formatAppMoney(item.unitPrice, currencyCode, locale)}',
+                '${formatTeamMemberName(item.employeeName)} · ${item.quantity} x ${formatAppMoney(item.unitPrice, currencyCode, locale)}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

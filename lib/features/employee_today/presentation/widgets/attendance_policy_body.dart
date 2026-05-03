@@ -98,9 +98,7 @@ class EmployeeAttendancePolicyBody extends ConsumerWidget {
                   children: [
                     AttendancePolicyRuleTile(
                       icon: Icons.touch_app_outlined,
-                      title: l10n.employeePolicyRuleMaxPunchesOneLine(
-                        settings.maxPunchesPerDay,
-                      ),
+                      title: l10n.employeePolicyRuleWorkPunchesOneLine,
                     ),
                     AttendancePolicyRuleTile(
                       icon: Icons.free_breakfast_outlined,

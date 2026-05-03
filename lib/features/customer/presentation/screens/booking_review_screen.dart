@@ -9,8 +9,10 @@ import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/firebase_providers.dart';
 import '../../../../providers/session_provider.dart';
 import '../../application/customer_booking_availability_providers.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_create_providers.dart';
 import '../../application/customer_booking_create_service.dart';
 import '../../application/customer_booking_draft_provider.dart';
@@ -78,6 +80,16 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
         AppRouteNames.customerDetails,
         pathParameters: {'salonId': widget.salonId},
       );
+      return;
+    }
+    final isAnonymous =
+        ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
+    if (isAnonymous && !draft.hasGuestNickname) {
+      context.goNamed(
+        AppRouteNames.customerGuestNickname,
+        pathParameters: {'salonId': widget.salonId},
+      );
+      return;
     }
   }
 
@@ -87,6 +99,7 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       _showError(l10n.customerBookingReviewChooseSpecialistAgain);
       return;
     }
+    final customerUiLanguageCode = Localizations.localeOf(context).languageCode;
     final settings = await ref.read(
       customerPublicBookingFlowSettingsProvider(widget.salonId).future,
     );
@@ -98,12 +111,25 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       }
       return;
     }
+    final isAnonymous =
+        ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
+    if (isAnonymous && !draft.hasGuestNickname) {
+      if (mounted) {
+        _showError(l10n.customerBookingReviewMissingGuestNickname);
+        context.pushNamed(
+          AppRouteNames.customerGuestNickname,
+          pathParameters: {'salonId': widget.salonId},
+        );
+      }
+      return;
+    }
     final result = await ref
         .read(customerBookingCreateControllerProvider.notifier)
         .create(
           salonId: widget.salonId,
           draft: draft,
           bookingSettings: settings,
+          customerUiLanguageCode: customerUiLanguageCode,
         );
     if (!mounted) {
       return;
@@ -128,6 +154,8 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       return switch (error.code) {
         'slot_unavailable' => l10n.customerBookingReviewSlotUnavailable,
         'missing_specialist' => l10n.customerBookingReviewChooseSpecialistAgain,
+        'missing_guest_nickname' =>
+          l10n.customerBookingReviewMissingGuestNickname,
         _ => l10n.customerBookingReviewGenericError,
       };
     }
@@ -150,9 +178,10 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
     final locale = Localizations.localeOf(context);
     final dateFormatter = DateFormat.yMMMMd(locale.toString());
     final timeFormatter = DateFormat.jm(locale.toString());
-    final subtotal = formatMoney(draft.subtotal, 'QAR', locale);
-    final discount = formatMoney(draft.discountAmount, 'QAR', locale);
-    final total = formatMoney(draft.totalAmount, 'QAR', locale);
+    final moneyCode = watchCustomerSalonMoneyCode(ref, widget.salonId);
+    final subtotal = formatMoney(draft.subtotal, moneyCode, locale);
+    final discount = formatMoney(draft.discountAmount, moneyCode, locale);
+    final total = formatMoney(draft.totalAmount, moneyCode, locale);
 
     return CustomerGradientScaffold(
       bottomNavigationBar: SafeArea(
@@ -256,7 +285,10 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                       child: Column(
                         children: [
                           for (final service in draft.selectedServices)
-                            BookingReviewServiceLine(service: service),
+                            BookingReviewServiceLine(
+                              service: service,
+                              currencyCode: moneyCode,
+                            ),
                         ],
                       ),
                     ),
@@ -285,6 +317,11 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                       child: _KeyValueLines(
                         lines: [
                           (draft.customerName ?? '', draft.customerPhone ?? ''),
+                          if (draft.guestDisplayName?.isNotEmpty == true)
+                            (
+                              l10n.guestNicknameSuggestedLabel,
+                              draft.guestDisplayName!,
+                            ),
                           if (draft.customerGender?.isNotEmpty == true)
                             (l10n.customerDetailsGender, draft.customerGender!),
                           if (draft.customerNote?.isNotEmpty == true)

@@ -130,6 +130,7 @@ Future<void> main() async {
   if (!kFirebasePushMessagingEnabled) {
     await FirebaseMessaging.instance.setAutoInitEnabled(false);
   } else {
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
   // Overlap App Check with prefs I/O; await before runApp so first callable has a token.

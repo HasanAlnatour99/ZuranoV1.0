@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/booking/availability_schedule.dart';
+import '../../../../core/constants/payroll_period_constants.dart';
 import '../../../../core/firestore/firestore_json_helpers.dart';
 import '../../../../core/firestore/firestore_serializers.dart';
 import '../../domain/commission_type.dart';
@@ -48,6 +49,19 @@ abstract class Employee with _$Employee {
     @Default(0) @JsonKey(fromJson: looseIntFromJson) int displayOrder,
     @JsonKey(fromJson: nullableLooseStringFromJson)
     String? workingHoursProfileId,
+    /// `monthly` | `weekly` — null inherits salon default payroll period.
+    @Default(null)
+    @JsonKey(
+      fromJson: _payrollPeriodOverrideFromJson,
+      toJson: _payrollPeriodOverrideToJson,
+    )
+    String? payrollPeriodOverride,
+    /// Calendar hire date (Firestore Timestamp); payroll prorates monthly base salary when set.
+    @JsonKey(
+      fromJson: nullableFirestoreDateTimeFromJson,
+      toJson: nullableFirestoreDateTimeToJson,
+    )
+    DateTime? hiredAt,
     @Default(<String>[])
     @JsonKey(fromJson: stringListFromJson)
     List<String> assignedServiceIds,
@@ -105,7 +119,7 @@ abstract class Employee with _$Employee {
     return 0;
   }
 
-  /// Fixed currency component per pay period (SAR), when applicable.
+  /// Fixed currency component per pay period (salon ISO currency), when applicable.
   double get resolvedCommissionFixedAmount {
     if (commissionFixedAmount > 0) {
       return commissionFixedAmount;
@@ -182,6 +196,18 @@ Map<String, dynamic> _normalizedEmployeeJson(Map<String, dynamic> json) {
   );
   return normalized;
 }
+
+String? _payrollPeriodOverrideFromJson(Object? value) {
+  final s = nullableLooseStringFromJson(value)?.trim();
+  if (s == null || s.isEmpty) {
+    return null;
+  }
+  return SalonPayrollPeriods.isValid(s)
+      ? SalonPayrollPeriods.normalize(s)
+      : null;
+}
+
+Object? _payrollPeriodOverrideToJson(String? value) => value;
 
 String _commissionTypeFromJson(Object? value) {
   final raw = FirestoreSerializers.string(value)?.trim();

@@ -11,6 +11,7 @@ import '../data/models/et_policy_readable.dart';
 import '../data/models/employee_workplace_location_snapshot.dart';
 import '../data/repositories/attendance_policy_repository.dart';
 import '../data/repositories/employee_today_attendance_repository.dart';
+import '../../owner_settings/shifts/data/models/employee_schedule_model.dart';
 
 final attendancePolicyRepositoryProvider = Provider<AttendancePolicyRepository>(
   (ref) {
@@ -112,6 +113,21 @@ final etTodayPunchesProvider =
       return ref
           .watch(employeeTodayAttendanceRepositoryProvider)
           .watchTodayPunches(salonId: scope.salonId, attendanceDayId: id);
+    });
+
+final etTodayAssignedScheduleProvider =
+    StreamProvider.autoDispose<EmployeeScheduleModel?>((ref) {
+      final scope = ref.watch(employeeWorkspaceScopeProvider);
+      if (scope == null) {
+        return Stream<EmployeeScheduleModel?>.value(null);
+      }
+      return ref
+          .watch(employeeTodayAttendanceRepositoryProvider)
+          .watchEmployeeScheduleForDate(
+            salonId: scope.salonId,
+            employeeId: scope.employeeId,
+            date: DateTime.now(),
+          );
     });
 
 final etEmployeeCorrectionRequestsProvider =

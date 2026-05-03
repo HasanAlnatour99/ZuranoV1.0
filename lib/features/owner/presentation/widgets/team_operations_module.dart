@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
-import '../../../../core/utils/contact_launcher.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -13,14 +13,14 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/repository_providers.dart';
-import '../../../../providers/salon_streams_provider.dart';
 import '../../logic/team_management_providers.dart';
-import '../screens/barber_details_screen.dart';
 import 'add_barber_sheet.dart';
-import '../../../attendance/data/models/attendance_record.dart';
+import '../../../team/application/team_cards_provider.dart';
+import '../../../team/presentation/widgets/stacked_team_deck.dart';
 import '../../../team/presentation/widgets/team_empty_state_card.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 import 'team_member_card.dart';
+import '../../../../providers/money_currency_providers.dart';
 
 class TeamOperationsModule extends ConsumerStatefulWidget {
   const TeamOperationsModule({super.key, required this.salonId});
@@ -59,9 +59,7 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
     final cardsAsync = ref.watch(filteredTeamBarberCardsProvider);
     final selectedFilter = ref.watch(teamFilterProvider);
     final searchQuery = ref.watch(teamSearchQueryProvider);
-    final currencyCode =
-        ref.watch(sessionSalonStreamProvider).asData?.value?.currencyCode ??
-        'USD';
+    final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final hasError =
         summaryAsync.hasError || allCardsAsync.hasError || cardsAsync.hasError;
@@ -115,9 +113,16 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
                 const SizedBox(height: AppSpacing.medium),
                 _TeamSearchRow(
                   controller: _searchController,
+                  selectedSort: ref.watch(teamSortProvider),
                   onChanged: (value) => ref
                       .read(teamSearchQueryProvider.notifier)
                       .setQuery(value),
+                  onSortPressed: () => _showSortSheet(
+                    context,
+                    selectedSort: ref.read(teamSortProvider),
+                    onSelected: (value) =>
+                        ref.read(teamSortProvider.notifier).setSort(value),
+                  ),
                   onFilterPressed: () => _showFiltersSheet(
                     context,
                     selectedFilter: ref.read(teamFilterProvider),
@@ -163,6 +168,9 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
                               ref
                                   .read(teamFilterProvider.notifier)
                                   .setFilter(TeamFilter.all);
+                              ref
+                                  .read(teamSortProvider.notifier)
+                                  .setSort(TeamSort.nameAsc);
                             },
                             onSecondaryAction: () => showAddBarberSheet(
                               context,
@@ -170,14 +178,11 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
                             ),
                           ),
                         )
-                      : _TeamCardCollection(
+                      : _TeamStackedCardCollection(
                           key: ValueKey<String>(
                             'team-list-${selectedFilter.name}',
                           ),
-                          cards: cardsAsync.requireValue,
                           salonId: widget.salonId,
-                          onMarkAttendance: (data) =>
-                              _markAttendance(context, ref, data),
                           onToggleActive: (data) =>
                               _toggleActiveState(context, ref, data),
                         ),
@@ -208,6 +213,59 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
     );
   }
 
+  void _showSortSheet(
+    BuildContext context, {
+    required TeamSort selectedSort,
+    required ValueChanged<TeamSort> onSelected,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.large,
+            0,
+            AppSpacing.large,
+            AppSpacing.large,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.teamSortSheetTitle,
+                textAlign: TextAlign.start,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: scheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              Wrap(
+                spacing: AppSpacing.small,
+                runSpacing: AppSpacing.small,
+                children: [
+                  for (final sort in _allTeamSorts)
+                    _TeamModernFilterChip(
+                      label: _sortLabel(l10n, sort),
+                      selected: selectedSort == sort,
+                      onTap: () {
+                        onSelected(sort);
+                        Navigator.of(sheetContext).pop();
+                      },
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showFiltersSheet(
     BuildContext context, {
     required TeamFilter selectedFilter,
@@ -230,9 +288,9 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
             spacing: AppSpacing.small,
             runSpacing: AppSpacing.small,
             children: [
-              for (final filter in _visibleTeamFilters)
+              for (final filter in _businessTeamFilters)
                 _TeamModernFilterChip(
-                  label: _filterLabel(l10n, filter),
+                  label: _businessFilterLabel(l10n, filter),
                   selected: selectedFilter == filter,
                   onTap: () {
                     onSelected(filter);
@@ -408,8 +466,12 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
         showAppSuccessSnackBar(
           context,
           data.employee.isActive
-              ? l10n.teamMemberDeactivated(data.employee.name)
-              : l10n.teamMemberActivated(data.employee.name),
+              ? l10n.teamMemberDeactivated(
+                  formatTeamMemberName(data.employee.name),
+                )
+              : l10n.teamMemberActivated(
+                  formatTeamMemberName(data.employee.name),
+                ),
         );
       }
     } catch (error, stackTrace) {
@@ -427,63 +489,6 @@ class _TeamOperationsModuleState extends ConsumerState<TeamOperationsModule> {
     }
   }
 
-  Future<void> _markAttendance(
-    BuildContext context,
-    WidgetRef ref,
-    TeamBarberCardData data,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final repo = ref.read(attendanceRepositoryProvider);
-    try {
-      if (data.todayAttendance == null) {
-        final now = DateTime.now();
-        final workDate = DateTime(now.year, now.month, now.day);
-        await repo.createAttendanceRecord(
-          data.employee.salonId,
-          AttendanceRecord(
-            id: '',
-            salonId: data.employee.salonId,
-            employeeId: data.employee.id,
-            employeeName: data.employee.name,
-            workDate: workDate,
-            status: 'present',
-            checkInAt: now,
-          ),
-        );
-        if (context.mounted) {
-          showAppSuccessSnackBar(context, l10n.teamAttendanceMarkedSuccess);
-        }
-        return;
-      }
-      if (data.todayAttendance?.checkOutAt == null) {
-        await repo.checkOut(
-          salonId: data.employee.salonId,
-          attendanceId: data.todayAttendance!.id,
-        );
-        if (context.mounted) {
-          showAppSuccessSnackBar(context, l10n.teamAttendanceCheckoutSuccess);
-        }
-        return;
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.teamAttendanceAlreadyCompleted)),
-        );
-      }
-    } catch (error, stackTrace) {
-      developer.log(
-        'Failed to mark attendance from team module',
-        name: 'team.module',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.teamAttendanceMarkError)));
-      }
-    }
-  }
 }
 
 Widget _analyticsSheetListTile(
@@ -676,7 +681,7 @@ class _TeamStatsRow extends StatelessWidget {
                 iconColor: const Color(0xFF2E9D45),
                 iconBackground: const Color(0xFFEAF8ED),
                 label: l10n.teamSummaryWorkingNow,
-                value: '${summary.checkedInToday}',
+                value: '${summary.workingNow}',
                 helper: l10n.teamSummaryWorkingNowHelper(summary.totalMembers),
               ),
               const SizedBox(width: AppSpacing.small),
@@ -926,12 +931,16 @@ class _TeamModernFilterChip extends StatelessWidget {
 class _TeamSearchRow extends StatelessWidget {
   const _TeamSearchRow({
     required this.controller,
+    required this.selectedSort,
     required this.onChanged,
+    required this.onSortPressed,
     required this.onFilterPressed,
   });
 
   final TextEditingController controller;
+  final TeamSort selectedSort;
   final ValueChanged<String> onChanged;
+  final VoidCallback onSortPressed;
   final VoidCallback onFilterPressed;
 
   static const double _fieldHeight = 56;
@@ -949,6 +958,8 @@ class _TeamSearchRow extends StatelessWidget {
       borderRadius: BorderRadius.circular(_radius),
       side: borderSide,
     );
+
+    final sortActive = selectedSort != TeamSort.nameAsc;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -997,6 +1008,28 @@ class _TeamSearchRow extends StatelessWidget {
             shape: shape,
             clipBehavior: Clip.antiAlias,
             child: IconButton(
+              tooltip: l10n.teamSortAction,
+              onPressed: onSortPressed,
+              icon: const Icon(Icons.sort_rounded),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: EdgeInsets.zero,
+                iconSize: 24,
+                foregroundColor:
+                    sortActive ? scheme.primary : scheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.small),
+        SizedBox(
+          width: _fieldHeight,
+          height: _fieldHeight,
+          child: Material(
+            color: scheme.surface,
+            shape: shape,
+            clipBehavior: Clip.antiAlias,
+            child: IconButton(
               tooltip: l10n.teamFilterAction,
               onPressed: onFilterPressed,
               icon: const Icon(AppIcons.tune_rounded),
@@ -1014,107 +1047,48 @@ class _TeamSearchRow extends StatelessWidget {
   }
 }
 
-class _TeamCardCollection extends StatelessWidget {
-  const _TeamCardCollection({
+class _TeamStackedCardCollection extends ConsumerWidget {
+  const _TeamStackedCardCollection({
     super.key,
-    required this.cards,
     required this.salonId,
-    required this.onMarkAttendance,
     required this.onToggleActive,
   });
 
-  final List<TeamBarberCardData> cards;
   final String salonId;
-  final ValueChanged<TeamBarberCardData> onMarkAttendance;
   final ValueChanged<TeamBarberCardData> onToggleActive;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 1180
-            ? 2
-            : constraints.maxWidth >= 760
-            ? 2
-            : 1;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final cardsAsync = ref.watch(filteredTeamBarberCardsProvider);
+    final vmsAsync = ref.watch(filteredTeamDeckVmsProvider(salonId));
 
-        if (crossAxisCount == 1) {
-          return Column(
-            children: [
-              for (var index = 0; index < cards.length; index++) ...[
-                if (index > 0) const SizedBox(height: 14),
-                _TeamCardEntry(
-                  index: index,
-                  data: cards[index],
-                  salonId: salonId,
-                  onMarkAttendance: () => onMarkAttendance(cards[index]),
-                  onToggleActive: () => onToggleActive(cards[index]),
-                ),
-              ],
-            ],
-          );
+    return vmsAsync.when(
+      loading: () => const _TeamStackedSkeleton(),
+      error: (error, _) => AppEmptyState(
+        title: l10n.teamLoadErrorTitle,
+        message: l10n.genericError,
+        icon: AppIcons.groups_outlined,
+        centerContent: true,
+      ),
+      data: (vms) {
+        if (!cardsAsync.hasValue) {
+          return const _TeamStackedSkeleton();
         }
-
-        return Wrap(
-          spacing: 14,
-          runSpacing: 14,
-          children: [
-            for (var index = 0; index < cards.length; index++)
-              SizedBox(
-                width: (constraints.maxWidth - 14) / crossAxisCount,
-                child: _TeamCardEntry(
-                  index: index,
-                  data: cards[index],
-                  salonId: salonId,
-                  onMarkAttendance: () => onMarkAttendance(cards[index]),
-                  onToggleActive: () => onToggleActive(cards[index]),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TeamCardEntry extends StatelessWidget {
-  const _TeamCardEntry({
-    required this.index,
-    required this.data,
-    required this.salonId,
-    required this.onMarkAttendance,
-    required this.onToggleActive,
-  });
-
-  final int index;
-  final TeamBarberCardData data;
-  final String salonId;
-  final VoidCallback onMarkAttendance;
-  final VoidCallback onToggleActive;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppEntranceMotion(
-      motionId: 'team-row-${data.employee.id}',
-      index: index,
-      slideOffset: 10,
-      child: AppOpenContainerRoute(
-        closedBuilder: (context, openContainer) {
-          final l10n = AppLocalizations.of(context)!;
-          return TeamMemberCard(
-            data: data,
-            onTap: openContainer,
-            onWhatsAppTap: () => ContactLauncher.openWhatsApp(
-              context,
-              data.employee.phone,
-              message: '',
-              unavailableMessage: l10n.teamMemberWhatsAppNoPhone,
-              unavailableAppMessage: l10n.teamProfileWhatsAppUnavailableSnack,
-            ),
-            onMenuSelected: (action) {
+        final cards = cardsAsync.requireValue;
+        if (vms.length != cards.length) {
+          return const _TeamStackedSkeleton();
+        }
+        return AppEntranceMotion(
+          motionId: 'team-stack-deck',
+          child: StackedTeamDeck(
+            members: vms,
+            cards: cards,
+            onMenuSelected: (data, action) {
+              final id = data.employee.id;
               switch (action) {
                 case TeamMemberCardMenuAction.viewProfile:
-                  openContainer();
+                  context.push(AppRoutes.ownerTeamMemberDetails(id));
                   break;
                 case TeamMemberCardMenuAction.edit:
                   showAddBarberSheet(
@@ -1124,23 +1098,47 @@ class _TeamCardEntry extends StatelessWidget {
                   );
                   break;
                 case TeamMemberCardMenuAction.attendance:
-                  onMarkAttendance();
+                  context.push(
+                    AppRoutes.ownerTeamMemberDetails(
+                      id,
+                      tab: 'attendance',
+                    ),
+                  );
                   break;
                 case TeamMemberCardMenuAction.payroll:
                   context.push(
-                    AppRoutes.ownerEmployeePayrollSetup(data.employee.id),
+                    AppRoutes.ownerTeamMemberDetails(
+                      id,
+                      tab: 'payroll',
+                    ),
                   );
                   break;
                 case TeamMemberCardMenuAction.toggleActive:
-                  onToggleActive();
+                  onToggleActive(data);
                   break;
               }
             },
-          );
-        },
-        openBuilder: (context, _) =>
-            BarberDetailsScreen(employeeId: data.employee.id),
-      ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TeamStackedSkeleton extends StatelessWidget {
+  const _TeamStackedSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppSkeletonBlock(height: 174),
+        SizedBox(height: AppSpacing.medium),
+        AppSkeletonBlock(height: 174),
+        SizedBox(height: AppSpacing.medium),
+        AppSkeletonBlock(height: 174),
+      ],
     );
   }
 }
@@ -1176,6 +1174,22 @@ const _visibleTeamFilters = <TeamFilter>[
   TeamFilter.topSellers,
 ];
 
+const _businessTeamFilters = <TeamFilter>[
+  TeamFilter.topSellers,
+  TeamFilter.topServices,
+  TeamFilter.topPerformance,
+];
+
+const _allTeamSorts = <TeamSort>[
+  TeamSort.nameAsc,
+  TeamSort.nameDesc,
+  TeamSort.roleThenName,
+  TeamSort.joinedNewest,
+  TeamSort.joinedOldest,
+  TeamSort.salesTodayHigh,
+  TeamSort.salesMonthHigh,
+];
+
 String _filterLabel(AppLocalizations l10n, TeamFilter filter) {
   return switch (filter) {
     TeamFilter.all => l10n.teamFilterAll,
@@ -1184,6 +1198,32 @@ String _filterLabel(AppLocalizations l10n, TeamFilter filter) {
     TeamFilter.inactive => l10n.teamFilterInactive,
     TeamFilter.topSellers => l10n.teamFilterTopPerformers,
     TeamFilter.needsAttention => l10n.teamFilterNeedsAttention,
+    TeamFilter.topServices => l10n.teamFilterTopServices,
+    TeamFilter.topPerformance => l10n.teamFilterTopPerformance,
   };
 }
 
+String _businessFilterLabel(AppLocalizations l10n, TeamFilter filter) {
+  return switch (filter) {
+    TeamFilter.topSellers => l10n.teamFilterTopSellers,
+    TeamFilter.topServices => l10n.teamFilterTopServices,
+    TeamFilter.topPerformance => l10n.teamFilterTopPerformance,
+    TeamFilter.all => l10n.teamFilterAll,
+    TeamFilter.active => l10n.teamFilterActive,
+    TeamFilter.checkedIn => l10n.teamFilterWorking,
+    TeamFilter.inactive => l10n.teamFilterInactive,
+    TeamFilter.needsAttention => l10n.teamFilterNeedsAttention,
+  };
+}
+
+String _sortLabel(AppLocalizations l10n, TeamSort sort) {
+  return switch (sort) {
+    TeamSort.nameAsc => l10n.teamSortNameAsc,
+    TeamSort.nameDesc => l10n.teamSortNameDesc,
+    TeamSort.roleThenName => l10n.teamSortRole,
+    TeamSort.joinedNewest => l10n.teamSortJoinedNewest,
+    TeamSort.joinedOldest => l10n.teamSortJoinedOldest,
+    TeamSort.salesTodayHigh => l10n.teamSortSalesToday,
+    TeamSort.salesMonthHigh => l10n.teamSortSalesMonth,
+  };
+}

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/utils/currency_for_country.dart';
+
 /// Customer-safe booking details (no internal staff notes or HR fields).
 class CustomerBookingDetailsServiceItem {
   const CustomerBookingDetailsServiceItem({
@@ -43,6 +45,7 @@ class CustomerBookingDetailsModel {
     required this.source,
     required this.customerNote,
     required this.createdAt,
+    required this.currencyCode,
     this.updatedAt,
     this.customerId,
     this.feedbackSubmitted = false,
@@ -72,6 +75,7 @@ class CustomerBookingDetailsModel {
   final DateTime endAt;
   final String source;
   final String customerNote;
+  final String currencyCode;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? customerId;
@@ -221,6 +225,7 @@ class CustomerBookingDetailsModel {
       endAt: _requiredDate(bookingData['endAt']),
       source: _string(bookingData['source']),
       customerNote: _string(bookingData['customerNote']),
+      currencyCode: publicSalon.currencyCode,
       createdAt: _date(bookingData['createdAt']),
       updatedAt: _date(bookingData['updatedAt']),
       customerId: () {
@@ -259,6 +264,7 @@ class SalonPublicSlice {
     required this.id,
     required this.salonName,
     required this.area,
+    required this.currencyCode,
     this.phone,
     this.whatsapp,
   });
@@ -266,6 +272,7 @@ class SalonPublicSlice {
   final String id;
   final String salonName;
   final String area;
+  final String currencyCode;
   final String? phone;
   final String? whatsapp;
 
@@ -274,6 +281,10 @@ class SalonPublicSlice {
       id: salonId,
       salonName: '',
       area: '',
+      currencyCode: resolvedSalonMoneyCurrency(
+        salonCurrencyCode: null,
+        salonCountryIso: null,
+      ),
       phone: null,
       whatsapp: null,
     );
@@ -282,10 +293,18 @@ class SalonPublicSlice {
   factory SalonPublicSlice.fromMap(String id, Map<String, dynamic> data) {
     final name = (data['salonName'] as String?)?.trim();
     final area = (data['area'] as String?)?.trim();
+    final countryIso = (data['countryCode'] as String?)?.trim();
+    final rawCcy = (data['currencyCode'] as String?)?.trim();
+    final currencyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: rawCcy,
+      salonCountryIso:
+          (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
+    );
     return SalonPublicSlice(
       id: id,
       salonName: (name != null && name.isNotEmpty) ? name : '',
       area: (area != null && area.isNotEmpty) ? area : '',
+      currencyCode: currencyCode,
       phone: (data['phone'] as String?)?.trim(),
       whatsapp: (data['whatsapp'] as String?)?.trim(),
     );

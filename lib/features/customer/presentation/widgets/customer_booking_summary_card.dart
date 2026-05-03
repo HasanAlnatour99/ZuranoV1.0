@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_surface_card.dart';
@@ -56,7 +57,7 @@ class CustomerBookingSummaryCard extends StatelessWidget {
           _SummaryLine(
             icon: AppIcons.face_outlined,
             label: l10n.bookingBarber,
-            value: barber.name,
+            value: formatTeamMemberName(barber.name),
             scheme: scheme,
             theme: theme,
           ),

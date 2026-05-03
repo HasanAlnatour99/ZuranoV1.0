@@ -18,6 +18,7 @@ final employeeTodayAttendanceProvider =
       final settings = ref.watch(etAttendanceSettingsProvider);
       final day = ref.watch(etTodayAttendanceDayProvider);
       final punches = ref.watch(etTodayPunchesProvider);
+      final schedule = ref.watch(etTodayAssignedScheduleProvider);
       final emp = ref.watch(workspaceEmployeeProvider);
       final location = ref.watch(employeeWorkplaceLocationSnapshotProvider);
 
@@ -37,6 +38,9 @@ final employeeTodayAttendanceProvider =
       if (punches.hasError) {
         return AsyncValue.error(punches.error!, punches.stackTrace!);
       }
+      if (schedule.hasError) {
+        return AsyncValue.error(schedule.error!, schedule.stackTrace!);
+      }
       if (emp.hasError) {
         return AsyncValue.error(emp.error!, emp.stackTrace!);
       }
@@ -44,6 +48,7 @@ final employeeTodayAttendanceProvider =
       final s = settings.requireValue;
       final d = day.requireValue;
       final p = punches.requireValue;
+      final sch = schedule.asData?.value;
       final e = emp.requireValue;
 
       final loc =
@@ -72,6 +77,7 @@ final employeeTodayAttendanceProvider =
           settings: s,
           day: d,
           punches: p,
+          assignedSchedule: sch,
           employee: e,
           location: loc,
         ),

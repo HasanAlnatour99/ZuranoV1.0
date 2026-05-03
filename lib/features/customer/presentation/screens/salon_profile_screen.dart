@@ -341,7 +341,10 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
                     ),
                   ),
                   ...entry.value.map(
-                    (s) => CustomerServiceListTile(service: s),
+                    (s) => CustomerServiceListTile(
+                      service: s,
+                      currencyCode: salon.currencyCode,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.medium),
                 ],
@@ -417,7 +420,7 @@ class _ProfileSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fromPrice = formatMoney(salon.startingPrice, 'QAR', locale);
+    final fromPrice = formatMoney(salon.startingPrice, salon.currencyCode, locale);
 
     return Material(
       elevation: 6,

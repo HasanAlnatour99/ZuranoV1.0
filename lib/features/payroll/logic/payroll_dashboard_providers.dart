@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/payroll_period_constants.dart';
 import '../../../core/constants/user_roles.dart';
+import '../../../core/time/iso_week.dart';
 import '../../../providers/repository_providers.dart';
+import '../../../providers/salon_streams_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../employees/data/models/employee.dart';
 import '../data/models/employee_element_entry_model.dart';
@@ -16,10 +19,7 @@ class PayrollDashboardSummary {
     required this.totalNetPay,
     required this.totalEarnings,
     required this.totalDeductions,
-    required this.draftCount,
-    required this.approvedCount,
-    required this.paidCount,
-    required this.rolledBackCount,
+    required this.monthPayrollRunCount,
     required this.recentRuns,
   });
 
@@ -27,25 +27,35 @@ class PayrollDashboardSummary {
   final double totalNetPay;
   final double totalEarnings;
   final double totalDeductions;
-  final int draftCount;
-  final int approvedCount;
-  final int paidCount;
-  final int rolledBackCount;
+  /// Number of payroll run documents in the selected month (any status).
+  final int monthPayrollRunCount;
   final List<PayrollRunModel> recentRuns;
 }
 
-class PayrollStatusBreakdown {
-  const PayrollStatusBreakdown({
-    required this.draft,
-    required this.approved,
-    required this.paid,
-    required this.rolledBack,
-  });
-
-  final int draft;
-  final int approved;
-  final int paid;
-  final int rolledBack;
+bool payrollRunMatchesDashboardSelection({
+  required PayrollRunModel run,
+  required DateTime selectedMonth,
+  required int selectedIsoWeekYear,
+  required int selectedIsoWeekNumber,
+  required String salonPayrollPeriod,
+}) {
+  final hub = SalonPayrollPeriods.normalize(salonPayrollPeriod);
+  if (hub == SalonPayrollPeriods.weekly) {
+    if (run.periodGranularity == PayrollRunPeriodGranularities.weekly &&
+        run.isoWeekYear > 0 &&
+        run.isoWeekNumber > 0) {
+      return run.isoWeekYear == selectedIsoWeekYear &&
+          run.isoWeekNumber == selectedIsoWeekNumber;
+    }
+    return false;
+  }
+  if (run.periodGranularity == PayrollRunPeriodGranularities.weekly &&
+      run.isoWeekYear > 0 &&
+      run.isoWeekNumber > 0) {
+    final mon = isoWeekMondayUtc(run.isoWeekYear, run.isoWeekNumber);
+    return mon.year == selectedMonth.year && mon.month == selectedMonth.month;
+  }
+  return run.year == selectedMonth.year && run.month == selectedMonth.month;
 }
 
 final payrollRunsStreamProvider = StreamProvider<List<PayrollRunModel>>((ref) {
@@ -87,68 +97,74 @@ final payrollDashboardMonthProvider =
       PayrollDashboardMonthNotifier.new,
     );
 
+class PayrollDashboardIsoWeekNotifier extends Notifier<({int y, int n})> {
+  @override
+  ({int y, int n}) build() {
+    final now = DateTime.now();
+    final spec = isoWeekSpecForUtcDate(DateTime.utc(now.year, now.month, now.day));
+    return (y: spec.weekYear, n: spec.weekNumber);
+  }
+
+  void selectWeek(int weekYear, int weekNumber) {
+    state = (y: weekYear, n: weekNumber);
+  }
+}
+
+final payrollDashboardIsoWeekProvider =
+    NotifierProvider<PayrollDashboardIsoWeekNotifier, ({int y, int n})>(
+      PayrollDashboardIsoWeekNotifier.new,
+    );
+
+final payrollHubSalonCadenceProvider = Provider<String>((ref) {
+  final salon = ref.watch(sessionSalonStreamProvider).asData?.value;
+  return SalonPayrollPeriods.normalize(salon?.defaultPayrollPeriod);
+});
+
 final payrollDashboardSummaryProvider =
     Provider<AsyncValue<PayrollDashboardSummary>>((ref) {
       final selectedMonth = ref.watch(payrollDashboardMonthProvider);
+      final selectedWeek = ref.watch(payrollDashboardIsoWeekProvider);
+      final salonCadence = ref.watch(payrollHubSalonCadenceProvider);
       final runsAsync = ref.watch(payrollRunsStreamProvider);
       return runsAsync.whenData((runs) {
         final monthRuns = runs
             .where(
               (run) =>
-                  run.year == selectedMonth.year &&
-                  run.month == selectedMonth.month,
+                  run.status != PayrollRunStatuses.rolledBack &&
+                  payrollRunMatchesDashboardSelection(
+                    run: run,
+                    selectedMonth: selectedMonth,
+                    selectedIsoWeekYear: selectedWeek.y,
+                    selectedIsoWeekNumber: selectedWeek.n,
+                    salonPayrollPeriod: salonCadence,
+                  ),
             )
             .toList(growable: false);
+        final sortedMonthRuns = [...monthRuns]
+          ..sort((a, b) {
+            final ad = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bd = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return bd.compareTo(ad);
+          });
+
         return PayrollDashboardSummary(
           month: selectedMonth,
-          totalNetPay: monthRuns.fold<double>(
+          totalNetPay: sortedMonthRuns.fold<double>(
             0,
             (sum, run) => sum + run.netPay,
           ),
-          totalEarnings: monthRuns.fold<double>(
+          totalEarnings: sortedMonthRuns.fold<double>(
             0,
             (sum, run) => sum + run.totalEarnings,
           ),
-          totalDeductions: monthRuns.fold<double>(
+          totalDeductions: sortedMonthRuns.fold<double>(
             0,
             (sum, run) => sum + run.totalDeductions,
           ),
-          draftCount: monthRuns
-              .where((run) => run.status == PayrollRunStatuses.draft)
-              .length,
-          approvedCount: monthRuns
-              .where((run) => run.status == PayrollRunStatuses.approved)
-              .length,
-          paidCount: monthRuns
-              .where((run) => run.status == PayrollRunStatuses.paid)
-              .length,
-          rolledBackCount: monthRuns
-              .where((run) => run.status == PayrollRunStatuses.rolledBack)
-              .length,
-          recentRuns: runs.take(6).toList(growable: false),
+          monthPayrollRunCount: sortedMonthRuns.length,
+          recentRuns: sortedMonthRuns.take(6).toList(growable: false),
         );
       });
-    });
-
-final payrollStatusBreakdownProvider =
-    Provider<AsyncValue<PayrollStatusBreakdown>>((ref) {
-      final runsAsync = ref.watch(payrollRunsStreamProvider);
-      return runsAsync.whenData(
-        (runs) => PayrollStatusBreakdown(
-          draft: runs
-              .where((run) => run.status == PayrollRunStatuses.draft)
-              .length,
-          approved: runs
-              .where((run) => run.status == PayrollRunStatuses.approved)
-              .length,
-          paid: runs
-              .where((run) => run.status == PayrollRunStatuses.paid)
-              .length,
-          rolledBack: runs
-              .where((run) => run.status == PayrollRunStatuses.rolledBack)
-              .length,
-        ),
-      );
     });
 
 final employeesMissingPayrollSetupProvider = FutureProvider<List<Employee>>((

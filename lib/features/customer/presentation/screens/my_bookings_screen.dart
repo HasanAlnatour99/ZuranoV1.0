@@ -7,6 +7,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/firestore/firestore_page.dart';
 import '../../../../core/formatting/booking_status_localized.dart';
+import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -502,7 +503,7 @@ class _BookingRow extends StatelessWidget {
               booking.barberName!.trim().isNotEmpty) ...[
             const SizedBox(height: AppSpacing.small),
             Text(
-              booking.barberName!,
+              formatTeamMemberName(booking.barberName),
               style: theme.textTheme.bodySmall?.copyWith(color: scheme.primary),
             ),
           ],

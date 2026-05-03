@@ -21,6 +21,8 @@ class PayslipModel {
     required this.status,
     required this.employeeVisible,
     required this.baseSalary,
+    this.baseSalaryNominal,
+    this.baseSalaryProrationRatio,
     required this.serviceRevenue,
     required this.commissionPercent,
     required this.commissionAmount,
@@ -42,6 +44,7 @@ class PayslipModel {
     this.paidAt,
     this.createdAt,
     this.updatedAt,
+    this.payrollRunId,
   });
 
   final String id;
@@ -58,6 +61,8 @@ class PayslipModel {
   final String status;
   final bool employeeVisible;
   final double baseSalary;
+  final double? baseSalaryNominal;
+  final double? baseSalaryProrationRatio;
   final double serviceRevenue;
   final double commissionPercent;
   final double commissionAmount;
@@ -79,6 +84,9 @@ class PayslipModel {
   final DateTime? paidAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// Set when this payslip was generated from the payroll-run pipeline (`payroll_runs`).
+  final String? payrollRunId;
 
   bool get isPaid => status == PayrollStatuses.paid;
   bool get isApproved => status == PayrollStatuses.approved;
@@ -103,6 +111,10 @@ class PayslipModel {
       status: looseStringFromJson(d['status']),
       employeeVisible: trueBoolFromJson(d['employeeVisible']),
       baseSalary: looseDoubleFromJson(d['baseSalary']),
+      baseSalaryNominal: nullableLooseDoubleFromJson(d['baseSalaryNominal']),
+      baseSalaryProrationRatio: nullableLooseDoubleFromJson(
+        d['baseSalaryProrationRatio'],
+      ),
       serviceRevenue: looseDoubleFromJson(d['serviceRevenue']),
       commissionPercent: looseDoubleFromJson(d['commissionPercent']),
       commissionAmount: looseDoubleFromJson(d['commissionAmount']),
@@ -124,6 +136,7 @@ class PayslipModel {
       paidAt: nullableFirestoreDateTimeFromJson(d['paidAt']),
       createdAt: nullableFirestoreDateTimeFromJson(d['createdAt']),
       updatedAt: nullableFirestoreDateTimeFromJson(d['updatedAt']),
+      payrollRunId: nullableLooseStringFromJson(d['payrollRunId']),
     );
   }
 }

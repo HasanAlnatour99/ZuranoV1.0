@@ -16,6 +16,25 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+## Push notifications (FCM)
+
+Push is **on by default** (`ENABLE_PUSH_NOTIFICATIONS` defaults to true). Disable when you need to test without FCM:
+
+```bash
+flutter run --dart-define=ENABLE_PUSH_NOTIFICATIONS=false
+```
+
+Explicit enable (optional, same as default):
+
+```bash
+flutter run --dart-define=ENABLE_PUSH_NOTIFICATIONS=true
+flutter build apk --dart-define=ENABLE_PUSH_NOTIFICATIONS=true
+```
+
+iOS also requires APNs configured in Firebase for device pushes.
+
+When push is disabled via the define, the app does not request notification permission or register device tokens with Cloud Functions.
+
 ## Google Maps API key security
 
 Google Maps keys must be restricted in Google Cloud and never committed as unrestricted secrets.

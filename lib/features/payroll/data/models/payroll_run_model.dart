@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/constants/payroll_period_constants.dart';
 import '../../../../core/firestore/firestore_json_helpers.dart';
 import '../../../../core/firestore/firestore_serializers.dart';
 import '../../../../core/firestore/report_period.dart';
@@ -20,6 +21,11 @@ abstract class PayrollRunModel with _$PayrollRunModel {
     @JsonKey(fromJson: nullableLooseStringFromJson) String? employeeName,
     @Default(0) @JsonKey(fromJson: looseIntFromJson) int year,
     @Default(0) @JsonKey(fromJson: looseIntFromJson) int month,
+    @Default(PayrollRunPeriodGranularities.monthly)
+    @JsonKey(fromJson: _periodGranularityFromJson)
+    String periodGranularity,
+    @Default(0) @JsonKey(fromJson: looseIntFromJson) int isoWeekYear,
+    @Default(0) @JsonKey(fromJson: looseIntFromJson) int isoWeekNumber,
     @Default(PayrollRunStatuses.draft)
     @JsonKey(fromJson: _statusFromJson)
     String status,
@@ -53,9 +59,34 @@ abstract class PayrollRunModel with _$PayrollRunModel {
       toJson: nullableFirestoreDateTimeToJson,
     )
     DateTime? updatedAt,
+    /// When set, weekly accrual used this inclusive UTC window (calendar days).
+    @JsonKey(
+      fromJson: nullableFirestoreDateTimeFromJson,
+      toJson: nullableFirestoreDateTimeToJson,
+    )
+    DateTime? payrollWindowStartUtc,
+    @JsonKey(
+      fromJson: nullableFirestoreDateTimeFromJson,
+      toJson: nullableFirestoreDateTimeToJson,
+    )
+    DateTime? payrollWindowEndUtc,
   }) = _PayrollRunModel;
 
-  String get reportPeriodKey => ReportPeriod.periodKey(year, month);
+  String get reportPeriodKey {
+    if (periodGranularity == PayrollRunPeriodGranularities.weekly &&
+        payrollWindowStartUtc != null &&
+        payrollWindowEndUtc != null) {
+      final a = payrollWindowStartUtc!;
+      final b = payrollWindowEndUtc!;
+      return '${a.year.toString().padLeft(4, '0')}-${a.month.toString().padLeft(2, '0')}-${a.day.toString().padLeft(2, '0')}_${b.year.toString().padLeft(4, '0')}-${b.month.toString().padLeft(2, '0')}-${b.day.toString().padLeft(2, '0')}';
+    }
+    if (periodGranularity == PayrollRunPeriodGranularities.weekly &&
+        isoWeekYear > 0 &&
+        isoWeekNumber > 0) {
+      return '$isoWeekYear-W${isoWeekNumber.toString().padLeft(2, '0')}';
+    }
+    return ReportPeriod.periodKey(year, month);
+  }
 
   bool get isQuickPay => runType == PayrollRunTypes.quickPay;
 
@@ -86,6 +117,11 @@ Map<String, dynamic> _normalizedPayrollRunJson(Map<String, dynamic> json) {
 
 String _runTypeFromJson(Object? value) =>
     nullableLooseStringFromJson(value) ?? PayrollRunTypes.payrollRun;
+
+String _periodGranularityFromJson(Object? value) =>
+    PayrollRunPeriodGranularities.normalize(
+      nullableLooseStringFromJson(value),
+    );
 
 String _statusFromJson(Object? value) =>
     nullableLooseStringFromJson(value) ?? PayrollRunStatuses.draft;

@@ -32,6 +32,7 @@ class TeamMemberModel {
     this.permissions = const {},
     this.createdAt,
     this.updatedAt,
+    this.hiredAt,
   });
 
   final String employeeId;
@@ -56,6 +57,7 @@ class TeamMemberModel {
   final Map<String, dynamic> permissions;
   final Timestamp? createdAt;
   final Timestamp? updatedAt;
+  final DateTime? hiredAt;
 
   factory TeamMemberModel.fromEmployee(
     Employee employee, {
@@ -92,6 +94,7 @@ class TeamMemberModel {
       updatedAt: employee.updatedAt != null
           ? Timestamp.fromDate(employee.updatedAt!)
           : null,
+      hiredAt: employee.hiredAt,
     );
   }
 

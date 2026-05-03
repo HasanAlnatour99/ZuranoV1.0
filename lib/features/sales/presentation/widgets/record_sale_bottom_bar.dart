@@ -14,6 +14,7 @@ class RecordSaleBottomBar extends StatelessWidget {
     required this.enabled,
     required this.isLoading,
     required this.onPressed,
+    this.primaryActionLabel,
   });
 
   final AppLocalizations l10n;
@@ -23,6 +24,9 @@ class RecordSaleBottomBar extends StatelessWidget {
   final bool enabled;
   final bool isLoading;
   final VoidCallback onPressed;
+
+  /// When set, replaces [AppLocalizations.addSaleRecordSale] on the button.
+  final String? primaryActionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +109,7 @@ class RecordSaleBottomBar extends StatelessWidget {
                             const Icon(Icons.shopping_bag_outlined, size: 22),
                             const SizedBox(width: 10),
                             Text(
-                              l10n.addSaleRecordSale,
+                              primaryActionLabel ?? l10n.addSaleRecordSale,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,

@@ -10,7 +10,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/firebase_providers.dart';
 import '../../application/customer_booking_availability_providers.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../application/customer_phone_normalizer.dart';
 import '../../data/models/customer_booking_settings.dart';
@@ -165,10 +167,19 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
           customerGender: _selectedGender,
           customerNote: _notesController.text.trim(),
         );
-    context.pushNamed(
-      AppRouteNames.customerBookingReview,
-      pathParameters: {'salonId': widget.salonId},
-    );
+    final isGuestAnonymous =
+        ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
+    if (isGuestAnonymous) {
+      context.pushNamed(
+        AppRouteNames.customerGuestNickname,
+        pathParameters: {'salonId': widget.salonId},
+      );
+    } else {
+      context.pushNamed(
+        AppRouteNames.customerBookingReview,
+        pathParameters: {'salonId': widget.salonId},
+      );
+    }
   }
 
   @override
@@ -181,9 +192,10 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
           orElse: () => const CustomerBookingSettings(),
         );
     final draft = ref.watch(customerBookingDraftProvider);
+    final moneyCode = watchCustomerSalonMoneyCode(ref, widget.salonId);
     final total = formatMoney(
       draft.totalAmount,
-      'QAR',
+      moneyCode,
       Localizations.localeOf(context),
     );
     final selectedDateTime = draft.selectedStartAt == null

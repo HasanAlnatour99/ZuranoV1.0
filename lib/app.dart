@@ -34,7 +34,9 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
     }
     final fcm = ref.read(fcmRegistrationServiceProvider);
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
-    await fcm.initializeLocalNotifications();
+    await fcm.initializeLocalNotifications(
+      onNotificationTap: _navigateFromNotificationData,
+    );
     await fcm.requestPermissionIfSupported();
 
     if (!_fcmListenersAttached) {
@@ -58,7 +60,22 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
     final initial = await FirebaseMessaging.instance.getInitialMessage();
     if (initial != null && mounted) {
       _handleOpenedMessage(initial);
+    } else if (mounted) {
+      await fcm.consumeLaunchNotificationTap(
+        onTap: _navigateFromNotificationData,
+      );
     }
+  }
+
+  void _navigateFromNotificationData(Map<String, dynamic> data) {
+    if (!mounted) {
+      return;
+    }
+    navigateForNotificationPayload(
+      router: ref.read(appRouterProvider),
+      data: data,
+      session: ref.read(sessionUserProvider).asData?.value,
+    );
   }
 
   void _handleOpenedMessage(RemoteMessage message) {

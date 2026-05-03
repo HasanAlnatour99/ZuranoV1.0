@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../application/customer_salon_profile_providers.dart';
 import '../widgets/any_available_specialist_card.dart';
@@ -83,9 +84,10 @@ class _TeamMemberSelectionScreenState
     final teamAsync = ref.watch(
       customerBookableTeamMembersProvider(widget.salonId),
     );
+    final moneyCode = watchCustomerSalonMoneyCode(ref, widget.salonId);
     final total = formatMoney(
       draft.totalAmount,
-      'QAR',
+      moneyCode,
       Localizations.localeOf(context),
     );
     final hasTeamMembers = teamAsync.maybeWhen(
