@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart' show AppRoutes;
 import '../../../../core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../employee_today/providers/employee_today_providers.dart';
+import '../../../employee_attendance/presentation/widgets/attendance_request_sheet.dart';
 import '../../../sales/presentation/providers/salon_sales_settings_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../application/employee_punch_controller.dart';
@@ -23,6 +23,18 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
     });
   }
 
+  /// Same flow as [AttendanceActionsCard] — close quick actions, then open request picker.
+  void _popThenShowAttendanceRequest(BuildContext context) {
+    final navigator = Navigator.of(context);
+    final overlayContext = navigator.overlay?.context;
+    navigator.pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (overlayContext != null && overlayContext.mounted) {
+        showAttendanceRequestSheet(overlayContext);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -32,14 +44,11 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
         .asData
         ?.value;
     final attendanceAsync = ref.watch(employeeTodayAttendanceProvider);
-    final settings = ref.watch(etAttendanceSettingsProvider).asData?.value;
 
     final canAddSale =
         session != null &&
         (salesPosSettings?.allowEmployeeAddSale ?? true) &&
         session.role.trim() != UserRoles.readonly;
-
-    final canRequestCorrection = settings?.correctionRequestsEnabled ?? true;
 
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 24),
@@ -130,24 +139,12 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
               },
               orElse: () => const SizedBox.shrink(),
             ),
-            if (canRequestCorrection)
-              _QuickActionTile(
-                icon: Icons.edit_calendar_rounded,
-                title: l10n.employeeQuickActionRequestCorrectionTitle,
-                subtitle: l10n.employeeQuickActionRequestCorrectionSubtitle,
-                color: const Color(0xFFF59E0B),
-                onTap: () => _popThen(context, (router) {
-                  router.push(AppRoutes.employeeAttendanceCorrectionNested);
-                }),
-              ),
             _QuickActionTile(
-              icon: Icons.receipt_long_rounded,
-              title: l10n.employeeQuickActionPayrollTitle,
-              subtitle: l10n.employeeQuickActionPayrollSubtitle,
-              color: const Color(0xFF10B981),
-              onTap: () => _popThen(context, (router) {
-                router.push(AppRoutes.employeePayroll);
-              }),
+              icon: Icons.edit_note_rounded,
+              title: l10n.employeeAttendanceTabRequestCta,
+              subtitle: l10n.employeeAttendanceTabActionsSubtitle,
+              color: const Color(0xFF7C3AED),
+              onTap: () => _popThenShowAttendanceRequest(context),
             ),
           ],
         ),

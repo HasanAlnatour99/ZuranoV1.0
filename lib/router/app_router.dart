@@ -23,6 +23,7 @@ import '../features/payroll/presentation/screens/payslip_details_screen.dart';
 import '../features/payroll/presentation/screens/payslip_history_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_calendar_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_details_screen.dart';
+import '../features/employee_attendance/presentation/screens/employee_attendance_logs_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_correction_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_policy_screen.dart';
 import '../features/bookings/data/models/booking.dart';
@@ -44,6 +45,9 @@ import '../features/customer/presentation/screens/service_selection_screen.dart'
 import '../features/customer/presentation/screens/team_member_selection_screen.dart';
 import '../features/customer/presentation/screens/booking_review_screen.dart';
 import '../features/customer/data/models/customer_booking_create_result.dart';
+import '../features/customer_home/presentation/screens/customer_nearby_map_screen.dart';
+import '../features/employee_notifications/presentation/employee_notification_settings_screen.dart';
+import '../features/employee_notifications/presentation/employee_notifications_screen.dart';
 import '../features/notifications/presentation/screens/notification_preferences_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
 import '../features/notifications/presentation/screens/notification_settings_screen.dart';
@@ -52,6 +56,7 @@ import '../features/notifications/domain/enums/notification_role_scope.dart';
 import '../features/onboarding/presentation/screens/customer_onboarding_screen.dart';
 import '../features/onboarding/presentation/screens/select_country_screen.dart';
 import '../features/onboarding/presentation/screens/select_language_screen.dart';
+import '../features/sales/presentation/screens/employee_sales_history_screen.dart';
 import '../features/salon/presentation/screens/account_profile_bootstrap_screen.dart';
 import '../features/salon/presentation/screens/create_salon_screen.dart';
 import '../features/settings/presentation/screens/app_settings_screen.dart';
@@ -466,17 +471,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: AppRoutes.employeeNotificationsBase,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const EmployeeNotificationsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.employeeNotificationSettings,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const EmployeeNotificationSettingsScreen(),
+        ),
+      ),
+      GoRoute(
         path: '${AppRoutes.employeeNotificationsBase}/:salonId',
-        pageBuilder: (context, state) {
-          final salonId = state.pathParameters['salonId'] ?? '';
-          return appFadeThroughPage(
-            key: goRouterPageKey(state),
-            child: RoleNotificationScreen(
-              salonId: salonId,
-              scope: NotificationRoleScope.employee,
-            ),
-          );
-        },
+        redirect: (_, _) => AppRoutes.employeeNotificationsBase,
       ),
       GoRoute(
         path: '${AppRoutes.ownerNotificationsBase}/:salonId',
@@ -514,6 +524,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ),
         routes: [
+          GoRoute(
+            name: AppRouteNames.customerNearbyMap,
+            path: 'nearby-map',
+            pageBuilder: (context, state) => appFadeThroughPage(
+              key: goRouterPageKey(state),
+              child: const CustomerNearbyMapScreen(),
+            ),
+          ),
           GoRoute(
             path: 'my-bookings',
             pageBuilder: (context, state) => appFadeThroughPage(
@@ -576,6 +594,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         redirect: (_, _) => AppRoutes.employeeToday,
       ),
       GoRoute(
+        path: AppRoutes.employeeSalesHistory,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const EmployeeSalesHistoryScreen(),
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.employeeSales,
         pageBuilder: (context, state) => appFadePage(
           key: goRouterPageKey(state),
@@ -615,6 +640,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => appFadeThroughPage(
           key: goRouterPageKey(state),
           child: const EmployeeAttendanceCalendarScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.employeeAttendanceLogs,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const EmployeeAttendanceLogsScreen(),
         ),
       ),
       GoRoute(

@@ -34,6 +34,7 @@ import '../features/sales/presentation/screens/sale_details_screen.dart';
 import '../features/sales/presentation/screens/sales_screen.dart';
 import '../features/services/presentation/screens/services_screen.dart';
 import '../features/owner/settings/customer_booking/presentation/screens/owner_customer_booking_settings_screen.dart';
+import '../features/owner/settings/salon_profile/presentation/screens/owner_salon_profile_screen.dart';
 import '../features/owner_settings/shifts/presentation/screens/shifts_settings_screen.dart';
 import '../features/owner_settings/shifts/presentation/screens/create_shift_template_screen.dart';
 import '../features/owner_settings/shifts/presentation/screens/weekly_shifts_screen.dart';
@@ -275,6 +276,13 @@ final List<RouteBase> ownerRoutes = [
         pageBuilder: (context, state) => appFadeThroughPage(
           key: goRouterPageKey(state),
           child: const OwnerCustomerBookingSettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: 'salon-profile',
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const OwnerSalonProfileScreen(),
         ),
       ),
       GoRoute(

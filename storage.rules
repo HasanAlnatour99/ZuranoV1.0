@@ -51,5 +51,20 @@ service firebase.storage {
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
+
+    // Salon profile photos: `salons/{salonId}/profile/photos/{fileName}`
+    match /salons/{salonId}/profile/photos/{fileName} {
+      function salonOwnerOrAdmin() {
+        return request.auth != null
+          && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.salonId == salonId
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner', 'admin'];
+      }
+
+      allow read: if true;
+      allow write: if salonOwnerOrAdmin()
+        && request.resource.size < 6 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
   }
 }

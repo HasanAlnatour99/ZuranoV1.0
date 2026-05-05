@@ -28,6 +28,7 @@ class Salon {
     this.contactPhone,
     this.addressDetails,
     this.location,
+    this.coverImageUrl,
     this.weeklyAvailability,
     this.penaltySettings = const PenaltySettings(),
     this.defaultPayrollPeriod = SalonPayrollPeriods.monthly,
@@ -78,6 +79,9 @@ class Salon {
   final UserAddress? addressDetails;
 
   final GeoPoint? location;
+
+  /// Public-facing cover photo (used by customer browse + owner hero avatar).
+  final String? coverImageUrl;
 
   /// Local weekly hours / breaks / day off per ISO weekday (1–7).
   final WeeklyAvailability? weeklyAvailability;
@@ -163,6 +167,7 @@ class Salon {
       contactPhone: FirestoreSerializers.string(json['contactPhone']),
       addressDetails: details,
       location: geo,
+      coverImageUrl: FirestoreSerializers.string(json['coverImageUrl']),
       weeklyAvailability: WeeklyAvailability.maybeParse(
         json['weeklyAvailability'],
       ),
@@ -208,6 +213,8 @@ class Salon {
       if (contactPhone != null && contactPhone!.isNotEmpty)
         'contactPhone': contactPhone,
       if (location != null) 'location': location,
+      if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty)
+        'coverImageUrl': coverImageUrl!.trim(),
       if (weeklyAvailability != null)
         'weeklyAvailability': {
           for (final e in weeklyAvailability!.byWeekday.entries)
@@ -248,6 +255,7 @@ class Salon {
     Object? contactPhone = _sentinel,
     Object? addressDetails = _sentinel,
     Object? location = _sentinel,
+    Object? coverImageUrl = _sentinel,
     Object? weeklyAvailability = _sentinel,
     PenaltySettings? penaltySettings,
     String? defaultPayrollPeriod,
@@ -291,6 +299,9 @@ class Salon {
       location: identical(location, _sentinel)
           ? this.location
           : location as GeoPoint?,
+      coverImageUrl: identical(coverImageUrl, _sentinel)
+          ? this.coverImageUrl
+          : coverImageUrl as String?,
       weeklyAvailability: identical(weeklyAvailability, _sentinel)
           ? this.weeklyAvailability
           : weeklyAvailability as WeeklyAvailability?,

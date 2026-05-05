@@ -187,6 +187,26 @@ class EmployeeAttendanceViewRepository {
     });
   }
 
+  Stream<List<EmployeeAttendanceDay>> watchAttendanceHistoryInLocalDateRange({
+    required DateTime fromLocalDay,
+    required DateTime toLocalDay,
+  }) {
+    return watchEmployeeProfile().asyncExpand((profile) {
+      return _et
+          .watchAttendanceDaysInLocalDateRange(
+            salonId: profile.salonId,
+            employeeId: profile.employeeId,
+            fromLocalDay: fromLocalDay,
+            toLocalDay: toLocalDay,
+          )
+          .map(
+            (rows) => rows
+                .map(EmployeeAttendanceDayMapper.fromEtDay)
+                .toList(growable: false),
+          );
+    });
+  }
+
   Future<EmployeeAttendanceProfile> resolveEmployeeProfileOnce() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) {

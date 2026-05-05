@@ -19,6 +19,9 @@ export {
   onServiceWriteSyncPublicService,
 } from "./publicServiceMirror";
 export {
+  onSalonWriteSyncPublicSalon,
+} from "./publicSalonMirror";
+export {
   bookingCompleteService,
   bookingMarkArrived,
   bookingMarkNoShow,
@@ -46,6 +49,10 @@ export {
   onSalonEmployeeWrittenNotification,
   onSalonServiceWrittenNotification,
 } from "./notificationExtendedFirestoreTriggers";
+export {
+  onAttendanceCorrectionRequestUpdatedEmployeeInbox,
+  onAttendanceRequestUpdatedEmployeeInbox,
+} from "./employeeNotificationTriggers";
 export { sendDailyOwnerSummaries, sendMonthlyOwnerSummaries } from "./notificationSummaryScheduler";
 export { sendUpcomingBookingReminders } from "./notificationScheduler";
 export { salonStaffCreateWithAuth } from "./staffProvisioningCallables";

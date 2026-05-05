@@ -28,7 +28,7 @@ class NotificationsScreen extends ConsumerWidget {
         context.go(AppRoutes.ownerNotifications(salonId));
         return;
       }
-      context.go(AppRoutes.employeeNotifications(salonId));
+      context.go(AppRoutes.employeeNotificationsBase);
     });
 
     return Scaffold(

@@ -2,6 +2,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { requireString } from "./bookingShared";
+import { mergeUserFcmToken } from "./notifications/employeeInAppNotificationService";
 import { defaultNotificationPrefs, mergeNotificationPrefs } from "./notificationPrefs";
 
 const db = getFirestore();
@@ -47,6 +48,8 @@ export const registerDeviceToken = onCall({ region: "us-central1" }, async (requ
     payload.createdAt = FieldValue.serverTimestamp();
   }
   await ref.set(payload, { merge: true });
+
+  await mergeUserFcmToken(uid, token);
 
   const userRef = db.doc(`users/${uid}`);
   const uSnap = await userRef.get();

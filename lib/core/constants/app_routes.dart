@@ -110,6 +110,7 @@ class AppRoutes {
   static const legacyAccountProfileBootstrapPath = '/owner-firestore-bootstrap';
 
   static const customerHome = '/customer/home';
+  static const customerNearbyMap = '$customerHome/nearby-map';
 
   /// Guest-friendly salon browse (no auth). Doc mirror: `publicSalons/{salonId}`.
   static const customerSalonDiscovery = '/customer/salons';
@@ -349,7 +350,12 @@ class AppRoutes {
   /// Legacy team home path; router redirects to [employeeToday].
   static const employeeDashboard = '/employee';
   static const employeeSales = '/employee/sales';
+
+  /// Full employee sales list with filters (from Sales tab “View all”).
+  static const employeeSalesHistory = '/employee/sales/history';
+
   static const employeeAttendance = '/employee/attendance';
+  static const employeeAttendanceLogs = '/employee/attendance/logs';
   static const employeeAttendanceCalendar = '/employee/attendance/calendar';
   static const employeeAttendanceCorrectionNested =
       '/employee/attendance/correction';
@@ -366,6 +372,7 @@ class AppRoutes {
   /// Owner / admin: customer discovery + online booking rules (`publicSalons` + salon).
   static const ownerSettingsCustomerBooking = '$ownerSettings/customer-booking';
   static const ownerSettingsPayrollCadence = '$ownerSettings/payroll-cadence';
+  static const ownerSettingsSalonProfile = '$ownerSettings/salon-profile';
 
   /// Owner / admin: GPS attendance zone under salon settings.
   static const salonAttendanceZoneSettings = '/settings/attendance-zone';
@@ -423,13 +430,16 @@ class AppRoutes {
   static const notifications = '/notifications';
   static const customerNotificationsBase = '/customer/notifications';
   static const employeeNotificationsBase = '/employee/notifications';
+  /// Barber / employee inbox (`users/{uid}/notifications`).
+  static const employeeNotificationSettings = '/employee/notification-settings';
   static const ownerNotificationsBase = '/owner/notifications';
   static const notificationsSettingsBase = '/notifications/settings';
 
   static String customerNotifications(String salonId) =>
       '$customerNotificationsBase/$salonId';
 
-  static String employeeNotifications(String salonId) =>
+  /// Legacy URL with salon segment; prefer [employeeNotificationsBase].
+  static String employeeNotificationsLegacy(String salonId) =>
       '$employeeNotificationsBase/$salonId';
 
   static String ownerNotifications(String salonId) =>
@@ -457,6 +467,11 @@ class AppRoutes {
   static bool isEmployeeAttendancePath(String location) =>
       location == employeeAttendance ||
       location.startsWith('$employeeAttendance/');
+
+  /// Sales tab and nested routes (e.g. full history).
+  static bool isEmployeeSalesPath(String location) =>
+      location == employeeSales ||
+      location.startsWith('$employeeSales/');
 
   /// Employee payslip hub, history, and `/employee/payroll/{payslipId}` details.
   static bool isEmployeePayrollPath(String location) =>
@@ -536,6 +551,7 @@ abstract final class AppRouteNames {
   static const customerBookingReschedule = 'customerBookingReschedule';
   static const customerBookingFeedback = 'customerBookingFeedback';
   static const customerMyBooking = 'customerMyBooking';
+  static const customerNearbyMap = 'customerNearbyMap';
 
   static const services = 'services';
   static const revenue = 'revenue';

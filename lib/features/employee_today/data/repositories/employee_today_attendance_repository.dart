@@ -190,6 +190,39 @@ class EmployeeTodayAttendanceRepository {
         );
   }
 
+  /// Inclusive local calendar days (`fromLocalDay` 00:00 through `toLocalDay` end).
+  Stream<List<EtAttendanceDay>> watchAttendanceDaysInLocalDateRange({
+    required String salonId,
+    required String employeeId,
+    required DateTime fromLocalDay,
+    required DateTime toLocalDay,
+    int limit = 400,
+  }) {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final start = DateTime(fromLocalDay.year, fromLocalDay.month, fromLocalDay.day);
+    final end = DateTime(
+      toLocalDay.year,
+      toLocalDay.month,
+      toLocalDay.day,
+      23,
+      59,
+      59,
+    );
+    return _firestore
+        .collection(FirestorePaths.salonAttendanceDays(salonId))
+        .where('salonId', isEqualTo: salonId)
+        .where('employeeId', isEqualTo: employeeId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
+        .orderBy('date', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (s) =>
+              s.docs.map(EtAttendanceDay.fromFirestore).toList(growable: false),
+        );
+  }
+
   Stream<EmployeeScheduleModel?> watchEmployeeScheduleForDate({
     required String salonId,
     required String employeeId,

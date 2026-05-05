@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../sales/domain/employee_sales_period.dart';
+import '../../../sales/presentation/providers/employee_sales_period_notifier.dart';
 import '../../../sales/presentation/providers/employee_sales_providers.dart';
 import '../../../sales/presentation/widgets/employee_commission_card.dart';
 import '../../../sales/presentation/widgets/employee_recent_sales_list.dart';
@@ -28,8 +31,14 @@ class EmployeeSalesScreen extends ConsumerWidget {
     final employeeAsync = ref.watch(workspaceEmployeeProvider);
     final salesAsync = ref.watch(employeeSalesStreamProvider);
     final summary = ref.watch(employeeSalesSummaryProvider);
+    final salesPeriod = ref.watch(employeeSalesPeriodProvider);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
+    final salesPeriodSubtitle = switch (salesPeriod) {
+      EmployeeSalesPeriod.today => l10n.salesDateToday,
+      EmployeeSalesPeriod.week => l10n.teamMemberSalesFilterThisWeek,
+      EmployeeSalesPeriod.month => l10n.teamMemberSalesFilterThisMonth,
+    };
     if (scope == null || session == null) {
       return Scaffold(
         body: Center(child: Text(l10n.employeePayrollNoWorkspace)),
@@ -99,9 +108,14 @@ class EmployeeSalesScreen extends ConsumerWidget {
                 ),
                 SliverToBoxAdapter(
                   child: salesAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: CircularProgressIndicator()),
+                    loading: () => EmployeeRecentSalesList(
+                      sales: const [],
+                      currencyCode: currencyCode,
+                      locale: locale,
+                      isLoading: true,
+                      periodSubtitle: salesPeriodSubtitle,
+                      onViewAll: () =>
+                          context.push(AppRoutes.employeeSalesHistory),
                     ),
                     error: (e, _) => Padding(
                       padding: const EdgeInsets.all(24),
@@ -111,6 +125,9 @@ class EmployeeSalesScreen extends ConsumerWidget {
                       sales: list,
                       currencyCode: currencyCode,
                       locale: locale,
+                      periodSubtitle: salesPeriodSubtitle,
+                      onViewAll: () =>
+                          context.push(AppRoutes.employeeSalesHistory),
                     ),
                   ),
                 ),

@@ -106,6 +106,15 @@ service cloud.firestore {
         );
     }
 
+    /// `salons/.../employeeDailyStats/{employeeId}_{yyyyMMdd}` — Cloud Functions rollup.
+    /// Uses doc id so reads succeed when the doc does not exist yet (`resource` is null).
+    function isOwnEmployeeDailyStatsId(statId) {
+      let eid = currentEmployeeId();
+      return eid is string && eid.size() > 0 &&
+        statId is string &&
+        statId.matches('^' + eid + '_[0-9]{8}$');
+    }
+
     function isOwnerOrStaffOfSalon(salonId) {
       return isOwnerOfSalon(salonId) || isStaffOfSalon(salonId);
     }
@@ -205,6 +214,7 @@ service cloud.firestore {
         onlyChangesAllowedFields([
           'displayName', 'fullName', 'name', 'phone', 'address',
           'notificationPrefs', 'notification_prefs',
+          'fcmTokens',
           'updatedAt', 'createdAt',
           'salonId', 'employeeId',
           'onboardingStatus', 'salonCreationCompleted',
@@ -225,6 +235,7 @@ service cloud.firestore {
         onlyChangesAllowedFields([
           'displayName', 'fullName', 'name', 'phone', 'address',
           'notificationPrefs', 'notification_prefs',
+          'fcmTokens',
           'updatedAt', 'profileCompletedAt', 'onboardingCompleted',
           'authProvider', 'photoUrl', 'isActive',
           'accountType', 'isAnonymous', 'guestStatus'
@@ -243,6 +254,7 @@ service cloud.firestore {
         onlyChangesAllowedFields([
           'displayName', 'fullName', 'name', 'phone', 'address',
           'notificationPrefs', 'notification_prefs',
+          'fcmTokens',
           'updatedAt', 'mustChangePassword', 'onboardingCompleted',
           'authProvider', 'photoUrl', 'isActive'
         ]);
@@ -311,8 +323,18 @@ service cloud.firestore {
 
       allow delete: if false;
 
+      /// Per-user channel toggles (`main` doc for employees).
+      match /notificationSettings/{settingsId} {
+        allow read, update, create: if isSelf(userId);
+        allow delete: if false;
+      }
+
+      /// In-app inbox; only Cloud Functions may create. Client may mark read.
       match /notifications/{notificationId} {
-        allow read, write: if isSelf(userId);
+        allow read: if isSelf(userId);
+        allow update: if isSelf(userId) &&
+          onlyChangesAllowedFields(['isRead', 'readAt']);
+        allow create, delete: if false;
       }
 
       match /devices/{deviceId} {
@@ -621,6 +643,16 @@ service cloud.firestore {
           docId ==
             request.resource.data.dateKey + '_' + request.resource.data.employeeId;
         allow delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      /// Daily rollup for employee Today (Admin SDK / Cloud Functions writes only).
+      match /employeeDailyStats/{statId} {
+        allow read: if isSalonOwnerOrAdmin(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            isOwnEmployeeDailyStatsId(statId)
+          );
+        allow create, update, delete: if false;
       }
 
       match /attendanceRequests/{requestId} {

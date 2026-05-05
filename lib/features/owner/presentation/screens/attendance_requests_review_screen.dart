@@ -16,6 +16,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../attendance/data/models/attendance_record.dart';
+import '../../../employee_dashboard/data/models/attendance_request_model.dart';
 import '../../../team_member_attendance/application/team_member_attendance_providers.dart';
 import '../../../team_member_attendance/data/models/attendance_correction_request_model.dart';
 import '../../../team_member_attendance/presentation/widgets/correction_review_sheet.dart';
@@ -40,8 +41,10 @@ class AttendanceRequestsReviewScreen extends ConsumerWidget {
       attendanceRequestsReviewControllerProvider,
       (previous, next) {
         final messenger = ScaffoldMessenger.of(context);
-        if (next.lastApprovedId != null &&
-            next.lastApprovedId != previous?.lastApprovedId) {
+        if ((next.lastApprovedId != null &&
+                next.lastApprovedId != previous?.lastApprovedId) ||
+            (next.lastPunchApprovedId != null &&
+                next.lastPunchApprovedId != previous?.lastPunchApprovedId)) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.attendanceReviewApprovedSnackbar)),
           );
@@ -49,8 +52,10 @@ class AttendanceRequestsReviewScreen extends ConsumerWidget {
               .read(attendanceRequestsReviewControllerProvider.notifier)
               .clearFeedback();
         }
-        if (next.lastRejectedId != null &&
-            next.lastRejectedId != previous?.lastRejectedId) {
+        if ((next.lastRejectedId != null &&
+                next.lastRejectedId != previous?.lastRejectedId) ||
+            (next.lastPunchRejectedId != null &&
+                next.lastPunchRejectedId != previous?.lastPunchRejectedId)) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.attendanceReviewRejectedSnackbar)),
           );
@@ -169,12 +174,15 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
       );
     }
 
-    if (state.requests.isEmpty && state.correctionRequests.isEmpty) {
+    if (state.requests.isEmpty &&
+        state.punchRequests.isEmpty &&
+        state.correctionRequests.isEmpty) {
       return AppFadeIn(
         child: RefreshIndicator(
           color: ZuranoTokens.primary,
           onRefresh: () async {
             ref.invalidate(pendingAttendanceRequestsStreamProvider);
+            ref.invalidate(pendingAttendancePunchRequestsStreamProvider);
             ref.invalidate(pendingAttendanceCorrectionRequestsStreamProvider);
             ref.invalidate(attendanceRequestsReviewControllerProvider);
           },
@@ -208,6 +216,7 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
         color: ZuranoTokens.primary,
         onRefresh: () async {
           ref.invalidate(pendingAttendanceRequestsStreamProvider);
+          ref.invalidate(pendingAttendancePunchRequestsStreamProvider);
           ref.invalidate(pendingAttendanceCorrectionRequestsStreamProvider);
           ref.invalidate(attendanceRequestsReviewControllerProvider);
         },
@@ -215,6 +224,49 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.large),
           children: [
+            if (state.punchRequests.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    l10n.attendanceReviewTitle,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      letterSpacing: -0.2,
+                      color: ZuranoTokens.textDark,
+                    ),
+                  ),
+                ),
+              ),
+              ...state.punchRequests.map((req) {
+                final processing = state.processingPunchRequestIds.contains(
+                  req.requestId,
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+                  child: _PunchRequestRow(
+                    request: req,
+                    processing: processing,
+                    onApprove: () => ref
+                        .read(attendanceRequestsReviewControllerProvider.notifier)
+                        .approvePunchRequest(req),
+                    onReject: () async {
+                      final reason = await _promptRejectionReason(context, l10n);
+                      if (reason == null) return;
+                      await ref
+                          .read(
+                            attendanceRequestsReviewControllerProvider.notifier,
+                          )
+                          .rejectPunchRequest(req, rejectionNote: reason);
+                    },
+                  ),
+                );
+              }),
+              if (state.requests.isNotEmpty || state.correctionRequests.isNotEmpty)
+                const SizedBox(height: AppSpacing.small),
+            ],
             ...state.requests.map((record) {
               final processing = state.processingIds.contains(record.id);
               return Padding(
@@ -373,6 +425,194 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
       },
     );
     return result;
+  }
+}
+
+class _PunchRequestRow extends StatelessWidget {
+  const _PunchRequestRow({
+    required this.request,
+    required this.processing,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  final AttendanceRequestModel request;
+  final bool processing;
+  final Future<void> Function() onApprove;
+  final Future<void> Function() onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final dateFmt = DateFormat.yMMMMEEEEd(locale);
+    final timeFmt = DateFormat.jm(locale);
+
+    return _ZuranoPremiumReviewCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: ZuranoTokens.lightPurple,
+                child: Text(
+                  _initials(formatTeamMemberName(request.employeeName)),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: ZuranoTokens.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.small),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      request.employeeName.trim().isEmpty
+                          ? l10n.attendanceReviewUnknownEmployee
+                          : formatTeamMemberName(request.employeeName),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                        color: ZuranoTokens.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.attendanceReviewTypeGeneric,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: ZuranoTokens.textGray,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _PendingBadge(label: l10n.attendanceReviewStatusPending),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          _InfoLine(
+            icon: AppIcons.calendar_today_outlined,
+            text: dateFmt.format(request.requestedDateTime.toLocal()),
+          ),
+          _InfoLine(
+            icon: AppIcons.schedule_outlined,
+            text: timeFmt.format(request.requestedDateTime.toLocal()),
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.medium),
+            decoration: BoxDecoration(
+              color: ZuranoTokens.searchFill,
+              borderRadius: BorderRadius.circular(ZuranoTokens.radiusInput),
+              border: Border.all(color: ZuranoTokens.sectionBorder),
+            ),
+            child: Text(
+              request.reason.trim().isEmpty
+                  ? l10n.teamMemberAttendanceNoReason
+                  : request.reason.trim(),
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: ZuranoTokens.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: processing ? null : onReject,
+                  icon: const Icon(AppIcons.close_rounded, size: 18),
+                  label: Text(l10n.attendanceReviewReject),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ZuranoPremiumUiColors.danger,
+                    side: const BorderSide(color: Color(0xFFFECACA)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        ZuranoTokens.radiusButton,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: ZuranoTokens.primaryGradient,
+                    borderRadius: BorderRadius.circular(
+                      ZuranoTokens.radiusButton,
+                    ),
+                    boxShadow: ZuranoTokens.fabGlow,
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(
+                        ZuranoTokens.radiusButton,
+                      ),
+                      onTap: processing ? null : onApprove,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (processing)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            else
+                              const Icon(
+                                AppIcons.check_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            const SizedBox(width: 8),
+                            Text(
+                              l10n.attendanceReviewApprove,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _initials(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    final parts = trimmed.split(RegExp(r'\s+'));
+    if (parts.length == 1) return parts.first.characters.take(2).toString();
+    return '${parts.first.characters.first}${parts[1].characters.first}';
   }
 }
 

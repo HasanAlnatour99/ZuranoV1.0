@@ -7441,6 +7441,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get employeeSalesViewAllHistory => 'عرض الكل';
+
+  @override
+  String get employeeSalesHistoryScreenTitle => 'سجل المبيعات';
+
+  @override
+  String get employeeSalesHistoryEmptyForRange => 'لا مبيعات في هذه الفترة.';
+
+  @override
   String get addSaleReceiptSectionTitle => 'صورة الإيصال';
 
   @override
@@ -9327,6 +9336,125 @@ class AppLocalizationsAr extends AppLocalizations {
       'التحكم بالحجز عبر الإنترنت والتوفر والظهور العام';
 
   @override
+  String get ownerSalonProfileTileTitle => 'ملف الصالون';
+
+  @override
+  String get ownerSalonProfileTileSubtitle =>
+      'تحديث اسم الصالون، الصور، صورة الغلاف، وأمان الحساب';
+
+  @override
+  String get ownerSalonProfileTitle => 'ملف الصالون';
+
+  @override
+  String get ownerSalonProfileLoadError =>
+      'تعذر تحميل ملف الصالون. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get ownerSalonProfileSectionBasics => 'الأساسيات';
+
+  @override
+  String get ownerSalonProfileSectionBasicsHint =>
+      'اسم الصالون الذي سيراه العملاء';
+
+  @override
+  String get ownerSalonProfileCountryLabel => 'الدولة / المنطقة';
+
+  @override
+  String get ownerSalonProfileCountryHint => 'يُستخدم لضبط العملة تلقائيًا';
+
+  @override
+  String get ownerSalonProfileCountryPickTitle => 'اختر الدولة';
+
+  @override
+  String get ownerSalonProfileCountrySearchHint => 'ابحث عن دولة…';
+
+  @override
+  String get ownerSalonProfileCountryUpdated => 'تم تحديث الدولة.';
+
+  @override
+  String get ownerSalonProfileSaveNameCta => 'حفظ الاسم';
+
+  @override
+  String get ownerSalonProfileNameUpdated => 'تم تحديث اسم الصالون.';
+
+  @override
+  String get ownerSalonProfileSectionPhotos => 'الصور';
+
+  @override
+  String get ownerSalonProfileSectionPhotosHint =>
+      'ارفع حتى 5 صور واختر صورة غلاف';
+
+  @override
+  String get ownerSalonProfilePhotosEmpty =>
+      'لا توجد صور بعد. أضف بعض الصور لإبراز ملفك.';
+
+  @override
+  String get ownerSalonProfileAddPhoto => 'إضافة صورة';
+
+  @override
+  String get ownerSalonProfilePhotosLimit => 'يمكنك رفع حتى 5 صور.';
+
+  @override
+  String get ownerSalonProfilePhotoAdded => 'تم رفع الصورة.';
+
+  @override
+  String get ownerSalonProfilePhotoRemoved => 'تم حذف الصورة.';
+
+  @override
+  String get ownerSalonProfileSetCover => 'تعيين كغلاف';
+
+  @override
+  String get ownerSalonProfileCoverBadge => 'الغلاف';
+
+  @override
+  String get ownerSalonProfileCoverUpdated => 'تم تحديث صورة الغلاف.';
+
+  @override
+  String get ownerSalonProfileSectionAccount => 'الحساب';
+
+  @override
+  String get ownerSalonProfileSectionAccountHint =>
+      'تحديث البريد الإلكتروني وكلمة المرور (يتطلب كلمة المرور الحالية)';
+
+  @override
+  String get ownerSalonProfileReauthTitle => 'تأكيد الهوية';
+
+  @override
+  String get ownerSalonProfileReauthHint =>
+      'أدخل كلمة المرور الحالية لتحديث البريد الإلكتروني.';
+
+  @override
+  String get ownerSalonProfileConfirmCta => 'تأكيد';
+
+  @override
+  String get ownerSalonProfileEmailLabel => 'البريد الإلكتروني';
+
+  @override
+  String get ownerSalonProfileCurrentPasswordLabel => 'كلمة المرور الحالية';
+
+  @override
+  String get ownerSalonProfileNewPasswordLabel => 'كلمة مرور جديدة';
+
+  @override
+  String get ownerSalonProfileUpdateEmailCta => 'تحديث البريد';
+
+  @override
+  String get ownerSalonProfileUpdatePasswordCta => 'تحديث كلمة المرور';
+
+  @override
+  String get ownerSalonProfileEmailUpdateRequested =>
+      'أرسلنا رسالة تحقق لتحديث البريد الإلكتروني.';
+
+  @override
+  String get ownerSalonProfilePasswordUpdated => 'تم تحديث كلمة المرور.';
+
+  @override
+  String get ownerSalonProfileSaveSuccess => 'تم الحفظ بنجاح.';
+
+  @override
+  String get ownerSalonProfileSaveError => 'تعذر حفظ التغييرات. حاول مرة أخرى.';
+
+  @override
   String get ownerCustomerBookingTitle => 'حجز العملاء';
 
   @override
@@ -9461,6 +9589,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ownerCustomerBookingDayClosed => 'مغلق';
+
+  @override
+  String get ownerCustomerBookingFrom => 'من';
+
+  @override
+  String get ownerCustomerBookingTo => 'إلى';
 
   @override
   String get ownerCustomerBookingSettingsSubtitle =>
@@ -10241,6 +10375,34 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get employeeAttendanceTabHistoryTitle => 'سجل الحضور';
+
+  @override
+  String get employeeAttendanceTabHistoryLastSevenDaysSubtitle => 'آخر 7 أيام';
+
+  @override
+  String get employeeAttendanceViewAllLogs => 'عرض كل السجلات';
+
+  @override
+  String get employeeAttendanceLogsScreenTitle => 'سجلات الحضور';
+
+  @override
+  String get employeeAttendanceFilterThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get employeeAttendanceFilterThisMonth => 'هذا الشهر';
+
+  @override
+  String get employeeAttendanceFilterCustom => 'مخصص';
+
+  @override
+  String get employeeAttendanceCustomRangeFrom => 'من';
+
+  @override
+  String get employeeAttendanceCustomRangeTo => 'إلى';
+
+  @override
+  String get employeeAttendanceLogsEmptyForRange =>
+      'لا توجد سجلات حضور لهذه الفترة.';
 
   @override
   String get employeeAttendanceTabEmptyHistory => 'لا يوجد سجل حضور بعد';

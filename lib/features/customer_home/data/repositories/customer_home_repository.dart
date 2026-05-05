@@ -50,34 +50,90 @@ class CustomerHomeRepository {
     String? categoryId,
   }) {
     final limit = 100;
-    final Query<Map<String, dynamic>> query;
-    if (categoryId != null && categoryId != 'all') {
-      query = _db
-          .collection(FirestorePaths.salons)
-          .where('isPublished', isEqualTo: true)
-          .where('categoryIds', arrayContains: categoryId)
-          .limit(limit);
-    } else {
-      query = _db
-          .collection(FirestorePaths.salons)
-          .where('isPublished', isEqualTo: true)
-          .limit(limit);
-    }
+    final publicQuery = _db
+        .collection(FirestorePaths.publicSalons)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .limit(limit);
 
-    return query.snapshots().map(
-      (snapshot) {
+    final fallbackSalonRootQuery = _db
+        .collection(FirestorePaths.salons)
+        .where('isPublished', isEqualTo: true)
+        .limit(limit);
+
+    return (() async* {
+      await for (final snapshot in publicQuery.snapshots()) {
         if (kDebugMode) {
-          debugPrint(
-            '[CustomerHome] published salons raw=${snapshot.docs.length}',
-          );
+          debugPrint('[CustomerHome] publicSalons raw=${snapshot.docs.length}');
         }
-        final parsed = snapshot.docs
-            .map(CustomerSalonModel.fromFirestore)
-            .where((s) => s.isPublished)
-            .toList(growable: false);
-        return preferCountryFilteredElseAll(parsed, discoveryCountryName);
-      },
-    );
+
+        var parsed = snapshot.docs.map((doc) {
+          final data = doc.data();
+          return CustomerSalonModel(
+            id: doc.id,
+            name: (data['salonName'] as String?)?.trim() ?? '',
+            city: (data['city'] as String?)?.trim() ?? '',
+            area: (data['area'] as String?)?.trim() ?? '',
+            country:
+                (data['countryName'] as String?)?.trim() ??
+                (data['country'] as String?)?.trim() ??
+                discoveryCountryName,
+            address: (data['address'] as String?)?.trim() ?? '',
+            latitude: (data['latitude'] as num?)?.toDouble(),
+            longitude: (data['longitude'] as num?)?.toDouble(),
+            isPublished: true,
+            isOpen: data['isOpen'] == true,
+            isPromoted: data['isPromoted'] == true,
+            ratingAverage: (data['ratingAverage'] as num?)?.toDouble() ?? 0,
+            ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
+            distanceKmText: (data['distanceKmText'] as String?)?.trim() ?? '',
+            priceLevel: (data['priceLevel'] as String?)?.trim() ?? '',
+            logoUrl: (data['logoUrl'] as String?)?.trim() ?? '',
+            coverImageUrl: (data['coverImageUrl'] as String?)?.trim() ?? '',
+            tags: List<String>.from(data['tags'] ?? const <String>[]),
+            categoryIds: List<String>.from(
+              data['categoryIds'] ?? const <String>[],
+            ),
+            searchKeywords: List<String>.from(
+              data['searchKeywords'] ?? const <String>[],
+            ),
+            countryCodeIso: (data['countryCode'] as String?)?.trim(),
+            currencyCode: (data['currencyCode'] as String?)?.trim() ?? 'USD',
+            discountText: (data['discountText'] as String?)?.trim(),
+          );
+        }).toList(growable: false);
+
+        // If `publicSalons` is empty (or not yet mirrored), fall back to published salon root docs.
+        if (parsed.isEmpty) {
+          try {
+            final fallback = await fallbackSalonRootQuery.get();
+            if (kDebugMode) {
+              debugPrint(
+                '[CustomerHome] fallback salons/* raw=${fallback.docs.length}',
+              );
+            }
+            parsed = fallback.docs
+                .map(CustomerSalonModel.fromFirestore)
+                .where((s) => s.isPublished)
+                .toList(growable: false);
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint('[CustomerHome] fallback salons/* failed: $e');
+            }
+          }
+        }
+
+        // Category filtering is optional on public docs; apply client-side for resilience.
+        final categoryFiltered =
+            (categoryId != null && categoryId != 'all')
+                ? parsed
+                    .where((s) => s.categoryIds.contains(categoryId))
+                    .toList(growable: false)
+                : parsed;
+
+        yield preferCountryFilteredElseAll(categoryFiltered, discoveryCountryName);
+      }
+    })();
   }
 
   List<CustomerSalonModel> _sortRecommended(
@@ -187,6 +243,15 @@ class CustomerHomeRepository {
       _db
           .collection(FirestorePaths.salons)
           .where('debugSeed', isEqualTo: true)
+          .limit(20),
+    );
+
+    await countQuery(
+      'publicSalons isPublic+isActive (matches app query shape)',
+      _db
+          .collection(FirestorePaths.publicSalons)
+          .where('isPublic', isEqualTo: true)
+          .where('isActive', isEqualTo: true)
           .limit(20),
     );
 

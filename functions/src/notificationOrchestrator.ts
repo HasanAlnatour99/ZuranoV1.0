@@ -8,6 +8,7 @@ import {
   saleDeepLinkData,
   violationDeepLinkData,
 } from "./notificationDispatch";
+import { createEmployeeNotification } from "./notifications/employeeInAppNotificationService";
 import { getEmployeeAuthUid, listOwnerAdminUserIds } from "./notificationSalonUsers";
 
 const db = getFirestore();
@@ -137,15 +138,20 @@ export async function notifyNewBookingAssigned(params: {
   if (!uid) {
     return;
   }
-  await deliverTemplatedNotification({
-    userId: uid,
-    eventType: "new_booking_assigned",
-    dedupeKey: `new_booking_assigned:${params.bookingId}:${uid}`,
-    data: bookingDeepLinkData(params.salonId, params.bookingId),
-    actorRole: "system",
+  await createEmployeeNotification({
+    recipientUid: uid,
     salonId: params.salonId,
-    bookingId: params.bookingId,
     employeeId: params.barberId,
+    type: "booking_updates",
+    title: "New booking assigned",
+    body: "A customer booking has been assigned to you.",
+    route: "/employee/today",
+    sourceCollection: "bookings",
+    sourceId: params.bookingId,
+    dedupeKey: `new_booking_assigned:${params.bookingId}:${uid}`,
+    metadata: {
+      bookingId: params.bookingId,
+    },
   });
 }
 
@@ -259,16 +265,20 @@ export async function notifyViolationCreated(params: {
 }): Promise<void> {
   const barberUid = await getEmployeeAuthUid(params.salonId, params.employeeId);
   if (barberUid) {
-    await deliverTemplatedNotification({
-      userId: barberUid,
-      eventType: "violation_created",
-      dedupeKey: `violation_created:${params.violationId}:${barberUid}`,
-      data: violationDeepLinkData(params.salonId, params.violationId),
-      actorRole: "system",
+    await createEmployeeNotification({
+      recipientUid: barberUid,
       salonId: params.salonId,
-      bookingId: params.bookingId,
       employeeId: params.employeeId,
-      violationId: params.violationId,
+      type: "system_alerts",
+      title: "Violation recorded",
+      body: "A violation was recorded for one of your bookings.",
+      route: "/employee/today",
+      sourceCollection: "violations",
+      sourceId: params.violationId,
+      dedupeKey: `violation_created:${params.violationId}:${barberUid}`,
+      metadata: {
+        bookingId: params.bookingId,
+      },
     });
   }
   const staff = await listOwnerAdminUserIds(params.salonId);
@@ -297,15 +307,18 @@ export async function notifyPayrollCreated(params: {
 }): Promise<void> {
   const barberUid = await getEmployeeAuthUid(params.salonId, params.employeeId);
   if (barberUid) {
-    await deliverTemplatedNotification({
-      userId: barberUid,
-      eventType: "payroll_ready",
-      dedupeKey: `payroll_ready:${params.payrollId}:${barberUid}`,
-      data: payrollDeepLinkData(params.salonId, params.payrollId),
-      actorRole: "system",
+    await createEmployeeNotification({
+      recipientUid: barberUid,
       salonId: params.salonId,
-      payrollId: params.payrollId,
       employeeId: params.employeeId,
+      type: "payroll_updates",
+      title: "Payslip available",
+      body: "Your latest payslip is now available.",
+      route: "/employee/payroll",
+      sourceCollection: "payroll",
+      sourceId: params.payrollId,
+      dedupeKey: `payroll_ready:${params.payrollId}:${barberUid}`,
+      metadata: {},
     });
   }
   const staff = await listOwnerAdminUserIds(params.salonId);

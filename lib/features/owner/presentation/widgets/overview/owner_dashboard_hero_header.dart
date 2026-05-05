@@ -9,6 +9,7 @@ import '../../../../../core/text/personalized_greeting.dart';
 import '../../../../../core/widgets/app_notification_badge.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../providers/notification_providers.dart';
+import '../../../../../providers/salon_streams_provider.dart';
 import '../../../../../shared/widgets/zurano_header_icon_button.dart';
 import '../../../../users/data/models/app_user.dart';
 import '../../../logic/owner_overview_controller.dart';
@@ -116,7 +117,18 @@ Widget _buildOwnerHeroHeader({
       ? trimmedSalon
       : l10n.ownerDashboardTitle;
   final initials = _heroUserInitials(user.name);
+  final salonCover = ref
+      .watch(sessionSalonStreamProvider)
+      .asData
+      ?.value
+      ?.coverImageUrl
+      ?.trim();
   final photo = user.photoUrl?.trim();
+  final avatarImage = (salonCover != null && salonCover.isNotEmpty)
+      ? salonCover
+      : (photo != null && photo.isNotEmpty)
+      ? photo
+      : null;
   final canOpenOwnerSettings =
       user.role == UserRoles.owner || user.role == UserRoles.admin;
   final unread = ref.watch(unreadNotificationCountProvider);
@@ -162,10 +174,10 @@ Widget _buildOwnerHeroHeader({
                   child: CircleAvatar(
                     radius: avatarRadius,
                     backgroundColor: Colors.white.withValues(alpha: 0.22),
-                    backgroundImage: photo != null && photo.isNotEmpty
-                        ? CachedNetworkImageProvider(photo)
+                    backgroundImage: avatarImage != null
+                        ? CachedNetworkImageProvider(avatarImage)
                         : null,
-                    child: photo == null || photo.isEmpty
+                    child: avatarImage == null
                         ? Text(
                             initials,
                             style: const TextStyle(

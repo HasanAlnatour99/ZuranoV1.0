@@ -45,12 +45,18 @@ class GuestCustomerSignInController extends Notifier<GuestCustomerSignInState> {
         debugPrint('[GUEST_AUTH] continue_as_guest_tapped');
       }
       await ref.read(authRepositoryProvider).signInAsAnonymousGuestCustomer();
+      if (!ref.mounted) {
+        return true;
+      }
       if (kDebugMode) {
         debugPrint(
           '[GUEST_AUTH] repository_sign_in_complete_awaiting_customer_session',
         );
       }
       await refreshSessionAndRouterAwaitCustomerReady(ref);
+      if (!ref.mounted) {
+        return true;
+      }
       if (kDebugMode) {
         debugPrint(
           '[GUEST_AUTH] after_session_refresh route_target=/customer/home',
@@ -63,6 +69,9 @@ class GuestCustomerSignInController extends Notifier<GuestCustomerSignInState> {
         debugPrint('[GUEST_AUTH] failed timeout=$e');
         debugPrintStack(stackTrace: st, label: '[GUEST_AUTH]');
       }
+      if (!ref.mounted) {
+        return false;
+      }
       state = const GuestCustomerSignInState(
         isLoading: false,
         errorMessage: sessionTimeoutMarker,
@@ -72,6 +81,9 @@ class GuestCustomerSignInController extends Notifier<GuestCustomerSignInState> {
       if (kDebugMode) {
         debugPrint('[GUEST_AUTH] failed error=$e');
         debugPrintStack(stackTrace: st, label: '[GUEST_AUTH]');
+      }
+      if (!ref.mounted) {
+        return false;
       }
       state = GuestCustomerSignInState(
         isLoading: false,

@@ -12,6 +12,9 @@ import 'app_router.dart';
 /// Reloads Firestore-backed entry session and bumps [GoRouter] so [redirect]
 /// runs with fresh `users/{uid}` (e.g. after salon creation).
 void refreshSessionAndRouter(Ref ref) {
+  if (!ref.mounted) {
+    return;
+  }
   ref.invalidate(appEntrySessionProvider);
   ref.read(appRouterRefreshProvider).value++;
 }

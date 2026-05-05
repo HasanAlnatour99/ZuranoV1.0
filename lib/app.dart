@@ -94,6 +94,9 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(appLocalePreferenceProvider);
 
+    // Register once per signed-in uid. sessionUser re-emits when Firestore user
+    // snapshots refresh — repeating registerOrRefreshToken spams logs and
+    // unnecessary callable writes.
     ref.listen<AsyncValue<AppUser?>>(sessionUserProvider, (prev, next) {
       if (!kFirebasePushMessagingEnabled) {
         return;
@@ -102,13 +105,20 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
         final fcm = ref.read(fcmRegistrationServiceProvider);
         final loc = ref.read(appLocalePreferenceProvider);
         if (user == null) {
-          await fcm.unregisterCurrentDevice();
-        } else {
-          await fcm.registerOrRefreshToken(
-            user: user,
-            localeName: loc.languageCode,
-          );
+          final hadUser = prev?.asData?.value != null;
+          if (hadUser) {
+            await fcm.unregisterCurrentDevice();
+          }
+          return;
         }
+        final prevUid = prev?.asData?.value?.uid;
+        if (prevUid == user.uid) {
+          return;
+        }
+        await fcm.registerOrRefreshToken(
+          user: user,
+          localeName: loc.languageCode,
+        );
       });
     });
 

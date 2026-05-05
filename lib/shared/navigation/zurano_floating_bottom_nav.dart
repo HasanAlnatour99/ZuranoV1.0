@@ -32,6 +32,7 @@ class ZuranoFloatingBottomNav extends StatelessWidget {
     super.key,
     required this.slots,
     required this.selectedSlotIndex,
+    this.showCenterGap = true,
     this.centerTooltip,
     this.centerHeroTag,
     this.onCenterTap,
@@ -45,6 +46,10 @@ class ZuranoFloatingBottomNav extends StatelessWidget {
 
   /// Index into [slots] for the active pill; negative or `>= 4` selects none.
   final int selectedSlotIndex;
+
+  /// When false, renders 4 evenly spaced slots with **no** center gap/ring/FAB.
+  /// Defaults to true to preserve Owner/Employee shell chrome.
+  final bool showCenterGap;
   final String? centerTooltip;
   final String? centerHeroTag;
   final VoidCallback? onCenterTap;
@@ -79,29 +84,42 @@ class ZuranoFloatingBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rowChildren = <Widget>[
-      for (var i = 0; i < 2; i++)
-        Expanded(
-          child: ZuranoFloatingNavItem(
-            icon: slots[i].icon,
-            selectedIcon: slots[i].selectedIcon,
-            label: slots[i].label,
-            isActive: i == selectedSlotIndex,
-            onTap: slots[i].onTap,
-          ),
-        ),
-      const SizedBox(width: centerGapWidth),
-      for (var i = 2; i < 4; i++)
-        Expanded(
-          child: ZuranoFloatingNavItem(
-            icon: slots[i].icon,
-            selectedIcon: slots[i].selectedIcon,
-            label: slots[i].label,
-            isActive: i == selectedSlotIndex,
-            onTap: slots[i].onTap,
-          ),
-        ),
-    ];
+    final rowChildren = showCenterGap
+        ? <Widget>[
+            for (var i = 0; i < 2; i++)
+              Expanded(
+                child: ZuranoFloatingNavItem(
+                  icon: slots[i].icon,
+                  selectedIcon: slots[i].selectedIcon,
+                  label: slots[i].label,
+                  isActive: i == selectedSlotIndex,
+                  onTap: slots[i].onTap,
+                ),
+              ),
+            const SizedBox(width: centerGapWidth),
+            for (var i = 2; i < 4; i++)
+              Expanded(
+                child: ZuranoFloatingNavItem(
+                  icon: slots[i].icon,
+                  selectedIcon: slots[i].selectedIcon,
+                  label: slots[i].label,
+                  isActive: i == selectedSlotIndex,
+                  onTap: slots[i].onTap,
+                ),
+              ),
+          ]
+        : <Widget>[
+            for (var i = 0; i < 4; i++)
+              Expanded(
+                child: ZuranoFloatingNavItem(
+                  icon: slots[i].icon,
+                  selectedIcon: slots[i].selectedIcon,
+                  label: slots[i].label,
+                  isActive: i == selectedSlotIndex,
+                  onTap: slots[i].onTap,
+                ),
+              ),
+          ];
 
     return SafeArea(
       top: false,
@@ -147,36 +165,37 @@ class ZuranoFloatingBottomNav extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                top: ringTop,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: IgnorePointer(
-                    child: SizedBox(
-                      width: outerRingSize,
-                      height: outerRingSize,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: navBg.withValues(alpha: 0.88),
-                          border: Border.all(
-                            color: borderPurple.withValues(alpha: 0.65),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: activePurple.withValues(alpha: 0.09),
-                              blurRadius: 16,
-                              spreadRadius: 0,
+              if (showCenterGap)
+                Positioned(
+                  top: ringTop,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: IgnorePointer(
+                      child: SizedBox(
+                        width: outerRingSize,
+                        height: outerRingSize,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: navBg.withValues(alpha: 0.88),
+                            border: Border.all(
+                              color: borderPurple.withValues(alpha: 0.65),
+                              width: 1,
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: activePurple.withValues(alpha: 0.09),
+                                blurRadius: 16,
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
               if (_hasInteractiveCenter)
                 Positioned(
                   top: fabTop,

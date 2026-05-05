@@ -4,9 +4,13 @@
 /// **Queries:** existing composite indexes often use `reportYear` + `reportMonth`;
 /// documents should still store `reportPeriodKey` for parity and single-field filters.
 abstract final class ReportPeriod {
-  static int yearFrom(DateTime dt) => dt.toUtc().year;
+  /// Reporting periods are based on the user's **local** calendar.
+  ///
+  /// Firestore timestamps are absolute instants; using UTC calendar parts can
+  /// shift transactions into the previous/next month for non-UTC salons.
+  static int yearFrom(DateTime dt) => dt.toLocal().year;
 
-  static int monthFrom(DateTime dt) => dt.toUtc().month;
+  static int monthFrom(DateTime dt) => dt.toLocal().month;
 
   /// Canonical `YYYY-MM` string for equality filters and dashboards.
   static String periodKey(int year, int month) =>

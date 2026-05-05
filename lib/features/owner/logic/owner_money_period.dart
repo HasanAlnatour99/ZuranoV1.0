@@ -21,10 +21,11 @@ bool saleInOwnerMoneyPeriod(Sale s, OwnerMoneyPeriodKind p, DateTime now) {
   if (!_saleCountsAsRevenue(s)) {
     return false;
   }
+  final utcNow = now.toUtc();
   return switch (p) {
     OwnerMoneyPeriodKind.today => _sameLocalCalendarDay(s.soldAt, now),
     OwnerMoneyPeriodKind.month =>
-      s.reportYear == now.year && s.reportMonth == now.month,
+      s.reportYear == utcNow.year && s.reportMonth == utcNow.month,
   };
 }
 
@@ -33,10 +34,11 @@ bool expenseInOwnerMoneyPeriod(
   OwnerMoneyPeriodKind p,
   DateTime now,
 ) {
+  final utcNow = now.toUtc();
   return switch (p) {
     OwnerMoneyPeriodKind.today => _sameLocalCalendarDay(e.incurredAt, now),
     OwnerMoneyPeriodKind.month =>
-      e.reportYear == now.year && e.reportMonth == now.month,
+      e.reportYear == utcNow.year && e.reportMonth == utcNow.month,
   };
 }
 

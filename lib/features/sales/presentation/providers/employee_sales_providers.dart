@@ -62,6 +62,76 @@ final employeeSalesStreamProvider = StreamProvider.autoDispose<List<Sale>>((
       );
 });
 
+/// Inclusive local calendar days → Firestore query uses \([start, end)\) end-exclusive.
+@immutable
+class EmployeeSalesHistoryRangeKey {
+  const EmployeeSalesHistoryRangeKey({
+    required this.fromDay,
+    required this.toDay,
+  });
+
+  final DateTime fromDay;
+  final DateTime toDay;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! EmployeeSalesHistoryRangeKey) return false;
+    return _day(fromDay) == _day(other.fromDay) &&
+        _day(toDay) == _day(other.toDay);
+  }
+
+  @override
+  int get hashCode => Object.hash(_day(fromDay), _day(toDay));
+
+  static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+}
+
+(DateTime monday, DateTime sunday) employeeSalesHistoryWeekBounds(
+  DateTime anchor,
+) {
+  final day = DateTime(anchor.year, anchor.month, anchor.day);
+  final mondayOffset = day.weekday - DateTime.monday;
+  final monday = day.subtract(Duration(days: mondayOffset));
+  final sunday = monday.add(const Duration(days: 6));
+  return (monday, sunday);
+}
+
+(DateTime start, DateTime lastDayOfMonth) employeeSalesHistoryCalendarMonthBounds(
+  DateTime now,
+) {
+  final start = DateTime(now.year, now.month);
+  final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+  return (start, lastDayOfMonth);
+}
+
+/// Full sales list for [EmployeeSalesHistoryRangeKey] (same UI entry as Attendance “View all”).
+final employeeSalesHistoryRangeProvider = StreamProvider.autoDispose
+    .family<List<Sale>, EmployeeSalesHistoryRangeKey>((ref, key) {
+      final user = ref.watch(sessionUserProvider).asData?.value;
+      final salonId = user?.salonId?.trim();
+      final employeeId = user?.employeeId?.trim();
+      if (user == null ||
+          !user.isActive ||
+          salonId == null ||
+          salonId.isEmpty ||
+          employeeId == null ||
+          employeeId.isEmpty) {
+        return Stream<List<Sale>>.value(const []);
+      }
+
+      final startDate =
+          DateTime(key.fromDay.year, key.fromDay.month, key.fromDay.day);
+      final endDate = DateTime(key.toDay.year, key.toDay.month, key.toDay.day)
+          .add(const Duration(days: 1));
+
+      return ref.read(salesRepositoryProvider).watchEmployeeCompletedSalesByDateRange(
+            salonId: salonId,
+            employeeId: employeeId,
+            startDate: startDate,
+            endDate: endDate,
+          );
+    });
+
 final employeeSalesSummaryProvider = Provider.autoDispose<EmployeeSalesSummary>(
   (ref) {
     final sales = ref.watch(employeeSalesStreamProvider).asData?.value ?? [];

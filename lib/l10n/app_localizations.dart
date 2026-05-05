@@ -13042,6 +13042,24 @@ abstract class AppLocalizations {
   /// **'Showing latest {count} sales'**
   String employeeSalesShowingLatest(int count);
 
+  /// No description provided for @employeeSalesViewAllHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get employeeSalesViewAllHistory;
+
+  /// No description provided for @employeeSalesHistoryScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get employeeSalesHistoryScreenTitle;
+
+  /// No description provided for @employeeSalesHistoryEmptyForRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No sales for this period.'**
+  String get employeeSalesHistoryEmptyForRange;
+
   /// No description provided for @addSaleReceiptSectionTitle.
   ///
   /// In en, this message translates to:
@@ -16312,6 +16330,228 @@ abstract class AppLocalizations {
   /// **'Control online booking, availability, and public visibility'**
   String get ownerCustomerBookingTileSubtitle;
 
+  /// No description provided for @ownerSalonProfileTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon profile'**
+  String get ownerSalonProfileTileTitle;
+
+  /// No description provided for @ownerSalonProfileTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update salon name, photos, cover, and account security'**
+  String get ownerSalonProfileTileSubtitle;
+
+  /// No description provided for @ownerSalonProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon profile'**
+  String get ownerSalonProfileTitle;
+
+  /// No description provided for @ownerSalonProfileLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load salon profile. Please try again.'**
+  String get ownerSalonProfileLoadError;
+
+  /// No description provided for @ownerSalonProfileSectionBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get ownerSalonProfileSectionBasics;
+
+  /// No description provided for @ownerSalonProfileSectionBasicsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Public salon name customers will see'**
+  String get ownerSalonProfileSectionBasicsHint;
+
+  /// No description provided for @ownerSalonProfileCountryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country / region'**
+  String get ownerSalonProfileCountryLabel;
+
+  /// No description provided for @ownerSalonProfileCountryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to auto-set the currency'**
+  String get ownerSalonProfileCountryHint;
+
+  /// No description provided for @ownerSalonProfileCountryPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose country'**
+  String get ownerSalonProfileCountryPickTitle;
+
+  /// No description provided for @ownerSalonProfileCountrySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search country…'**
+  String get ownerSalonProfileCountrySearchHint;
+
+  /// No description provided for @ownerSalonProfileCountryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Country updated.'**
+  String get ownerSalonProfileCountryUpdated;
+
+  /// No description provided for @ownerSalonProfileSaveNameCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Save name'**
+  String get ownerSalonProfileSaveNameCta;
+
+  /// No description provided for @ownerSalonProfileNameUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon name updated.'**
+  String get ownerSalonProfileNameUpdated;
+
+  /// No description provided for @ownerSalonProfileSectionPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get ownerSalonProfileSectionPhotos;
+
+  /// No description provided for @ownerSalonProfileSectionPhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload up to 5 photos and pick a cover'**
+  String get ownerSalonProfileSectionPhotosHint;
+
+  /// No description provided for @ownerSalonProfilePhotosEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos yet. Add a few to make your profile stand out.'**
+  String get ownerSalonProfilePhotosEmpty;
+
+  /// No description provided for @ownerSalonProfileAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get ownerSalonProfileAddPhoto;
+
+  /// No description provided for @ownerSalonProfilePhotosLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can upload up to 5 photos.'**
+  String get ownerSalonProfilePhotosLimit;
+
+  /// No description provided for @ownerSalonProfilePhotoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo uploaded.'**
+  String get ownerSalonProfilePhotoAdded;
+
+  /// No description provided for @ownerSalonProfilePhotoRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo removed.'**
+  String get ownerSalonProfilePhotoRemoved;
+
+  /// No description provided for @ownerSalonProfileSetCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Set cover'**
+  String get ownerSalonProfileSetCover;
+
+  /// No description provided for @ownerSalonProfileCoverBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get ownerSalonProfileCoverBadge;
+
+  /// No description provided for @ownerSalonProfileCoverUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover photo updated.'**
+  String get ownerSalonProfileCoverUpdated;
+
+  /// No description provided for @ownerSalonProfileSectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get ownerSalonProfileSectionAccount;
+
+  /// No description provided for @ownerSalonProfileSectionAccountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your email and password (requires current password)'**
+  String get ownerSalonProfileSectionAccountHint;
+
+  /// No description provided for @ownerSalonProfileReauthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it’s you'**
+  String get ownerSalonProfileReauthTitle;
+
+  /// No description provided for @ownerSalonProfileReauthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password to update your email address.'**
+  String get ownerSalonProfileReauthHint;
+
+  /// No description provided for @ownerSalonProfileConfirmCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get ownerSalonProfileConfirmCta;
+
+  /// No description provided for @ownerSalonProfileEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get ownerSalonProfileEmailLabel;
+
+  /// No description provided for @ownerSalonProfileCurrentPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get ownerSalonProfileCurrentPasswordLabel;
+
+  /// No description provided for @ownerSalonProfileNewPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get ownerSalonProfileNewPasswordLabel;
+
+  /// No description provided for @ownerSalonProfileUpdateEmailCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update email'**
+  String get ownerSalonProfileUpdateEmailCta;
+
+  /// No description provided for @ownerSalonProfileUpdatePasswordCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get ownerSalonProfileUpdatePasswordCta;
+
+  /// No description provided for @ownerSalonProfileEmailUpdateRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a verification email to update your address.'**
+  String get ownerSalonProfileEmailUpdateRequested;
+
+  /// No description provided for @ownerSalonProfilePasswordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated.'**
+  String get ownerSalonProfilePasswordUpdated;
+
+  /// No description provided for @ownerSalonProfileSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved successfully.'**
+  String get ownerSalonProfileSaveSuccess;
+
+  /// No description provided for @ownerSalonProfileSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t save changes. Please try again.'**
+  String get ownerSalonProfileSaveError;
+
   /// No description provided for @ownerCustomerBookingTitle.
   ///
   /// In en, this message translates to:
@@ -16563,6 +16803,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Closed'**
   String get ownerCustomerBookingDayClosed;
+
+  /// No description provided for @ownerCustomerBookingFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get ownerCustomerBookingFrom;
+
+  /// No description provided for @ownerCustomerBookingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get ownerCustomerBookingTo;
 
   /// No description provided for @ownerCustomerBookingSettingsSubtitle.
   ///
@@ -17991,6 +18243,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attendance log'**
   String get employeeAttendanceTabHistoryTitle;
+
+  /// No description provided for @employeeAttendanceTabHistoryLastSevenDaysSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get employeeAttendanceTabHistoryLastSevenDaysSubtitle;
+
+  /// No description provided for @employeeAttendanceViewAllLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'View all logs'**
+  String get employeeAttendanceViewAllLogs;
+
+  /// No description provided for @employeeAttendanceLogsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance logs'**
+  String get employeeAttendanceLogsScreenTitle;
+
+  /// No description provided for @employeeAttendanceFilterThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get employeeAttendanceFilterThisWeek;
+
+  /// No description provided for @employeeAttendanceFilterThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get employeeAttendanceFilterThisMonth;
+
+  /// No description provided for @employeeAttendanceFilterCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get employeeAttendanceFilterCustom;
+
+  /// No description provided for @employeeAttendanceCustomRangeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get employeeAttendanceCustomRangeFrom;
+
+  /// No description provided for @employeeAttendanceCustomRangeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get employeeAttendanceCustomRangeTo;
+
+  /// No description provided for @employeeAttendanceLogsEmptyForRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance records for this period.'**
+  String get employeeAttendanceLogsEmptyForRange;
 
   /// No description provided for @employeeAttendanceTabEmptyHistory.
   ///

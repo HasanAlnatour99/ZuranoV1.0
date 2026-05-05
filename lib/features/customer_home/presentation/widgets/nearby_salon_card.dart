@@ -221,21 +221,30 @@ class _NearbySalonCardState extends State<NearbySalonCard> {
                         color: ZuranoCustomerColors.discountGreen,
                       ),
                     ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
+                  // In a Row, non-flex children can receive unconstrained width.
+                  // Constrain this button to avoid theme minimumSize = infinite width crashes.
+                  SizedBox(
+                    width: 116,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        backgroundColor: ZuranoCustomerColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
-                      backgroundColor: ZuranoCustomerColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                      onPressed: widget.onBookNow,
+                      child: Text(
+                        l10n.zuranoNearbyBookNow,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
-                    onPressed: widget.onBookNow,
-                    child: Text(l10n.zuranoNearbyBookNow),
                   ),
                 ],
               ),

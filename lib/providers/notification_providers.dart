@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/user_roles.dart';
+import '../features/employee_notifications/application/employee_notifications_providers.dart';
 import '../features/notifications/data/notification_model.dart';
 import '../features/notifications/domain/enums/notification_role_scope.dart';
 import '../features/notifications/logic/fcm_registration_service.dart';
@@ -35,9 +36,9 @@ final userNotificationsStreamProvider =
           .watchNotifications(authUid);
     });
 
-/// Unread count for the **same** salon notification center as
-/// [AppRoutes.notifications] → [RoleNotificationScreen]
-/// (`salons/{salonId}/notifications`). Not `users/{uid}/notifications` (FCM inbox).
+/// Unread badge: **barber / employee / readonly** use `users/{uid}/notifications`
+/// ([EmployeeNotificationsScreen]). **Owner, admin, customer** use the salon
+/// inbox via [RoleNotificationScreen] (`salons/{salonId}/notifications`).
 final unreadNotificationCountProvider = Provider.autoDispose<int>((ref) {
   final session = ref.watch(sessionUserProvider).asData?.value;
   final authUid = ref.watch(firebaseAuthProvider).currentUser?.uid;
@@ -51,6 +52,15 @@ final unreadNotificationCountProvider = Provider.autoDispose<int>((ref) {
   }
 
   final salonId = session.salonId?.trim() ?? '';
+
+  if (role == UserRoles.employee ||
+      role == UserRoles.barber ||
+      role == UserRoles.readonly) {
+    return ref
+        .watch(employeeNotificationUnreadCountProvider(authUid))
+        .maybeWhen(data: (n) => n, orElse: () => 0);
+  }
+
   if (salonId.isEmpty) {
     return 0;
   }
@@ -60,7 +70,7 @@ final unreadNotificationCountProvider = Provider.autoDispose<int>((ref) {
     scope = NotificationRoleScope.customer;
   } else if (role == UserRoles.owner) {
     scope = NotificationRoleScope.ownerAdmin;
-  } else if (UserRoles.isStaffRole(role)) {
+  } else if (role == UserRoles.admin) {
     scope = NotificationRoleScope.employee;
   } else {
     return 0;

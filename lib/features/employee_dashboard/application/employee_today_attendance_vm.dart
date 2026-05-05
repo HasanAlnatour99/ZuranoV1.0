@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -8,7 +7,6 @@ import '../../../l10n/app_localizations.dart';
 import '../../employee_today/data/models/et_attendance_day.dart';
 import '../../employee_today/data/models/et_attendance_punch.dart';
 import '../../employee_today/data/models/employee_workplace_location_snapshot.dart';
-import '../../employee_today/domain/attendance_action_rules.dart';
 import '../../employee_today/domain/break_allowance_math.dart';
 import '../../employee_today/domain/attendance_punch_sequence.dart';
 import '../../employee_today/domain/attendance_status.dart';
@@ -189,14 +187,6 @@ class EmployeeTodayAttendanceVm {
         !isCheckedOut) {
       allowedTypes.add(AttendancePunchType.breakIn);
       next = AttendancePunchType.breakIn;
-    }
-    final machine = AttendanceActionsState.fromAttendanceStatus(dayStatus);
-    if (kDebugMode) {
-      debugPrint(
-        'ATTENDANCE_UI: dayStatus=${dayStatus.name} seq=$seq '
-        'resolverAllowed=${resolution.allowedTypes} mergedAllowed=$allowedTypes '
-        'next=$next machineBreakIn=${machine.canBreakIn}',
-      );
     }
     final canPunch =
         next != null &&

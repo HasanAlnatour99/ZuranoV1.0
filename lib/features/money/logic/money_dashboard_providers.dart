@@ -17,6 +17,11 @@ enum MoneyInsightKind { topBarber, topService, largestExpenseCategory }
 /// X-axis bucketing for the Finance dashboard sales vs expenses chart.
 enum MoneyChartGranularity { daily, weekly, monthly, yearly }
 
+bool _isExpenseInLocalMonth(Expense expense, int year, int month) {
+  final local = DateUtils.dateOnly(expense.incurredAt.toLocal());
+  return local.year == year && local.month == month;
+}
+
 class MoneyChartGranularityNotifier extends Notifier<MoneyChartGranularity> {
   @override
   MoneyChartGranularity build() => MoneyChartGranularity.daily;
@@ -193,8 +198,7 @@ MoneyDashboardSummary buildMoneyDashboardSummaryForMonth({
     return true;
   });
   final mExpenses = expenses.where((expense) {
-    if (expense.reportYear != month.year ||
-        expense.reportMonth != month.month) {
+    if (!_isExpenseInLocalMonth(expense, month.year, month.month)) {
       return false;
     }
     if (inclusiveEndDay != null &&
@@ -273,10 +277,7 @@ final totalExpensesThisMonthProvider = Provider<double>((ref) {
       ref.watch(expensesStreamProvider).asData?.value ?? const <Expense>[];
   final now = DateTime.now();
   return expenses
-      .where(
-        (expense) =>
-            expense.reportYear == now.year && expense.reportMonth == now.month,
-      )
+      .where((expense) => _isExpenseInLocalMonth(expense, now.year, now.month))
       .fold<double>(0, (sum, expense) => sum + expense.amount);
 });
 
@@ -305,8 +306,7 @@ final expenseCategoryBreakdownProvider = Provider<List<MoneyCategoryBreakdown>>(
     final now = DateTime.now();
     return _buildCategoryBreakdown(
       expenses.where(
-        (expense) =>
-            expense.reportYear == now.year && expense.reportMonth == now.month,
+        (expense) => _isExpenseInLocalMonth(expense, now.year, now.month),
       ),
     );
   },
@@ -626,7 +626,7 @@ List<MoneyTrendPoint> _moneyTrendPointsDaily(
   }
 
   for (final expense in expenses) {
-    if (expense.reportYear != y || expense.reportMonth != m) {
+    if (!_isExpenseInLocalMonth(expense, y, m)) {
       continue;
     }
     final day = DateUtils.dateOnly(expense.incurredAt.toLocal());
@@ -677,7 +677,7 @@ List<MoneyTrendPoint> _moneyTrendPointsWeekly(
     addWeek(DateUtils.dateOnly(sale.soldAt.toLocal()), sale.total, 0);
   }
   for (final expense in expenses) {
-    if (expense.reportYear != y || expense.reportMonth != m) {
+    if (!_isExpenseInLocalMonth(expense, y, m)) {
       continue;
     }
     addWeek(DateUtils.dateOnly(expense.incurredAt.toLocal()), 0, expense.amount);
@@ -732,7 +732,7 @@ List<MoneyTrendPoint> _moneyTrendPointsMonthly(
       }
     }
     for (final expense in expenses) {
-      if (expense.reportYear == y && expense.reportMonth == m) {
+      if (_isExpenseInLocalMonth(expense, y, m)) {
         e += expense.amount;
       }
     }
@@ -761,7 +761,7 @@ List<MoneyTrendPoint> _moneyTrendPointsYearly(
       }
     }
     for (final expense in expenses) {
-      if (expense.reportYear == year) {
+      if (DateUtils.dateOnly(expense.incurredAt.toLocal()).year == year) {
         e += expense.amount;
       }
     }

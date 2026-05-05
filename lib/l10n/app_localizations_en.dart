@@ -7444,6 +7444,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get employeeSalesViewAllHistory => 'View all';
+
+  @override
+  String get employeeSalesHistoryScreenTitle => 'Sales history';
+
+  @override
+  String get employeeSalesHistoryEmptyForRange => 'No sales for this period.';
+
+  @override
   String get addSaleReceiptSectionTitle => 'Receipt photo';
 
   @override
@@ -9349,6 +9358,126 @@ class AppLocalizationsEn extends AppLocalizations {
       'Control online booking, availability, and public visibility';
 
   @override
+  String get ownerSalonProfileTileTitle => 'Salon profile';
+
+  @override
+  String get ownerSalonProfileTileSubtitle =>
+      'Update salon name, photos, cover, and account security';
+
+  @override
+  String get ownerSalonProfileTitle => 'Salon profile';
+
+  @override
+  String get ownerSalonProfileLoadError =>
+      'Couldn’t load salon profile. Please try again.';
+
+  @override
+  String get ownerSalonProfileSectionBasics => 'Basics';
+
+  @override
+  String get ownerSalonProfileSectionBasicsHint =>
+      'Public salon name customers will see';
+
+  @override
+  String get ownerSalonProfileCountryLabel => 'Country / region';
+
+  @override
+  String get ownerSalonProfileCountryHint => 'Used to auto-set the currency';
+
+  @override
+  String get ownerSalonProfileCountryPickTitle => 'Choose country';
+
+  @override
+  String get ownerSalonProfileCountrySearchHint => 'Search country…';
+
+  @override
+  String get ownerSalonProfileCountryUpdated => 'Country updated.';
+
+  @override
+  String get ownerSalonProfileSaveNameCta => 'Save name';
+
+  @override
+  String get ownerSalonProfileNameUpdated => 'Salon name updated.';
+
+  @override
+  String get ownerSalonProfileSectionPhotos => 'Photos';
+
+  @override
+  String get ownerSalonProfileSectionPhotosHint =>
+      'Upload up to 5 photos and pick a cover';
+
+  @override
+  String get ownerSalonProfilePhotosEmpty =>
+      'No photos yet. Add a few to make your profile stand out.';
+
+  @override
+  String get ownerSalonProfileAddPhoto => 'Add photo';
+
+  @override
+  String get ownerSalonProfilePhotosLimit => 'You can upload up to 5 photos.';
+
+  @override
+  String get ownerSalonProfilePhotoAdded => 'Photo uploaded.';
+
+  @override
+  String get ownerSalonProfilePhotoRemoved => 'Photo removed.';
+
+  @override
+  String get ownerSalonProfileSetCover => 'Set cover';
+
+  @override
+  String get ownerSalonProfileCoverBadge => 'Cover';
+
+  @override
+  String get ownerSalonProfileCoverUpdated => 'Cover photo updated.';
+
+  @override
+  String get ownerSalonProfileSectionAccount => 'Account';
+
+  @override
+  String get ownerSalonProfileSectionAccountHint =>
+      'Update your email and password (requires current password)';
+
+  @override
+  String get ownerSalonProfileReauthTitle => 'Confirm it’s you';
+
+  @override
+  String get ownerSalonProfileReauthHint =>
+      'Enter your current password to update your email address.';
+
+  @override
+  String get ownerSalonProfileConfirmCta => 'Confirm';
+
+  @override
+  String get ownerSalonProfileEmailLabel => 'Email';
+
+  @override
+  String get ownerSalonProfileCurrentPasswordLabel => 'Current password';
+
+  @override
+  String get ownerSalonProfileNewPasswordLabel => 'New password';
+
+  @override
+  String get ownerSalonProfileUpdateEmailCta => 'Update email';
+
+  @override
+  String get ownerSalonProfileUpdatePasswordCta => 'Update password';
+
+  @override
+  String get ownerSalonProfileEmailUpdateRequested =>
+      'We sent a verification email to update your address.';
+
+  @override
+  String get ownerSalonProfilePasswordUpdated => 'Password updated.';
+
+  @override
+  String get ownerSalonProfileSaveSuccess => 'Saved successfully.';
+
+  @override
+  String get ownerSalonProfileSaveError =>
+      'Couldn’t save changes. Please try again.';
+
+  @override
   String get ownerCustomerBookingTitle => 'Customer booking';
 
   @override
@@ -9484,6 +9613,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ownerCustomerBookingDayClosed => 'Closed';
+
+  @override
+  String get ownerCustomerBookingFrom => 'From';
+
+  @override
+  String get ownerCustomerBookingTo => 'To';
 
   @override
   String get ownerCustomerBookingSettingsSubtitle =>
@@ -10267,6 +10402,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get employeeAttendanceTabHistoryTitle => 'Attendance log';
+
+  @override
+  String get employeeAttendanceTabHistoryLastSevenDaysSubtitle => 'Last 7 days';
+
+  @override
+  String get employeeAttendanceViewAllLogs => 'View all logs';
+
+  @override
+  String get employeeAttendanceLogsScreenTitle => 'Attendance logs';
+
+  @override
+  String get employeeAttendanceFilterThisWeek => 'This week';
+
+  @override
+  String get employeeAttendanceFilterThisMonth => 'This month';
+
+  @override
+  String get employeeAttendanceFilterCustom => 'Custom';
+
+  @override
+  String get employeeAttendanceCustomRangeFrom => 'From';
+
+  @override
+  String get employeeAttendanceCustomRangeTo => 'To';
+
+  @override
+  String get employeeAttendanceLogsEmptyForRange =>
+      'No attendance records for this period.';
 
   @override
   String get employeeAttendanceTabEmptyHistory => 'No attendance records yet';

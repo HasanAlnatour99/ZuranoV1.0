@@ -35,6 +35,61 @@ class AuthRepository {
     await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
   }
 
+  Future<void> updateEmailWithPassword({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-authenticated',
+        message: 'Not signed in.',
+      );
+    }
+    final email = user.email;
+    if (email == null || email.trim().isEmpty) {
+      throw FirebaseAuthException(
+        code: 'email-missing',
+        message: 'Account has no email to reauthenticate.',
+      );
+    }
+    final cred = EmailAuthProvider.credential(
+      email: email.trim(),
+      password: currentPassword,
+    );
+    await user.reauthenticateWithCredential(cred);
+    // firebase_auth no longer exposes `updateEmail` directly in newer versions;
+    // this sends a verification email and updates after verification.
+    await user.verifyBeforeUpdateEmail(newEmail.trim().toLowerCase());
+    await user.reload();
+  }
+
+  Future<void> updatePasswordWithPassword({
+    required String newPassword,
+    required String currentPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-authenticated',
+        message: 'Not signed in.',
+      );
+    }
+    final email = user.email;
+    if (email == null || email.trim().isEmpty) {
+      throw FirebaseAuthException(
+        code: 'email-missing',
+        message: 'Account has no email to reauthenticate.',
+      );
+    }
+    final cred = EmailAuthProvider.credential(
+      email: email.trim(),
+      password: currentPassword,
+    );
+    await user.reauthenticateWithCredential(cred);
+    await user.updatePassword(newPassword);
+  }
+
   /// Customer email/password signup with optional structured phone + address
   /// (city, country) written in the initial `users/{uid}` document.
   Future<String> registerCustomerWithEmail({

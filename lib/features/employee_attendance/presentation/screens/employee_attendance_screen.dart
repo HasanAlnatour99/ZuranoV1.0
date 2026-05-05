@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../../employee/attendance/data/services/employee_live_worked_minutes.dart';
@@ -60,7 +61,7 @@ class _EmployeeAttendanceScreenState extends ConsumerState<EmployeeAttendanceScr
 
     final profileAsync = ref.watch(employeeAttendanceProfileProvider);
     final todayAsync = ref.watch(todayEmployeeAttendanceProvider);
-    final historyAsync = ref.watch(employeeAttendanceHistoryProvider);
+    final historyAsync = ref.watch(employeeAttendanceLastSevenDaysProvider);
     final day = ref.watch(etTodayAttendanceDayProvider);
     final punches = ref.watch(etTodayPunchesProvider);
 
@@ -82,7 +83,7 @@ class _EmployeeAttendanceScreenState extends ConsumerState<EmployeeAttendanceScr
           onRetry: () {
             ref.invalidate(employeeAttendanceProfileProvider);
             ref.invalidate(todayEmployeeAttendanceProvider);
-            ref.invalidate(employeeAttendanceHistoryProvider);
+            ref.invalidate(employeeAttendanceLastSevenDaysProvider);
           },
         ),
         data: (profile) {
@@ -90,7 +91,7 @@ class _EmployeeAttendanceScreenState extends ConsumerState<EmployeeAttendanceScr
             onRefresh: () async {
               ref.invalidate(employeeAttendanceProfileProvider);
               ref.invalidate(todayEmployeeAttendanceProvider);
-              ref.invalidate(employeeAttendanceHistoryProvider);
+              ref.invalidate(employeeAttendanceLastSevenDaysProvider);
               ref.invalidate(etTodayAttendanceDayProvider);
               ref.invalidate(etTodayPunchesProvider);
               await ref.read(todayEmployeeAttendanceProvider.future);
@@ -105,7 +106,7 @@ class _EmployeeAttendanceScreenState extends ConsumerState<EmployeeAttendanceScr
                   onWorkspaceLinkRetry: () {
                     ref.invalidate(employeeAttendanceProfileProvider);
                     ref.invalidate(todayEmployeeAttendanceProvider);
-                    ref.invalidate(employeeAttendanceHistoryProvider);
+                    ref.invalidate(employeeAttendanceLastSevenDaysProvider);
                     ref.invalidate(workspaceEmployeeProvider);
                     ref.invalidate(etTodayAttendanceDayProvider);
                     ref.invalidate(etTodayPunchesProvider);
@@ -134,15 +135,26 @@ class _EmployeeAttendanceScreenState extends ConsumerState<EmployeeAttendanceScr
                     ),
                     const SizedBox(height: 20),
                     historyAsync.when(
-                      loading: () => const AttendanceTimelineSkeleton(),
+                      loading: () => AttendanceTimelineList(
+                        records: const [],
+                        isLoading: true,
+                        periodSubtitle: l10n.employeeAttendanceTabHistoryLastSevenDaysSubtitle,
+                        onViewAll: () => context.push(
+                          AppRoutes.employeeAttendanceLogs,
+                        ),
+                      ),
                       error: (error, _) => _SmallErrorCard(
                         text: l10n.employeeAttendanceTabErrorHistory,
                         onRetry: () => ref.invalidate(
-                          employeeAttendanceHistoryProvider,
+                          employeeAttendanceLastSevenDaysProvider,
                         ),
                       ),
                       data: (records) => AttendanceTimelineList(
                         records: records,
+                        periodSubtitle: l10n.employeeAttendanceTabHistoryLastSevenDaysSubtitle,
+                        onViewAll: () => context.push(
+                          AppRoutes.employeeAttendanceLogs,
+                        ),
                       ),
                     ),
                   ]),

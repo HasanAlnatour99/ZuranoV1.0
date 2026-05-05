@@ -33,6 +33,7 @@ class OwnerOverviewInputs {
     required this.services,
     required this.attendanceToday,
     required this.pendingAttendanceRequests,
+    required this.pendingAttendancePunchRequestsCount,
     required this.pendingAttendanceCorrectionCount,
     required this.payroll,
     required this.expenses,
@@ -53,6 +54,9 @@ class OwnerOverviewInputs {
   /// the actionable "Needs attention" row and the review screen badge.
   final List<AttendanceRecord> pendingAttendanceRequests;
 
+  /// `salons/{salonId}/attendanceRequests` with `status == pending`.
+  final int pendingAttendancePunchRequestsCount;
+
   /// `salons/{salonId}/attendanceCorrectionRequests` with `status == pending`.
   final int pendingAttendanceCorrectionCount;
 
@@ -66,6 +70,7 @@ class OwnerOverviewInputs {
 /// Riverpod providers.
 OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   final now = input.now;
+  final utcNow = now.toUtc();
   final salon = input.salon;
 
   // --- Sales aggregations -------------------------------------------------
@@ -93,7 +98,7 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   );
 
   final monthSales = completedSales
-      .where((s) => s.reportYear == now.year && s.reportMonth == now.month)
+      .where((s) => s.reportYear == utcNow.year && s.reportMonth == utcNow.month)
       .toList();
   final monthRevenue = monthSales.fold<double>(0, (a, s) => a + _saleTotal(s));
 
@@ -221,6 +226,7 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
       .where((a) => a.approvalStatus == AttendanceApprovalStatuses.pending)
       .length;
   final pendingApprovalsCount = legacyAttendanceApprovalPending +
+      input.pendingAttendancePunchRequestsCount +
       input.pendingAttendanceCorrectionCount;
 
   // --- Services aggregations ---------------------------------------------
@@ -262,7 +268,7 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
 
   // --- Expenses & payroll ------------------------------------------------
   final expensesThisMonth = input.expenses
-      .where((e) => e.reportYear == now.year && e.reportMonth == now.month)
+      .where((e) => e.reportYear == utcNow.year && e.reportMonth == utcNow.month)
       .fold<double>(0, (a, e) => a + e.amount);
 
   final payrollRunExists = input.payroll.any(
@@ -587,6 +593,9 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
   final pendingRequestsAsync = ref.watch(
     pendingAttendanceRequestsStreamProvider,
   );
+  final pendingPunchRequestsCountAsync = ref.watch(
+    pendingAttendancePunchRequestsCountStreamProvider,
+  );
   final pendingCorrectionsAsync = ref.watch(
     pendingAttendanceCorrectionCountStreamProvider,
   );
@@ -608,6 +617,7 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
         servicesAsync,
         attendanceAsync,
         pendingRequestsAsync,
+        pendingPunchRequestsCountAsync,
         pendingCorrectionsAsync,
         payrollAsync,
         expensesAsync,
@@ -626,6 +636,8 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
     services: servicesAsync.asData?.value ?? const [],
     attendanceToday: attendanceAsync.asData?.value ?? const [],
     pendingAttendanceRequests: pendingRequestsAsync.asData?.value ?? const [],
+    pendingAttendancePunchRequestsCount:
+        pendingPunchRequestsCountAsync.asData?.value ?? 0,
     pendingAttendanceCorrectionCount:
         pendingCorrectionsAsync.asData?.value ?? 0,
     payroll: payrollAsync.asData?.value ?? const [],

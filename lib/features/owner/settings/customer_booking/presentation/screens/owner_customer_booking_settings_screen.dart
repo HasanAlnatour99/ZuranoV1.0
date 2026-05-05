@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_spacing.dart';
+import '../../../../../../core/booking/availability_schedule.dart';
 import '../../../../../../features/customer/data/models/customer_booking_settings_model.dart';
 import '../../../../../../features/customer/data/repositories/customer_booking_settings_repository.dart';
 import '../../../../../../features/settings/presentation/widgets/zurano/settings_section_card.dart';
@@ -11,6 +13,11 @@ import '../../../../../../features/settings/presentation/widgets/zurano/zurano_p
 import '../../../../../../features/settings/presentation/widgets/zurano/zurano_top_bar.dart';
 import '../../../../../../l10n/app_localizations.dart';
 import '../../../../../../providers/session_provider.dart';
+import '../../../../../../providers/salon_streams_provider.dart'
+    show sessionSalonStreamProvider;
+import '../../../../../../providers/repository_providers.dart'
+    show salonRepositoryProvider;
+import '../../../../../../features/salon/data/models/salon.dart';
 import '../../application/customer_booking_salon_settings_providers.dart';
 
 class OwnerCustomerBookingSettingsScreen extends ConsumerStatefulWidget {
@@ -33,6 +40,9 @@ class _OwnerCustomerBookingSettingsScreenState
   CustomerBookingSettingsModel? _baseline;
   bool _seeded = false;
   late final TextEditingController _messageController;
+  WeeklyAvailability? _weeklyDraft;
+  WeeklyAvailability? _weeklyBaseline;
+  bool _weeklySeeded = false;
 
   @override
   void initState() {
@@ -71,7 +81,105 @@ class _OwnerCustomerBookingSettingsScreenState
       return false;
     }
     final msg = _messageController.text;
-    return !d.samePolicyAs(b) || msg != b.publicBookingMessage;
+    return !d.samePolicyAs(b) ||
+        msg != b.publicBookingMessage ||
+        !_sameWeekly(_weeklyDraft, _weeklyBaseline);
+  }
+
+  bool _sameWeekly(WeeklyAvailability? a, WeeklyAvailability? b) {
+    final am = a?.byWeekday ?? const <int, DaySchedule>{};
+    final bm = b?.byWeekday ?? const <int, DaySchedule>{};
+    if (am.length != bm.length) return false;
+    for (final w in <int>[1, 2, 3, 4, 5, 6, 7]) {
+      final ad = am[w];
+      final bd = bm[w];
+      if (ad == null && bd == null) continue;
+      if (ad == null || bd == null) return false;
+      if (ad.isDayOff != bd.isDayOff) return false;
+      if (ad.openMinute != bd.openMinute) return false;
+      if (ad.closeMinute != bd.closeMinute) return false;
+      // breaks not editable in this UI yet; treat both as same if both empty.
+      if (ad.breaks.isNotEmpty || bd.breaks.isNotEmpty) {
+        if (ad.breaks.length != bd.breaks.length) return false;
+        for (var i = 0; i < ad.breaks.length; i++) {
+          if (ad.breaks[i].$1 != bd.breaks[i].$1 ||
+              ad.breaks[i].$2 != bd.breaks[i].$2) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  WeeklyAvailability _defaultWeekly() {
+    return WeeklyAvailability({
+      for (final w in <int>[1, 2, 3, 4, 5, 6, 7]) w: DaySchedule.defaultWindow(),
+    });
+  }
+
+  void _syncWeeklyFromSalonInBuild(Salon salon) {
+    if (_weeklySeeded) {
+      if (_dirty) return;
+      _weeklyDraft = salon.weeklyAvailability ?? _defaultWeekly();
+      _weeklyBaseline = _weeklyDraft;
+      return;
+    }
+    _weeklyDraft = salon.weeklyAvailability ?? _defaultWeekly();
+    _weeklyBaseline = _weeklyDraft;
+    _weeklySeeded = true;
+  }
+
+  String _weekdayLabel(BuildContext context, int weekday) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    // 2020-01-06 is a Monday.
+    final base = DateTime(2020, 1, 6).add(Duration(days: weekday - 1));
+    return DateFormat.EEEE(locale).format(base);
+  }
+
+  int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
+
+  TimeOfDay _fromMinutes(int minutes) =>
+      TimeOfDay(hour: (minutes ~/ 60) % 24, minute: minutes % 60);
+
+  Future<void> _pickTime({
+    required int weekday,
+    required bool pickOpen,
+  }) async {
+    final current = _weeklyDraft ?? _defaultWeekly();
+    final existing = current.byWeekday[weekday] ?? DaySchedule.defaultWindow();
+    final initial = pickOpen
+        ? _fromMinutes(existing.openMinute)
+        : _fromMinutes(existing.closeMinute);
+    final picked = await showTimePicker(context: context, initialTime: initial);
+    if (picked == null || !mounted) return;
+    final nextDay = DaySchedule(
+      isDayOff: existing.isDayOff,
+      openMinute: pickOpen ? _toMinutes(picked) : existing.openMinute,
+      closeMinute: pickOpen ? existing.closeMinute : _toMinutes(picked),
+      breaks: existing.breaks,
+    );
+    setState(() {
+      _weeklyDraft = WeeklyAvailability({...current.byWeekday, weekday: nextDay});
+    });
+  }
+
+  String _timeLabel(BuildContext context, int minutes) {
+    return MaterialLocalizations.of(context).formatTimeOfDay(
+      _fromMinutes(minutes),
+      alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
+    );
+  }
+
+  String? _weeklyValidationErrorKey(WeeklyAvailability weekly) {
+    for (final w in <int>[1, 2, 3, 4, 5, 6, 7]) {
+      final d = weekly.byWeekday[w] ?? DaySchedule.defaultWindow();
+      if (d.isDayOff) continue;
+      if (d.closeMinute <= d.openMinute) {
+        return 'timeOrder';
+      }
+    }
+    return null;
   }
 
   CustomerBookingSettingsModel _draftWithMessage() {
@@ -101,6 +209,16 @@ class _OwnerCustomerBookingSettingsScreenState
       ).showSnackBar(SnackBar(content: Text(_validationMessage(l10n, err))));
       return;
     }
+    final weekly = _weeklyDraft;
+    if (weekly != null) {
+      final weeklyErr = _weeklyValidationErrorKey(weekly);
+      if (weeklyErr == 'timeOrder') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.ownerCustomerBookingValidationTimeOrder)),
+        );
+        return;
+      }
+    }
     await ref
         .read(customerBookingSettingsControllerProvider.notifier)
         .save(salonId: salonId, settings: merged, updatedByUid: uid);
@@ -117,14 +235,62 @@ class _OwnerCustomerBookingSettingsScreenState
       ref.read(customerBookingSettingsControllerProvider.notifier).reset();
       return;
     }
+
+    final salon = ref.read(sessionSalonStreamProvider).asData?.value;
+    final needsWeeklySave =
+        salon != null && weekly != null && !_sameWeekly(weekly, _weeklyBaseline);
+    if (needsWeeklySave) {
+      try {
+        await ref
+            .read(salonRepositoryProvider)
+            .updateSalon(salon.copyWith(weeklyAvailability: weekly));
+      } catch (_) {
+        // Keep booking settings saved; surface a warning.
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.ownerCustomerBookingSaveError)),
+        );
+        return;
+      }
+    }
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.ownerCustomerBookingSaveSuccess)),
     );
     setState(() {
       _baseline = merged;
       _draft = merged;
+      _weeklyBaseline = weekly ?? _weeklyBaseline;
     });
     ref.read(customerBookingSettingsControllerProvider.notifier).reset();
+  }
+
+  Future<void> _saveSalonVisibility({
+    required String salonId,
+    required Salon salon,
+    required bool publish,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(salonRepositoryProvider)
+          .updateSalon(salon.copyWith(isPublished: publish));
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            publish
+                ? AppLocalizations.of(context)!.ownerCustomerBookingShowSalon
+                : AppLocalizations.of(context)!.ownerCustomerBookingShowSalonHint,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   @override
@@ -134,6 +300,7 @@ class _OwnerCustomerBookingSettingsScreenState
     final user = session.asData?.value;
     final salonId = user?.salonId?.trim() ?? '';
     final saveAsync = ref.watch(customerBookingSettingsControllerProvider);
+    final salonAsync = ref.watch(sessionSalonStreamProvider);
 
     if (salonId.isEmpty) {
       return ZuranoPageScaffold(
@@ -189,7 +356,16 @@ class _OwnerCustomerBookingSettingsScreenState
                 data: (server) {
                   _syncFromServerInBuild(server);
                   final d = _draft ?? server;
-                  return ListView(
+                  final salon = salonAsync.asData?.value;
+                  if (salon != null) {
+                    _syncWeeklyFromSalonInBuild(salon);
+                  }
+                  return GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    child: ListView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                     children: [
                       _HeaderCard(
@@ -197,6 +373,142 @@ class _OwnerCustomerBookingSettingsScreenState
                         l10n: l10n,
                       ),
                       const SizedBox(height: 14),
+                      if (salon != null) ...[
+                        SettingsSectionCard(
+                          icon: Icons.public_rounded,
+                          title: l10n.ownerCustomerBookingSectionPublic,
+                          subtitle: l10n.ownerCustomerBookingSectionPublicHint,
+                          child: SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              l10n.ownerCustomerBookingShowSalon,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: ZuranoPremiumUiColors.textPrimary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              l10n.ownerCustomerBookingShowSalonHint,
+                              style: const TextStyle(
+                                color: ZuranoPremiumUiColors.textSecondary,
+                              ),
+                            ),
+                            value: salon.isPublished,
+                            onChanged: (v) => _saveSalonVisibility(
+                              salonId: salonId,
+                              salon: salon,
+                              publish: v,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        SettingsSectionCard(
+                          icon: Icons.schedule_rounded,
+                          title: l10n.ownerCustomerBookingWorkingHours,
+                          subtitle: l10n.ownerCustomerBookingSectionAvailability,
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton(
+                                      onPressed: () => setState(() {
+                                        final current =
+                                            _weeklyDraft ?? _defaultWeekly();
+                                        _weeklyDraft = WeeklyAvailability({
+                                          for (final w
+                                              in <int>[1, 2, 3, 4, 5, 6, 7])
+                                            w: DaySchedule(
+                                              isDayOff: false,
+                                              openMinute:
+                                                  current.byWeekday[w]?.openMinute ??
+                                                      DaySchedule.defaultWindow()
+                                                          .openMinute,
+                                              closeMinute:
+                                                  current.byWeekday[w]?.closeMinute ??
+                                                      DaySchedule.defaultWindow()
+                                                          .closeMinute,
+                                              breaks: const [],
+                                            ),
+                                        });
+                                      }),
+                                      child: Text(l10n.ownerCustomerBookingOpenAll),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: TextButton(
+                                      onPressed: () => setState(() {
+                                        final current =
+                                            _weeklyDraft ?? _defaultWeekly();
+                                        _weeklyDraft = WeeklyAvailability({
+                                          for (final w
+                                              in <int>[1, 2, 3, 4, 5, 6, 7])
+                                            w: DaySchedule(
+                                              isDayOff: true,
+                                              openMinute:
+                                                  current.byWeekday[w]?.openMinute ??
+                                                      0,
+                                              closeMinute:
+                                                  current.byWeekday[w]?.closeMinute ??
+                                                      0,
+                                              breaks: const [],
+                                            ),
+                                        });
+                                      }),
+                                      child: Text(l10n.ownerCustomerBookingCloseAll),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              for (final weekday in <int>[1, 2, 3, 4, 5, 6, 7])
+                                _WorkingDayRow(
+                                  label: _weekdayLabel(context, weekday),
+                                  isClosed: (_weeklyDraft?.byWeekday[weekday]
+                                              ?.isDayOff ??
+                                          false),
+                                  openLabel: l10n.ownerCustomerBookingFrom,
+                                  closeLabel: l10n.ownerCustomerBookingTo,
+                                  openTime: _timeLabel(
+                                    context,
+                                    _weeklyDraft?.byWeekday[weekday]?.openMinute ??
+                                        DaySchedule.defaultWindow().openMinute,
+                                  ),
+                                  closeTime: _timeLabel(
+                                    context,
+                                    _weeklyDraft?.byWeekday[weekday]?.closeMinute ??
+                                        DaySchedule.defaultWindow().closeMinute,
+                                  ),
+                                  onToggleClosed: (closed) => setState(() {
+                                    final current =
+                                        _weeklyDraft ?? _defaultWeekly();
+                                    final existing =
+                                        current.byWeekday[weekday] ??
+                                            DaySchedule.defaultWindow();
+                                    _weeklyDraft = WeeklyAvailability({
+                                      ...current.byWeekday,
+                                      weekday: DaySchedule(
+                                        isDayOff: closed,
+                                        openMinute: existing.openMinute,
+                                        closeMinute: existing.closeMinute,
+                                        breaks: existing.breaks,
+                                      ),
+                                    });
+                                  }),
+                                  onPickOpen: () => _pickTime(
+                                    weekday: weekday,
+                                    pickOpen: true,
+                                  ),
+                                  onPickClose: () => _pickTime(
+                                    weekday: weekday,
+                                    pickOpen: false,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
                       SettingsSectionCard(
                         icon: Icons.toggle_on_rounded,
                         title: l10n.ownerCustomerBookingEnableBooking,
@@ -349,6 +661,11 @@ class _OwnerCustomerBookingSettingsScreenState
                         child: TextField(
                           controller: _messageController,
                           onChanged: (_) => setState(() {}),
+                          keyboardType: TextInputType.text,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                           maxLines: 3,
                           maxLength: 250,
                           decoration: InputDecoration(
@@ -370,6 +687,7 @@ class _OwnerCustomerBookingSettingsScreenState
                         ),
                       ),
                     ],
+                    ),
                   );
                 },
               ),
@@ -459,6 +777,135 @@ class _OwnerCustomerBookingSettingsScreenState
               }
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WorkingDayRow extends StatelessWidget {
+  const _WorkingDayRow({
+    required this.label,
+    required this.isClosed,
+    required this.openLabel,
+    required this.closeLabel,
+    required this.openTime,
+    required this.closeTime,
+    required this.onToggleClosed,
+    required this.onPickOpen,
+    required this.onPickClose,
+  });
+
+  final String label;
+  final bool isClosed;
+  final String openLabel;
+  final String closeLabel;
+  final String openTime;
+  final String closeTime;
+  final ValueChanged<bool> onToggleClosed;
+  final VoidCallback onPickOpen;
+  final VoidCallback onPickClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: ZuranoPremiumUiColors.textPrimary,
+                  ),
+                ),
+              ),
+              Switch.adaptive(
+                value: !isClosed,
+                onChanged: (v) => onToggleClosed(!v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: _TimeChip(
+                  enabled: !isClosed,
+                  label: openLabel,
+                  value: openTime,
+                  onTap: onPickOpen,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _TimeChip(
+                  enabled: !isClosed,
+                  label: closeLabel,
+                  value: closeTime,
+                  onTap: onPickClose,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeChip extends StatelessWidget {
+  const _TimeChip({
+    required this.enabled,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  final bool enabled;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: enabled
+              ? ZuranoPremiumUiColors.lightSurface
+              : ZuranoPremiumUiColors.lightSurface.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: ZuranoPremiumUiColors.border),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: ZuranoPremiumUiColors.textSecondary,
+                ),
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: enabled
+                    ? ZuranoPremiumUiColors.textPrimary
+                    : ZuranoPremiumUiColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -80,6 +80,9 @@ class FirestorePaths {
   static const userDevices = 'devices';
   static const userNotifications = 'notifications';
   static const notificationSettings = 'notificationSettings';
+
+  /// Employee/customer inbox prefs (`users/{uid}/notificationSettings/main`).
+  static const userNotificationSettingsMainDocId = 'main';
   static const salonNotificationsCollection = 'notifications';
 
   static String userDevicesPath(String uid) => '${user(uid)}/$userDevices';
@@ -89,6 +92,9 @@ class FirestorePaths {
 
   static String userNotificationsPath(String uid) =>
       '${user(uid)}/$userNotifications';
+
+  static String userNotificationSettingsMainPath(String uid) =>
+      '${user(uid)}/$notificationSettings/$userNotificationSettingsMainDocId';
 
   static String salon(String salonId) => '$salons/$salonId';
 
@@ -194,6 +200,20 @@ class FirestorePaths {
     String docId,
   ) =>
       '${salonEmployeeDailyPerformanceCollection(salonId)}/$docId';
+
+  /// Server-maintained daily rollup (`employeeId_yyyyMMdd`). Cloud Functions only.
+  static const employeeDailyStats = 'employeeDailyStats';
+
+  static String salonEmployeeDailyStatsCollection(String salonId) =>
+      '${salon(salonId)}/$employeeDailyStats';
+
+  /// [dateKeyCompact] is `yyyyMMdd` (salon-local business day / aligned keys).
+  static String salonEmployeeDailyStatsDoc(
+    String salonId,
+    String employeeId,
+    String dateKeyCompact,
+  ) =>
+      '${salonEmployeeDailyStatsCollection(salonId)}/${employeeId}_$dateKeyCompact';
 
   static String salonSales(String salonId) => '${salon(salonId)}/$sales';
 

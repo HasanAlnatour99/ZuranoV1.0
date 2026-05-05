@@ -78,11 +78,11 @@ describe.skipIf(!hasFirestoreEmu)("firestore notifications rules", () => {
     );
   });
 
-  it("user can mark notification read with status + readAt only", async () => {
+  it("user can mark notification read with isRead + readAt only", async () => {
     const alice = env.authenticatedContext("user_a").firestore();
     await assertSucceeds(
       updateDoc(doc(alice, "users", "user_a", "notifications", "n1"), {
-        status: "read",
+        isRead: true,
         readAt: Timestamp.now(),
       }),
     );

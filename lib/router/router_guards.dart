@@ -97,7 +97,7 @@ bool _staffMayAccessLocation(String location, bool notificationPath) {
   if (location == AppRoutes.staffHome ||
       location == AppRoutes.legacyBarberDashboard ||
       location == AppRoutes.employeeDashboard ||
-      location == AppRoutes.employeeSales ||
+      AppRoutes.isEmployeeSalesPath(location) ||
       AppRoutes.isEmployeeAttendancePath(location) ||
       AppRoutes.isEmployeePayrollPath(location) ||
       location == AppRoutes.employeeAttendanceRequest ||
@@ -194,7 +194,7 @@ String? redirectAuthenticatedUser(
         location == AppRoutes.staffHome ||
         location == AppRoutes.legacyBarberDashboard ||
         location == AppRoutes.employeeDashboard ||
-        location == AppRoutes.employeeSales ||
+        AppRoutes.isEmployeeSalesPath(location) ||
         AppRoutes.isEmployeeAttendancePath(location) ||
         AppRoutes.isEmployeePayrollPath(location) ||
         location == AppRoutes.employeeAttendanceRequest ||
@@ -231,7 +231,7 @@ String? redirectAuthenticatedUser(
         location == AppRoutes.staffHome ||
         location == AppRoutes.legacyBarberDashboard ||
         location == AppRoutes.employeeDashboard ||
-        location == AppRoutes.employeeSales ||
+        AppRoutes.isEmployeeSalesPath(location) ||
         AppRoutes.isEmployeeAttendancePath(location) ||
         AppRoutes.isEmployeePayrollPath(location) ||
         location == AppRoutes.employeeAttendanceRequest ||
@@ -255,6 +255,8 @@ bool isAccountBootstrapPath(String location) =>
 bool isNotificationPath(String location) =>
     location == AppRoutes.notifications ||
     location == AppRoutes.notificationPreferences ||
+    location == AppRoutes.employeeNotificationsBase ||
+    location == AppRoutes.employeeNotificationSettings ||
     location.startsWith('${AppRoutes.customerNotificationsBase}/') ||
     location.startsWith('${AppRoutes.employeeNotificationsBase}/') ||
     location.startsWith('${AppRoutes.ownerNotificationsBase}/') ||

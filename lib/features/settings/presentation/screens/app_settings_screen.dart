@@ -507,6 +507,27 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       orElse: () => null,
     );
 
+    final salonProfileTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        final canManage =
+            u.role == UserRoles.owner || u.role == UserRoles.admin;
+        if (!canManage || !salonOk) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.storefront_outlined,
+          title: l10n.ownerSalonProfileTileTitle,
+          subtitle: l10n.ownerSalonProfileTileSubtitle,
+          onTap: () => context.push(AppRoutes.ownerSettingsSalonProfile),
+        );
+      },
+      orElse: () => null,
+    );
+
     final ownerShiftsTile = sessionAsync.maybeWhen(
       data: (AppUser? u) {
         if (u == null) {
@@ -550,6 +571,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     );
 
     final ownerSettingsTiles = <Widget>[
+      ?salonProfileTile,
       ?customerBookingTile,
       ?attendanceSettingsTile,
       ?ownerShiftsTile,

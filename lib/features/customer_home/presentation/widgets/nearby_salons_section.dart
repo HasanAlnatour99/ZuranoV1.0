@@ -44,9 +44,7 @@ class NearbySalonsSection extends ConsumerWidget {
           actionLabel: l10n.zuranoNearbyViewMap,
           leading: Icons.location_on_outlined,
           onAction: () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.zuranoNearbyMapSnack)));
+            context.push(AppRoutes.customerNearbyMap);
           },
         ),
         Padding(

@@ -10,6 +10,7 @@ import '../features/payroll/data/models/payslip_model.dart';
 import '../features/sales/data/models/sale.dart';
 import '../features/salon/data/models/salon.dart';
 import '../features/services/data/models/service.dart';
+import '../features/employee_dashboard/data/models/attendance_request_model.dart';
 import '../features/team_member_attendance/data/models/attendance_correction_request_model.dart';
 import '../features/violations/data/models/violation.dart';
 import 'firebase_providers.dart';
@@ -264,6 +265,33 @@ final pendingAttendanceCorrectionRequestsStreamProvider =
       );
     });
 
+/// Pending staff punch requests (`salons/{salonId}/attendanceRequests`).
+///
+/// These requests are submitted by employees and must be approved/rejected by
+/// owner/admin via [AttendanceRequestsAdminRepository].
+final pendingAttendancePunchRequestsStreamProvider =
+    StreamProvider<List<AttendanceRequestModel>>((ref) {
+      final repo = ref.watch(attendanceRequestsAdminRepositoryProvider);
+      return _guardedSalonStream<List<AttendanceRequestModel>>(
+        ref,
+        emptyValue: const <AttendanceRequestModel>[],
+        onSalon: repo.watchPending,
+      );
+    });
+
+/// Count wrapper for [pendingAttendancePunchRequestsStreamProvider] to keep the
+/// owner overview lightweight.
+final pendingAttendancePunchRequestsCountStreamProvider =
+    StreamProvider<int>((ref) {
+      final repo = ref.watch(attendanceRequestsAdminRepositoryProvider);
+      return _guardedSalonStream<int>(
+        ref,
+        emptyValue: 0,
+        onSalon: (salonId) =>
+            repo.watchPending(salonId).map((list) => list.length),
+      );
+    });
+
 /// Attendance rows for the current barber on a local calendar day.
 final barberAttendanceForDayStreamProvider =
     StreamProvider.family<List<AttendanceRecord>, AttendanceDayQuery>((
@@ -322,11 +350,19 @@ final expensesByMonthStreamProvider =
         ref,
         emptyValue: const <Expense>[],
         onSalon: (salonId) {
+          // Finance is displayed in **local calendar months**. Older expenses may
+          // have reportYear/reportMonth computed in UTC (or missing), so always
+          // query by incurredAt window for correctness.
+          final start = DateTime(month.year, month.month, 1);
+          final endExclusive = DateTime(month.year, month.month + 1, 1);
+          final endInclusive = endExclusive.subtract(
+            const Duration(milliseconds: 1),
+          );
           return repo.watchExpenses(
             salonId,
-            reportYear: month.year,
-            reportMonth: month.month,
-            limit: 800,
+            incurredFrom: start,
+            incurredTo: endInclusive,
+            limit: 2500,
           );
         },
       );

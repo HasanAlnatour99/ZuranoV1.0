@@ -9,12 +9,17 @@ String formatAppMoney(double amount, String currencyCode, Locale locale) {
     salonCountryIso: null,
   );
   try {
-    return NumberFormat.simpleCurrency(
-      name: code,
+    // Always show the ISO code (e.g. `202 QAR`, `202 SAR`) instead of
+    // locale-specific currency names/symbols (e.g. "Riyal", "ر.س").
+    final digits = amount % 1 == 0 ? 0 : 2;
+    final formatted = NumberFormat.decimalPatternDigits(
       locale: locale.toString(),
+      decimalDigits: digits,
     ).format(amount);
+    return '$formatted ${code.toUpperCase()}';
   } on Object {
-    return '${amount.toStringAsFixed(0)} $code';
+    final fixed = amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
+    return '$fixed ${code.toUpperCase()}';
   }
 }
 

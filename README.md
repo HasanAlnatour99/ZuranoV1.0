@@ -2,6 +2,10 @@
 
 A new Flutter project.
 
+## Collaborators and Cursor setup
+
+For onboarding a new machine or Cursor account, read **[docs/CURSOR_HANDOFF.md](docs/CURSOR_HANDOFF.md)** (architecture, Firebase/Firestore rules, localization, and suggested prompts). A **full inventory of rules and skills** for copying to another account is in **[docs/CURSOR_RULES_AND_SKILLS_INDEX.md](docs/CURSOR_RULES_AND_SKILLS_INDEX.md)**. Project AI rules live under **`.cursor/rules/`**.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

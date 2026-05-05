@@ -200,12 +200,18 @@ class _AdjustAbsentDaySheet extends ConsumerStatefulWidget {
 class _AdjustAbsentDaySheetState extends ConsumerState<_AdjustAbsentDaySheet> {
   final _reason = TextEditingController();
   final Set<String> _selectedIso = {};
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _submitting = false;
 
   @override
   void dispose() {
     _reason.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    _messengerKey.currentState?.hideCurrentSnackBar();
+    _messengerKey.currentState?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _iso(EtAttendanceDay d) {
@@ -218,16 +224,12 @@ class _AdjustAbsentDaySheetState extends ConsumerState<_AdjustAbsentDaySheet> {
 
   Future<void> _submit(AppLocalizations l10n) async {
     if (_selectedIso.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceStaffSelectDaysHint)),
-      );
+      _showError(l10n.employeeAttendanceStaffSelectDaysHint);
       return;
     }
     final r = _reason.text.trim();
     if (r.length < 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceTabRequestReasonTooShort)),
-      );
+      _showError(l10n.employeeAttendanceTabRequestReasonTooShort);
       return;
     }
     setState(() => _submitting = true);
@@ -247,9 +249,7 @@ class _AdjustAbsentDaySheetState extends ConsumerState<_AdjustAbsentDaySheet> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(mapStaffRequestError(l10n, e))),
-      );
+      _showError(mapStaffRequestError(l10n, e));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -263,127 +263,136 @@ class _AdjustAbsentDaySheetState extends ConsumerState<_AdjustAbsentDaySheet> {
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final absentAsync = ref.watch(absentDaysForAdjustmentProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
-        ),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFAF8FF),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD9C7FF),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Text(
-                  l10n.employeeAttendanceStaffAdjustAbsentTitle,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1D1233),
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAF8FF),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD9C7FF),
+                        borderRadius: BorderRadius.circular(99),
                       ),
-                ),
-              ),
-              Expanded(
-                child: absentAsync.when(
-                  data: (days) {
-                    if (days.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            l10n.employeeAttendanceStaffAdjustAbsentEmpty,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Text(
+                      l10n.employeeAttendanceStaffAdjustAbsentTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF1D1233),
                           ),
-                        ),
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: days.length,
-                      itemBuilder: (context, i) {
-                        final d = days[i];
-                        final iso = _iso(d);
-                        final checked = _selectedIso.contains(iso);
-                        return CheckboxListTile(
-                          value: checked,
-                          onChanged: _submitting
-                              ? null
-                              : (v) {
-                                  setState(() {
-                                    if (v == true) {
-                                      _selectedIso.add(iso);
-                                    } else {
-                                      _selectedIso.remove(iso);
-                                    }
-                                  });
-                                },
-                          title: Text(
-                            MaterialLocalizations.of(
-                              context,
-                            ).formatFullDate(d.date.toLocal()),
-                          ),
-                          subtitle: Text(l10n.employeeAttendanceStaffAbsentBadge),
+                    ),
+                  ),
+                  Expanded(
+                    child: absentAsync.when(
+                      data: (days) {
+                        if (days.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                l10n.employeeAttendanceStaffAdjustAbsentEmpty,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: days.length,
+                          itemBuilder: (context, i) {
+                            final d = days[i];
+                            final iso = _iso(d);
+                            final checked = _selectedIso.contains(iso);
+                            return CheckboxListTile(
+                              value: checked,
+                              onChanged: _submitting
+                                  ? null
+                                  : (v) {
+                                      setState(() {
+                                        if (v == true) {
+                                          _selectedIso.add(iso);
+                                        } else {
+                                          _selectedIso.remove(iso);
+                                        }
+                                      });
+                                    },
+                              title: Text(
+                                MaterialLocalizations.of(
+                                  context,
+                                ).formatFullDate(d.date.toLocal()),
+                              ),
+                              subtitle: Text(
+                                l10n.employeeAttendanceStaffAbsentBadge,
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('$e')),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: TextField(
-                  controller: _reason,
-                  minLines: 2,
-                  maxLines: 4,
-                  enabled: !_submitting,
-                  decoration: InputDecoration(
-                    labelText: l10n.employeeAttendanceStaffReasonLabel,
-                    hintText: l10n.employeeAttendanceTabRequestReasonHint,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Center(child: Text('$e')),
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: FilledButton(
-                  onPressed: _submitting ? null : () => _submit(l10n),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    child: TextField(
+                      controller: _reason,
+                      minLines: 2,
+                      maxLines: 4,
+                      enabled: !_submitting,
+                      decoration: InputDecoration(
+                        labelText: l10n.employeeAttendanceStaffReasonLabel,
+                        hintText: l10n.employeeAttendanceTabRequestReasonHint,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
                     ),
                   ),
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.employeeAttendanceTabRequestSubmit),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: FilledButton(
+                      onPressed: _submitting ? null : () => _submit(l10n),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: _submitting
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.employeeAttendanceTabRequestSubmit),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -405,12 +414,18 @@ class _AttendanceCorrectionSheetState
   DateTime _date = DateTime.now();
   TimeOfDay _time = TimeOfDay.now();
   final _reason = TextEditingController();
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _submitting = false;
 
   @override
   void dispose() {
     _reason.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    _messengerKey.currentState?.hideCurrentSnackBar();
+    _messengerKey.currentState?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _pickDate() async {
@@ -449,9 +464,7 @@ class _AttendanceCorrectionSheetState
   Future<void> _submit(AppLocalizations l10n) async {
     final r = _reason.text.trim();
     if (r.length < 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceTabRequestReasonTooShort)),
-      );
+      _showError(l10n.employeeAttendanceTabRequestReasonTooShort);
       return;
     }
     final dt = _combinedLocal();
@@ -472,9 +485,7 @@ class _AttendanceCorrectionSheetState
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(mapStaffRequestError(l10n, e))),
-      );
+      _showError(mapStaffRequestError(l10n, e));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -488,113 +499,124 @@ class _AttendanceCorrectionSheetState
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final loc = MaterialLocalizations.of(context);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            14,
-            20,
-            20 + MediaQuery.paddingOf(context).bottom,
-          ),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFAF8FF),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD9C7FF),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                14,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
               ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.employeeAttendanceTabRequestOptionCorrection,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAF8FF),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD9C7FF),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
                     ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.employeeAttendanceStaffCorrectionKindLabel,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 8),
-              SegmentedButton<AttendanceCorrectionKind>(
-                segments: [
-                  ButtonSegment(
-                    value: AttendanceCorrectionKind.missingPunchIn,
-                    label: Text(l10n.employeeAttendanceStaffCorrectionMissingIn),
                   ),
-                  ButtonSegment(
-                    value: AttendanceCorrectionKind.missingPunchOut,
-                    label: Text(l10n.employeeAttendanceStaffCorrectionMissingOut),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.employeeAttendanceTabRequestOptionCorrection,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.employeeAttendanceStaffCorrectionKindLabel,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<AttendanceCorrectionKind>(
+                    segments: [
+                      ButtonSegment(
+                        value: AttendanceCorrectionKind.missingPunchIn,
+                        label: Text(
+                          l10n.employeeAttendanceStaffCorrectionMissingIn,
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: AttendanceCorrectionKind.missingPunchOut,
+                        label: Text(
+                          l10n.employeeAttendanceStaffCorrectionMissingOut,
+                        ),
+                      ),
+                    ],
+                    selected: {_kind},
+                    onSelectionChanged: _submitting
+                        ? null
+                        : (s) {
+                            if (s.isEmpty) {
+                              return;
+                            }
+                            setState(() => _kind = s.first);
+                          },
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.employeeAttendanceStaffCorrectionDateLabel),
+                    subtitle: Text(loc.formatFullDate(_date)),
+                    trailing: const Icon(Icons.calendar_today_outlined),
+                    onTap: _submitting ? null : _pickDate,
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.employeeAttendanceStaffCorrectionTimeLabel),
+                    subtitle: Text(_time.format(context)),
+                    trailing: const Icon(Icons.schedule_rounded),
+                    onTap: _submitting ? null : _pickTime,
+                  ),
+                  TextField(
+                    controller: _reason,
+                    minLines: 3,
+                    maxLines: 5,
+                    enabled: !_submitting,
+                    decoration: InputDecoration(
+                      labelText: l10n.employeeAttendanceStaffReasonLabel,
+                      hintText: l10n.employeeAttendanceTabRequestReasonHint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _submitting ? null : () => _submit(l10n),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.employeeAttendanceTabRequestSubmit),
                   ),
                 ],
-                selected: {_kind},
-                onSelectionChanged: _submitting
-                    ? null
-                    : (s) {
-                        if (s.isEmpty) {
-                          return;
-                        }
-                        setState(() => _kind = s.first);
-                      },
               ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.employeeAttendanceStaffCorrectionDateLabel),
-                subtitle: Text(loc.formatFullDate(_date)),
-                trailing: const Icon(Icons.calendar_today_outlined),
-                onTap: _submitting ? null : _pickDate,
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.employeeAttendanceStaffCorrectionTimeLabel),
-                subtitle: Text(_time.format(context)),
-                trailing: const Icon(Icons.schedule_rounded),
-                onTap: _submitting ? null : _pickTime,
-              ),
-              TextField(
-                controller: _reason,
-                minLines: 3,
-                maxLines: 5,
-                enabled: !_submitting,
-                decoration: InputDecoration(
-                  labelText: l10n.employeeAttendanceStaffReasonLabel,
-                  hintText: l10n.employeeAttendanceTabRequestReasonHint,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _submitting ? null : () => _submit(l10n),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: _submitting
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(l10n.employeeAttendanceTabRequestSubmit),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -616,12 +638,18 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
   DateTime _endDate = DateTime.now();
   TimeOfDay _endTime = const TimeOfDay(hour: 13, minute: 0);
   final _reason = TextEditingController();
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _submitting = false;
 
   @override
   void dispose() {
     _reason.dispose();
     super.dispose();
+  }
+
+  void _showError(String message) {
+    _messengerKey.currentState?.hideCurrentSnackBar();
+    _messengerKey.currentState?.showSnackBar(SnackBar(content: Text(message)));
   }
 
   DateTime _combine(DateTime day, TimeOfDay t) {
@@ -631,9 +659,7 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
   Future<void> _submit(AppLocalizations l10n) async {
     final r = _reason.text.trim();
     if (r.length < 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceTabRequestReasonTooShort)),
-      );
+      _showError(l10n.employeeAttendanceTabRequestReasonTooShort);
       return;
     }
     final balances = ref.read(employeeLeaveBalancesProvider).maybeWhen(
@@ -641,9 +667,7 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
           orElse: () => const <EmployeeLeaveBalance>[],
         );
     if (balances.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceStaffLeaveNoBalances)),
-      );
+      _showError(l10n.employeeAttendanceStaffLeaveNoBalances);
       return;
     }
     final b = _balance ?? balances.first;
@@ -651,15 +675,11 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
     final endAt = _combine(_endDate, _endTime);
     final hours = calculateRequestedLeaveHours(start: startAt, end: endAt);
     if (hours <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceStaffErrorLeaveHoursInvalid)),
-      );
+      _showError(l10n.employeeAttendanceStaffErrorLeaveHoursInvalid);
       return;
     }
     if (hours > b.remainingHours) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.employeeAttendanceStaffErrorLeaveExceeds)),
-      );
+      _showError(l10n.employeeAttendanceStaffErrorLeaveExceeds);
       return;
     }
 
@@ -684,9 +704,7 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(mapStaffRequestError(l10n, e))),
-      );
+      _showError(mapStaffRequestError(l10n, e));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -702,232 +720,242 @@ class _LeaveRequestSheetState extends ConsumerState<_LeaveRequestSheet> {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final hourFmt = NumberFormat('#0.##', localeTag);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            14,
-            20,
-            20 + MediaQuery.paddingOf(context).bottom,
-          ),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFAF8FF),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: balancesAsync.when(
-            data: (balances) {
-              if (balances.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    l10n.employeeAttendanceStaffLeaveNoBalances,
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
-              final balance = _balance ?? balances.first;
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                14,
+                20,
+                20 + MediaQuery.paddingOf(context).bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAF8FF),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: balancesAsync.when(
+                data: (balances) {
+                  if (balances.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        l10n.employeeAttendanceStaffLeaveNoBalances,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+                  final balance = _balance ?? balances.first;
 
-              final startAt = _combine(_startDate, _startTime);
-              final endAt = _combine(_endDate, _endTime);
-              final requested = calculateRequestedLeaveHours(
-                start: startAt,
-                end: endAt,
-              );
-              final exceeds = requested > balance.remainingHours;
+                  final startAt = _combine(_startDate, _startTime);
+                  final endAt = _combine(_endDate, _endTime);
+                  final requested = calculateRequestedLeaveHours(
+                    start: startAt,
+                    end: endAt,
+                  );
+                  final exceeds = requested > balance.remainingHours;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD9C7FF),
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.employeeAttendanceTabRequestOptionLeave,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: l10n.employeeAttendanceStaffLeaveTypeLabel,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<EmployeeLeaveBalance>(
-                        isExpanded: true,
-                        value: balance,
-                        items: balances
-                            .map(
-                              (e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e.leaveTypeName),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: _submitting
-                            ? null
-                            : (v) => setState(() => _balance = v),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${l10n.employeeAttendanceStaffLeaveBalanceLabel}: '
-                    '${l10n.employeeAttendanceStaffLeaveHoursUnit(hourFmt.format(balance.remainingHours))}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.employeeAttendanceStaffLeaveStartLabel),
-                    subtitle: Text(
-                      '${MaterialLocalizations.of(context).formatFullDate(_startDate)}  '
-                      '${_startTime.format(context)}',
-                    ),
-                    onTap: _submitting
-                        ? null
-                        : () async {
-                            final d = await showDatePicker(
-                              context: context,
-                              initialDate: _startDate,
-                              firstDate: DateTime(_startDate.year - 1),
-                              lastDate: DateTime(_startDate.year + 2),
-                            );
-                            if (d != null) {
-                              setState(() => _startDate = d);
-                            }
-                          },
-                  ),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.employeeAttendanceStaffLeaveEndLabel),
-                    subtitle: Text(
-                      '${MaterialLocalizations.of(context).formatFullDate(_endDate)}  '
-                      '${_endTime.format(context)}',
-                    ),
-                    onTap: _submitting
-                        ? null
-                        : () async {
-                            final d = await showDatePicker(
-                              context: context,
-                              initialDate: _endDate,
-                              firstDate: DateTime(_endDate.year - 1),
-                              lastDate: DateTime(_endDate.year + 2),
-                            );
-                            if (d != null) {
-                              setState(() => _endDate = d);
-                            }
-                          },
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _submitting
-                              ? null
-                              : () async {
-                                  final t = await showTimePicker(
-                                    context: context,
-                                    initialTime: _startTime,
-                                  );
-                                  if (t != null) {
-                                    setState(() => _startTime = t);
-                                  }
-                                },
-                          child: Text(l10n.employeeAttendanceStaffLeaveStartLabel),
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD9C7FF),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _submitting
-                              ? null
-                              : () async {
-                                  final t = await showTimePicker(
-                                    context: context,
-                                    initialTime: _endTime,
-                                  );
-                                  if (t != null) {
-                                    setState(() => _endTime = t);
-                                  }
-                                },
-                          child: Text(l10n.employeeAttendanceStaffLeaveEndLabel),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.employeeAttendanceTabRequestOptionLeave,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                      const SizedBox(height: 12),
+                      InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: l10n.employeeAttendanceStaffLeaveTypeLabel,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<EmployeeLeaveBalance>(
+                            isExpanded: true,
+                            value: balance,
+                            items: balances
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e.leaveTypeName),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _submitting
+                                ? null
+                                : (v) => setState(() => _balance = v),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${l10n.employeeAttendanceStaffLeaveBalanceLabel}: '
+                        '${l10n.employeeAttendanceStaffLeaveHoursUnit(hourFmt.format(balance.remainingHours))}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.employeeAttendanceStaffLeaveStartLabel),
+                        subtitle: Text(
+                          '${MaterialLocalizations.of(context).formatFullDate(_startDate)}  '
+                          '${_startTime.format(context)}',
+                        ),
+                        onTap: _submitting
+                            ? null
+                            : () async {
+                                final d = await showDatePicker(
+                                  context: context,
+                                  initialDate: _startDate,
+                                  firstDate: DateTime(_startDate.year - 1),
+                                  lastDate: DateTime(_startDate.year + 2),
+                                );
+                                if (d != null) {
+                                  setState(() => _startDate = d);
+                                }
+                              },
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.employeeAttendanceStaffLeaveEndLabel),
+                        subtitle: Text(
+                          '${MaterialLocalizations.of(context).formatFullDate(_endDate)}  '
+                          '${_endTime.format(context)}',
+                        ),
+                        onTap: _submitting
+                            ? null
+                            : () async {
+                                final d = await showDatePicker(
+                                  context: context,
+                                  initialDate: _endDate,
+                                  firstDate: DateTime(_endDate.year - 1),
+                                  lastDate: DateTime(_endDate.year + 2),
+                                );
+                                if (d != null) {
+                                  setState(() => _endDate = d);
+                                }
+                              },
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _submitting
+                                  ? null
+                                  : () async {
+                                      final t = await showTimePicker(
+                                        context: context,
+                                        initialTime: _startTime,
+                                      );
+                                      if (t != null) {
+                                        setState(() => _startTime = t);
+                                      }
+                                    },
+                              child: Text(
+                                l10n.employeeAttendanceStaffLeaveStartLabel,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _submitting
+                                  ? null
+                                  : () async {
+                                      final t = await showTimePicker(
+                                        context: context,
+                                        initialTime: _endTime,
+                                      );
+                                      if (t != null) {
+                                        setState(() => _endTime = t);
+                                      }
+                                    },
+                              child:
+                                  Text(l10n.employeeAttendanceStaffLeaveEndLabel),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '${l10n.employeeAttendanceStaffLeaveRequestedLabel}: '
+                        '${l10n.employeeAttendanceStaffLeaveHoursUnit(hourFmt.format(requested))}',
+                      ),
+                      if (exceeds)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            l10n.employeeAttendanceStaffLeaveExceedsHint,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _reason,
+                        minLines: 3,
+                        maxLines: 5,
+                        enabled: !_submitting,
+                        decoration: InputDecoration(
+                          labelText: l10n.employeeAttendanceStaffReasonLabel,
+                          hintText: l10n.employeeAttendanceTabRequestReasonHint,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: (_submitting || exceeds || requested <= 0)
+                            ? null
+                            : () => _submit(l10n),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: _submitting
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(l10n.employeeAttendanceTabRequestSubmit),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${l10n.employeeAttendanceStaffLeaveRequestedLabel}: '
-                    '${l10n.employeeAttendanceStaffLeaveHoursUnit(hourFmt.format(requested))}',
-                  ),
-                  if (exceeds)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        l10n.employeeAttendanceStaffLeaveExceedsHint,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _reason,
-                    minLines: 3,
-                    maxLines: 5,
-                    enabled: !_submitting,
-                    decoration: InputDecoration(
-                      labelText: l10n.employeeAttendanceStaffReasonLabel,
-                      hintText: l10n.employeeAttendanceTabRequestReasonHint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: (_submitting || exceeds || requested <= 0)
-                        ? null
-                        : () => _submit(l10n),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: _submitting
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.employeeAttendanceTabRequestSubmit),
-                  ),
-                ],
-              );
-            },
-            loading: () => const Padding(
-              padding: EdgeInsets.all(48),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text('$e'),
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(48),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (e, _) => Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('$e'),
+                ),
+              ),
             ),
           ),
         ),

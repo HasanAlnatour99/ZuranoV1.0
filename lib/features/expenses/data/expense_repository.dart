@@ -22,9 +22,11 @@ class ExpenseRepository {
     final document = expense.id.isEmpty
         ? collection.doc()
         : collection.doc(expense.id);
+    final reportFields = ReportPeriod.denormalizedFieldsFor(expense.incurredAt);
     final payload = FirestoreWritePayload.withServerTimestampsForCreate({
       ...expense.toJson(),
       'id': document.id,
+      ...reportFields,
     });
 
     await document.set(payload);

@@ -8,6 +8,8 @@ import {
   notifyEmployeeLifecycle,
   notifyServiceCatalogChange,
 } from "./notificationOrchestrator";
+import { createEmployeeNotification } from "./notifications/employeeInAppNotificationService";
+import { getEmployeeAuthUid } from "./notificationSalonUsers";
 
 function hasFieldValue(data: DocumentData | undefined, key: string): boolean {
   if (!data) {
@@ -192,6 +194,22 @@ export const onSalonEmployeeWrittenNotification = onDocumentWritten(
           eventType: "employee_reactivated",
           name,
         });
+        const empUid = await getEmployeeAuthUid(salonId, employeeId);
+        if (empUid) {
+          await createEmployeeNotification({
+            recipientUid: empUid,
+            salonId,
+            employeeId,
+            type: "system_alerts",
+            title: "Account access updated",
+            body: "Your salon account access has been restored.",
+            route: "/employee/today",
+            sourceCollection: "employees",
+            sourceId: employeeId,
+            dedupeKey: `emp_reactivated_inbox:${salonId}:${employeeId}:${empUid}`,
+            metadata: { name },
+          });
+        }
       } else if (wasActive && !nowActive) {
         await notifyEmployeeLifecycle({
           salonId,
@@ -199,6 +217,22 @@ export const onSalonEmployeeWrittenNotification = onDocumentWritten(
           eventType: "employee_frozen",
           name,
         });
+        const empUid = await getEmployeeAuthUid(salonId, employeeId);
+        if (empUid) {
+          await createEmployeeNotification({
+            recipientUid: empUid,
+            salonId,
+            employeeId,
+            type: "system_alerts",
+            title: "Account access updated",
+            body: "Your salon account access has been deactivated.",
+            route: "/employee/today",
+            sourceCollection: "employees",
+            sourceId: employeeId,
+            dedupeKey: `emp_frozen_inbox:${salonId}:${employeeId}:${empUid}`,
+            metadata: { name },
+          });
+        }
       }
     }
   },
