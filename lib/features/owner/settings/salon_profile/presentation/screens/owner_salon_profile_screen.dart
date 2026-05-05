@@ -199,121 +199,29 @@ class _OwnerSalonProfileScreenState extends ConsumerState<OwnerSalonProfileScree
     required AppLocalizations l10n,
     required Locale locale,
     required String? currentCode,
-  }) async {
-    final controller = TextEditingController();
-    try {
-      return await showModalBottomSheet<CountryChoice>(
-        context: context,
-        showDragHandle: true,
-        builder: (sheetContext) {
-          return SafeArea(
-            child: StatefulBuilder(
-              builder: (context, setSheetState) {
-                final query = controller.text.trim().toLowerCase();
-                final rows = query.isEmpty
-                    ? AppCountries.choices
-                    : AppCountries.choices.where((c) {
-                        final name = locale.languageCode == 'ar'
-                            ? c.nameAr.toLowerCase()
-                            : c.nameEn.toLowerCase();
-                        return name.contains(query) ||
-                            c.code.toLowerCase().contains(query);
-                      }).toList(growable: false);
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.ownerSalonProfileCountryPickTitle,
-                              style: Theme.of(sheetContext)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: ZuranoPremiumUiColors.textPrimary,
-                                  ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.of(sheetContext).pop(),
-                            icon: const Icon(Icons.close_rounded),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: controller,
-                        onChanged: (_) => setSheetState(() {}),
-                        decoration: InputDecoration(
-                          hintText: l10n.ownerSalonProfileCountrySearchHint,
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          filled: true,
-                          fillColor: ZuranoPremiumUiColors.lightSurface,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: ZuranoPremiumUiColors.border,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: ZuranoPremiumUiColors.border,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: rows.length,
-                          itemBuilder: (context, i) {
-                            final c = rows[i];
-                            final label =
-                                locale.languageCode == 'ar' ? c.nameAr : c.nameEn;
-                            final selected =
-                                currentCode != null &&
-                                currentCode.trim().toUpperCase() ==
-                                    c.code.toUpperCase();
-                            return ListTile(
-                              title: Text(
-                                label,
-                                style: const TextStyle(
-                                  color: ZuranoPremiumUiColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              subtitle: Text(
-                                c.code.toUpperCase(),
-                                style: const TextStyle(
-                                  color: ZuranoPremiumUiColors.textSecondary,
-                                ),
-                              ),
-                              trailing: selected
-                                  ? const Icon(
-                                      Icons.check_rounded,
-                                      color: ZuranoPremiumUiColors.primaryPurple,
-                                    )
-                                  : null,
-                              onTap: () => Navigator.of(sheetContext).pop(c),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+  }) {
+    return showModalBottomSheet<CountryChoice>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final bottomInset = MediaQuery.viewInsetsOf(sheetContext).bottom;
+        final maxH = MediaQuery.sizeOf(sheetContext).height;
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SafeArea(
+            child: SizedBox(
+              height: maxH * 0.88,
+              child: _CountryPickerSheetContent(
+                l10n: l10n,
+                locale: locale,
+                currentCode: currentCode,
+              ),
             ),
-          );
-        },
-      );
-    } finally {
-      controller.dispose();
-    }
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -832,6 +740,141 @@ class _OwnerSalonProfileScreenState extends ConsumerState<OwnerSalonProfileScree
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Country list sheet: owns its [TextEditingController] so dispose runs with the
+/// route (avoids "controller used after dispose" during sheet teardown). The
+/// parent [SizedBox] gives the [Column] a bounded height so [Expanded] works.
+class _CountryPickerSheetContent extends StatefulWidget {
+  const _CountryPickerSheetContent({
+    required this.l10n,
+    required this.locale,
+    required this.currentCode,
+  });
+
+  final AppLocalizations l10n;
+  final Locale locale;
+  final String? currentCode;
+
+  @override
+  State<_CountryPickerSheetContent> createState() =>
+      _CountryPickerSheetContentState();
+}
+
+class _CountryPickerSheetContentState extends State<_CountryPickerSheetContent> {
+  late final TextEditingController _queryController;
+
+  @override
+  void initState() {
+    super.initState();
+    _queryController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sheetContext = context;
+    final query = _queryController.text.trim().toLowerCase();
+    final rows = query.isEmpty
+        ? AppCountries.choices
+        : AppCountries.choices.where((c) {
+            final name = widget.locale.languageCode == 'ar'
+                ? c.nameAr.toLowerCase()
+                : c.nameEn.toLowerCase();
+            return name.contains(query) ||
+                c.code.toLowerCase().contains(query);
+          }).toList(growable: false);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.l10n.ownerSalonProfileCountryPickTitle,
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: ZuranoPremiumUiColors.textPrimary,
+                      ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.of(sheetContext).pop(),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _queryController,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: widget.l10n.ownerSalonProfileCountrySearchHint,
+              prefixIcon: const Icon(Icons.search_rounded),
+              filled: true,
+              fillColor: ZuranoPremiumUiColors.lightSurface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: ZuranoPremiumUiColors.border,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: ZuranoPremiumUiColors.border,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
+              itemCount: rows.length,
+              itemBuilder: (context, i) {
+                final c = rows[i];
+                final label = widget.locale.languageCode == 'ar'
+                    ? c.nameAr
+                    : c.nameEn;
+                final selected = widget.currentCode != null &&
+                    widget.currentCode!.trim().toUpperCase() ==
+                        c.code.toUpperCase();
+                return ListTile(
+                  title: Text(
+                    label,
+                    style: const TextStyle(
+                      color: ZuranoPremiumUiColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  subtitle: Text(
+                    c.code.toUpperCase(),
+                    style: const TextStyle(
+                      color: ZuranoPremiumUiColors.textSecondary,
+                    ),
+                  ),
+                  trailing: selected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: ZuranoPremiumUiColors.primaryPurple,
+                        )
+                      : null,
+                  onTap: () => Navigator.of(sheetContext).pop(c),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
