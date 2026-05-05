@@ -45,3 +45,4 @@ Google Maps keys must be restricted in Google Cloud and never committed as unres
 
 - Android key restrictions: `Android apps`, package `com.zurano.barbershop`, matching SHA-1 fingerprint(s), and `Maps SDK for Android` only.
 - iOS key restrictions: `iOS apps`, bundle ID `com.zurano.barbershop`, and `Maps SDK for iOS` only.
+# ZuranoV1.0
