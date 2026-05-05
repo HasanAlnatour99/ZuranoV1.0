@@ -8,6 +8,7 @@ import '../../../../core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../../../shared/widgets/zurano_empty_state.dart';
 import '../../../../shared/widgets/zurano_permission_state.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
@@ -35,7 +36,7 @@ class PayslipHistoryScreen extends ConsumerWidget {
         appBar: AppBar(title: Text(l10n.employeePayrollHistoryTitle)),
         body: Center(child: Text(l10n.employeePayrollNoWorkspace)),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -56,7 +57,7 @@ class PayslipHistoryScreen extends ConsumerWidget {
           ),
           extendBody: true,
           floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+              zuranoEmployeeCenterDockedFabLocation,
           floatingActionButton: const EmployeeQuickActionFab(),
           bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
         );
@@ -65,7 +66,7 @@ class PayslipHistoryScreen extends ConsumerWidget {
         appBar: AppBar(title: Text(l10n.employeePayrollHistoryTitle)),
         body: Center(child: Text(l10n.employeePayrollNoWorkspace)),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -112,7 +113,7 @@ class PayslipHistoryScreen extends ConsumerWidget {
         },
       ),
       extendBody: true,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
       floatingActionButton: const EmployeeQuickActionFab(),
       bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
     );

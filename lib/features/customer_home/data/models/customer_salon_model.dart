@@ -69,6 +69,28 @@ class CustomerSalonModel {
     return a;
   }
 
+  static String _addressLine(Map<String, dynamic> data) {
+    final raw = data['address'];
+    if (raw is String) {
+      return raw.trim();
+    }
+    if (raw is Map) {
+      final m = Map<String, dynamic>.from(raw);
+      final formatted = (m['formatted'] as String?)?.trim();
+      if (formatted != null && formatted.isNotEmpty) {
+        return formatted;
+      }
+      final parts = <String>[
+        if (m['line1'] is String) (m['line1'] as String).trim(),
+        if (m['city'] is String) (m['city'] as String).trim(),
+      ].where((s) => s.isNotEmpty).toList();
+      if (parts.isNotEmpty) {
+        return parts.join(', ');
+      }
+    }
+    return '';
+  }
+
   factory CustomerSalonModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -80,15 +102,30 @@ class CustomerSalonModel {
       salonCountryIso: (iso != null && iso.isNotEmpty) ? iso : null,
     );
 
+    final countryDirect = (data['country'] as String?)?.trim();
+    final countryName = (data['countryName'] as String?)?.trim();
+    final countryResolved =
+        (countryDirect != null && countryDirect.isNotEmpty)
+        ? countryDirect
+        : (countryName ?? '');
+
+    double? lat = (data['latitude'] as num?)?.toDouble();
+    double? lng = (data['longitude'] as num?)?.toDouble();
+    final loc = data['location'];
+    if (loc is GeoPoint) {
+      lat ??= loc.latitude;
+      lng ??= loc.longitude;
+    }
+
     return CustomerSalonModel(
       id: doc.id,
       name: data['name'] as String? ?? '',
       city: data['city'] as String? ?? '',
       area: data['area'] as String? ?? '',
-      country: data['country'] as String? ?? '',
-      address: data['address'] as String? ?? '',
-      latitude: (data['latitude'] as num?)?.toDouble(),
-      longitude: (data['longitude'] as num?)?.toDouble(),
+      country: countryResolved,
+      address: _addressLine(data),
+      latitude: lat,
+      longitude: lng,
       isPublished: data['isPublished'] as bool? ?? false,
       isOpen: data['isOpen'] as bool? ?? false,
       isPromoted: data['isPromoted'] as bool? ?? false,

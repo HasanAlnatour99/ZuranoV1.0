@@ -28,6 +28,7 @@ import '../providers/add_sale_pos_tab_provider.dart';
 import '../providers/add_sale_session_employee_provider.dart';
 import '../providers/salon_sales_settings_provider.dart';
 import '../utils/add_sale_booking_error_l10n.dart';
+import '../widgets/add_sale_customer_sheet.dart';
 import '../widgets/add_sale_mode_selector.dart';
 import '../widgets/booking_code_sale_form.dart';
 import '../widgets/manual_sale_form.dart';
@@ -87,6 +88,9 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                 : null),
         serviceId: widget.initialServiceId,
       );
+      if (widget.entryMode == AddSaleEntryMode.employee) {
+        notifier.syncBarberWithLoggedInEmployee();
+      }
       final cid = widget.initialCustomerId?.trim();
       if (cid != null && cid.isNotEmpty) {
         final customer = await ref.read(customerByIdOnceProvider(cid).future);
@@ -282,63 +286,69 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
     ref.read(addSaleControllerProvider.notifier).setDiscount(value);
   }
 
-  Future<void> _customerNameDialog() async {
+  Future<void> _openCustomerSection(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentName = ref.read(addSaleControllerProvider).customerName;
+    final salonId =
+        ref.read(sessionUserProvider).asData?.value?.salonId?.trim() ?? '';
+    if (salonId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.addSaleErrorSalonNotLinked)),
+      );
+      return;
+    }
+    final st = ref.read(addSaleControllerProvider);
+    final linked =
+        st.linkedCustomerId != null && st.linkedCustomerId!.trim().isNotEmpty;
 
-    final name = await showDialog<String>(
+    await showModalBottomSheet<void>(
       context: context,
-      builder: (dialogContext) {
-        final controller = TextEditingController(text: currentName);
-
-        return AlertDialog(
-          title: Text(l10n.ownerAddSaleCustomerHint),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(hintText: l10n.addSaleWalkInCustomer),
-            onSubmitted: (_) {
-              Navigator.of(dialogContext).pop(controller.text.trim());
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(null),
-              child: Text(
-                MaterialLocalizations.of(dialogContext).cancelButtonLabel,
-              ),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(controller.text.trim());
-              },
-              child: Text(
-                MaterialLocalizations.of(dialogContext).okButtonLabel,
-              ),
-            ),
-          ],
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) {
+        return AddSaleCustomerSheet(
+          salonId: salonId,
+          initialWalkInName: linked ? '' : st.customerName.trim(),
+          initialWalkInPhone: linked ? '' : st.walkInPhone.trim(),
+          onSelectSalonCustomer: (customer) {
+            ref.read(addSaleControllerProvider.notifier).applyLinkedCustomer(
+                  customer,
+                );
+            Navigator.of(ctx).pop();
+          },
+          onWalkIn: ({required String name, required String phone}) {
+            ref.read(addSaleControllerProvider.notifier).setWalkInCustomer(
+                  name: name,
+                  phone: phone,
+                );
+            Navigator.of(ctx).pop();
+          },
+          onClear: () {
+            ref.read(addSaleControllerProvider.notifier).clearCustomerSelection();
+          },
         );
       },
     );
-
-    if (!mounted || name == null) return;
-
-    ref.read(addSaleControllerProvider.notifier).updateCustomerName(name);
   }
 
   /// Short hint shown above the sticky checkout button when the form is invalid.
   ///
-  /// Mirrors the rules in [AddSaleState.canSubmit] so the user always knows
-  /// why the bottom button is disabled (instead of "disabled forever").
+  /// Mirrors [AddSaleState.canSubmitWithSession] so the user knows why the
+  /// button is disabled (especially employee mode vs staff picker).
   String? _disabledReason({
     required AddSaleState state,
     required AppLocalizations l10n,
+    required AddSaleEntryMode entryMode,
     required bool entryModeNeedsBarber,
     required bool receiptOk,
+    required String? sessionEmployeeId,
   }) {
     if (state.lines.isEmpty) {
       return l10n.addSaleSelectAtLeastOneService;
+    }
+    if (entryMode == AddSaleEntryMode.employee &&
+        (sessionEmployeeId == null || sessionEmployeeId.trim().isEmpty)) {
+      return l10n.addSaleErrorStaffNotLinked;
     }
     if (entryModeNeedsBarber &&
         (state.selectedBarberId == null ||
@@ -391,7 +401,7 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             l10n: l10n,
             locale: locale,
             onPickBarber: _pickBarber,
-            onCustomerNameDialog: _customerNameDialog,
+            onCustomerSectionTap: _openCustomerSection,
             onDiscountDialog: _discountDialog,
             disabledReasonBuilder: _disabledReason,
             salonId: user.salonId?.trim() ?? '',
@@ -409,7 +419,7 @@ class _AddSaleBody extends ConsumerWidget {
     required this.l10n,
     required this.locale,
     required this.onPickBarber,
-    required this.onCustomerNameDialog,
+    required this.onCustomerSectionTap,
     required this.onDiscountDialog,
     required this.disabledReasonBuilder,
     required this.salonId,
@@ -420,13 +430,15 @@ class _AddSaleBody extends ConsumerWidget {
   final AppLocalizations l10n;
   final Locale locale;
   final Future<void> Function(BuildContext, List<Employee>) onPickBarber;
-  final Future<void> Function() onCustomerNameDialog;
+  final Future<void> Function(BuildContext context) onCustomerSectionTap;
   final Future<void> Function() onDiscountDialog;
   final String? Function({
     required AddSaleState state,
     required AppLocalizations l10n,
+    required AddSaleEntryMode entryMode,
     required bool entryModeNeedsBarber,
     required bool receiptOk,
+    required String? sessionEmployeeId,
   })
   disabledReasonBuilder;
   final String salonId;
@@ -449,6 +461,12 @@ class _AddSaleBody extends ConsumerWidget {
       ref.listen(employeesStreamProvider, (previous, next) {
         next.whenData((employees) {
           addNotifier.applyDefaultBarberIfNeeded(user, employees);
+        });
+      });
+    } else {
+      ref.listen(sessionUserProvider, (previous, next) {
+        next.whenData((_) {
+          addNotifier.syncBarberWithLoggedInEmployee();
         });
       });
     }
@@ -550,14 +568,21 @@ class _AddSaleBody extends ConsumerWidget {
       mode: entryMode,
     );
     final entryNeedsBarber = entryMode != AddSaleEntryMode.employee;
-    final canRecord = addState.canSubmit && receiptOk && !addState.isSubmitting;
+    final sessionEid = user.employeeId?.trim();
+    final canSubmitNow = addState.canSubmitWithSession(
+      mode: entryMode,
+      sessionEmployeeId: sessionEid,
+    );
+    final canRecord = canSubmitNow && receiptOk && !addState.isSubmitting;
     final disabledReason = canRecord
         ? null
         : disabledReasonBuilder(
             state: addState,
             l10n: l10n,
+            entryMode: entryMode,
             entryModeNeedsBarber: entryNeedsBarber,
             receiptOk: receiptOk,
+            sessionEmployeeId: sessionEid,
           );
 
     final scheme = Theme.of(context).colorScheme;
@@ -596,7 +621,7 @@ class _AddSaleBody extends ConsumerWidget {
                       activeServices: activeServices,
                       activeEmployees: activeEmployees,
                       onPickBarber: onPickBarber,
-                      onCustomerNameDialog: onCustomerNameDialog,
+                      onCustomerSectionTap: onCustomerSectionTap,
                       onDiscountDialog: onDiscountDialog,
                       canPickBarber: canPickBarber,
                       showManageServicesLink:
@@ -617,7 +642,10 @@ class _AddSaleBody extends ConsumerWidget {
             isLoading: addState.isSubmitting,
             disabledReason: disabledReason,
             onPressed: () async {
-              if (!addState.canSubmit) {
+              if (!addState.canSubmitWithSession(
+                mode: entryMode,
+                sessionEmployeeId: user.employeeId?.trim(),
+              )) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.ownerAddSaleValidation)),
                 );
@@ -629,7 +657,7 @@ class _AddSaleBody extends ConsumerWidget {
                 );
                 return;
               }
-              final ok = await addNotifier.recordSale();
+              final ok = await addNotifier.recordSale(l10n);
               if (!context.mounted) return;
               if (ok) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -642,6 +670,13 @@ class _AddSaleBody extends ConsumerWidget {
                   ),
                 );
                 context.pop(true);
+              } else {
+                final err = ref.read(addSaleControllerProvider).submitError;
+                if (err != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(err)),
+                  );
+                }
               }
             },
           )

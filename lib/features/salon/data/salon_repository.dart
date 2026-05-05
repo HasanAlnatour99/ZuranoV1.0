@@ -98,9 +98,22 @@ class SalonRepository {
         }),
         SetOptions(merge: true),
       );
+      final countryLabel = address.countryName.trim();
+      final discoveryCountry = countryLabel.isNotEmpty
+          ? countryLabel
+          : (address.countryCode.trim().isNotEmpty ? address.countryCode : '');
+
       transaction.set(
         salonDoc,
-        FirestoreWritePayload.withServerTimestampsForCreate(salon.toJson()),
+        FirestoreWritePayload.withServerTimestampsForCreate({
+          ...salon.toJson(),
+          // Customer home / discovery denormalized fields (see CustomerSalonModel).
+          if (discoveryCountry.isNotEmpty) 'country': discoveryCountry,
+          'ratingAverage': 0,
+          'ratingCount': 0,
+          'isPromoted': false,
+          'isOpen': true,
+        }),
       );
 
       return (
@@ -192,15 +205,17 @@ class SalonRepository {
     });
   }
 
-  /// Discoverable salons for customers (active only). Sort is client-side by name.
+  /// Discoverable salons for customers: must match public list rules (`isPublished`).
+  /// [isActive] is applied client-side so older docs without the field still appear.
   Stream<List<Salon>> watchActiveSalons({int limit = 80}) {
     return _salons
-        .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) {
           final list = snapshot.docs
               .map((doc) => Salon.fromJson(doc.data()))
+              .where((s) => s.isActive)
               .toList(growable: false);
           list.sort(
             (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),

@@ -5,7 +5,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../shared/navigation/zurano_swipe_shell.dart';
 import '../../../employee_today/presentation/screens/employee_today_screen.dart';
 import '../../../payroll/presentation/screens/employee_payroll_screen.dart';
-import 'employee_attendance_screen.dart';
+import '../../../employee_attendance/presentation/screens/employee_attendance_screen.dart';
 import 'employee_sales_screen.dart';
 
 class EmployeeMainSwipeShellScreen extends StatelessWidget {

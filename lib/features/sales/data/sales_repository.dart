@@ -1,13 +1,47 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/sale_reporting.dart';
+import '../../../core/firebase/app_check_storage_prime.dart';
 import '../../../core/text/team_member_name.dart';
 import '../../../core/firestore/firestore_page.dart';
 import '../../../core/firestore/firestore_paths.dart';
 import '../../../core/firestore/firestore_write_payload.dart';
 import 'models/sale.dart';
+
+/// Matches [storage.rules] `request.resource.contentType.matches('image/.*')`.
+({String contentType, String fileExtension}) _receiptImageFormat(
+  Uint8List bytes,
+) {
+  if (bytes.length >= 3 &&
+      bytes[0] == 0xFF &&
+      bytes[1] == 0xD8 &&
+      bytes[2] == 0xFF) {
+    return (contentType: 'image/jpeg', fileExtension: 'jpg');
+  }
+  if (bytes.length >= 8 &&
+      bytes[0] == 0x89 &&
+      bytes[1] == 0x50 &&
+      bytes[2] == 0x4E &&
+      bytes[3] == 0x47) {
+    return (contentType: 'image/png', fileExtension: 'png');
+  }
+  if (bytes.length >= 12 &&
+      bytes[0] == 0x52 &&
+      bytes[1] == 0x49 &&
+      bytes[2] == 0x46 &&
+      bytes[3] == 0x46 &&
+      bytes[8] == 0x57 &&
+      bytes[9] == 0x45 &&
+      bytes[10] == 0x42 &&
+      bytes[11] == 0x50) {
+    return (contentType: 'image/webp', fileExtension: 'webp');
+  }
+  return (contentType: 'image/jpeg', fileExtension: 'jpg');
+}
 
 Sale _saleWithFormattedTeamMemberNames(Sale sale) {
   final items = <SaleLineItem>[
@@ -89,6 +123,43 @@ class SalesRepository {
     return _firestore.collection(FirestorePaths.salonSales(salonId));
   }
 
+  Map<String, dynamic> _saleLineItemSubdocPayload(SaleLineItem item) {
+    return {
+      'serviceId': item.serviceId,
+      'serviceName': item.serviceName,
+      if (item.serviceIcon != null && item.serviceIcon!.trim().isNotEmpty)
+        'serviceIcon': item.serviceIcon,
+      'employeeId': item.employeeId,
+      'price': item.unitPrice,
+      'quantity': item.quantity,
+      'lineTotal': item.total,
+    };
+  }
+
+  /// Writes `sales/{saleId}/items/*` **after** the parent sale document exists.
+  ///
+  /// Staff Firestore rules validate line-item creates with `get(parent sale)`;
+  /// those reads do not see uncommitted parent docs from the same batch/transaction,
+  /// so callers must commit the sale document first, then call this method.
+  Future<void> commitSaleLineItemSubdocuments({
+    required String salonId,
+    required String saleId,
+    required List<SaleLineItem> lineItems,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final id = saleId.trim();
+    if (id.isEmpty || lineItems.isEmpty) {
+      return;
+    }
+    final saleRef = _sales(salonId).doc(id);
+    final batch = _firestore.batch();
+    for (final item in lineItems) {
+      final itemRef = saleRef.collection('items').doc();
+      batch.set(itemRef, _saleLineItemSubdocPayload(item));
+    }
+    await batch.commit();
+  }
+
   /// New Firestore document id under `salons/{salonId}/sales` (for uploads before write).
   String allocateSaleDocumentId(String salonId) => _sales(salonId).doc().id;
 
@@ -103,10 +174,16 @@ class SalesRepository {
     final sid = salonId.trim();
     final id = saleId.trim();
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final storagePath = 'salons/$sid/sales/$id/receipts/$ts.jpg';
-    final ref = _storage.ref(storagePath);
+    await primeAppCheckTokenBeforeStorageUpload();
     final bytes = await image.readAsBytes();
-    await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+    final fmt = _receiptImageFormat(bytes);
+    final storagePath =
+        'salons/$sid/sales/$id/receipts/$ts.${fmt.fileExtension}';
+    final ref = _storage.ref(storagePath);
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: fmt.contentType),
+    );
     final downloadUrl = await ref.getDownloadURL();
     return (downloadUrl: downloadUrl, storagePath: storagePath);
   }
@@ -137,19 +214,13 @@ class SalesRepository {
 
     final batch = _firestore.batch();
     batch.set(document, payload);
-    for (final item in normalized.lineItems) {
-      final itemRef = document.collection('items').doc();
-      batch.set(itemRef, {
-        'serviceId': item.serviceId,
-        'serviceName': item.serviceName,
-        if (item.serviceIcon != null && item.serviceIcon!.trim().isNotEmpty)
-          'serviceIcon': item.serviceIcon,
-        'price': item.unitPrice,
-        'quantity': item.quantity,
-        'lineTotal': item.total,
-      });
-    }
     await batch.commit();
+
+    await commitSaleLineItemSubdocuments(
+      salonId: salonId,
+      saleId: document.id,
+      lineItems: normalized.lineItems,
+    );
     return document.id;
   }
 
@@ -234,19 +305,14 @@ class SalesRepository {
       }
 
       transaction.set(saleRef, payload);
-      for (final item in saleWithId.lineItems) {
-        final itemRef = saleRef.collection('items').doc();
-        transaction.set(itemRef, {
-          'serviceId': item.serviceId,
-          'serviceName': item.serviceName,
-          if (item.serviceIcon != null && item.serviceIcon!.trim().isNotEmpty)
-            'serviceIcon': item.serviceIcon,
-          'price': item.unitPrice,
-          'quantity': item.quantity,
-          'lineTotal': item.total,
-        });
-      }
       return saleRef.id;
+    }).then((committedSaleId) async {
+      await commitSaleLineItemSubdocuments(
+        salonId: sid,
+        saleId: committedSaleId,
+        lineItems: saleWithId.lineItems,
+      );
+      return committedSaleId;
     });
   }
 

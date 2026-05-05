@@ -8,6 +8,7 @@ import '../../../providers/salon_streams_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../attendance/data/attendance_repository.dart';
 import '../../attendance/data/models/attendance_record.dart';
+import '../../team_member_attendance/data/models/attendance_correction_request_model.dart';
 import '../../users/data/models/app_user.dart';
 import 'attendance_requests_review_state.dart';
 
@@ -19,61 +20,91 @@ import 'attendance_requests_review_state.dart';
 /// the status + metadata update atomically.
 class AttendanceRequestsReviewController
     extends Notifier<AttendanceRequestsReviewState> {
-  ProviderSubscription<AsyncValue<List<AttendanceRecord>>>? _subscription;
+  ProviderSubscription<AsyncValue<List<AttendanceRecord>>>? _attendanceSub;
+  ProviderSubscription<AsyncValue<List<AttendanceCorrectionRequestModel>>>?
+  _correctionsSub;
 
   @override
   AttendanceRequestsReviewState build() {
-    _subscription?.close();
+    _attendanceSub?.close();
+    _correctionsSub?.close();
     // Do not use fireImmediately: true — the listener runs synchronously during
     // build() before [Notifier.state] exists, which throws "uninitialized provider".
-    _subscription = ref.listen<AsyncValue<List<AttendanceRecord>>>(
+    void onStreamUpdate() {
+      state = _mergeSnapshot(
+        ref.read(pendingAttendanceRequestsStreamProvider),
+        ref.read(pendingAttendanceCorrectionRequestsStreamProvider),
+        state,
+      );
+    }
+
+    _attendanceSub = ref.listen<AsyncValue<List<AttendanceRecord>>>(
       pendingAttendanceRequestsStreamProvider,
-      (previous, next) {
-        state = _mergeSnapshot(next, state);
-      },
+      (_, _) => onStreamUpdate(),
+      fireImmediately: false,
+    );
+    _correctionsSub = ref.listen<AsyncValue<List<AttendanceCorrectionRequestModel>>>(
+      pendingAttendanceCorrectionRequestsStreamProvider,
+      (_, _) => onStreamUpdate(),
       fireImmediately: false,
     );
     ref.onDispose(() {
-      _subscription?.close();
-      _subscription = null;
+      _attendanceSub?.close();
+      _attendanceSub = null;
+      _correctionsSub?.close();
+      _correctionsSub = null;
     });
     return _mergeSnapshot(
       ref.read(pendingAttendanceRequestsStreamProvider),
+      ref.read(pendingAttendanceCorrectionRequestsStreamProvider),
       const AttendanceRequestsReviewState(),
     );
   }
 
-  /// Maps stream [snapshot] onto [current] without reading [Notifier.state]
+  /// Maps both salon streams onto [current] without reading [Notifier.state]
   /// (required for the initial build before state is mounted).
   static AttendanceRequestsReviewState _mergeSnapshot(
-    AsyncValue<List<AttendanceRecord>> snapshot,
+    AsyncValue<List<AttendanceRecord>> attendance,
+    AsyncValue<List<AttendanceCorrectionRequestModel>> corrections,
     AttendanceRequestsReviewState current,
   ) {
-    return snapshot.when(
-      data: (records) {
-        final visibleIds = records.map((r) => r.id).toSet();
-        final stillProcessing = current.processingIds
-            .where(visibleIds.contains)
-            .toSet();
-        return current.copyWith(
-          requests: records,
-          isLoading: false,
-          errorMessage: null,
-          processingIds: stillProcessing,
-        );
-      },
-      loading: () {
-        if (!current.isLoading) {
-          return current.copyWith(isLoading: true);
-        }
-        return current;
-      },
-      error: (error, _) {
-        return current.copyWith(
-          isLoading: false,
-          errorMessage: error.toString(),
-        );
-      },
+    final loading = (attendance.isLoading && !attendance.hasValue) ||
+        (corrections.isLoading && !corrections.hasValue);
+
+    List<AttendanceRecord> nextRequests = current.requests;
+    if (attendance.hasValue) {
+      nextRequests = attendance.requireValue;
+    }
+
+    List<AttendanceCorrectionRequestModel> nextCorrections =
+        current.correctionRequests;
+    if (corrections.hasValue) {
+      nextCorrections = corrections.requireValue;
+    }
+
+    final visibleIds = nextRequests.map((r) => r.id).toSet();
+    final stillProcessing =
+        current.processingIds.where(visibleIds.contains).toSet();
+
+    String? err;
+    if (nextRequests.isEmpty &&
+        nextCorrections.isEmpty &&
+        attendance.hasError &&
+        !attendance.hasValue) {
+      err = attendance.error.toString();
+    } else if (nextRequests.isEmpty &&
+        nextCorrections.isEmpty &&
+        corrections.hasError &&
+        !corrections.hasValue) {
+      err = corrections.error.toString();
+    }
+
+    return current.copyWith(
+      requests: nextRequests,
+      correctionRequests: nextCorrections,
+      isLoading: loading,
+      errorMessage: err,
+      processingIds: stillProcessing,
     );
   }
 

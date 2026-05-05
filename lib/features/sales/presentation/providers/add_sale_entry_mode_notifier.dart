@@ -9,7 +9,10 @@ class AddSaleEntryModeNotifier extends Notifier<AddSaleEntryMode> {
   void setMode(AddSaleEntryMode mode) => state = mode;
 }
 
+/// Not autoDispose: [AddSaleScreen] sets mode via [read] / post-frame callbacks
+/// without [watch], so an autoDispose provider would reset to [owner] and break
+/// employee POS submit ([recordSale], [syncBarberWithLoggedInEmployee]).
 final addSaleEntryModeProvider =
-    NotifierProvider.autoDispose<AddSaleEntryModeNotifier, AddSaleEntryMode>(
+    NotifierProvider<AddSaleEntryModeNotifier, AddSaleEntryMode>(
       AddSaleEntryModeNotifier.new,
     );

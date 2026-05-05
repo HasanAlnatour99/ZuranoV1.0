@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/firebase_providers.dart';
+import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../employee_today/data/attendance_exception.dart';
 import '../../../employee_today/providers/employee_today_providers.dart';
@@ -86,6 +87,8 @@ class _CorrectionReviewSheetState extends ConsumerState<CorrectionReviewSheet> {
       }
 
       ref.invalidate(attendanceCorrectionRequestsProvider(widget.args));
+      ref.invalidate(pendingAttendanceCorrectionCountStreamProvider);
+      ref.invalidate(pendingAttendanceCorrectionRequestsStreamProvider);
       ref.invalidate(todayAttendanceProvider(widget.args));
       ref.invalidate(recentAttendanceProvider(widget.args));
       ref.invalidate(teamMemberFullAttendanceHistoryProvider(widget.args));

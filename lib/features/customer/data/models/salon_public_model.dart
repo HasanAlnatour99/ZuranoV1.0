@@ -131,4 +131,55 @@ class SalonPublicModel {
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
     );
   }
+
+  /// Maps a top-level `salons/{salonId}` document when `publicSalons/{salonId}` mirror is absent.
+  factory SalonPublicModel.fromSalonRootDocument(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data() ?? {};
+    final title = (data['name'] as String?)?.trim();
+    final city = (data['city'] as String?)?.trim() ?? '';
+    final countryIso = (data['countryCode'] as String?)?.trim();
+    final rawCcy = (data['currencyCode'] as String?)?.trim();
+    final currencyCode = resolvedSalonMoneyCurrency(
+      salonCurrencyCode: rawCcy,
+      salonCountryIso:
+          (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
+    );
+
+    double? lat = _nullableDouble(data['latitude']);
+    double? lng = _nullableDouble(data['longitude']);
+    final loc = data['location'];
+    if (loc is GeoPoint) {
+      lat ??= loc.latitude;
+      lng ??= loc.longitude;
+    }
+
+    final isActive = data['isActive'] != false;
+    final published = data['isPublished'] == true;
+
+    return SalonPublicModel(
+      id: doc.id,
+      salonName: (title != null && title.isNotEmpty) ? title : 'Salon',
+      area: city,
+      currencyCode: currencyCode,
+      phone: (data['phone'] as String?)?.trim(),
+      whatsapp: (data['whatsapp'] as String?)?.trim(),
+      coverImageUrl: (data['coverImageUrl'] as String?)?.trim(),
+      latitude: lat,
+      longitude: lng,
+      isPublic: published && isActive,
+      isActive: isActive,
+      isOpen: data['isOpen'] == true,
+      ratingAverage: _double(data['ratingAverage'], 0).clamp(0.0, 5.0),
+      ratingCount: _int(data['ratingCount'], 0),
+      startingPrice: _double(data['startingPrice'], 0),
+      genderTarget: (data['genderTarget'] as String?)?.trim().toLowerCase(),
+      searchKeywords: _stringList(data['searchKeywords']),
+      areaKeywords: const [],
+      serviceKeywords: const [],
+      createdAt: _ts(data['createdAt'] as Timestamp?),
+      updatedAt: _ts(data['updatedAt'] as Timestamp?),
+    );
+  }
 }

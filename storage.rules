@@ -20,8 +20,15 @@ service firebase.storage {
           && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner', 'admin', 'barber', 'employee', 'readonly'];
       }
 
+      function salonStaffUploader() {
+        return request.auth != null
+          && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.salonId == salonId
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner', 'admin', 'barber', 'employee'];
+      }
+
       allow read: if salonStaffUser();
-      allow write: if salonStaffUser()
+      allow write: if salonStaffUploader()
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }

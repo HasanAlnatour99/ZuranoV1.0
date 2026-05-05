@@ -224,6 +224,30 @@ class EmployeeTodayAttendanceRepository {
         });
   }
 
+  /// Calendar week Monday 00:00 through Sunday end (local [anchor]) for rollup UIs.
+  Future<List<EtAttendanceDay>> getEmployeeAttendanceDaysForWeek({
+    required String salonId,
+    required String employeeId,
+    required DateTime anchor,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final day = DateTime(anchor.year, anchor.month, anchor.day);
+    final mondayOffset = day.weekday - DateTime.monday;
+    final start = day.subtract(Duration(days: mondayOffset));
+    final end = DateTime(start.year, start.month, start.day + 7)
+        .subtract(const Duration(seconds: 1));
+    final q = await _firestore
+        .collection(FirestorePaths.salonAttendanceDays(salonId))
+        .where('salonId', isEqualTo: salonId)
+        .where('employeeId', isEqualTo: employeeId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(end))
+        .orderBy('date')
+        .limit(14)
+        .get();
+    return q.docs.map(EtAttendanceDay.fromFirestore).toList(growable: false);
+  }
+
   Future<List<EtAttendanceDay>> getEmployeeMonthAttendance({
     required String salonId,
     required String employeeId,

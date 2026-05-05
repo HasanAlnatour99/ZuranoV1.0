@@ -15,6 +15,8 @@ import '../../../employee_dashboard/application/employee_dashboard_providers.dar
 import '../../../employee_dashboard/application/employee_session_scope.dart';
 import '../../../employee_dashboard/application/employee_workspace_scope.dart';
 import '../../data/models/payslip_model.dart';
+import '../../../employee/presentation/widgets/employee_streaming_hero_header.dart';
+import '../../../employee/providers/employee_header_provider.dart';
 import '../../../employee_dashboard/presentation/widgets/employee_bottom_nav_bar.dart';
 import '../../../employee_dashboard/presentation/widgets/employee_quick_action_fab.dart';
 import '../../providers/payroll_providers.dart';
@@ -24,6 +26,7 @@ import '../widgets/employee_salary_notes_card.dart';
 import '../widgets/payroll_empty_state.dart';
 import '../widgets/payroll_error_state.dart';
 import '../widgets/payroll_month_selector.dart';
+import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../../../shared/widgets/zurano_empty_state.dart';
 import '../../../../shared/widgets/zurano_permission_state.dart';
 import '../widgets/payroll_skeleton_loader.dart';
@@ -52,7 +55,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
       return Scaffold(
         body: Center(child: Text(l10n.employeePayrollNoWorkspace)),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -73,7 +76,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
           ),
           extendBody: true,
           floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+              zuranoEmployeeCenterDockedFabLocation,
           floatingActionButton: const EmployeeQuickActionFab(),
           bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
         );
@@ -81,7 +84,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
       return Scaffold(
         body: Center(child: Text(l10n.employeePayrollNoWorkspace)),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -93,7 +96,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFFF8F9FE),
         body: const Center(child: CircularProgressIndicator.adaptive()),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -107,7 +110,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
           ),
         ),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -126,7 +129,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
           ),
         ),
         extendBody: true,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
         floatingActionButton: const EmployeeQuickActionFab(),
         bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
       );
@@ -144,17 +147,27 @@ class EmployeePayrollScreen extends ConsumerWidget {
           ),
         ),
         child: SafeArea(
+          top: false,
           child: RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(currentEmployeePayslipProvider(selectedMonth));
               ref.invalidate(employeeRecentPayslipsProvider);
+              ref.invalidate(employeeHeaderStreamProvider);
             },
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
+                  child: EmployeeStreamingHeroHeader(
+                    onWorkspaceLinkRetry: () {
+                      ref.invalidate(currentEmployeePayslipProvider(selectedMonth));
+                      ref.invalidate(employeeRecentPayslipsProvider);
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -293,7 +306,7 @@ class EmployeePayrollScreen extends ConsumerWidget {
         ),
       ),
       extendBody: true,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
       floatingActionButton: const EmployeeQuickActionFab(),
       bottomNavigationBar: EmployeeBottomNavBar(currentPath: path),
     );

@@ -1,83 +1,48 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/zurano_error_state.dart';
+import '../../../employee/attendance/data/services/employee_attendance_card_mapper.dart';
+import '../../../employee/attendance/presentation/widgets/premium_attendance_card.dart';
+import '../../../employee/attendance/providers/employee_attendance_card_provider.dart';
 import '../../../employee_today/presentation/widgets/attendance_policy_sheet.dart';
 import '../../../employee_today/presentation/widgets/employee_today_skeletons.dart';
+import '../../../employee_today/providers/employee_today_providers.dart';
 import '../../application/employee_punch_controller.dart';
 import '../../application/employee_today_attendance_ui_provider.dart';
-import '../../application/employee_today_attendance_vm.dart';
 import '../../domain/enums/attendance_punch_type.dart';
-import 'attendance_four_action_panel.dart';
 import 'break_countdown_card.dart';
 
-/// White attendance card with a single primary punch CTA.
-class TodayAttendanceCard extends ConsumerWidget {
+/// Premium attendance card for the employee Today tab (Firestore-backed via existing VM).
+class TodayAttendanceCard extends ConsumerStatefulWidget {
   const TodayAttendanceCard({super.key, this.onRetry});
 
   final VoidCallback? onRetry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final attendanceAsync = ref.watch(employeeTodayAttendanceProvider);
-    final l10n = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context);
-
-    return attendanceAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsetsDirectional.symmetric(horizontal: 20),
-        child: EtTodayAttendanceCardSkeleton(),
-      ),
-      error: (error, _) => Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-        child: ZuranoErrorState(
-          title: l10n.employeeTodayAttendanceLoadErrorTitle,
-          message: error.toString(),
-          onRetry: onRetry,
-          retryLabel: l10n.employeeTodayTryAgain,
-        ),
-      ),
-      data: (vm) {
-        if (vm.salonId.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return _TodayAttendanceCardBody(vm: vm, locale: locale);
-      },
-    );
-  }
+  ConsumerState<TodayAttendanceCard> createState() => _TodayAttendanceCardState();
 }
 
-class _TodayAttendanceCardBody extends ConsumerWidget {
-  const _TodayAttendanceCardBody({required this.vm, required this.locale});
+class _TodayAttendanceCardState extends ConsumerState<TodayAttendanceCard> {
+  Timer? _tick;
 
-  final EmployeeTodayAttendanceVm vm;
-  final Locale locale;
-
-  Color _statusColor() {
-    switch (vm.dayStatusKey) {
-      case 'missingPunch':
-      case 'invalidSequence':
-        return const Color(0xFFF59E0B);
-      case 'onBreak':
-        return const Color(0xFF0EA5E9);
-      case 'checkedOut':
-        return const Color(0xFFDC2626);
-      case 'checkedIn':
-      case 'backFromBreak':
-      default:
-        return const Color(0xFF16A34A);
-    }
+  @override
+  void initState() {
+    super.initState();
+    _tick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
-  void _openPolicySheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AttendancePolicySheet(),
-    );
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
   }
 
   Future<void> _onPunch(
@@ -86,6 +51,10 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
     AttendancePunchType type,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    final vm = ref.read(employeeTodayAttendanceProvider).asData?.value;
+    if (vm == null) {
+      return;
+    }
     if (!vm.canPunch(type)) {
       final msg =
           vm.validationMessage(l10n) ?? l10n.employeeTodayPunchNotAllowedNow;
@@ -132,222 +101,118 @@ class _TodayAttendanceCardBody extends ConsumerWidget {
     }
   }
 
+  void _openPolicySheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const AttendancePolicySheet(),
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context);
+    final vmAsync = ref.watch(employeeTodayAttendanceProvider);
+    final dayAsync = ref.watch(etTodayAttendanceDayProvider);
+    final punchesAsync = ref.watch(etTodayPunchesProvider);
+    final weekAsync = ref.watch(employeeWeekAttendanceRollupProvider);
     final busy = ref
         .watch(employeeTodayAttendanceControllerProvider)
         .asData
         ?.value;
 
-    final lastPunchAt = vm.lastPunchAt;
-    final lastTime = lastPunchAt != null
-        ? DateFormat.jm(locale.toString()).format(lastPunchAt)
-        : '—';
-    final topStatusColor = _statusColor();
-
-    return Container(
-      margin: const EdgeInsetsDirectional.symmetric(horizontal: 20),
-      padding: const EdgeInsetsDirectional.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFEEF0F6)),
+    return vmAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsetsDirectional.symmetric(horizontal: 20),
+        child: EtTodayAttendanceCardSkeleton(),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: topStatusColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  vm.primaryStatusTitle(l10n),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-              ),
-              Text(
-                '•',
-                style: TextStyle(
-                  color: const Color(0xFF9CA3AF).withValues(alpha: 0.8),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                lastTime,
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF4B5563),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (!vm.locationResolved)
-                      _statusChip(
-                        icon: Icons.gps_not_fixed_rounded,
-                        label: l10n.employeeTodayGpsLocating,
-                        color: const Color(0xFF6B7280),
-                      )
-                    else if (vm.isGpsVerified)
-                      _statusChip(
-                        icon: Icons.verified_rounded,
-                        label: l10n.employeeTodayGpsVerified,
-                        color: const Color(0xFF16A34A),
-                      )
-                    else
-                      _statusChip(
-                        icon: Icons.location_off_outlined,
-                        label: l10n.employeeTodayZoneOutside,
-                        color: const Color(0xFFF59E0B),
-                      ),
-                  ],
-                ),
-              ),
-              Material(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(999),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => _openPolicySheet(context),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 14, 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.shield_outlined,
-                          color: const Color(0xFF374151),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          l10n.employeeTodayViewPolicy,
-                          style: TextStyle(
-                            color: const Color(0xFF374151),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.schedule_rounded,
-                size: 16,
-                color: Color(0xFF6B7280),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  vm.shiftLabel(l10n, locale),
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF4B5563),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          if (vm.isOnBreak &&
-              vm.openBreakStartedAt != null &&
-              vm.openBreakAllowedMinutes != null) ...[
-            BreakCountdownCard(
-              breakStartedAt: vm.openBreakStartedAt!,
-              remainingAllowanceMinutes: vm.openBreakAllowedMinutes!,
-              shiftStart: vm.breakCountdownShiftStart,
-              shiftEnd: vm.breakCountdownShiftEnd,
+      error: (error, _) => Padding(
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+        child: ZuranoErrorState(
+          title: l10n.employeeTodayAttendanceLoadErrorTitle,
+          message: error.toString(),
+          onRetry: widget.onRetry,
+          retryLabel: l10n.employeeTodayTryAgain,
+        ),
+      ),
+      data: (vm) {
+        if (vm.salonId.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        if (dayAsync.isLoading || punchesAsync.isLoading) {
+          return const Padding(
+            padding: EdgeInsetsDirectional.symmetric(horizontal: 20),
+            child: EtTodayAttendanceCardSkeleton(),
+          );
+        }
+        if (dayAsync.hasError) {
+          return Padding(
+            padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+            child: ZuranoErrorState(
+              title: l10n.employeeTodayAttendanceLoadErrorTitle,
+              message: dayAsync.error.toString(),
+              onRetry: widget.onRetry,
+              retryLabel: l10n.employeeTodayTryAgain,
             ),
-            const SizedBox(height: 14),
-          ],
-          AttendanceFourActionPanel(
-            vm: vm,
+          );
+        }
+        if (punchesAsync.hasError) {
+          return Padding(
+            padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+            child: ZuranoErrorState(
+              title: l10n.employeeTodayAttendanceLoadErrorTitle,
+              message: punchesAsync.error.toString(),
+              onRetry: widget.onRetry,
+              retryLabel: l10n.employeeTodayTryAgain,
+            ),
+          );
+        }
+
+        final rollup = weekAsync.maybeWhen(
+          data: (v) => v,
+          orElse: () => (totalWorkedMinutes: 0, workingDays: 0),
+        );
+        final model = buildEmployeeAttendanceCardModel(
+          vm: vm,
+          day: dayAsync.asData?.value,
+          punches: punchesAsync.asData?.value ?? const [],
+          weeklyWorkedMinutes: rollup.totalWorkedMinutes,
+          weeklyWorkingDays: rollup.workingDays,
+          now: DateTime.now(),
+        );
+
+        Widget? breakSlot;
+        if (vm.isOnBreak &&
+            vm.openBreakStartedAt != null &&
+            vm.openBreakAllowedMinutes != null) {
+          breakSlot = BreakCountdownCard(
+            breakStartedAt: vm.openBreakStartedAt!,
+            remainingAllowanceMinutes: vm.openBreakAllowedMinutes!,
+            shiftStart: vm.breakCountdownShiftStart,
+            shiftEnd: vm.breakCountdownShiftEnd,
+          );
+        }
+
+        return PremiumAttendanceCard(
+            data: model,
+            statusTitle: vm.primaryStatusTitle(l10n),
+            statusSubtitle: vm.primaryStatusSubtitle(l10n),
+            locale: locale,
+            l10n: l10n,
+            breakCountdownSlot: breakSlot,
             busyType: busy,
-            onPunch: (type) => _onPunch(context, ref, type),
-          ),
-          if (vm.showMissingPunchChip || vm.showOutsideZoneChip) ...[
-            const SizedBox(height: 10),
-            Text(
-              vm.validationMessage(l10n) ?? vm.primaryStatusSubtitle(l10n),
-              textAlign: TextAlign.start,
-              style: const TextStyle(
-                color: Color(0xFF92400E),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _statusChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(10, 5, 10, 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.11),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
+            onPunchIn: () => _onPunch(context, ref, AttendancePunchType.punchIn),
+            onLeaveBreak: () =>
+                _onPunch(context, ref, AttendancePunchType.breakOut),
+            onReturnBreak: () =>
+                _onPunch(context, ref, AttendancePunchType.breakIn),
+            onPunchOut: () =>
+                _onPunch(context, ref, AttendancePunchType.punchOut),
+            onViewPolicy: () => _openPolicySheet(context),
+          );
+      },
     );
   }
 }

@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/user_roles.dart';
 import '../../../../core/firestore/report_period.dart';
@@ -18,10 +21,24 @@ import '../../../../providers/app_settings_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/add_sale_entry_mode.dart';
 import '../../domain/payment_method.dart';
 import 'add_sale_entry_mode_notifier.dart';
 import 'salon_sales_settings_provider.dart';
+
+String _mapReceiptUploadFailure(AppLocalizations l10n, Object error) {
+  if (error is FirebaseException) {
+    final isStorage = error.plugin == 'firebase_storage';
+    final denied = error.code == 'unauthorized' ||
+        error.code == 'unauthenticated' ||
+        (error.message?.toLowerCase().contains('permission denied') ?? false);
+    if (isStorage && denied) {
+      return l10n.addSaleErrorReceiptUploadStorage;
+    }
+  }
+  return FirebaseErrorMessage.fromException(error);
+}
 
 final addSaleControllerProvider =
     NotifierProvider.autoDispose<AddSaleController, AddSaleState>(
@@ -70,6 +87,7 @@ class AddSaleState {
     this.selectedBarberId,
     this.paymentMethod = PosPaymentMethod.cash,
     this.customerName = '',
+    this.walkInPhone = '',
     this.linkedCustomerId,
     this.linkedCustomerDiscountPercent = 0,
     this.discountAmount = 0,
@@ -86,6 +104,10 @@ class AddSaleState {
   final String? selectedBarberId;
   final PosPaymentMethod paymentMethod;
   final String customerName;
+
+  /// Optional phone for walk-in sales (no [linkedCustomerId]). Persisted on the
+  /// sale as [Sale.customerPhoneSnapshot].
+  final String walkInPhone;
 
   final String? linkedCustomerId;
   final double linkedCustomerDiscountPercent;
@@ -176,11 +198,23 @@ class AddSaleState {
     return true;
   }
 
-  bool get canSubmit =>
-      lines.isNotEmpty &&
-      (selectedBarberId != null && selectedBarberId!.trim().isNotEmpty) &&
-      totalAmount > 0.001 &&
-      paymentStructureValid(totalAmount);
+  /// Owner/admin/barber picker flows require [selectedBarberId].
+  ///
+  /// Employee POS (`AddSaleEntryMode.employee`) uses [sessionEmployeeId] from
+  /// `users/{uid}.employeeId` because [selectedBarberId] may stay unset when
+  /// the team list stream is not used.
+  bool canSubmitWithSession({
+    required AddSaleEntryMode mode,
+    String? sessionEmployeeId,
+  }) {
+    final barberOk = mode == AddSaleEntryMode.employee
+        ? (sessionEmployeeId != null && sessionEmployeeId.trim().isNotEmpty)
+        : (selectedBarberId != null && selectedBarberId!.trim().isNotEmpty);
+    return lines.isNotEmpty &&
+        barberOk &&
+        totalAmount > 0.001 &&
+        paymentStructureValid(totalAmount);
+  }
 
   AddSaleState copyWith({
     List<CartLine>? lines,
@@ -188,6 +222,8 @@ class AddSaleState {
     String? selectedBarberId,
     PosPaymentMethod? paymentMethod,
     String? customerName,
+    String? walkInPhone,
+    bool clearWalkInPhone = false,
     String? linkedCustomerId,
     double? linkedCustomerDiscountPercent,
     bool clearLinkedCustomer = false,
@@ -207,6 +243,9 @@ class AddSaleState {
       selectedBarberId: selectedBarberId ?? this.selectedBarberId,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       customerName: customerName ?? this.customerName,
+      walkInPhone: clearWalkInPhone
+          ? ''
+          : (walkInPhone ?? this.walkInPhone),
       linkedCustomerId: clearLinkedCustomer
           ? null
           : (linkedCustomerId ?? this.linkedCustomerId),
@@ -255,6 +294,7 @@ class AddSaleController extends Notifier<AddSaleState> {
         customerName: (linkedCustomerName?.trim().isNotEmpty ?? false)
             ? linkedCustomerName!.trim()
             : next.customerName,
+        clearWalkInPhone: true,
         linkedCustomerId: cid,
         linkedCustomerDiscountPercent: linkedCustomerDiscountPercent ?? 0,
       );
@@ -323,6 +363,24 @@ class AddSaleController extends Notifier<AddSaleState> {
     state = state.copyWith(lines: next, clearSubmitError: true);
   }
 
+  /// Employee POS: service provider is always the signed-in staff member
+  /// (`users/{uid}.employeeId` → `salons/.../employees/{employeeId}`).
+  void syncBarberWithLoggedInEmployee() {
+    final mode = ref.read(addSaleEntryModeProvider);
+    if (mode != AddSaleEntryMode.employee) {
+      return;
+    }
+    final user = ref.read(sessionUserProvider).asData?.value;
+    final eid = user?.employeeId?.trim();
+    if (eid == null || eid.isEmpty) {
+      return;
+    }
+    if (state.selectedBarberId?.trim() == eid) {
+      return;
+    }
+    state = state.copyWith(selectedBarberId: eid, clearSubmitError: true);
+  }
+
   void selectBarber(String? employeeId) {
     final mode = ref.read(addSaleEntryModeProvider);
     final user = ref.read(sessionUserProvider).asData?.value;
@@ -343,6 +401,7 @@ class AddSaleController extends Notifier<AddSaleState> {
     state = state.copyWith(
       customerName: value,
       clearLinkedCustomer: true,
+      clearWalkInPhone: true,
       clearSubmitError: true,
     );
   }
@@ -352,6 +411,26 @@ class AddSaleController extends Notifier<AddSaleState> {
       customerName: customer.visibleDisplayName.trim(),
       linkedCustomerId: customer.id.trim(),
       linkedCustomerDiscountPercent: customer.discountPercentage,
+      clearWalkInPhone: true,
+      clearSubmitError: true,
+    );
+  }
+
+  /// Walk-in customer: name + optional phone (not linked to salon customer doc).
+  void setWalkInCustomer({required String name, String phone = ''}) {
+    state = state.copyWith(
+      customerName: name.trim(),
+      walkInPhone: phone.trim(),
+      clearLinkedCustomer: true,
+      clearSubmitError: true,
+    );
+  }
+
+  void clearCustomerSelection() {
+    state = state.copyWith(
+      customerName: '',
+      clearWalkInPhone: true,
+      clearLinkedCustomer: true,
       clearSubmitError: true,
     );
   }
@@ -453,46 +532,60 @@ class AddSaleController extends Notifier<AddSaleState> {
     }
   }
 
-  Future<bool> recordSale() async {
+  Future<bool> recordSale(AppLocalizations l10n) async {
     state = state.copyWith(clearSubmitError: true, submitError: null);
     final mode = ref.read(addSaleEntryModeProvider);
     final settings =
         ref.read(salonSalesSettingsStreamProvider).asData?.value ??
         SalonSalesSettings.defaults();
 
-    if (!state.canSubmit) {
+    final user = ref.read(sessionUserProvider).asData?.value;
+
+    if (!state.canSubmitWithSession(
+      mode: mode,
+      sessionEmployeeId: user?.employeeId?.trim(),
+    )) {
+      state = state.copyWith(submitError: l10n.ownerAddSaleValidation);
       return false;
     }
     if (!state.receiptRequirementMet(settings: settings, mode: mode)) {
       state = state.copyWith(
-        submitError: 'Receipt photo is required for this payment.',
+        submitError: l10n.addSaleReceiptPhotoRequiredShort,
       );
       return false;
     }
-
-    final sessionAsync = ref.read(sessionUserProvider);
-    final user = sessionAsync.asData?.value;
     final salonId = user?.salonId?.trim();
     if (user == null || salonId == null || salonId.isEmpty) {
+      state = state.copyWith(submitError: l10n.addSaleErrorSalonNotLinked);
+      return false;
+    }
+
+    if (!user.isActive) {
+      state = state.copyWith(submitError: l10n.addSaleErrorAccountInactive);
       return false;
     }
 
     if (mode == AddSaleEntryMode.employee) {
       if (!settings.allowEmployeeAddSale) {
         state = state.copyWith(
-          submitError: 'Sales entry is disabled for staff.',
+          submitError: l10n.employeeSalesNotAllowedAdd,
         );
+        return false;
+      }
+      final role = user.role.trim().toLowerCase();
+      if (role != UserRoles.barber && role != UserRoles.employee) {
+        state = state.copyWith(submitError: l10n.addSaleErrorStaffRoleOnly);
         return false;
       }
       final eid = user.employeeId?.trim();
       if (eid == null || eid.isEmpty) {
-        state = state.copyWith(submitError: 'Staff profile mismatch for sale.');
+        state = state.copyWith(submitError: l10n.addSaleErrorStaffNotLinked);
         return false;
       }
       if (!settings.allowMixedPayment &&
           state.paymentMethod == PosPaymentMethod.mixed) {
         state = state.copyWith(
-          submitError: 'Mixed payment is not allowed for your salon.',
+          submitError: l10n.addSaleErrorMixedPaymentNotAllowed,
         );
         return false;
       }
@@ -501,6 +594,7 @@ class AddSaleController extends Notifier<AddSaleState> {
     if (mode != AddSaleEntryMode.employee) {
       if (state.selectedBarberId == null ||
           state.selectedBarberId!.trim().isEmpty) {
+        state = state.copyWith(submitError: l10n.addSaleSelectStaffMember);
         return false;
       }
     }
@@ -530,7 +624,16 @@ class AddSaleController extends Notifier<AddSaleState> {
           .getEmployee(salonId, targetBarberId);
     }
     if (barber == null || !barber.isActive) {
+      state = state.copyWith(submitError: l10n.addSaleErrorStaffNotLinked);
       return false;
+    }
+
+    if (kDebugMode) {
+      debugPrint(
+        '[AddSale] submit salonId=$salonId employeeId=${barber.id} '
+        'services=${state.lines.length} payment=${state.paymentMethod.name} '
+        'total=${state.totalAmount}',
+      );
     }
 
     state = state.copyWith(isSubmitting: true, clearSubmitError: true);
@@ -571,6 +674,11 @@ class AddSaleController extends Notifier<AddSaleState> {
       if (p.isNotEmpty) {
         phoneSnap = p;
       }
+    } else {
+      final w = state.walkInPhone.trim();
+      if (w.isNotEmpty) {
+        phoneSnap = w;
+      }
     }
 
     final repo = ref.read(salesRepositoryProvider);
@@ -590,7 +698,7 @@ class AddSaleController extends Notifier<AddSaleState> {
       } on Object catch (e) {
         state = state.copyWith(
           isSubmitting: false,
-          submitError: FirebaseErrorMessage.fromException(e),
+          submitError: _mapReceiptUploadFailure(l10n, e),
         );
         return false;
       }
@@ -624,6 +732,11 @@ class AddSaleController extends Notifier<AddSaleState> {
         ? 'pending'
         : 'approved';
 
+    final businessDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final saleSource = mode == AddSaleEntryMode.employee
+        ? 'employee_app'
+        : 'owner_app';
+
     try {
       final additionalFields = <String, dynamic>{
         'barberId': barber.id,
@@ -643,6 +756,9 @@ class AddSaleController extends Notifier<AddSaleState> {
         'cashAmount': pay.cash,
         'cardAmount': pay.card,
         'approvalStatus': approvalStatus,
+        'paymentStatus': 'paid',
+        'businessDate': businessDate,
+        'source': saleSource,
         'dateKey': _saleDateKeyUtc(soldAt),
         'monthKey': ReportPeriod.periodKey(
           ReportPeriod.yearFrom(soldAt),
@@ -681,9 +797,15 @@ class AddSaleController extends Notifier<AddSaleState> {
       state = state.copyWith(isSubmitting: false, clearSubmitError: true);
       return true;
     } on Object catch (e) {
+      final message = e is FirebaseException && e.code == 'permission-denied'
+          ? l10n.addSaleErrorFirestorePermissionDenied
+          : FirebaseErrorMessage.fromException(e);
+      if (kDebugMode) {
+        debugPrint('[AddSale] recordSale failed: $e');
+      }
       state = state.copyWith(
         isSubmitting: false,
-        submitError: FirebaseErrorMessage.fromException(e),
+        submitError: message,
       );
       return false;
     }

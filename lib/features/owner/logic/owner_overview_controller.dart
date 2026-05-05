@@ -33,6 +33,7 @@ class OwnerOverviewInputs {
     required this.services,
     required this.attendanceToday,
     required this.pendingAttendanceRequests,
+    required this.pendingAttendanceCorrectionCount,
     required this.payroll,
     required this.expenses,
   });
@@ -51,6 +52,9 @@ class OwnerOverviewInputs {
   /// Every attendance record awaiting owner/admin review (all dates). Powers
   /// the actionable "Needs attention" row and the review screen badge.
   final List<AttendanceRecord> pendingAttendanceRequests;
+
+  /// `salons/{salonId}/attendanceCorrectionRequests` with `status == pending`.
+  final int pendingAttendanceCorrectionCount;
 
   final List<PayrollRecord> payroll;
   final List<Expense> expenses;
@@ -211,11 +215,13 @@ OwnerOverviewState computeOwnerOverviewState(OwnerOverviewInputs input) {
   }).toList();
   final weekTop = _topServiceUsage(weekSales);
 
-  // Count every pending request across all dates — owners review the full
-  // queue on a dedicated screen, not just today's records.
-  final pendingApprovalsCount = input.pendingAttendanceRequests
+  // Legacy attendance rows (`approvalStatus`) plus punch correction queue
+  // (`attendanceCorrectionRequests` / `status`).
+  final legacyAttendanceApprovalPending = input.pendingAttendanceRequests
       .where((a) => a.approvalStatus == AttendanceApprovalStatuses.pending)
       .length;
+  final pendingApprovalsCount = legacyAttendanceApprovalPending +
+      input.pendingAttendanceCorrectionCount;
 
   // --- Services aggregations ---------------------------------------------
   final activeServices = input.services.where((s) => s.isActive).toList();
@@ -581,6 +587,9 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
   final pendingRequestsAsync = ref.watch(
     pendingAttendanceRequestsStreamProvider,
   );
+  final pendingCorrectionsAsync = ref.watch(
+    pendingAttendanceCorrectionCountStreamProvider,
+  );
   final payrollAsync = ref.watch(payrollStreamProvider);
   final expensesAsync = ref.watch(expensesStreamProvider);
 
@@ -599,6 +608,7 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
         servicesAsync,
         attendanceAsync,
         pendingRequestsAsync,
+        pendingCorrectionsAsync,
         payrollAsync,
         expensesAsync,
         salonAsync,
@@ -616,6 +626,8 @@ final ownerOverviewControllerProvider = Provider<OwnerOverviewState>((ref) {
     services: servicesAsync.asData?.value ?? const [],
     attendanceToday: attendanceAsync.asData?.value ?? const [],
     pendingAttendanceRequests: pendingRequestsAsync.asData?.value ?? const [],
+    pendingAttendanceCorrectionCount:
+        pendingCorrectionsAsync.asData?.value ?? 0,
     payroll: payrollAsync.asData?.value ?? const [],
     expenses: expensesAsync.asData?.value ?? const [],
   );

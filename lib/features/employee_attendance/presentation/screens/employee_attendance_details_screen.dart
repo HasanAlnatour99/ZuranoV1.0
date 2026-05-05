@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
 import '../../../employee_dashboard/domain/enums/attendance_punch_type.dart';
 import '../../../employee_today/data/models/et_attendance_punch.dart';
@@ -71,7 +72,7 @@ class EmployeeAttendanceDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBody: true,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
       floatingActionButton: const EmployeeQuickActionFab(),
       appBar: AppBar(
         title: Text(l10n.employeeAttendanceDayTitle),

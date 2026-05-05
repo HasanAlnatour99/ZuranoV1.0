@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../domain/customer_discovery_country_match.dart';
 import '../../domain/customer_geo.dart';
 import '../models/customer_banner_model.dart';
 import '../models/customer_category_model.dart';
@@ -42,63 +43,80 @@ class CustomerHomeRepository {
         );
   }
 
+  /// Single source for home lists: `salons/*` with `isPublished` (aligns with security rules).
+  /// Country / legacy field mismatches are handled in memory via [preferCountryFilteredElseAll].
+  Stream<List<CustomerSalonModel>> _watchPublishedSalonsForDiscovery({
+    required String discoveryCountryName,
+    String? categoryId,
+  }) {
+    final limit = 100;
+    final Query<Map<String, dynamic>> query;
+    if (categoryId != null && categoryId != 'all') {
+      query = _db
+          .collection(FirestorePaths.salons)
+          .where('isPublished', isEqualTo: true)
+          .where('categoryIds', arrayContains: categoryId)
+          .limit(limit);
+    } else {
+      query = _db
+          .collection(FirestorePaths.salons)
+          .where('isPublished', isEqualTo: true)
+          .limit(limit);
+    }
+
+    return query.snapshots().map(
+      (snapshot) {
+        if (kDebugMode) {
+          debugPrint(
+            '[CustomerHome] published salons raw=${snapshot.docs.length}',
+          );
+        }
+        final parsed = snapshot.docs
+            .map(CustomerSalonModel.fromFirestore)
+            .where((s) => s.isPublished)
+            .toList(growable: false);
+        return preferCountryFilteredElseAll(parsed, discoveryCountryName);
+      },
+    );
+  }
+
+  List<CustomerSalonModel> _sortRecommended(
+    List<CustomerSalonModel> list,
+  ) {
+    final out = [...list];
+    out.sort((a, b) {
+      final prom = (b.isPromoted ? 1 : 0).compareTo(a.isPromoted ? 1 : 0);
+      if (prom != 0) {
+        return prom;
+      }
+      final r = b.ratingAverage.compareTo(a.ratingAverage);
+      if (r != 0) {
+        return r;
+      }
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    return out.take(12).toList(growable: false);
+  }
+
   Stream<List<CustomerSalonModel>> watchRecommendedSalons({
     required String discoveryCountryName,
     String? categoryId,
   }) {
-    Query<Map<String, dynamic>> query = _db
-        .collection(FirestorePaths.salons)
-        .where('isPublished', isEqualTo: true)
-        .where('isPromoted', isEqualTo: true)
-        .where('country', isEqualTo: discoveryCountryName)
-        .orderBy('ratingAverage', descending: true)
-        .limit(10);
-
-    if (categoryId != null && categoryId != 'all') {
-      query = _db
-          .collection(FirestorePaths.salons)
-          .where('isPublished', isEqualTo: true)
-          .where('isPromoted', isEqualTo: true)
-          .where('country', isEqualTo: discoveryCountryName)
-          .where('categoryIds', arrayContains: categoryId)
-          .orderBy('ratingAverage', descending: true)
-          .limit(10);
-    }
-
-    return query.snapshots().map(
-      (snapshot) => snapshot.docs
-          .map(CustomerSalonModel.fromFirestore)
-          .toList(growable: false),
-    );
+    return _watchPublishedSalonsForDiscovery(
+      discoveryCountryName: discoveryCountryName,
+      categoryId: categoryId,
+    ).map(_sortRecommended);
   }
 
-  /// Published salons in [discoveryCountryName] only (no city filter). Client sorts by GPS distance.
+  /// Published salons (no strict Firestore `country` filter — uses client-side region filter).
   Stream<List<CustomerSalonModel>> watchNearbySalons({
     required String discoveryCountryName,
     String? categoryId,
   }) {
-    Query<Map<String, dynamic>> query = _db
-        .collection(FirestorePaths.salons)
-        .where('isPublished', isEqualTo: true)
-        .where('country', isEqualTo: discoveryCountryName)
-        .orderBy('ratingAverage', descending: true)
-        .limit(50);
-
-    if (categoryId != null && categoryId != 'all') {
-      query = _db
-          .collection(FirestorePaths.salons)
-          .where('isPublished', isEqualTo: true)
-          .where('country', isEqualTo: discoveryCountryName)
-          .where('categoryIds', arrayContains: categoryId)
-          .orderBy('ratingAverage', descending: true)
-          .limit(50);
-    }
-
-    return query.snapshots().map(
-      (snapshot) => snapshot.docs
-          .map(CustomerSalonModel.fromFirestore)
-          .toList(growable: false),
-    );
+    return _watchPublishedSalonsForDiscovery(
+      discoveryCountryName: discoveryCountryName,
+      categoryId: categoryId,
+    ).map((list) => list.take(50).toList(growable: false));
   }
 
   Stream<List<TrendingServiceModel>> watchTrendingServices() {
@@ -173,23 +191,19 @@ class CustomerHomeRepository {
     );
 
     await countQuery(
-      'published salons in discovery country',
+      'published salons (no country filter; matches app query shape)',
       _db
           .collection(FirestorePaths.salons)
           .where('isPublished', isEqualTo: true)
-          .where('country', isEqualTo: discoveryCountryName)
-          .orderBy('ratingAverage', descending: true)
           .limit(20),
     );
 
     await countQuery(
-      'recommended salons in discovery country',
+      'published + category hair (if index exists)',
       _db
           .collection(FirestorePaths.salons)
           .where('isPublished', isEqualTo: true)
-          .where('isPromoted', isEqualTo: true)
-          .where('country', isEqualTo: discoveryCountryName)
-          .orderBy('ratingAverage', descending: true)
+          .where('categoryIds', arrayContains: 'hair')
           .limit(20),
     );
 

@@ -12,7 +12,6 @@ import '../features/customer/application/customer_salon_profile_providers.dart';
 import '../features/employees/data/models/employee.dart';
 import '../features/salon/data/models/salon.dart';
 import '../features/services/data/models/service.dart';
-import 'firebase_providers.dart';
 import 'repository_providers.dart';
 import 'session_provider.dart';
 
@@ -20,22 +19,10 @@ bool _isPermissionDenied(Object error) {
   return error is FirebaseException && error.code == 'permission-denied';
 }
 
-Stream<T> _withPermissionFallback<T>(Stream<T> source, T fallback) async* {
-  try {
-    yield* source;
-  } on FirebaseException catch (error) {
-    if (_isPermissionDenied(error)) {
-      yield fallback;
-      return;
-    }
-    rethrow;
-  }
-}
-
 bool _canReadCustomerStreams(Ref ref) {
   final status = ref.watch(appSessionBootstrapProvider).status;
-  final hasAuthUser = ref.watch(firebaseAuthProvider).currentUser != null;
-  return hasAuthUser && status != AppSessionStatus.unauthenticated;
+  // Guests need published salon + `publicSalons/*` mirrors after splash resolves.
+  return status != AppSessionStatus.initializing;
 }
 
 /// All active salons for discovery (not scoped to session salon).
@@ -44,10 +31,7 @@ final activeSalonsStreamProvider = StreamProvider<List<Salon>>((ref) {
     return Stream.value(const <Salon>[]);
   }
   final repo = ref.watch(salonRepositoryProvider);
-  return _withPermissionFallback<List<Salon>>(
-    repo.watchActiveSalons(),
-    const <Salon>[],
-  );
+  return repo.watchActiveSalons();
 });
 
 /// Single salon document for customer flows.
@@ -82,10 +66,7 @@ final customerSalonServicesStreamProvider =
                 .map(salonServiceFromCustomerPublic)
                 .toList(growable: false),
           );
-      return _withPermissionFallback<List<SalonService>>(
-        stream,
-        const <SalonService>[],
-      );
+      return stream;
     });
 
 /// Bookable specialists for customer booking (public team mirror — not `salons/.../employees`).
@@ -112,10 +93,7 @@ final customerSalonBarbersStreamProvider =
                 )
                 .toList(growable: false),
           );
-      return _withPermissionFallback<List<Employee>>(
-        teamStream,
-        const <Employee>[],
-      );
+      return teamStream;
     });
 
 /// KPI snapshots keyed by `employeeId` for customer salon views.

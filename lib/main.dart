@@ -17,8 +17,10 @@ import 'providers/app_settings_providers.dart';
 ///
 /// **Callable enforcement:** Cloud Functions such as [salonStaffCreateWithAuth] use
 /// `enforceAppCheck: true`. Without a valid App Check token, HTTPS callables return **403**
-/// (e.g. *App attestation failed*). Register platform debug tokens under Firebase Console →
-/// App Check → your app → *Manage debug tokens* when using debug providers below.
+/// (e.g. *App attestation failed*). Firebase Storage also rejects uploads when App Check
+/// is enforced and the token is missing (e.g. receipt photos). Register platform debug
+/// tokens under Firebase Console → App Check → your app → *Manage debug tokens* when
+/// using debug providers below.
 ///
 /// **Web release:** set `--dart-define=FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY=<reCAPTCHA Enterprise site key>`
 /// from the same console; non-release web uses [WebDebugProvider] (console token from browser logs).

@@ -31,6 +31,7 @@ class Salon {
     this.weeklyAvailability,
     this.penaltySettings = const PenaltySettings(),
     this.defaultPayrollPeriod = SalonPayrollPeriods.monthly,
+    this.isPublished = true,
     this.createdAt,
     this.updatedAt,
   });
@@ -85,6 +86,9 @@ class Salon {
 
   /// `monthly` (default) | `weekly` — default payroll cadence; staff may override on their profile.
   final String defaultPayrollPeriod;
+
+  /// Listed on customer discovery when true (Firestore rules + queries align on this flag).
+  final bool isPublished;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -166,6 +170,10 @@ class Salon {
       defaultPayrollPeriod: SalonPayrollPeriods.normalize(
         FirestoreSerializers.string(json['defaultPayrollPeriod']),
       ),
+      isPublished: FirestoreSerializers.boolValue(
+        json['isPublished'],
+        fallback: true,
+      ),
       createdAt: FirestoreSerializers.dateTime(json['createdAt']),
       updatedAt: FirestoreSerializers.dateTime(json['updatedAt']),
     );
@@ -214,6 +222,7 @@ class Salon {
         },
       'penaltySettings': penaltySettings.toJson(),
       'defaultPayrollPeriod': defaultPayrollPeriod,
+      'isPublished': isPublished,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -242,6 +251,7 @@ class Salon {
     Object? weeklyAvailability = _sentinel,
     PenaltySettings? penaltySettings,
     String? defaultPayrollPeriod,
+    bool? isPublished,
     Object? createdAt = _sentinel,
     Object? updatedAt = _sentinel,
   }) {
@@ -288,6 +298,7 @@ class Salon {
       defaultPayrollPeriod: defaultPayrollPeriod != null
           ? SalonPayrollPeriods.normalize(defaultPayrollPeriod)
           : this.defaultPayrollPeriod,
+      isPublished: isPublished ?? this.isPublished,
       createdAt: identical(createdAt, _sentinel)
           ? this.createdAt
           : createdAt as DateTime?,

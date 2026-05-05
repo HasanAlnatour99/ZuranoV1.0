@@ -150,12 +150,14 @@ class EmployeeSalesHeroCard extends StatelessWidget {
                 ),
                 Text(
                   label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.78),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
+                    height: 1.2,
                   ),
                 ),
               ],

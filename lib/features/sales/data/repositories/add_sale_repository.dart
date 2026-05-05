@@ -72,6 +72,7 @@ class AddSaleRepository {
     }
     final bookingRef = _db.doc(FirestorePaths.guestBooking(normalizedCode));
     final saleRef = _db.collection(FirestorePaths.salonSales(salonId)).doc();
+    late List<SaleLineItem> saleLineItemsForSubdocs;
 
     return _db.runTransaction((transaction) async {
       final bookingSnap = await transaction.get(bookingRef);
@@ -210,18 +211,6 @@ class AddSaleRepository {
       });
 
       transaction.set(saleRef, payload);
-      for (final item in sale.lineItems) {
-        final itemRef = saleRef.collection('items').doc();
-        transaction.set(itemRef, {
-          'serviceId': item.serviceId,
-          'serviceName': item.serviceName,
-          if (item.serviceIcon != null && item.serviceIcon!.trim().isNotEmpty)
-            'serviceIcon': item.serviceIcon,
-          'price': item.unitPrice,
-          'quantity': item.quantity,
-          'lineTotal': item.total,
-        });
-      }
 
       final nickKey = booking.nicknameKey?.trim() ?? '';
       final keywords = buildCustomerSearchKeywords(
@@ -309,7 +298,15 @@ class AddSaleRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
+      saleLineItemsForSubdocs = sale.lineItems;
       return saleRef.id;
+    }).then((createdSaleId) async {
+      await _salesRepository.commitSaleLineItemSubdocuments(
+        salonId: salonId,
+        saleId: createdSaleId,
+        lineItems: saleLineItemsForSubdocs,
+      );
+      return createdSaleId;
     });
   }
 

@@ -22,6 +22,8 @@ class FirestorePaths {
   /// Customer-safe team mirror under each public salon doc (`publicSalons/{salonId}/team/{employeeId}`).
   static const publicSalonTeam = 'team';
   static const employees = 'employees';
+  /// Optional per-salon shift definitions (e.g. employee `shiftId`). Distinct from [shiftTemplates].
+  static const shifts = 'shifts';
   static const shiftTemplates = 'shiftTemplates';
   static const weeklyScheduleTemplates = 'weeklyScheduleTemplates';
   static const weeklyScheduleAssignments = 'assignments';
@@ -108,6 +110,11 @@ class FirestorePaths {
   static String salonEmployees(String salonId) =>
       '${salon(salonId)}/$employees';
 
+  static String salonShifts(String salonId) => '${salon(salonId)}/$shifts';
+
+  static String salonShift(String salonId, String shiftId) =>
+      '${salonShifts(salonId)}/$shiftId';
+
   static String salonShiftTemplates(String salonId) =>
       '${salon(salonId)}/$shiftTemplates';
 
@@ -144,6 +151,9 @@ class FirestorePaths {
   static String salonEmployee(String salonId, String employeeId) =>
       '${salonEmployees(salonId)}/$employeeId';
 
+  /// Optional per-employee leave buckets (`leaveBalances/{leaveTypeId}`).
+  static const leaveBalances = 'leaveBalances';
+
   /// Per-employee salon service roster (`assignedServices/{serviceId}`).
   static const assignedServicesCollection = 'assignedServices';
 
@@ -151,6 +161,11 @@ class FirestorePaths {
     String salonId,
     String employeeId,
   ) => '${salonEmployee(salonId, employeeId)}/$assignedServicesCollection';
+
+  static String salonEmployeeLeaveBalances(
+    String salonId,
+    String employeeId,
+  ) => '${salonEmployee(salonId, employeeId)}/$leaveBalances';
 
   static String salonEmployeeAssignedService(
     String salonId,
@@ -167,6 +182,18 @@ class FirestorePaths {
 
   static String salonReview(String salonId, String reviewId) =>
       '${salonReviews(salonId)}/$reviewId';
+
+  /// Daily aggregated performance doc id: `{yyyyMMdd}_{employeeId}`.
+  static const employeeDailyPerformance = 'employeeDailyPerformance';
+
+  static String salonEmployeeDailyPerformanceCollection(String salonId) =>
+      '${salon(salonId)}/$employeeDailyPerformance';
+
+  static String salonEmployeeDailyPerformanceDoc(
+    String salonId,
+    String docId,
+  ) =>
+      '${salonEmployeeDailyPerformanceCollection(salonId)}/$docId';
 
   static String salonSales(String salonId) => '${salon(salonId)}/$sales';
 

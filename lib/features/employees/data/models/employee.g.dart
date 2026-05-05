@@ -65,6 +65,12 @@ _Employee _$EmployeeFromJson(Map<String, dynamic> json) => _Employee(
   assignedServiceIds: json['assignedServiceIds'] == null
       ? const <String>[]
       : stringListFromJson(json['assignedServiceIds']),
+  dailyTargetServices: json['dailyTargetServices'] == null
+      ? 0
+      : looseIntFromJson(json['dailyTargetServices']),
+  dailyTargetRevenue: json['dailyTargetRevenue'] == null
+      ? 0
+      : looseDoubleFromJson(json['dailyTargetRevenue']),
   isActive: json['isActive'] == null
       ? true
       : trueBoolFromJson(json['isActive']),
@@ -105,6 +111,8 @@ Map<String, dynamic> _$EmployeeToJson(_Employee instance) => <String, dynamic>{
   ),
   'hiredAt': nullableFirestoreDateTimeToJson(instance.hiredAt),
   'assignedServiceIds': instance.assignedServiceIds,
+  'dailyTargetServices': instance.dailyTargetServices,
+  'dailyTargetRevenue': instance.dailyTargetRevenue,
   'isActive': instance.isActive,
   'weeklyAvailability': _weeklyAvailabilityToJson(instance.weeklyAvailability),
   'mustChangePassword': instance.mustChangePassword,

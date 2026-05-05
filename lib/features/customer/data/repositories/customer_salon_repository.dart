@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
 import '../models/salon_public_model.dart';
@@ -60,20 +61,38 @@ class FirestoreCustomerSalonRepository implements CustomerSalonRepository {
 
   final FirebaseFirestore _firestore;
 
-  Query<Map<String, dynamic>> _publicQuery() {
+  /// Real salon documents at `salons/{salonId}` (mirrors may be missing).
+  Query<Map<String, dynamic>> _publishedSalonRootQuery() {
     return _firestore
-        .collection(FirestorePaths.publicSalons)
-        .where('isPublic', isEqualTo: true)
-        .where('isActive', isEqualTo: true)
-        .orderBy('ratingAverage', descending: true)
-        .limit(50);
+        .collection(FirestorePaths.salons)
+        .where('isPublished', isEqualTo: true)
+        .limit(64);
   }
 
   @override
   Stream<List<SalonPublicModel>> watchPublicSalons() {
-    return _publicQuery().snapshots().map(
-      (snap) =>
-          snap.docs.map(SalonPublicModel.fromFirestore).toList(growable: false),
+    return _publishedSalonRootQuery().snapshots().map(
+      (snap) {
+        if (kDebugMode) {
+          debugPrint(
+            '[publicSalons/watch] salons root docs=${snap.docs.length}',
+          );
+        }
+        final rows = snap.docs
+            .map(SalonPublicModel.fromSalonRootDocument)
+            .where((s) => s.isActive && s.isPublic)
+            .toList(growable: false);
+        rows.sort((a, b) {
+          final c = b.ratingAverage.compareTo(a.ratingAverage);
+          if (c != 0) {
+            return c;
+          }
+          return a.salonName.toLowerCase().compareTo(
+            b.salonName.toLowerCase(),
+          );
+        });
+        return rows;
+      },
     );
   }
 
@@ -91,11 +110,18 @@ class FirestoreCustomerSalonRepository implements CustomerSalonRepository {
       return null;
     }
     try {
-      final doc = await _firestore.doc(FirestorePaths.publicSalon(id)).get();
-      if (!doc.exists) {
-        return null;
+      final publicDoc = await _firestore.doc(FirestorePaths.publicSalon(id)).get();
+      if (publicDoc.exists) {
+        return SalonPublicModel.fromFirestore(publicDoc);
       }
-      return SalonPublicModel.fromFirestore(doc);
+      final rootDoc = await _firestore
+          .collection(FirestorePaths.salons)
+          .doc(id)
+          .get();
+      if (rootDoc.exists) {
+        return SalonPublicModel.fromSalonRootDocument(rootDoc);
+      }
+      return null;
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
         return null;

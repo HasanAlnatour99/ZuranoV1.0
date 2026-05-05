@@ -6879,6 +6879,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addSaleBarberLabel => 'Service provider';
 
   @override
+  String get addSaleCustomerSheetTitle => 'Customer';
+
+  @override
+  String get addSaleCustomerTabSalon => 'Salon customers';
+
+  @override
+  String get addSaleCustomerTabWalkIn => 'Walk-in';
+
+  @override
+  String get addSaleCustomerSearchHint => 'Search by name or phone';
+
+  @override
+  String get addSaleCustomerEmptySalonList =>
+      'No customers found. Add a walk-in or create customers in Customers.';
+
+  @override
+  String get addSaleCustomerWalkInNameLabel => 'Name';
+
+  @override
+  String get addSaleCustomerWalkInPhoneLabel => 'Phone';
+
+  @override
+  String get addSaleCustomerWalkInPhoneOptional => 'Optional';
+
+  @override
+  String get addSaleCustomerSaveWalkIn => 'Use walk-in';
+
+  @override
+  String get addSaleCustomerClear => 'Clear';
+
+  @override
+  String get addSaleCustomerLinkedSubtitle => 'Salon customer';
+
+  @override
+  String get addSaleCustomerWalkInSubtitle => 'Walk-in';
+
+  @override
+  String get addSaleCustomerNoDetails => 'Tap to add or select a customer';
+
+  @override
+  String get addSaleCustomerWalkInNameRequired => 'Please enter a name.';
+
+  @override
   String get addSaleWalkInCustomer => 'Walk-in customer';
 
   @override
@@ -7192,16 +7235,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'No punch actions are available right now.';
 
   @override
-  String get employeeTodayPrimaryPunchInSubtitle => 'Start your work session';
+  String get employeeTodayPrimaryPunchInSubtitle => 'Start your day';
 
   @override
-  String get employeeTodayPrimaryPunchOutSubtitle => 'End your current session';
+  String get employeeTodayPrimaryPunchOutSubtitle => 'End your day';
 
   @override
-  String get employeeTodayPrimaryBreakOutSubtitle => 'Start a break';
+  String get employeeTodayPrimaryBreakOutSubtitle => 'Take a break';
 
   @override
-  String get employeeTodayPrimaryBreakInSubtitle => 'Resume your shift';
+  String get employeeTodayPrimaryBreakInSubtitle => 'Back to work';
 
   @override
   String get employeeTodayNoAction => 'No action';
@@ -7305,12 +7348,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeeSaleRecordedSuccess => 'Sale recorded successfully.';
 
   @override
+  String get addSaleErrorSalonNotLinked =>
+      'This account is not linked to a salon. Contact your owner.';
+
+  @override
+  String get addSaleErrorAccountInactive =>
+      'This account is inactive. Contact your salon owner.';
+
+  @override
+  String get addSaleErrorStaffNotLinked =>
+      'Your staff profile is not linked. Ask the owner to link your employee ID.';
+
+  @override
+  String get addSaleErrorStaffRoleOnly =>
+      'Only barbers and employees can record sales from this screen.';
+
+  @override
+  String get addSaleErrorMixedPaymentNotAllowed =>
+      'Split cash and card payment is not enabled for your salon.';
+
+  @override
+  String get addSaleErrorFirestorePermissionDenied =>
+      'Could not save the sale (permission denied). Check your account or ask the owner to update Firestore rules.';
+
+  @override
+  String get addSaleErrorReceiptUploadStorage =>
+      'Could not upload the receipt photo. If you are on a development build, register this device’s App Check debug token in Firebase Console (App Check → your Android app → Manage debug tokens; token appears in logcat), then try again. Otherwise ask the owner to check Storage access.';
+
+  @override
+  String get addSaleReceiptPhotoRequiredShort =>
+      'A receipt photo is required for this payment type.';
+
+  @override
   String get employeeSalesEmptyPeriod =>
       'No sales recorded for this period yet.';
 
   @override
   String get employeeSalesEmptyCta =>
-      'Tap Add Sale to record your first sale today.';
+      'Use the Quick Actions button to add your first sale.';
 
   @override
   String get employeeSalesRecentTitle => 'Recent sales';
@@ -7339,7 +7414,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeeSalesKpiCommission => 'Est. Commission';
 
   @override
-  String get employeeSalesKpiAvgService => 'Avg. Service';
+  String get employeeSalesKpiAvgService => 'Per service';
 
   @override
   String get employeeSalesCommissionRate => 'Commission rate';
@@ -8863,7 +8938,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can check out later';
 
   @override
-  String get employeeTodayStatusCheckedOutSubtitle => 'Thank you';
+  String get employeeTodayStatusCheckedOutSubtitle => 'Shift completed';
 
   @override
   String get employeeTodayStatusMissingPunchSubtitle =>
@@ -9034,6 +9109,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String get employeeTodayStatsTitle => 'My today';
 
   @override
+  String get employeeTodayPerformanceTitle => 'Today performance';
+
+  @override
+  String get employeeTodayPerformanceHeroTitle => 'Today performance';
+
+  @override
+  String get employeeTodayPerformanceMetricAttendanceScore =>
+      'Attendance score';
+
+  @override
+  String get employeeTodayPerformanceLevelExcellent => 'Excellent';
+
+  @override
+  String get employeeTodayPerformanceLevelGreat => 'Great';
+
+  @override
+  String get employeeTodayPerformanceLevelGood => 'Good';
+
+  @override
+  String get employeeTodayPerformanceLevelNeedsAttention => 'Needs attention';
+
+  @override
+  String get employeeTodayPerformanceLevelLow => 'Low performance';
+
+  @override
+  String get employeeTodayPerformanceTipExcellent =>
+      'Outstanding balance across sales, attendance, and discipline today.';
+
+  @override
+  String get employeeTodayPerformanceTipGreat =>
+      'Strong day — keep the rhythm going.';
+
+  @override
+  String get employeeTodayPerformanceTipGood =>
+      'Solid progress — small lifts on sales or attendance will push you higher.';
+
+  @override
+  String get employeeTodayPerformanceTipNeedsAttention =>
+      'A few areas pulled the score down — focus on attendance and service consistency.';
+
+  @override
+  String get employeeTodayPerformanceTipLow =>
+      'Let’s reset: complete punches, stay in zone, and log each sale.';
+
+  @override
+  String get employeeTodayPerformanceTargetTitle => 'Today target';
+
+  @override
+  String employeeTodayPerformanceServicesProgress(int current, int target) {
+    return '$current of $target services';
+  }
+
+  @override
+  String employeeTodayPerformanceRevenueProgress(
+    String current,
+    String target,
+  ) {
+    return '$current of $target';
+  }
+
+  @override
+  String get employeeTodayPerformanceNoTargetSubtitle =>
+      'No target set for today';
+
+  @override
+  String get employeeTodayPerformanceMetricServices => 'Services';
+
+  @override
+  String get employeeTodayPerformanceMetricSales => 'Sales';
+
+  @override
+  String get employeeTodayPerformanceMetricCommission => 'Commission';
+
+  @override
+  String get employeeTodayPerformanceMessageTargetReached =>
+      'Great work! You reached your target today.';
+
+  @override
+  String employeeTodayPerformanceMessageServicesRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count services left to reach your target',
+      one: '1 service left to reach your target',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String employeeTodayPerformanceMessageRevenueRemaining(String amount) {
+    return '$amount left to reach your sales target';
+  }
+
+  @override
+  String get employeeTodayPerformanceMessageNoTarget =>
+      'Add a sale to start tracking performance.';
+
+  @override
+  String get employeeTodayPerformanceAddSale => 'Add sale';
+
+  @override
+  String get employeeTodayPerformanceLoadError =>
+      'Could not load performance. Pull to refresh.';
+
+  @override
   String get employeeTodayStatsSalesLabel => 'Sales';
 
   @override
@@ -9041,6 +9221,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get employeeTodayDistanceUnknown => 'Distance —';
+
+  @override
+  String get employeeHeroShiftNone => 'No shift assigned';
+
+  @override
+  String get employeeHeroHeaderLoadError =>
+      'Could not load your header. Pull to refresh.';
+
+  @override
+  String get employeeHeroWorkspaceLinkMissing =>
+      'Your workplace profile is incomplete. Ask your salon admin to link your account.';
+
+  @override
+  String get employeePremiumAttendanceLastAction => 'Last action';
+
+  @override
+  String get employeePremiumAttendanceActionAvailable => 'Available';
+
+  @override
+  String get employeePremiumAttendanceActionDisabled => 'Disabled';
+
+  @override
+  String get employeePremiumAttendanceGpsLocatingSubtitle =>
+      'We are checking your location…';
+
+  @override
+  String get employeePremiumAttendanceGpsInsideSubtitle =>
+      'You are within the salon area';
+
+  @override
+  String get employeePremiumAttendanceGpsOutsideTitle => 'Outside zone';
+
+  @override
+  String get employeePremiumAttendanceGpsOutsideSubtitle =>
+      'Move closer to the salon to punch';
+
+  @override
+  String get employeePremiumAttendancePolicyTileTitle => 'View policy';
+
+  @override
+  String get employeePremiumAttendancePolicyTileSubtitle =>
+      'See attendance rules';
+
+  @override
+  String get employeePremiumAttendanceSummaryTodayLabel => 'Working hours';
+
+  @override
+  String get employeePremiumAttendanceSummaryTodayHint => 'Today';
+
+  @override
+  String get employeePremiumAttendanceSummaryWeekLabel => 'Total this week';
+
+  @override
+  String employeePremiumAttendanceSummaryWeekDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get employeeBottomNavToday => 'Today';
@@ -9982,4 +10224,263 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get update => 'Update';
+
+  @override
+  String get employeeAttendanceTabErrorLoadProfile =>
+      'Could not load your profile.';
+
+  @override
+  String get employeeAttendanceTabErrorLoadAttendance =>
+      'Could not load attendance.';
+
+  @override
+  String get employeeAttendanceTabErrorToday =>
+      'Could not load today’s summary.';
+
+  @override
+  String get employeeAttendanceTabErrorHistory =>
+      'Could not load attendance history.';
+
+  @override
+  String get employeeAttendanceTabRetry => 'Try again';
+
+  @override
+  String get employeeAttendanceTabActionsSubtitle => 'Attendance actions';
+
+  @override
+  String get employeeAttendanceTabRequestCta => 'Request';
+
+  @override
+  String get employeeAttendanceTabTodaySummaryTitle => 'Today’s summary';
+
+  @override
+  String get employeeAttendanceTabCheckInLabel => 'Check-in';
+
+  @override
+  String get employeeAttendanceTabCheckOutLabel => 'Check-out';
+
+  @override
+  String get employeeAttendanceTabWorkedLabel => 'Worked time';
+
+  @override
+  String get employeeAttendanceTabStatusLabel => 'Status';
+
+  @override
+  String get employeeAttendanceTabHistoryTitle => 'Attendance log';
+
+  @override
+  String get employeeAttendanceTabEmptyHistory => 'No attendance records yet';
+
+  @override
+  String get employeeAttendanceTabEmptyHistoryHint =>
+      'Your attendance will appear here after you check in.';
+
+  @override
+  String get employeeAttendanceTabDetailsTitle => 'Details';
+
+  @override
+  String get employeeAttendanceTabShiftStateLabel => 'Shift';
+
+  @override
+  String get employeeAttendanceTabBreakMinutesLabel => 'Break';
+
+  @override
+  String get employeeAttendanceTabExceededBreakLabel => 'Exceeded break';
+
+  @override
+  String get employeeAttendanceTabOpenDetails => 'View details';
+
+  @override
+  String get employeeAttendanceTabRequestSheetTitle => 'New request';
+
+  @override
+  String get employeeAttendanceTabRequestOptionCorrection =>
+      'Attendance correction';
+
+  @override
+  String get employeeAttendanceTabRequestOptionLeave => 'Leave request';
+
+  @override
+  String get employeeAttendanceTabRequestOptionMissedPunch => 'Missed punch';
+
+  @override
+  String get employeeAttendanceTabRequestOptionBreak => 'Break correction';
+
+  @override
+  String get employeeAttendanceTabRequestDateLabel => 'Date';
+
+  @override
+  String get employeeAttendanceTabRequestReasonHint =>
+      'Describe your request (min. 5 characters)';
+
+  @override
+  String get employeeAttendanceTabRequestSubmit => 'Submit request';
+
+  @override
+  String get employeeAttendanceTabRequestSuccess => 'Request submitted';
+
+  @override
+  String get employeeAttendanceTabRequestReasonTooShort =>
+      'Please enter at least 5 characters.';
+
+  @override
+  String get employeeAttendanceTabRequestDuplicate =>
+      'You already have a pending request for this.';
+
+  @override
+  String get employeeAttendanceStaffOptionAdjustAbsentTitle =>
+      'Adjust absent day';
+
+  @override
+  String get employeeAttendanceStaffOptionAdjustAbsentSubtitle =>
+      'Select absent days and submit an adjustment request';
+
+  @override
+  String get employeeAttendanceStaffOptionCorrectionSubtitle =>
+      'Missing punch in or missing punch out';
+
+  @override
+  String get employeeAttendanceStaffOptionLeaveSubtitle =>
+      'Pick date and time based on remaining hours';
+
+  @override
+  String get employeeAttendanceStaffAdjustAbsentTitle => 'Select absent days';
+
+  @override
+  String get employeeAttendanceStaffAdjustAbsentEmpty =>
+      'No absent days available for adjustment.';
+
+  @override
+  String get employeeAttendanceStaffAbsentBadge => 'Absent';
+
+  @override
+  String get employeeAttendanceStaffCorrectionKindLabel => 'Correction type';
+
+  @override
+  String get employeeAttendanceStaffCorrectionMissingIn => 'Missing punch in';
+
+  @override
+  String get employeeAttendanceStaffCorrectionMissingOut => 'Missing punch out';
+
+  @override
+  String get employeeAttendanceStaffCorrectionDateLabel => 'Date';
+
+  @override
+  String get employeeAttendanceStaffCorrectionTimeLabel => 'Time';
+
+  @override
+  String get employeeAttendanceStaffErrorDuplicateAdjustAbsent =>
+      'You already have a pending request for one of these days.';
+
+  @override
+  String get employeeAttendanceStaffErrorDuplicateCorrection =>
+      'You already have a pending correction for this day.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveOverlap =>
+      'This period overlaps another leave request.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveExceeds =>
+      'Requested hours exceed your remaining balance.';
+
+  @override
+  String get employeeAttendanceStaffErrorFutureCorrection =>
+      'You cannot request a correction in the future.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveHoursInvalid =>
+      'Please select a valid leave period.';
+
+  @override
+  String get employeeAttendanceStaffLeaveNoBalances =>
+      'Leave balance is not configured yet. Contact your salon admin.';
+
+  @override
+  String get employeeAttendanceStaffLeaveTypeLabel => 'Leave type';
+
+  @override
+  String get employeeAttendanceStaffLeaveBalanceLabel => 'Remaining balance';
+
+  @override
+  String employeeAttendanceStaffLeaveHoursUnit(String hours) {
+    return '$hours hours';
+  }
+
+  @override
+  String get employeeAttendanceStaffLeaveStartLabel => 'Start';
+
+  @override
+  String get employeeAttendanceStaffLeaveEndLabel => 'End';
+
+  @override
+  String get employeeAttendanceStaffLeaveRequestedLabel => 'Requested';
+
+  @override
+  String get employeeAttendanceStaffLeaveExceedsHint =>
+      'Requested hours exceed remaining balance';
+
+  @override
+  String get employeeAttendanceStaffReasonLabel => 'Reason';
+
+  @override
+  String get employeeAttendanceStaffSelectDaysHint =>
+      'Choose at least one day.';
+
+  @override
+  String get employeeAttendanceTabMembershipFallback => 'Team';
+
+  @override
+  String get employeeAttendanceTabStatusNotStarted => 'Not started';
+
+  @override
+  String get employeeAttendanceTabStatusCheckedIn => 'Checked in';
+
+  @override
+  String get employeeAttendanceTabStatusCheckedOut => 'Checked out';
+
+  @override
+  String get employeeAttendanceTabStatusOnBreak => 'On break';
+
+  @override
+  String get employeeAttendanceTabStatusAbsent => 'Absent';
+
+  @override
+  String get employeeAttendanceTabStatusPresent => 'Present';
+
+  @override
+  String get employeeAttendanceTabStatusUnknown => 'Unknown';
+
+  @override
+  String get employeeAttendanceTabShiftWorking => 'On shift';
+
+  @override
+  String get employeeAttendanceTabShiftBreak => 'Break';
+
+  @override
+  String get employeeAttendanceTabShiftFinished => 'Finished';
+
+  @override
+  String get employeeAttendanceTabShiftNotStarted => 'Not started';
+
+  @override
+  String get employeeAttendanceTabShiftUnknown => 'Unknown';
+
+  @override
+  String get employeeAttendanceTabDurationZero => '0 min';
+
+  @override
+  String employeeAttendanceTabDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String employeeAttendanceTabDurationHours(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
 }

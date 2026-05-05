@@ -3,59 +3,69 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import 'employee_today_widgets.dart';
 
-/// Shimmer header row (avatar + two text lines + icon placeholders).
-class EtTodayHeaderSkeleton extends StatelessWidget {
-  const EtTodayHeaderSkeleton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const AppSkeletonBlock(height: 52, width: 52),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppSkeletonBlock(height: 18, width: 160),
-              SizedBox(height: 10),
-              AppSkeletonBlock(height: 14, width: 120),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        const AppSkeletonBlock(height: 40, width: 40),
-        const SizedBox(width: 4),
-        const AppSkeletonBlock(height: 40, width: 40),
-      ],
-    );
-  }
-}
-
-/// Placeholder for the main attendance hero + inner action tray.
+/// Placeholder for [PremiumAttendanceCard] (status + tiles + row of 4 actions + strip).
 class EtTodayAttendanceCardSkeleton extends StatelessWidget {
   const EtTodayAttendanceCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return EtPremiumCard(
-      padding: const EdgeInsets.all(20),
+    return Container(
+      margin: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 14),
+      padding: const EdgeInsetsDirectional.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE9D5FF)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const AppSkeletonBlock(height: 22, width: 200),
-          const SizedBox(height: 10),
-          const SizedBox(
-            width: double.infinity,
-            child: AppSkeletonBlock(height: 14),
+          Row(
+            children: const [
+              AppSkeletonBlock(height: 64, width: 64),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppSkeletonBlock(height: 18, width: 140),
+                    SizedBox(height: 6),
+                    AppSkeletonBlock(height: 12, width: 180),
+                  ],
+                ),
+              ),
+              AppSkeletonBlock(height: 76, width: 76),
+            ],
           ),
-          const SizedBox(height: 16),
-          const AppSkeletonBlock(height: 36, width: 140),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
+          Row(
+            children: const [
+              Expanded(child: AppSkeletonBlock(height: 72)),
+              SizedBox(width: 8),
+              Expanded(child: AppSkeletonBlock(height: 72)),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: const [
+              Expanded(child: AppSkeletonBlock(height: 118)),
+              SizedBox(width: 8),
+              Expanded(child: AppSkeletonBlock(height: 118)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: const [
+              Expanded(child: AppSkeletonBlock(height: 118)),
+              SizedBox(width: 8),
+              Expanded(child: AppSkeletonBlock(height: 118)),
+            ],
+          ),
+          const SizedBox(height: 12),
           const SizedBox(
             width: double.infinity,
-            child: AppSkeletonBlock(height: 58),
+            height: 96,
+            child: AppSkeletonBlock(height: 96),
           ),
         ],
       ),
@@ -193,6 +203,47 @@ class EtTodayTimelineSkeleton extends StatelessWidget {
           const AppSkeletonBlock(height: 14, width: 180),
         ],
       ),
+    );
+  }
+}
+
+/// Today performance: title + hero + 3 metrics + message row.
+class EtTodayPerformanceSkeleton extends StatelessWidget {
+  const EtTodayPerformanceSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppSkeletonBlock(height: 20, width: 160),
+        const SizedBox(height: 12),
+        const SizedBox(
+          width: double.infinity,
+          child: AppSkeletonBlock(height: 132),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: const [
+            Expanded(child: AppSkeletonBlock(height: 118)),
+            SizedBox(width: 10),
+            Expanded(child: AppSkeletonBlock(height: 118)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: const [
+            Expanded(child: AppSkeletonBlock(height: 118)),
+            SizedBox(width: 10),
+            Expanded(child: AppSkeletonBlock(height: 118)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        const SizedBox(
+          width: double.infinity,
+          child: AppSkeletonBlock(height: 56),
+        ),
+      ],
     );
   }
 }

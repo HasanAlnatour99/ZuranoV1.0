@@ -141,21 +141,12 @@ class EmployeeQuickActionsSheet extends ConsumerWidget {
                 }),
               ),
             _QuickActionTile(
-              icon: Icons.receipt_long_outlined,
+              icon: Icons.receipt_long_rounded,
               title: l10n.employeeQuickActionPayrollTitle,
               subtitle: l10n.employeeQuickActionPayrollSubtitle,
-              color: const Color(0xFF6366F1),
-              onTap: () => _popThen(context, (router) {
-                router.go(AppRoutes.employeePayroll);
-              }),
-            ),
-            _QuickActionTile(
-              icon: Icons.policy_rounded,
-              title: l10n.employeeTodayViewPolicy,
-              subtitle: l10n.employeeQuickActionViewPolicySubtitle,
               color: const Color(0xFF10B981),
               onTap: () => _popThen(context, (router) {
-                router.push(AppRoutes.employeeAttendancePolicy);
+                router.push(AppRoutes.employeePayroll);
               }),
             ),
           ],

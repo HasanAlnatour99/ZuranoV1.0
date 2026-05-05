@@ -30,7 +30,7 @@ class ManualSaleForm extends ConsumerWidget {
     required this.activeServices,
     required this.activeEmployees,
     required this.onPickBarber,
-    required this.onCustomerNameDialog,
+    required this.onCustomerSectionTap,
     required this.onDiscountDialog,
     required this.canPickBarber,
     required this.showManageServicesLink,
@@ -45,7 +45,7 @@ class ManualSaleForm extends ConsumerWidget {
   final List<SalonService> activeServices;
   final List<Employee> activeEmployees;
   final Future<void> Function(BuildContext, List<Employee>) onPickBarber;
-  final Future<void> Function() onCustomerNameDialog;
+  final Future<void> Function(BuildContext context) onCustomerSectionTap;
   final Future<void> Function() onDiscountDialog;
   final bool canPickBarber;
   final bool showManageServicesLink;
@@ -93,7 +93,9 @@ class ManualSaleForm extends ConsumerWidget {
           child: CustomerSelectorTile(
             l10n: l10n,
             customerName: addState.customerName,
-            onAddNameTap: onCustomerNameDialog,
+            walkInPhone: addState.walkInPhone,
+            linkedCustomerId: addState.linkedCustomerId,
+            onTap: () => onCustomerSectionTap(context),
           ),
         ),
         SliverToBoxAdapter(

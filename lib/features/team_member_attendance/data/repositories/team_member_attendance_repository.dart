@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../core/firestore/firestore_write_payload.dart';
@@ -331,6 +332,66 @@ class TeamMemberAttendanceRepository {
               .map(AttendanceRecordModel.fromDoc)
               .toList(growable: false),
         );
+  }
+
+  /// Salon-wide pending punch/absence correction queue for owner dashboard KPIs.
+  ///
+  /// Uses [FirestorePaths.attendanceCorrectionRequests] (`status == pending`).
+  Stream<int> watchPendingAttendanceCorrectionRequestCount({
+    required String salonId,
+  }) {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final path = FirestorePaths.salonAttendanceCorrectionRequests(salonId);
+    if (kDebugMode) {
+      debugPrint(
+        '[OwnerOverview] pending corrections: salonId=$salonId collection=$path',
+      );
+    }
+    return _correctionRequestsRef(salonId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snapshot) {
+          if (kDebugMode) {
+            debugPrint(
+              '[OwnerOverview] pending attendance corrections count: '
+              '${snapshot.docs.length}',
+            );
+            for (final doc in snapshot.docs) {
+              debugPrint(
+                '[OwnerOverview] correction request: ${doc.id} => ${doc.data()}',
+              );
+            }
+          }
+          return snapshot.docs.length;
+        });
+  }
+
+  /// Salon-wide pending punch corrections — matches the KPI query used on owner
+  /// overview (`status == pending`) so navigation from **Pending approvals**
+  /// lists every counted request.
+  Stream<List<AttendanceCorrectionRequestModel>> watchPendingCorrectionRequestsForSalon({
+    required String salonId,
+    int limit = 100,
+  }) {
+    FirestoreWritePayload.assertSalonId(salonId);
+    return _correctionRequestsRef(salonId)
+        .where('status', isEqualTo: 'pending')
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+          final list = snapshot.docs
+              .map(AttendanceCorrectionRequestModel.fromDoc)
+              .toList(growable: false);
+          int sortKey(AttendanceCorrectionRequestModel r) {
+            final c = r.createdAt;
+            if (c != null) return c.millisecondsSinceEpoch;
+            if (r.dateKey > 0) return r.dateKey;
+            return 0;
+          }
+
+          list.sort((a, b) => sortKey(b).compareTo(sortKey(a)));
+          return list;
+        });
   }
 
   Stream<List<AttendanceCorrectionRequestModel>> watchCorrectionRequests({

@@ -12052,6 +12052,90 @@ abstract class AppLocalizations {
   /// **'Service provider'**
   String get addSaleBarberLabel;
 
+  /// No description provided for @addSaleCustomerSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get addSaleCustomerSheetTitle;
+
+  /// No description provided for @addSaleCustomerTabSalon.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon customers'**
+  String get addSaleCustomerTabSalon;
+
+  /// No description provided for @addSaleCustomerTabWalkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in'**
+  String get addSaleCustomerTabWalkIn;
+
+  /// No description provided for @addSaleCustomerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or phone'**
+  String get addSaleCustomerSearchHint;
+
+  /// No description provided for @addSaleCustomerEmptySalonList.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found. Add a walk-in or create customers in Customers.'**
+  String get addSaleCustomerEmptySalonList;
+
+  /// No description provided for @addSaleCustomerWalkInNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get addSaleCustomerWalkInNameLabel;
+
+  /// No description provided for @addSaleCustomerWalkInPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get addSaleCustomerWalkInPhoneLabel;
+
+  /// No description provided for @addSaleCustomerWalkInPhoneOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get addSaleCustomerWalkInPhoneOptional;
+
+  /// No description provided for @addSaleCustomerSaveWalkIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Use walk-in'**
+  String get addSaleCustomerSaveWalkIn;
+
+  /// No description provided for @addSaleCustomerClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get addSaleCustomerClear;
+
+  /// No description provided for @addSaleCustomerLinkedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon customer'**
+  String get addSaleCustomerLinkedSubtitle;
+
+  /// No description provided for @addSaleCustomerWalkInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk-in'**
+  String get addSaleCustomerWalkInSubtitle;
+
+  /// No description provided for @addSaleCustomerNoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add or select a customer'**
+  String get addSaleCustomerNoDetails;
+
+  /// No description provided for @addSaleCustomerWalkInNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name.'**
+  String get addSaleCustomerWalkInNameRequired;
+
   /// No description provided for @addSaleWalkInCustomer.
   ///
   /// In en, this message translates to:
@@ -12595,25 +12679,25 @@ abstract class AppLocalizations {
   /// No description provided for @employeeTodayPrimaryPunchInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start your work session'**
+  /// **'Start your day'**
   String get employeeTodayPrimaryPunchInSubtitle;
 
   /// No description provided for @employeeTodayPrimaryPunchOutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'End your current session'**
+  /// **'End your day'**
   String get employeeTodayPrimaryPunchOutSubtitle;
 
   /// No description provided for @employeeTodayPrimaryBreakOutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start a break'**
+  /// **'Take a break'**
   String get employeeTodayPrimaryBreakOutSubtitle;
 
   /// No description provided for @employeeTodayPrimaryBreakInSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Resume your shift'**
+  /// **'Back to work'**
   String get employeeTodayPrimaryBreakInSubtitle;
 
   /// No description provided for @employeeTodayNoAction.
@@ -12802,6 +12886,54 @@ abstract class AppLocalizations {
   /// **'Sale recorded successfully.'**
   String get employeeSaleRecordedSuccess;
 
+  /// No description provided for @addSaleErrorSalonNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not linked to a salon. Contact your owner.'**
+  String get addSaleErrorSalonNotLinked;
+
+  /// No description provided for @addSaleErrorAccountInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is inactive. Contact your salon owner.'**
+  String get addSaleErrorAccountInactive;
+
+  /// No description provided for @addSaleErrorStaffNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your staff profile is not linked. Ask the owner to link your employee ID.'**
+  String get addSaleErrorStaffNotLinked;
+
+  /// No description provided for @addSaleErrorStaffRoleOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only barbers and employees can record sales from this screen.'**
+  String get addSaleErrorStaffRoleOnly;
+
+  /// No description provided for @addSaleErrorMixedPaymentNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Split cash and card payment is not enabled for your salon.'**
+  String get addSaleErrorMixedPaymentNotAllowed;
+
+  /// No description provided for @addSaleErrorFirestorePermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the sale (permission denied). Check your account or ask the owner to update Firestore rules.'**
+  String get addSaleErrorFirestorePermissionDenied;
+
+  /// No description provided for @addSaleErrorReceiptUploadStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload the receipt photo. If you are on a development build, register this device’s App Check debug token in Firebase Console (App Check → your Android app → Manage debug tokens; token appears in logcat), then try again. Otherwise ask the owner to check Storage access.'**
+  String get addSaleErrorReceiptUploadStorage;
+
+  /// No description provided for @addSaleReceiptPhotoRequiredShort.
+  ///
+  /// In en, this message translates to:
+  /// **'A receipt photo is required for this payment type.'**
+  String get addSaleReceiptPhotoRequiredShort;
+
   /// No description provided for @employeeSalesEmptyPeriod.
   ///
   /// In en, this message translates to:
@@ -12811,7 +12943,7 @@ abstract class AppLocalizations {
   /// No description provided for @employeeSalesEmptyCta.
   ///
   /// In en, this message translates to:
-  /// **'Tap Add Sale to record your first sale today.'**
+  /// **'Use the Quick Actions button to add your first sale.'**
   String get employeeSalesEmptyCta;
 
   /// No description provided for @employeeSalesRecentTitle.
@@ -12865,7 +12997,7 @@ abstract class AppLocalizations {
   /// No description provided for @employeeSalesKpiAvgService.
   ///
   /// In en, this message translates to:
-  /// **'Avg. Service'**
+  /// **'Per service'**
   String get employeeSalesKpiAvgService;
 
   /// No description provided for @employeeSalesCommissionRate.
@@ -15517,7 +15649,7 @@ abstract class AppLocalizations {
   /// No description provided for @employeeTodayStatusCheckedOutSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Thank you'**
+  /// **'Shift completed'**
   String get employeeTodayStatusCheckedOutSubtitle;
 
   /// No description provided for @employeeTodayStatusMissingPunchSubtitle.
@@ -15790,6 +15922,162 @@ abstract class AppLocalizations {
   /// **'My today'**
   String get employeeTodayStatsTitle;
 
+  /// No description provided for @employeeTodayPerformanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today performance'**
+  String get employeeTodayPerformanceTitle;
+
+  /// No description provided for @employeeTodayPerformanceHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today performance'**
+  String get employeeTodayPerformanceHeroTitle;
+
+  /// No description provided for @employeeTodayPerformanceMetricAttendanceScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance score'**
+  String get employeeTodayPerformanceMetricAttendanceScore;
+
+  /// No description provided for @employeeTodayPerformanceLevelExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent'**
+  String get employeeTodayPerformanceLevelExcellent;
+
+  /// No description provided for @employeeTodayPerformanceLevelGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Great'**
+  String get employeeTodayPerformanceLevelGreat;
+
+  /// No description provided for @employeeTodayPerformanceLevelGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get employeeTodayPerformanceLevelGood;
+
+  /// No description provided for @employeeTodayPerformanceLevelNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get employeeTodayPerformanceLevelNeedsAttention;
+
+  /// No description provided for @employeeTodayPerformanceLevelLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low performance'**
+  String get employeeTodayPerformanceLevelLow;
+
+  /// No description provided for @employeeTodayPerformanceTipExcellent.
+  ///
+  /// In en, this message translates to:
+  /// **'Outstanding balance across sales, attendance, and discipline today.'**
+  String get employeeTodayPerformanceTipExcellent;
+
+  /// No description provided for @employeeTodayPerformanceTipGreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong day — keep the rhythm going.'**
+  String get employeeTodayPerformanceTipGreat;
+
+  /// No description provided for @employeeTodayPerformanceTipGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid progress — small lifts on sales or attendance will push you higher.'**
+  String get employeeTodayPerformanceTipGood;
+
+  /// No description provided for @employeeTodayPerformanceTipNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'A few areas pulled the score down — focus on attendance and service consistency.'**
+  String get employeeTodayPerformanceTipNeedsAttention;
+
+  /// No description provided for @employeeTodayPerformanceTipLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Let’s reset: complete punches, stay in zone, and log each sale.'**
+  String get employeeTodayPerformanceTipLow;
+
+  /// No description provided for @employeeTodayPerformanceTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today target'**
+  String get employeeTodayPerformanceTargetTitle;
+
+  /// No description provided for @employeeTodayPerformanceServicesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {target} services'**
+  String employeeTodayPerformanceServicesProgress(int current, int target);
+
+  /// No description provided for @employeeTodayPerformanceRevenueProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {target}'**
+  String employeeTodayPerformanceRevenueProgress(String current, String target);
+
+  /// No description provided for @employeeTodayPerformanceNoTargetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No target set for today'**
+  String get employeeTodayPerformanceNoTargetSubtitle;
+
+  /// No description provided for @employeeTodayPerformanceMetricServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get employeeTodayPerformanceMetricServices;
+
+  /// No description provided for @employeeTodayPerformanceMetricSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get employeeTodayPerformanceMetricSales;
+
+  /// No description provided for @employeeTodayPerformanceMetricCommission.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission'**
+  String get employeeTodayPerformanceMetricCommission;
+
+  /// No description provided for @employeeTodayPerformanceMessageTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Great work! You reached your target today.'**
+  String get employeeTodayPerformanceMessageTargetReached;
+
+  /// No description provided for @employeeTodayPerformanceMessageServicesRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 service left to reach your target} other{{count} services left to reach your target}}'**
+  String employeeTodayPerformanceMessageServicesRemaining(int count);
+
+  /// No description provided for @employeeTodayPerformanceMessageRevenueRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} left to reach your sales target'**
+  String employeeTodayPerformanceMessageRevenueRemaining(String amount);
+
+  /// No description provided for @employeeTodayPerformanceMessageNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a sale to start tracking performance.'**
+  String get employeeTodayPerformanceMessageNoTarget;
+
+  /// No description provided for @employeeTodayPerformanceAddSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sale'**
+  String get employeeTodayPerformanceAddSale;
+
+  /// No description provided for @employeeTodayPerformanceLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load performance. Pull to refresh.'**
+  String get employeeTodayPerformanceLoadError;
+
   /// No description provided for @employeeTodayStatsSalesLabel.
   ///
   /// In en, this message translates to:
@@ -15807,6 +16095,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distance —'**
   String get employeeTodayDistanceUnknown;
+
+  /// No description provided for @employeeHeroShiftNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No shift assigned'**
+  String get employeeHeroShiftNone;
+
+  /// No description provided for @employeeHeroHeaderLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your header. Pull to refresh.'**
+  String get employeeHeroHeaderLoadError;
+
+  /// No description provided for @employeeHeroWorkspaceLinkMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workplace profile is incomplete. Ask your salon admin to link your account.'**
+  String get employeeHeroWorkspaceLinkMissing;
+
+  /// No description provided for @employeePremiumAttendanceLastAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Last action'**
+  String get employeePremiumAttendanceLastAction;
+
+  /// No description provided for @employeePremiumAttendanceActionAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get employeePremiumAttendanceActionAvailable;
+
+  /// No description provided for @employeePremiumAttendanceActionDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get employeePremiumAttendanceActionDisabled;
+
+  /// No description provided for @employeePremiumAttendanceGpsLocatingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We are checking your location…'**
+  String get employeePremiumAttendanceGpsLocatingSubtitle;
+
+  /// No description provided for @employeePremiumAttendanceGpsInsideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are within the salon area'**
+  String get employeePremiumAttendanceGpsInsideSubtitle;
+
+  /// No description provided for @employeePremiumAttendanceGpsOutsideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside zone'**
+  String get employeePremiumAttendanceGpsOutsideTitle;
+
+  /// No description provided for @employeePremiumAttendanceGpsOutsideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move closer to the salon to punch'**
+  String get employeePremiumAttendanceGpsOutsideSubtitle;
+
+  /// No description provided for @employeePremiumAttendancePolicyTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View policy'**
+  String get employeePremiumAttendancePolicyTileTitle;
+
+  /// No description provided for @employeePremiumAttendancePolicyTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See attendance rules'**
+  String get employeePremiumAttendancePolicyTileSubtitle;
+
+  /// No description provided for @employeePremiumAttendanceSummaryTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Working hours'**
+  String get employeePremiumAttendanceSummaryTodayLabel;
+
+  /// No description provided for @employeePremiumAttendanceSummaryTodayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get employeePremiumAttendanceSummaryTodayHint;
+
+  /// No description provided for @employeePremiumAttendanceSummaryWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total this week'**
+  String get employeePremiumAttendanceSummaryWeekLabel;
+
+  /// No description provided for @employeePremiumAttendanceSummaryWeekDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 day} other{{count} days}}'**
+  String employeePremiumAttendanceSummaryWeekDays(int count);
 
   /// No description provided for @employeeBottomNavToday.
   ///
@@ -17529,6 +17913,462 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update'**
   String get update;
+
+  /// No description provided for @employeeAttendanceTabErrorLoadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your profile.'**
+  String get employeeAttendanceTabErrorLoadProfile;
+
+  /// No description provided for @employeeAttendanceTabErrorLoadAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load attendance.'**
+  String get employeeAttendanceTabErrorLoadAttendance;
+
+  /// No description provided for @employeeAttendanceTabErrorToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load today’s summary.'**
+  String get employeeAttendanceTabErrorToday;
+
+  /// No description provided for @employeeAttendanceTabErrorHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load attendance history.'**
+  String get employeeAttendanceTabErrorHistory;
+
+  /// No description provided for @employeeAttendanceTabRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get employeeAttendanceTabRetry;
+
+  /// No description provided for @employeeAttendanceTabActionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance actions'**
+  String get employeeAttendanceTabActionsSubtitle;
+
+  /// No description provided for @employeeAttendanceTabRequestCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Request'**
+  String get employeeAttendanceTabRequestCta;
+
+  /// No description provided for @employeeAttendanceTabTodaySummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today’s summary'**
+  String get employeeAttendanceTabTodaySummaryTitle;
+
+  /// No description provided for @employeeAttendanceTabCheckInLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get employeeAttendanceTabCheckInLabel;
+
+  /// No description provided for @employeeAttendanceTabCheckOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-out'**
+  String get employeeAttendanceTabCheckOutLabel;
+
+  /// No description provided for @employeeAttendanceTabWorkedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked time'**
+  String get employeeAttendanceTabWorkedLabel;
+
+  /// No description provided for @employeeAttendanceTabStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get employeeAttendanceTabStatusLabel;
+
+  /// No description provided for @employeeAttendanceTabHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance log'**
+  String get employeeAttendanceTabHistoryTitle;
+
+  /// No description provided for @employeeAttendanceTabEmptyHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No attendance records yet'**
+  String get employeeAttendanceTabEmptyHistory;
+
+  /// No description provided for @employeeAttendanceTabEmptyHistoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your attendance will appear here after you check in.'**
+  String get employeeAttendanceTabEmptyHistoryHint;
+
+  /// No description provided for @employeeAttendanceTabDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get employeeAttendanceTabDetailsTitle;
+
+  /// No description provided for @employeeAttendanceTabShiftStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift'**
+  String get employeeAttendanceTabShiftStateLabel;
+
+  /// No description provided for @employeeAttendanceTabBreakMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get employeeAttendanceTabBreakMinutesLabel;
+
+  /// No description provided for @employeeAttendanceTabExceededBreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeded break'**
+  String get employeeAttendanceTabExceededBreakLabel;
+
+  /// No description provided for @employeeAttendanceTabOpenDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get employeeAttendanceTabOpenDetails;
+
+  /// No description provided for @employeeAttendanceTabRequestSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New request'**
+  String get employeeAttendanceTabRequestSheetTitle;
+
+  /// No description provided for @employeeAttendanceTabRequestOptionCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance correction'**
+  String get employeeAttendanceTabRequestOptionCorrection;
+
+  /// No description provided for @employeeAttendanceTabRequestOptionLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave request'**
+  String get employeeAttendanceTabRequestOptionLeave;
+
+  /// No description provided for @employeeAttendanceTabRequestOptionMissedPunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed punch'**
+  String get employeeAttendanceTabRequestOptionMissedPunch;
+
+  /// No description provided for @employeeAttendanceTabRequestOptionBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break correction'**
+  String get employeeAttendanceTabRequestOptionBreak;
+
+  /// No description provided for @employeeAttendanceTabRequestDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get employeeAttendanceTabRequestDateLabel;
+
+  /// No description provided for @employeeAttendanceTabRequestReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your request (min. 5 characters)'**
+  String get employeeAttendanceTabRequestReasonHint;
+
+  /// No description provided for @employeeAttendanceTabRequestSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit request'**
+  String get employeeAttendanceTabRequestSubmit;
+
+  /// No description provided for @employeeAttendanceTabRequestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Request submitted'**
+  String get employeeAttendanceTabRequestSuccess;
+
+  /// No description provided for @employeeAttendanceTabRequestReasonTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter at least 5 characters.'**
+  String get employeeAttendanceTabRequestReasonTooShort;
+
+  /// No description provided for @employeeAttendanceTabRequestDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a pending request for this.'**
+  String get employeeAttendanceTabRequestDuplicate;
+
+  /// No description provided for @employeeAttendanceStaffOptionAdjustAbsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust absent day'**
+  String get employeeAttendanceStaffOptionAdjustAbsentTitle;
+
+  /// No description provided for @employeeAttendanceStaffOptionAdjustAbsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select absent days and submit an adjustment request'**
+  String get employeeAttendanceStaffOptionAdjustAbsentSubtitle;
+
+  /// No description provided for @employeeAttendanceStaffOptionCorrectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing punch in or missing punch out'**
+  String get employeeAttendanceStaffOptionCorrectionSubtitle;
+
+  /// No description provided for @employeeAttendanceStaffOptionLeaveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick date and time based on remaining hours'**
+  String get employeeAttendanceStaffOptionLeaveSubtitle;
+
+  /// No description provided for @employeeAttendanceStaffAdjustAbsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select absent days'**
+  String get employeeAttendanceStaffAdjustAbsentTitle;
+
+  /// No description provided for @employeeAttendanceStaffAdjustAbsentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No absent days available for adjustment.'**
+  String get employeeAttendanceStaffAdjustAbsentEmpty;
+
+  /// No description provided for @employeeAttendanceStaffAbsentBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get employeeAttendanceStaffAbsentBadge;
+
+  /// No description provided for @employeeAttendanceStaffCorrectionKindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction type'**
+  String get employeeAttendanceStaffCorrectionKindLabel;
+
+  /// No description provided for @employeeAttendanceStaffCorrectionMissingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing punch in'**
+  String get employeeAttendanceStaffCorrectionMissingIn;
+
+  /// No description provided for @employeeAttendanceStaffCorrectionMissingOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing punch out'**
+  String get employeeAttendanceStaffCorrectionMissingOut;
+
+  /// No description provided for @employeeAttendanceStaffCorrectionDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get employeeAttendanceStaffCorrectionDateLabel;
+
+  /// No description provided for @employeeAttendanceStaffCorrectionTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get employeeAttendanceStaffCorrectionTimeLabel;
+
+  /// No description provided for @employeeAttendanceStaffErrorDuplicateAdjustAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a pending request for one of these days.'**
+  String get employeeAttendanceStaffErrorDuplicateAdjustAbsent;
+
+  /// No description provided for @employeeAttendanceStaffErrorDuplicateCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a pending correction for this day.'**
+  String get employeeAttendanceStaffErrorDuplicateCorrection;
+
+  /// No description provided for @employeeAttendanceStaffErrorLeaveOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'This period overlaps another leave request.'**
+  String get employeeAttendanceStaffErrorLeaveOverlap;
+
+  /// No description provided for @employeeAttendanceStaffErrorLeaveExceeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested hours exceed your remaining balance.'**
+  String get employeeAttendanceStaffErrorLeaveExceeds;
+
+  /// No description provided for @employeeAttendanceStaffErrorFutureCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot request a correction in the future.'**
+  String get employeeAttendanceStaffErrorFutureCorrection;
+
+  /// No description provided for @employeeAttendanceStaffErrorLeaveHoursInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a valid leave period.'**
+  String get employeeAttendanceStaffErrorLeaveHoursInvalid;
+
+  /// No description provided for @employeeAttendanceStaffLeaveNoBalances.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave balance is not configured yet. Contact your salon admin.'**
+  String get employeeAttendanceStaffLeaveNoBalances;
+
+  /// No description provided for @employeeAttendanceStaffLeaveTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave type'**
+  String get employeeAttendanceStaffLeaveTypeLabel;
+
+  /// No description provided for @employeeAttendanceStaffLeaveBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining balance'**
+  String get employeeAttendanceStaffLeaveBalanceLabel;
+
+  /// No description provided for @employeeAttendanceStaffLeaveHoursUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours'**
+  String employeeAttendanceStaffLeaveHoursUnit(String hours);
+
+  /// No description provided for @employeeAttendanceStaffLeaveStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get employeeAttendanceStaffLeaveStartLabel;
+
+  /// No description provided for @employeeAttendanceStaffLeaveEndLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get employeeAttendanceStaffLeaveEndLabel;
+
+  /// No description provided for @employeeAttendanceStaffLeaveRequestedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get employeeAttendanceStaffLeaveRequestedLabel;
+
+  /// No description provided for @employeeAttendanceStaffLeaveExceedsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested hours exceed remaining balance'**
+  String get employeeAttendanceStaffLeaveExceedsHint;
+
+  /// No description provided for @employeeAttendanceStaffReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get employeeAttendanceStaffReasonLabel;
+
+  /// No description provided for @employeeAttendanceStaffSelectDaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one day.'**
+  String get employeeAttendanceStaffSelectDaysHint;
+
+  /// No description provided for @employeeAttendanceTabMembershipFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get employeeAttendanceTabMembershipFallback;
+
+  /// No description provided for @employeeAttendanceTabStatusNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get employeeAttendanceTabStatusNotStarted;
+
+  /// No description provided for @employeeAttendanceTabStatusCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in'**
+  String get employeeAttendanceTabStatusCheckedIn;
+
+  /// No description provided for @employeeAttendanceTabStatusCheckedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out'**
+  String get employeeAttendanceTabStatusCheckedOut;
+
+  /// No description provided for @employeeAttendanceTabStatusOnBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'On break'**
+  String get employeeAttendanceTabStatusOnBreak;
+
+  /// No description provided for @employeeAttendanceTabStatusAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Absent'**
+  String get employeeAttendanceTabStatusAbsent;
+
+  /// No description provided for @employeeAttendanceTabStatusPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Present'**
+  String get employeeAttendanceTabStatusPresent;
+
+  /// No description provided for @employeeAttendanceTabStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get employeeAttendanceTabStatusUnknown;
+
+  /// No description provided for @employeeAttendanceTabShiftWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'On shift'**
+  String get employeeAttendanceTabShiftWorking;
+
+  /// No description provided for @employeeAttendanceTabShiftBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get employeeAttendanceTabShiftBreak;
+
+  /// No description provided for @employeeAttendanceTabShiftFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get employeeAttendanceTabShiftFinished;
+
+  /// No description provided for @employeeAttendanceTabShiftNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get employeeAttendanceTabShiftNotStarted;
+
+  /// No description provided for @employeeAttendanceTabShiftUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get employeeAttendanceTabShiftUnknown;
+
+  /// No description provided for @employeeAttendanceTabDurationZero.
+  ///
+  /// In en, this message translates to:
+  /// **'0 min'**
+  String get employeeAttendanceTabDurationZero;
+
+  /// No description provided for @employeeAttendanceTabDurationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String employeeAttendanceTabDurationMinutes(int minutes);
+
+  /// No description provided for @employeeAttendanceTabDurationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h'**
+  String employeeAttendanceTabDurationHours(int hours);
+
+  /// No description provided for @employeeAttendanceTabDurationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes);
 }
 
 class _AppLocalizationsDelegate

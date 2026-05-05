@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employee_dashboard/application/employee_dashboard_providers.dart';
 import '../../../employee_today/data/models/et_attendance_day.dart';
@@ -33,7 +34,7 @@ class EmployeeAttendanceCalendarScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBody: true,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: zuranoEmployeeCenterDockedFabLocation,
       floatingActionButton: const EmployeeQuickActionFab(),
       appBar: AppBar(
         title: Text(DateFormat.yMMMM().format(now)),

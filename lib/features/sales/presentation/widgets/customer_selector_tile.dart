@@ -8,23 +8,45 @@ class CustomerSelectorTile extends StatelessWidget {
     super.key,
     required this.l10n,
     required this.customerName,
-    required this.onAddNameTap,
+    required this.walkInPhone,
+    required this.linkedCustomerId,
+    required this.onTap,
   });
 
   final AppLocalizations l10n;
   final String customerName;
-  final VoidCallback onAddNameTap;
+  final String walkInPhone;
+  final String? linkedCustomerId;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final hasName = customerName.trim().isNotEmpty;
+    final linked = linkedCustomerId?.trim().isNotEmpty ?? false;
+    final phoneWalkIn = walkInPhone.trim();
+
+    final primary = hasName
+        ? customerName.trim()
+        : l10n.addSaleWalkInCustomer;
+
+    final String secondary;
+    if (!hasName) {
+      secondary = l10n.addSaleCustomerNoDetails;
+    } else if (linked) {
+      secondary = l10n.addSaleCustomerLinkedSubtitle;
+    } else if (phoneWalkIn.isNotEmpty) {
+      secondary = phoneWalkIn;
+    } else {
+      secondary = l10n.addSaleCustomerWalkInSubtitle;
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         child: InkWell(
-          onTap: onAddNameTap,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(24),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -71,26 +93,22 @@ class CustomerSelectorTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        hasName
-                            ? customerName.trim()
-                            : l10n.addSaleWalkInCustomer,
+                        primary,
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                           color: FinanceDashboardColors.textPrimary,
                         ),
                       ),
-                      if (!hasName) ...[
-                        const SizedBox(height: 2),
-                        const Text(
-                          'No customer details',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: FinanceDashboardColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        secondary,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: FinanceDashboardColors.textSecondary,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
@@ -108,8 +126,8 @@ class CustomerSelectorTile extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.add_rounded,
+                      Icon(
+                        hasName ? Icons.edit_rounded : Icons.add_rounded,
                         size: 17,
                         color: FinanceDashboardColors.primaryPurple,
                       ),

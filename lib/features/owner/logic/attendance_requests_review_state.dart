@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../attendance/data/models/attendance_record.dart';
+import '../../team_member_attendance/data/models/attendance_correction_request_model.dart';
 
 /// Immutable UI snapshot for the Attendance Requests review screen.
 ///
@@ -11,6 +12,7 @@ import '../../attendance/data/models/attendance_record.dart';
 class AttendanceRequestsReviewState {
   const AttendanceRequestsReviewState({
     this.requests = const [],
+    this.correctionRequests = const [],
     this.isLoading = true,
     this.errorMessage,
     this.processingIds = const {},
@@ -20,6 +22,9 @@ class AttendanceRequestsReviewState {
 
   /// Pending attendance records awaiting review, newest first.
   final List<AttendanceRecord> requests;
+
+  /// Punch/absence correction requests (`attendanceCorrectionRequests`), pending only.
+  final List<AttendanceCorrectionRequestModel> correctionRequests;
 
   /// `true` until the first stream snapshot arrives.
   final bool isLoading;
@@ -39,10 +44,15 @@ class AttendanceRequestsReviewState {
 
   bool get hasError => (errorMessage ?? '').isNotEmpty;
 
-  bool get isEmpty => !isLoading && requests.isEmpty && !hasError;
+  bool get isEmpty =>
+      !isLoading &&
+      requests.isEmpty &&
+      correctionRequests.isEmpty &&
+      !hasError;
 
   AttendanceRequestsReviewState copyWith({
     List<AttendanceRecord>? requests,
+    List<AttendanceCorrectionRequestModel>? correctionRequests,
     bool? isLoading,
     Object? errorMessage = _sentinel,
     Set<String>? processingIds,
@@ -51,6 +61,7 @@ class AttendanceRequestsReviewState {
   }) {
     return AttendanceRequestsReviewState(
       requests: requests ?? this.requests,
+      correctionRequests: correctionRequests ?? this.correctionRequests,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: identical(errorMessage, _sentinel)
           ? this.errorMessage

@@ -18,6 +18,7 @@ class AttendanceCorrectionRequestModel {
     required this.reason,
     required this.status,
     required this.reviewNote,
+    this.createdAt,
   });
 
   final String id;
@@ -44,6 +45,9 @@ class AttendanceCorrectionRequestModel {
   final String reason;
   final String status;
   final String reviewNote;
+
+  /// Firestore `createdAt` when present (used for ordering / display).
+  final DateTime? createdAt;
 
   factory AttendanceCorrectionRequestModel.fromDoc(
     DocumentSnapshot<Map<String, dynamic>> doc,
@@ -101,6 +105,7 @@ class AttendanceCorrectionRequestModel {
       reason: data['reason']?.toString() ?? '',
       status: data['status']?.toString() ?? 'pending',
       reviewNote: data['reviewNote']?.toString() ?? '',
+      createdAt: readTimestamp('createdAt'),
     );
   }
 }

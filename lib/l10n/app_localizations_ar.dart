@@ -6842,7 +6842,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get salesRecentCardTitle => 'أحدث المبيعات';
 
   @override
-  String get salesRecentEmptyTitle => 'لا مبيعات بعد';
+  String get salesRecentEmptyTitle => 'لا توجد مبيعات بعد';
 
   @override
   String get salesRecentEmptyBody =>
@@ -6879,6 +6879,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addSaleBarberLabel => 'مقدم الخدمة';
+
+  @override
+  String get addSaleCustomerSheetTitle => 'العميل';
+
+  @override
+  String get addSaleCustomerTabSalon => 'عملاء الصالون';
+
+  @override
+  String get addSaleCustomerTabWalkIn => 'بدون ملف';
+
+  @override
+  String get addSaleCustomerSearchHint => 'ابحث بالاسم أو الهاتف';
+
+  @override
+  String get addSaleCustomerEmptySalonList =>
+      'لا يوجد عملاء. أضف عميلًا زائرًا أو أنشئ عملاء من قسم العملاء.';
+
+  @override
+  String get addSaleCustomerWalkInNameLabel => 'الاسم';
+
+  @override
+  String get addSaleCustomerWalkInPhoneLabel => 'الهاتف';
+
+  @override
+  String get addSaleCustomerWalkInPhoneOptional => 'اختياري';
+
+  @override
+  String get addSaleCustomerSaveWalkIn => 'تسجيل كعميل زائر';
+
+  @override
+  String get addSaleCustomerClear => 'مسح';
+
+  @override
+  String get addSaleCustomerLinkedSubtitle => 'عميل مسجّل';
+
+  @override
+  String get addSaleCustomerWalkInSubtitle => 'عميل زائر';
+
+  @override
+  String get addSaleCustomerNoDetails => 'اضغط لاختيار عميل أو إدخال الاسم';
+
+  @override
+  String get addSaleCustomerWalkInNameRequired => 'يرجى إدخال الاسم.';
 
   @override
   String get addSaleWalkInCustomer => 'عميل زائر';
@@ -7196,16 +7239,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا تتوفر أي إجراءات تسجيل الآن.';
 
   @override
-  String get employeeTodayPrimaryPunchInSubtitle => 'ابدأ جلسة العمل';
+  String get employeeTodayPrimaryPunchInSubtitle => 'ابدأ يومك';
 
   @override
-  String get employeeTodayPrimaryPunchOutSubtitle => 'أنهِ جلستك الحالية';
+  String get employeeTodayPrimaryPunchOutSubtitle => 'أنهِ يومك';
 
   @override
-  String get employeeTodayPrimaryBreakOutSubtitle => 'ابدأ استراحة';
+  String get employeeTodayPrimaryBreakOutSubtitle => 'خذ استراحة';
 
   @override
-  String get employeeTodayPrimaryBreakInSubtitle => 'استأنف ورديتك';
+  String get employeeTodayPrimaryBreakInSubtitle => 'عودة للعمل';
 
   @override
   String get employeeTodayNoAction => 'لا يوجد إجراء';
@@ -7305,11 +7348,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeeSaleRecordedSuccess => 'تم تسجيل البيع بنجاح.';
 
   @override
+  String get addSaleErrorSalonNotLinked =>
+      'هذا الحساب غير مرتبط بصالون. تواصل مع المالك.';
+
+  @override
+  String get addSaleErrorAccountInactive =>
+      'هذا الحساب غير نشط. تواصل مع مالك الصالون.';
+
+  @override
+  String get addSaleErrorStaffNotLinked =>
+      'ملف الموظف غير مرتبط بحسابك. اطلب من المالك ربط معرف الموظف.';
+
+  @override
+  String get addSaleErrorStaffRoleOnly =>
+      'يمكن للحلّاقين والموظفين فقط تسجيل المبيعات من هذه الشاشة.';
+
+  @override
+  String get addSaleErrorMixedPaymentNotAllowed =>
+      'الدفع المختلط (نقد وبطاقة) غير مفعّل لصالونك.';
+
+  @override
+  String get addSaleErrorFirestorePermissionDenied =>
+      'تعذّر حفظ البيع (لا صلاحية). تحقق من حسابك أو اطلب تحديث قواعد Firestore.';
+
+  @override
+  String get addSaleErrorReceiptUploadStorage =>
+      'تعذّر رفع صورة الإيصال. في نسخة التطوير: سجّل رمز App Check التجريبي للجهاز في Firebase Console (App Check → تطبيق Android → إدارة الرموز التجريبية؛ يظهر الرمز في logcat) ثم أعد المحاولة. وإلا اطلب من المالك التحقق من صلاحيات التخزين.';
+
+  @override
+  String get addSaleReceiptPhotoRequiredShort =>
+      'صورة الإيصال مطلوبة لهذا نوع الدفع.';
+
+  @override
   String get employeeSalesEmptyPeriod => 'لا مبيعات في هذه الفترة بعد.';
 
   @override
   String get employeeSalesEmptyCta =>
-      'اضغط «إضافة بيع» لتسجيل أول بيع لك اليوم.';
+      'من زر الإجراءات السريعة يمكنك إضافة أول بيع.';
 
   @override
   String get employeeSalesRecentTitle => 'أحدث المبيعات';
@@ -7336,7 +7411,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeeSalesKpiCommission => 'العمولة التقديرية';
 
   @override
-  String get employeeSalesKpiAvgService => 'متوسط قيمة الخدمة';
+  String get employeeSalesKpiAvgService => 'لكل خدمة';
 
   @override
   String get employeeSalesCommissionRate => 'نسبة العمولة';
@@ -8835,7 +8910,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكنك إنهاء الدوام لاحقاً';
 
   @override
-  String get employeeTodayStatusCheckedOutSubtitle => 'شكراً لك';
+  String get employeeTodayStatusCheckedOutSubtitle => 'اكتملت الوردية';
 
   @override
   String get employeeTodayStatusMissingPunchSubtitle =>
@@ -9006,6 +9081,114 @@ class AppLocalizationsAr extends AppLocalizations {
   String get employeeTodayStatsTitle => 'يومي';
 
   @override
+  String get employeeTodayPerformanceTitle => 'أداء اليوم';
+
+  @override
+  String get employeeTodayPerformanceHeroTitle => 'أداء اليوم';
+
+  @override
+  String get employeeTodayPerformanceMetricAttendanceScore => 'نقاط الحضور';
+
+  @override
+  String get employeeTodayPerformanceLevelExcellent => 'ممتاز';
+
+  @override
+  String get employeeTodayPerformanceLevelGreat => 'رائع';
+
+  @override
+  String get employeeTodayPerformanceLevelGood => 'جيد';
+
+  @override
+  String get employeeTodayPerformanceLevelNeedsAttention => 'يحتاج متابعة';
+
+  @override
+  String get employeeTodayPerformanceLevelLow => 'أداء منخفض';
+
+  @override
+  String get employeeTodayPerformanceTipExcellent =>
+      'توازن ممتاز بين المبيعات والحضور والانضباط اليوم.';
+
+  @override
+  String get employeeTodayPerformanceTipGreat =>
+      'يوم قوي — واصل على هذا الإيقاع.';
+
+  @override
+  String get employeeTodayPerformanceTipGood =>
+      'تقدّم جيد — تحسين بسيط في المبيعات أو الحضور يرفع النتيجة.';
+
+  @override
+  String get employeeTodayPerformanceTipNeedsAttention =>
+      'بعض الجوانب خفّضت النتيجة — ركّز على الحضور وثبات الخدمة.';
+
+  @override
+  String get employeeTodayPerformanceTipLow =>
+      'لنبدأ من جديد: أكمل البصمات، ابقَ ضمن النطاق، وسجّل كل بيع.';
+
+  @override
+  String get employeeTodayPerformanceTargetTitle => 'هدف اليوم';
+
+  @override
+  String employeeTodayPerformanceServicesProgress(int current, int target) {
+    return '$current من $target خدمات';
+  }
+
+  @override
+  String employeeTodayPerformanceRevenueProgress(
+    String current,
+    String target,
+  ) {
+    return '$current من $target';
+  }
+
+  @override
+  String get employeeTodayPerformanceNoTargetSubtitle =>
+      'لا يوجد هدف محدد لليوم';
+
+  @override
+  String get employeeTodayPerformanceMetricServices => 'الخدمات';
+
+  @override
+  String get employeeTodayPerformanceMetricSales => 'المبيعات';
+
+  @override
+  String get employeeTodayPerformanceMetricCommission => 'العمولة';
+
+  @override
+  String get employeeTodayPerformanceMessageTargetReached =>
+      'ممتاز! وصلت إلى هدفك اليوم';
+
+  @override
+  String employeeTodayPerformanceMessageServicesRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تبقى $count خدمة للوصول إلى هدفك',
+      many: 'تبقى $count خدمة للوصول إلى هدفك',
+      few: 'تبقى $count خدمات للوصول إلى هدفك',
+      two: 'تبقى خدمتان للوصول إلى هدفك',
+      one: 'تبقى خدمة واحدة للوصول إلى هدفك',
+      zero: 'لا خدمات متبقية',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String employeeTodayPerformanceMessageRevenueRemaining(String amount) {
+    return 'يتبقى $amount للوصول إلى هدف المبيعات';
+  }
+
+  @override
+  String get employeeTodayPerformanceMessageNoTarget =>
+      'ابدأ بإضافة بيع لعرض أدائك';
+
+  @override
+  String get employeeTodayPerformanceAddSale => 'إضافة بيع';
+
+  @override
+  String get employeeTodayPerformanceLoadError =>
+      'تعذر تحميل الأداء. اسحب للتحديث.';
+
+  @override
   String get employeeTodayStatsSalesLabel => 'المبيعات';
 
   @override
@@ -9013,6 +9196,72 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get employeeTodayDistanceUnknown => 'المسافة —';
+
+  @override
+  String get employeeHeroShiftNone => 'لا توجد وردية مُعيّنة';
+
+  @override
+  String get employeeHeroHeaderLoadError => 'تعذر تحميل الرأس. اسحب للتحديث.';
+
+  @override
+  String get employeeHeroWorkspaceLinkMissing =>
+      'ملفك المهني غير مكتمل. اطلب من مشرف الصالون ربط حسابك.';
+
+  @override
+  String get employeePremiumAttendanceLastAction => 'آخر إجراء';
+
+  @override
+  String get employeePremiumAttendanceActionAvailable => 'متاح';
+
+  @override
+  String get employeePremiumAttendanceActionDisabled => 'غير متاح';
+
+  @override
+  String get employeePremiumAttendanceGpsLocatingSubtitle =>
+      'جاري التحقق من موقعك…';
+
+  @override
+  String get employeePremiumAttendanceGpsInsideSubtitle =>
+      'أنت داخل نطاق الصالون';
+
+  @override
+  String get employeePremiumAttendanceGpsOutsideTitle => 'خارج النطاق';
+
+  @override
+  String get employeePremiumAttendanceGpsOutsideSubtitle =>
+      'اقترب من الصالون لتسجيل البصمة';
+
+  @override
+  String get employeePremiumAttendancePolicyTileTitle => 'عرض السياسة';
+
+  @override
+  String get employeePremiumAttendancePolicyTileSubtitle =>
+      'اطّلع على قواعد الحضور';
+
+  @override
+  String get employeePremiumAttendanceSummaryTodayLabel => 'ساعات العمل';
+
+  @override
+  String get employeePremiumAttendanceSummaryTodayHint => 'اليوم';
+
+  @override
+  String get employeePremiumAttendanceSummaryWeekLabel =>
+      'الإجمالي هذا الأسبوع';
+
+  @override
+  String employeePremiumAttendanceSummaryWeekDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم',
+      many: '$count يومًا',
+      few: '$count أيام',
+      two: 'يومان',
+      one: 'يوم واحد',
+      zero: '0 يوم',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get employeeBottomNavToday => 'اليوم';
@@ -9951,4 +10200,259 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get update => 'تحديث';
+
+  @override
+  String get employeeAttendanceTabErrorLoadProfile =>
+      'تعذّر تحميل الملف الشخصي.';
+
+  @override
+  String get employeeAttendanceTabErrorLoadAttendance =>
+      'تعذّر تحميل بيانات الحضور.';
+
+  @override
+  String get employeeAttendanceTabErrorToday => 'تعذّر تحميل ملخص اليوم.';
+
+  @override
+  String get employeeAttendanceTabErrorHistory => 'تعذّر تحميل سجل الحضور.';
+
+  @override
+  String get employeeAttendanceTabRetry => 'حاول مرة أخرى';
+
+  @override
+  String get employeeAttendanceTabActionsSubtitle => 'إجراءات الحضور';
+
+  @override
+  String get employeeAttendanceTabRequestCta => 'طلب';
+
+  @override
+  String get employeeAttendanceTabTodaySummaryTitle => 'ملخص اليوم';
+
+  @override
+  String get employeeAttendanceTabCheckInLabel => 'وقت الدخول';
+
+  @override
+  String get employeeAttendanceTabCheckOutLabel => 'وقت الخروج';
+
+  @override
+  String get employeeAttendanceTabWorkedLabel => 'وقت العمل';
+
+  @override
+  String get employeeAttendanceTabStatusLabel => 'حالة الحضور';
+
+  @override
+  String get employeeAttendanceTabHistoryTitle => 'سجل الحضور';
+
+  @override
+  String get employeeAttendanceTabEmptyHistory => 'لا يوجد سجل حضور بعد';
+
+  @override
+  String get employeeAttendanceTabEmptyHistoryHint =>
+      'سيظهر سجل الحضور هنا بعد تسجيل الدخول.';
+
+  @override
+  String get employeeAttendanceTabDetailsTitle => 'التفاصيل';
+
+  @override
+  String get employeeAttendanceTabShiftStateLabel => 'الدوام';
+
+  @override
+  String get employeeAttendanceTabBreakMinutesLabel => 'الاستراحة';
+
+  @override
+  String get employeeAttendanceTabExceededBreakLabel => 'تجاوز وقت الاستراحة';
+
+  @override
+  String get employeeAttendanceTabOpenDetails => 'عرض التفاصيل';
+
+  @override
+  String get employeeAttendanceTabRequestSheetTitle => 'طلب جديد';
+
+  @override
+  String get employeeAttendanceTabRequestOptionCorrection => 'تصحيح حضور';
+
+  @override
+  String get employeeAttendanceTabRequestOptionLeave => 'طلب إجازة';
+
+  @override
+  String get employeeAttendanceTabRequestOptionMissedPunch => 'نسيان بصمة';
+
+  @override
+  String get employeeAttendanceTabRequestOptionBreak => 'تصحيح استراحة';
+
+  @override
+  String get employeeAttendanceTabRequestDateLabel => 'التاريخ';
+
+  @override
+  String get employeeAttendanceTabRequestReasonHint =>
+      'صف طلبك (5 أحرف على الأقل)';
+
+  @override
+  String get employeeAttendanceTabRequestSubmit => 'إرسال الطلب';
+
+  @override
+  String get employeeAttendanceTabRequestSuccess => 'تم إرسال الطلب';
+
+  @override
+  String get employeeAttendanceTabRequestReasonTooShort =>
+      'الرجاء إدخال 5 أحرف على الأقل.';
+
+  @override
+  String get employeeAttendanceTabRequestDuplicate =>
+      'لديك طلب معلّق لهذا اليوم بنفس النوع.';
+
+  @override
+  String get employeeAttendanceStaffOptionAdjustAbsentTitle => 'تعديل يوم غياب';
+
+  @override
+  String get employeeAttendanceStaffOptionAdjustAbsentSubtitle =>
+      'اختر أيام الغياب لتقديم طلب تعديل';
+
+  @override
+  String get employeeAttendanceStaffOptionCorrectionSubtitle =>
+      'بصمة دخول مفقودة أو بصمة خروج مفقودة';
+
+  @override
+  String get employeeAttendanceStaffOptionLeaveSubtitle =>
+      'اختر التاريخ والوقت حسب الرصيد المتبقي';
+
+  @override
+  String get employeeAttendanceStaffAdjustAbsentTitle => 'اختر أيام الغياب';
+
+  @override
+  String get employeeAttendanceStaffAdjustAbsentEmpty =>
+      'لا توجد أيام غياب متاحة للتعديل.';
+
+  @override
+  String get employeeAttendanceStaffAbsentBadge => 'غائب';
+
+  @override
+  String get employeeAttendanceStaffCorrectionKindLabel => 'نوع التصحيح';
+
+  @override
+  String get employeeAttendanceStaffCorrectionMissingIn => 'بصمة دخول مفقودة';
+
+  @override
+  String get employeeAttendanceStaffCorrectionMissingOut => 'بصمة خروج مفقودة';
+
+  @override
+  String get employeeAttendanceStaffCorrectionDateLabel => 'التاريخ';
+
+  @override
+  String get employeeAttendanceStaffCorrectionTimeLabel => 'الوقت';
+
+  @override
+  String get employeeAttendanceStaffErrorDuplicateAdjustAbsent =>
+      'لديك طلب معلّق لأحد هذه الأيام.';
+
+  @override
+  String get employeeAttendanceStaffErrorDuplicateCorrection =>
+      'لديك طلب تصحيح معلّق لهذا اليوم.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveOverlap =>
+      'هذه الفترة تتداخل مع طلب إجازة آخر.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveExceeds =>
+      'ساعات الإجازة المطلوبة تتجاوز الرصيد المتبقي.';
+
+  @override
+  String get employeeAttendanceStaffErrorFutureCorrection =>
+      'لا يمكن طلب تصحيح في المستقبل.';
+
+  @override
+  String get employeeAttendanceStaffErrorLeaveHoursInvalid =>
+      'يرجى اختيار فترة إجازة صحيحة.';
+
+  @override
+  String get employeeAttendanceStaffLeaveNoBalances =>
+      'لم يُضبط رصيد الإجازة بعد. تواصل مع إدارة الصالون.';
+
+  @override
+  String get employeeAttendanceStaffLeaveTypeLabel => 'نوع الإجازة';
+
+  @override
+  String get employeeAttendanceStaffLeaveBalanceLabel => 'الرصيد المتبقي';
+
+  @override
+  String employeeAttendanceStaffLeaveHoursUnit(String hours) {
+    return '$hours ساعة';
+  }
+
+  @override
+  String get employeeAttendanceStaffLeaveStartLabel => 'البداية';
+
+  @override
+  String get employeeAttendanceStaffLeaveEndLabel => 'النهاية';
+
+  @override
+  String get employeeAttendanceStaffLeaveRequestedLabel => 'المطلوب';
+
+  @override
+  String get employeeAttendanceStaffLeaveExceedsHint =>
+      'الساعات المطلوبة تتجاوز الرصيد المتبقي';
+
+  @override
+  String get employeeAttendanceStaffReasonLabel => 'السبب';
+
+  @override
+  String get employeeAttendanceStaffSelectDaysHint =>
+      'اختر يومًا واحدًا على الأقل.';
+
+  @override
+  String get employeeAttendanceTabMembershipFallback => 'الفريق';
+
+  @override
+  String get employeeAttendanceTabStatusNotStarted => 'لم يبدأ';
+
+  @override
+  String get employeeAttendanceTabStatusCheckedIn => 'تم تسجيل الدخول';
+
+  @override
+  String get employeeAttendanceTabStatusCheckedOut => 'تم تسجيل الخروج';
+
+  @override
+  String get employeeAttendanceTabStatusOnBreak => 'في استراحة';
+
+  @override
+  String get employeeAttendanceTabStatusAbsent => 'غائب';
+
+  @override
+  String get employeeAttendanceTabStatusPresent => 'حاضر';
+
+  @override
+  String get employeeAttendanceTabStatusUnknown => 'غير معروف';
+
+  @override
+  String get employeeAttendanceTabShiftWorking => 'دوام';
+
+  @override
+  String get employeeAttendanceTabShiftBreak => 'استراحة';
+
+  @override
+  String get employeeAttendanceTabShiftFinished => 'انتهى الدوام';
+
+  @override
+  String get employeeAttendanceTabShiftNotStarted => 'لم يبدأ';
+
+  @override
+  String get employeeAttendanceTabShiftUnknown => 'غير معروف';
+
+  @override
+  String get employeeAttendanceTabDurationZero => '0 د';
+
+  @override
+  String employeeAttendanceTabDurationMinutes(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String employeeAttendanceTabDurationHours(int hours) {
+    return '$hours س';
+  }
+
+  @override
+  String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
 }

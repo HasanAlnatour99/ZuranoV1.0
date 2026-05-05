@@ -224,6 +224,27 @@ class EmployeeRepository {
     );
   }
 
+  /// Live stream of **one** row — use for barber/employee/readonly accounts.
+  /// Matches Firestore rule: staff may only read `employees/{employeeId}` when
+  /// `employeeId == currentEmployeeId()` (collection **list** queries are denied).
+  Stream<List<Employee>> watchEmployeesForStaffSelf({
+    required String salonId,
+    required String employeeId,
+  }) {
+    FirestoreWritePayload.assertSalonId(salonId);
+    final id = employeeId.trim();
+    if (id.isEmpty) {
+      return Stream<List<Employee>>.value(const <Employee>[]);
+    }
+    return _employees(salonId).doc(id).snapshots().map((snapshot) {
+      final data = snapshot.data();
+      if (!snapshot.exists || data == null) {
+        return const <Employee>[];
+      }
+      return <Employee>[Employee.fromJson(data)];
+    });
+  }
+
   Stream<List<Employee>> watchEmployees(
     String salonId, {
     String? role,

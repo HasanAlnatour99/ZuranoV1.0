@@ -65,6 +65,10 @@ abstract class Employee with _$Employee {
     @Default(<String>[])
     @JsonKey(fromJson: stringListFromJson)
     List<String> assignedServiceIds,
+    /// Optional daily goal for barber performance / Today screen (service count).
+    @Default(0) @JsonKey(fromJson: looseIntFromJson) int dailyTargetServices,
+    /// Optional daily revenue goal (salon currency).
+    @Default(0) @JsonKey(fromJson: looseDoubleFromJson) double dailyTargetRevenue,
     @Default(true) @JsonKey(fromJson: trueBoolFromJson) bool isActive,
     @JsonKey(
       fromJson: _weeklyAvailabilityFromJson,
@@ -163,6 +167,10 @@ Map<String, dynamic> _normalizedEmployeeJson(Map<String, dynamic> json) {
       EmployeeCommissionTypes.percentage;
 
   var pct = FirestoreSerializers.doubleValue(json['commissionPercentage']);
+  if (pct == 0) {
+    final altPct = FirestoreSerializers.doubleValue(json['commissionPercent']);
+    if (altPct > 0) pct = altPct;
+  }
   var fixedAmt = FirestoreSerializers.doubleValue(
     json['commissionFixedAmount'],
   );
@@ -194,6 +202,17 @@ Map<String, dynamic> _normalizedEmployeeJson(Map<String, dynamic> json) {
     FirestoreSerializers.string(json['status']),
     FirestoreSerializers.boolValue(json['isActive'], fallback: true),
   );
+
+  // Alias fields for performance targets (`dailyServicesTarget` / `dailyRevenueTarget`).
+  if (FirestoreSerializers.intValue(normalized['dailyTargetServices']) == 0) {
+    final alt = FirestoreSerializers.intValue(json['dailyServicesTarget']);
+    if (alt > 0) normalized['dailyTargetServices'] = alt;
+  }
+  if (FirestoreSerializers.doubleValue(normalized['dailyTargetRevenue']) == 0) {
+    final alt = FirestoreSerializers.doubleValue(json['dailyRevenueTarget']);
+    if (alt > 0) normalized['dailyTargetRevenue'] = alt;
+  }
+
   return normalized;
 }
 

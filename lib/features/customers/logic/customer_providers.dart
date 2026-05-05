@@ -38,6 +38,19 @@ final customersListProvider = StreamProvider.family<List<Customer>, String>((
       .streamCustomers(salonId: sid, includeInactive: true);
 });
 
+/// Active salon customers for POS (add sale) — excludes archived rows.
+final salonCustomersForPosProvider =
+    StreamProvider.family<List<Customer>, String>((ref, salonId) {
+      final sid = salonId.trim();
+      if (sid.isEmpty) {
+        return Stream.value(const <Customer>[]);
+      }
+      return ref.watch(customerRepositoryProvider).streamCustomers(
+            salonId: sid,
+            includeInactive: false,
+          );
+    });
+
 final customerDetailsProvider =
     StreamProvider.family<Customer?, CustomerDetailsArgs>((ref, args) {
       final sid = args.salonId.trim();

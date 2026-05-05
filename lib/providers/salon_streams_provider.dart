@@ -10,6 +10,7 @@ import '../features/payroll/data/models/payslip_model.dart';
 import '../features/sales/data/models/sale.dart';
 import '../features/salon/data/models/salon.dart';
 import '../features/services/data/models/service.dart';
+import '../features/team_member_attendance/data/models/attendance_correction_request_model.dart';
 import '../features/violations/data/models/violation.dart';
 import 'firebase_providers.dart';
 import 'repository_providers.dart';
@@ -137,14 +138,64 @@ final expensesStreamProvider = StreamProvider<List<Expense>>((ref) {
   );
 });
 
-/// Employees for the signed-in user's salon (includes inactive for management UIs).
+/// Employees for the signed-in user's salon.
+///
+/// Owner/admin: full team list (same as [EmployeeRepository.watchEmployees]).
+///
+/// Barber / employee / readonly: **only their own** [Employee] document via
+/// document snapshot — required because Firestore rules allow staff to read
+/// `employees/{id}` only when `id == currentEmployeeId()`; **collection
+/// list** queries for the whole team are denied.
 final employeesStreamProvider = StreamProvider<List<Employee>>((ref) {
   final repo = ref.watch(employeeRepositoryProvider);
-  return _guardedSalonStream<List<Employee>>(
-    ref,
-    emptyValue: const <Employee>[],
-    onSalon: (salonId) => repo.watchEmployees(salonId, onlyActive: false),
-  );
+  final sessionState = ref.watch(appSessionBootstrapProvider);
+  final sessionUser = ref.watch(sessionUserProvider).asData?.value;
+  final role = sessionUser?.role.trim() ?? '';
+
+  final hasSalonScopedRole =
+      role == UserRoles.owner ||
+      role == UserRoles.admin ||
+      role == UserRoles.barber ||
+      role == UserRoles.readonly ||
+      role == UserRoles.employee;
+
+  if (sessionState.status == AppSessionStatus.unauthenticated ||
+      !hasSalonScopedRole) {
+    return Stream<List<Employee>>.value(const <Employee>[]);
+  }
+
+  if (ref.watch(firebaseAuthProvider).currentUser == null) {
+    return Stream<List<Employee>>.value(const <Employee>[]);
+  }
+
+  return watchSessionSalonId(ref).asyncExpand((salonId) {
+    final isSignedOut = ref.read(firebaseAuthProvider).currentUser == null;
+    if (isSignedOut || salonId == null || salonId.isEmpty) {
+      return Stream<List<Employee>>.value(const <Employee>[]);
+    }
+
+    final u = ref.read(sessionUserProvider).asData?.value;
+    final r = u?.role.trim() ?? '';
+
+    if (r == UserRoles.owner || r == UserRoles.admin) {
+      return repo.watchEmployees(salonId, onlyActive: false);
+    }
+
+    if (r == UserRoles.barber ||
+        r == UserRoles.employee ||
+        r == UserRoles.readonly) {
+      final eid = u?.employeeId?.trim() ?? '';
+      if (eid.isEmpty) {
+        return Stream<List<Employee>>.value(const <Employee>[]);
+      }
+      return repo.watchEmployeesForStaffSelf(
+        salonId: salonId,
+        employeeId: eid,
+      );
+    }
+
+    return Stream<List<Employee>>.value(const <Employee>[]);
+  });
 });
 
 typedef AttendanceDayQuery = ({DateTime day});
@@ -182,6 +233,34 @@ final pendingAttendanceRequestsStreamProvider =
         ref,
         emptyValue: const <AttendanceRecord>[],
         onSalon: repo.watchPendingAttendanceRequests,
+      );
+    });
+
+/// Pending rows in [FirestorePaths.attendanceCorrectionRequests] (`status == pending`).
+///
+/// Powers owner overview **موافقات معلقة** together with legacy attendance
+/// `approvalStatus` queue. Emits `0` when logged out or salon id is missing.
+final pendingAttendanceCorrectionCountStreamProvider =
+    StreamProvider<int>((ref) {
+      final repo = ref.watch(teamMemberAttendanceRepositoryProvider);
+      return _guardedSalonStream<int>(
+        ref,
+        emptyValue: 0,
+        onSalon: (salonId) =>
+            repo.watchPendingAttendanceCorrectionRequestCount(salonId: salonId),
+      );
+    });
+
+/// Full list of pending punch correction requests for the owner review screen.
+/// Must stay aligned with [pendingAttendanceCorrectionCountStreamProvider].
+final pendingAttendanceCorrectionRequestsStreamProvider =
+    StreamProvider<List<AttendanceCorrectionRequestModel>>((ref) {
+      final repo = ref.watch(teamMemberAttendanceRepositoryProvider);
+      return _guardedSalonStream<List<AttendanceCorrectionRequestModel>>(
+        ref,
+        emptyValue: const <AttendanceCorrectionRequestModel>[],
+        onSalon: (salonId) =>
+            repo.watchPendingCorrectionRequestsForSalon(salonId: salonId),
       );
     });
 
