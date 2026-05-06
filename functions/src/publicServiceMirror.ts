@@ -3,6 +3,7 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall, type CallableRequest } from "firebase-functions/v2/https";
 
 import { db, requireString } from "./bookingShared";
+import { refreshPublicSalonStartingPrice } from "./publicStartingPrice";
 
 const REGION = "us-central1" as const;
 
@@ -44,6 +45,9 @@ export function serviceToPublicServicePayload(
 
   const sortOrder = typeof s.sortOrder === "number" ? s.sortOrder : 999;
 
+  const categoryKeyRaw = `${s.categoryKey ?? ""}`.trim();
+  const iconKeyRaw = `${s.iconKey ?? ""}`.trim();
+
   return {
     salonId,
     name,
@@ -51,6 +55,8 @@ export function serviceToPublicServicePayload(
     displayName,
     category,
     categoryLabel,
+    ...(categoryKeyRaw.length > 0 ? { categoryKey: categoryKeyRaw } : {}),
+    ...(iconKeyRaw.length > 0 ? { iconKey: iconKeyRaw } : {}),
     description: `${s.description ?? ""}`.trim() || null,
     price: typeof s.price === "number" ? s.price : Number(s.price) || 0,
     durationMinutes: Math.round(duration),
@@ -101,6 +107,7 @@ export const onServiceWriteSyncPublicService = onDocumentWritten(
 
     if (!after?.exists) {
       await publicRef.delete().catch(() => undefined);
+      await refreshPublicSalonStartingPrice(salonId);
       return;
     }
 
@@ -110,6 +117,7 @@ export const onServiceWriteSyncPublicService = onDocumentWritten(
       after.data()!,
     );
     await publicRef.set(payload, { merge: true });
+    await refreshPublicSalonStartingPrice(salonId);
   },
 );
 
@@ -129,6 +137,7 @@ export const backfillPublicServicesForSalon = onCall(
       });
       synced++;
     }
+    await refreshPublicSalonStartingPrice(salonId);
     return { ok: true, synced };
   },
 );

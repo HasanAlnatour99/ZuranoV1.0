@@ -2,6 +2,7 @@ import { FieldValue, GeoPoint, type DocumentData } from "firebase-admin/firestor
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 import { db } from "./bookingShared";
+import { refreshPublicSalonStartingPrice } from "./publicStartingPrice";
 
 const REGION = "us-central1" as const;
 
@@ -102,7 +103,6 @@ export function salonToPublicSalonPayload(
           .map((x: unknown) => `${x}`.trim().toLowerCase())
           .filter((t: string) => t)
       : [],
-    startingPrice: typeof s.startingPrice === "number" ? s.startingPrice : 0,
     updatedAt: FieldValue.serverTimestamp(),
   };
 
@@ -134,6 +134,7 @@ export const onSalonWriteSyncPublicSalon = onDocumentWritten(
 
     const payload = salonToPublicSalonPayload(salonId, after.data()!);
     await publicRef.set(payload, { merge: true });
+    await refreshPublicSalonStartingPrice(salonId);
   },
 );
 

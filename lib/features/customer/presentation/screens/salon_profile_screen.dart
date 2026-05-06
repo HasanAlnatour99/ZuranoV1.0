@@ -53,6 +53,29 @@ String _salonInitials(String salonName) {
   return String.fromCharCode(runes.first).toUpperCase();
 }
 
+/// Prefer denormalized `salon.startingPrice`; if unset, use lowest priced
+/// active customer-visible service from `publicSalons/{salonId}/services`.
+double resolveStartingPrice(
+  SalonPublicModel salon,
+  List<CustomerServicePublicModel> services,
+) {
+  if (salon.startingPrice > 0) {
+    return salon.startingPrice;
+  }
+
+  final prices = services
+      .where((s) => s.isActive && s.isCustomerVisible && s.price > 0)
+      .map((s) => s.price)
+      .toList();
+
+  if (prices.isEmpty) {
+    return 0;
+  }
+
+  prices.sort();
+  return prices.first;
+}
+
 class SalonProfileScreen extends ConsumerStatefulWidget {
   const SalonProfileScreen({super.key, required this.salonId});
 
@@ -277,12 +300,19 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
       context.go(AppRoutes.customerSalonDiscovery);
     }
 
+    final servicesList = servicesAsync.maybeWhen(
+      data: (list) => list,
+      orElse: () => <CustomerServicePublicModel>[],
+    );
+    final resolvedStartingPrice = resolveStartingPrice(salon, servicesList);
+
     return CustomScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         SliverToBoxAdapter(
           child: _PremiumHeroSection(
             salon: salon,
+            resolvedStartingPrice: resolvedStartingPrice,
             l10n: l10n,
             locale: locale,
             favoriteSelected: _favoriteLocal,
@@ -462,6 +492,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
 class _PremiumHeroSection extends StatelessWidget {
   const _PremiumHeroSection({
     required this.salon,
+    required this.resolvedStartingPrice,
     required this.l10n,
     required this.locale,
     required this.favoriteSelected,
@@ -471,6 +502,7 @@ class _PremiumHeroSection extends StatelessWidget {
   });
 
   final SalonPublicModel salon;
+  final double resolvedStartingPrice;
   final AppLocalizations l10n;
   final Locale locale;
   final bool favoriteSelected;
@@ -535,6 +567,7 @@ class _PremiumHeroSection extends StatelessWidget {
             bottom: 0,
             child: _PremiumSummaryCard(
               salon: salon,
+              resolvedStartingPrice: resolvedStartingPrice,
               initials: _salonInitials(salon.salonName),
               l10n: l10n,
               locale: locale,
@@ -621,12 +654,14 @@ class _RoundHeroButton extends StatelessWidget {
 class _PremiumSummaryCard extends StatelessWidget {
   const _PremiumSummaryCard({
     required this.salon,
+    required this.resolvedStartingPrice,
     required this.initials,
     required this.l10n,
     required this.locale,
   });
 
   final SalonPublicModel salon;
+  final double resolvedStartingPrice;
   final String initials;
   final AppLocalizations l10n;
   final Locale locale;
@@ -634,8 +669,8 @@ class _PremiumSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fromPrice = salon.startingPrice > 0
-        ? formatMoney(salon.startingPrice, salon.currencyCode, locale)
+    final formattedFromPrice = resolvedStartingPrice > 0
+        ? formatMoney(resolvedStartingPrice, salon.currencyCode, locale)
         : '';
 
     return Material(
@@ -716,9 +751,9 @@ class _PremiumSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    salon.startingPrice <= 0
+                    resolvedStartingPrice <= 0
                         ? l10n.customerSalonPricesAppearSoon
-                        : l10n.customerSalonStartingFrom(fromPrice),
+                        : l10n.customerSalonStartingFrom(formattedFromPrice),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppBrandColors.primary,
                       fontWeight: FontWeight.w700,
