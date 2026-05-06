@@ -19125,6 +19125,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From {price}'**
   String customerSearchPlacePriceFrom(String price);
+
+  /// No description provided for @placeCardReviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String placeCardReviewsCount(int count);
+
+  /// No description provided for @placeCardDistanceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get placeCardDistanceUnavailable;
+
+  /// No description provided for @placeCardDistanceKmAway.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km away'**
+  String placeCardDistanceKmAway(String km);
+
+  /// No description provided for @placeCardDistanceKmOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String placeCardDistanceKmOnly(String km);
+
+  /// No description provided for @placeCardMetaAwayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'away'**
+  String get placeCardMetaAwayLabel;
+
+  /// No description provided for @placeCardMetaPlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get placeCardMetaPlaceLabel;
+
+  /// No description provided for @placeCardPremiumFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get placeCardPremiumFallback;
+
+  /// No description provided for @placeStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get placeStatusOpen;
+
+  /// No description provided for @placeStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get placeStatusClosed;
+
+  /// No description provided for @placePriceFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get placePriceFromLabel;
+
+  /// No description provided for @customerPlacesScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get customerPlacesScreenTitle;
+
+  /// No description provided for @customerPlacesScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover premium salons near you'**
+  String get customerPlacesScreenSubtitle;
+
+  /// No description provided for @customerPlacesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No places available yet'**
+  String get customerPlacesEmpty;
+
+  /// No description provided for @customerPlacesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load places.'**
+  String get customerPlacesLoadError;
+
+  /// No description provided for @customerPlacesFilterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get customerPlacesFilterTooltip;
+
+  /// No description provided for @placeCardLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location not available'**
+  String get placeCardLocationUnavailable;
 }
 
 class _AppLocalizationsDelegate

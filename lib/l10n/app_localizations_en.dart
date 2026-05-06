@@ -10893,4 +10893,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String customerSearchPlacePriceFrom(String price) {
     return 'From $price';
   }
+
+  @override
+  String placeCardReviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get placeCardDistanceUnavailable => '—';
+
+  @override
+  String placeCardDistanceKmAway(String km) {
+    return '$km km away';
+  }
+
+  @override
+  String placeCardDistanceKmOnly(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get placeCardMetaAwayLabel => 'away';
+
+  @override
+  String get placeCardMetaPlaceLabel => 'Place';
+
+  @override
+  String get placeCardPremiumFallback => 'Premium';
+
+  @override
+  String get placeStatusOpen => 'Open';
+
+  @override
+  String get placeStatusClosed => 'Closed';
+
+  @override
+  String get placePriceFromLabel => 'From';
+
+  @override
+  String get customerPlacesScreenTitle => 'Places';
+
+  @override
+  String get customerPlacesScreenSubtitle => 'Discover premium salons near you';
+
+  @override
+  String get customerPlacesEmpty => 'No places available yet';
+
+  @override
+  String get customerPlacesLoadError => 'Could not load places.';
+
+  @override
+  String get customerPlacesFilterTooltip => 'Filters';
+
+  @override
+  String get placeCardLocationUnavailable => 'Location not available';
 }

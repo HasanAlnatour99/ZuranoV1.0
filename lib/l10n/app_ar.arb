@@ -4340,5 +4340,44 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "placeCardReviewsCount": "{count} مراجعة",
+  "@placeCardReviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeCardDistanceUnavailable": "—",
+  "placeCardDistanceKmAway": "على بُعد {km} كم",
+  "@placeCardDistanceKmAway": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "placeCardDistanceKmOnly": "{km} كم",
+  "@placeCardDistanceKmOnly": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "placeCardMetaAwayLabel": "بعيد",
+  "placeCardMetaPlaceLabel": "مكان",
+  "placeCardPremiumFallback": "مميّز",
+  "placeStatusOpen": "مفتوح",
+  "placeStatusClosed": "مغلق",
+  "placePriceFromLabel": "من",
+  "customerPlacesScreenTitle": "الأماكن",
+  "customerPlacesScreenSubtitle": "اكتشف صالونات راقية بالقرب منك",
+  "customerPlacesEmpty": "لا توجد أماكن حتى الآن",
+  "customerPlacesLoadError": "تعذّر تحميل الأماكن.",
+  "customerPlacesFilterTooltip": "تصفية",
+
+  "placeCardLocationUnavailable": "الموقع غير متاح"
 }

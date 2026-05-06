@@ -10865,4 +10865,58 @@ class AppLocalizationsAr extends AppLocalizations {
   String customerSearchPlacePriceFrom(String price) {
     return 'من $price';
   }
+
+  @override
+  String placeCardReviewsCount(int count) {
+    return '$count مراجعة';
+  }
+
+  @override
+  String get placeCardDistanceUnavailable => '—';
+
+  @override
+  String placeCardDistanceKmAway(String km) {
+    return 'على بُعد $km كم';
+  }
+
+  @override
+  String placeCardDistanceKmOnly(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get placeCardMetaAwayLabel => 'بعيد';
+
+  @override
+  String get placeCardMetaPlaceLabel => 'مكان';
+
+  @override
+  String get placeCardPremiumFallback => 'مميّز';
+
+  @override
+  String get placeStatusOpen => 'مفتوح';
+
+  @override
+  String get placeStatusClosed => 'مغلق';
+
+  @override
+  String get placePriceFromLabel => 'من';
+
+  @override
+  String get customerPlacesScreenTitle => 'الأماكن';
+
+  @override
+  String get customerPlacesScreenSubtitle => 'اكتشف صالونات راقية بالقرب منك';
+
+  @override
+  String get customerPlacesEmpty => 'لا توجد أماكن حتى الآن';
+
+  @override
+  String get customerPlacesLoadError => 'تعذّر تحميل الأماكن.';
+
+  @override
+  String get customerPlacesFilterTooltip => 'تصفية';
+
+  @override
+  String get placeCardLocationUnavailable => 'الموقع غير متاح';
 }

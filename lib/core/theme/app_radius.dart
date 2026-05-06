@@ -16,4 +16,10 @@ class AppRadius {
 
   /// Inner photo on profile cards (slightly tighter than [profileCard]).
   static const double profileCardImage = 22;
+
+  /// Customer discovery place cards (lavender premium UI).
+  static const double placeMd = 16;
+  static const double placeLg = 24;
+  static const double placeXl = 32;
+  static const double placeXxl = 38;
 }

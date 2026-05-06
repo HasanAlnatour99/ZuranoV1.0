@@ -11,9 +11,13 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../customer_home/presentation/controllers/customer_location_providers.dart';
 import '../../application/customer_salon_providers.dart';
+import '../../discovery/presentation/widgets/premium_place_card.dart';
+import '../../discovery/providers/customer_places_provider.dart';
+import '../../discovery/utils/distance_utils.dart';
+import '../../discovery/utils/opening_hours_utils.dart';
 import '../widgets/customer_gradient_scaffold.dart';
-import '../widgets/salon_public_card.dart';
 
 class SalonDiscoveryScreen extends ConsumerStatefulWidget {
   const SalonDiscoveryScreen({super.key, this.showBottomNavigationBar = true});
@@ -62,7 +66,7 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final salonsAsync = ref.watch(filteredPublicSalonsProvider);
+    final salonsAsync = ref.watch(filteredCustomerPlacesProvider);
     final filters = ref.watch(customerSalonDiscoveryFiltersProvider);
     final session = ref.watch(appSessionBootstrapProvider);
 
@@ -234,6 +238,10 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
             ),
             salonsAsync.when(
               data: (salons) {
+                final user = ref.watch(customerCurrentPositionProvider).maybeWhen(
+                      data: (p) => p,
+                      orElse: () => null,
+                    );
                 if (salons.isEmpty) {
                   return SliverFillRemaining(
                     hasScrollBody: false,
@@ -260,25 +268,40 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                   sliver: SliverList.separated(
                     itemCount: salons.length,
                     separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.medium),
+                        const SizedBox(height: AppSpacing.small),
                     itemBuilder: (context, i) {
-                      final s = salons[i];
-                      return SalonPublicCard(
-                        salon: s,
-                        bookmarked: _bookmarked.contains(s.id),
-                        onBookmarkTap: () {
+                      final place = salons[i];
+                      final parts = DistanceUtils.distancePartsForCard(
+                        salonLocation: place.location,
+                        user: user,
+                        l10n: l10n,
+                      );
+                      final showDist =
+                          parts.overlayLine != l10n.placeCardDistanceUnavailable;
+                      final isClosed = place.isOpenNowCache != null
+                          ? !place.isOpenNowCache!
+                          : OpeningHoursUtils.isClosedNow(place.openingHours);
+
+                      return PremiumPlaceCard.compact(
+                        place: place,
+                        distanceOverlayLine: parts.overlayLine,
+                        distanceMetaTitle: parts.metaKmTitle,
+                        showDistanceOverlay: showDist,
+                        isFavorite: _bookmarked.contains(place.id),
+                        isClosed: isClosed,
+                        onFavoriteTap: () {
                           setState(() {
-                            if (_bookmarked.contains(s.id)) {
-                              _bookmarked.remove(s.id);
+                            if (_bookmarked.contains(place.id)) {
+                              _bookmarked.remove(place.id);
                             } else {
-                              _bookmarked.add(s.id);
+                              _bookmarked.add(place.id);
                             }
                           });
                         },
                         onTap: () {
                           context.pushNamed(
                             AppRouteNames.customerSalonProfile,
-                            pathParameters: {'salonId': s.id},
+                            pathParameters: {'salonId': place.id},
                           );
                         },
                       );
@@ -293,7 +316,7 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                 sliver: SliverList.separated(
                   itemCount: 5,
                   separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.medium),
+                      const SizedBox(height: AppSpacing.small),
                   itemBuilder: (_, _) => const _SalonCardSkeleton(),
                 ),
               ),
@@ -301,7 +324,7 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                 hasScrollBody: false,
                 child: _DiscoveryError(
                   message: _errorMessage(context, e),
-                  onRetry: () => ref.invalidate(publicSalonsProvider),
+                  onRetry: () => ref.invalidate(customerPlacesProvider),
                   l10n: l10n,
                 ),
               ),
@@ -370,7 +393,7 @@ class _SalonCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      height: 108,
+      height: 100,
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(AppRadius.xlarge),

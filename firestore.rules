@@ -344,7 +344,9 @@ service cloud.firestore {
 
     function salonDocIsPublishedForDiscovery(salonId) {
       return exists(/databases/$(database)/documents/salons/$(salonId)) &&
-        get(/databases/$(database)/documents/salons/$(salonId)).data.get('isPublished', false) == true;
+        get(/databases/$(database)/documents/salons/$(salonId)).data.get('isPublic', false) == true &&
+        get(/databases/$(database)/documents/salons/$(salonId)).data.get('isPublished', false) == true &&
+        get(/databases/$(database)/documents/salons/$(salonId)).data.get('isActive', true) == true;
     }
 
     /// Discovery rows are public brochure data; reads must mirror client queries (`isActive` + `limit`).
@@ -358,7 +360,8 @@ service cloud.firestore {
     }
 
     function salonRootPublishedBrowseRow() {
-      return resource.data.get('isPublished', false) == true &&
+      return resource.data.get('isPublic', false) == true &&
+        resource.data.get('isPublished', false) == true &&
         resource.data.get('isActive', true) == true;
     }
 

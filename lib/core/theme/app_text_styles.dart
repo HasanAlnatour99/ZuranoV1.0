@@ -72,4 +72,34 @@ abstract final class AppTextStyles {
           color: scheme.onPrimary,
         ),
       );
+
+  /// Large serif-style title on discovery place cards (Latin: Playfair via Google Fonts).
+  static TextStyle placeCardTitle(Color color, {required Locale locale}) {
+    final base = TextStyle(
+      fontSize: locale.languageCode == 'ar' ? 26 : 28,
+      height: 1.05,
+      fontWeight: FontWeight.w800,
+      color: color,
+      letterSpacing: locale.languageCode == 'ar' ? 0 : -0.8,
+    );
+    if (locale.languageCode == 'ar') {
+      return GoogleFonts.cairo(textStyle: base);
+    }
+    return GoogleFonts.playfairDisplay(textStyle: base);
+  }
+
+  /// Places tab screen title (serif).
+  static TextStyle placesScreenTitle(Color color, {required Locale locale}) {
+    final base = TextStyle(
+      fontSize: locale.languageCode == 'ar' ? 34 : 38,
+      height: 1,
+      fontWeight: FontWeight.w900,
+      color: color,
+      letterSpacing: locale.languageCode == 'ar' ? 0 : -1.2,
+    );
+    if (locale.languageCode == 'ar') {
+      return GoogleFonts.cairo(textStyle: base);
+    }
+    return GoogleFonts.playfairDisplay(textStyle: base);
+  }
 }

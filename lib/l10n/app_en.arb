@@ -4417,5 +4417,44 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "placeCardReviewsCount": "{count} reviews",
+  "@placeCardReviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "placeCardDistanceUnavailable": "—",
+  "placeCardDistanceKmAway": "{km} km away",
+  "@placeCardDistanceKmAway": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "placeCardDistanceKmOnly": "{km} km",
+  "@placeCardDistanceKmOnly": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "placeCardMetaAwayLabel": "away",
+  "placeCardMetaPlaceLabel": "Place",
+  "placeCardPremiumFallback": "Premium",
+  "placeStatusOpen": "Open",
+  "placeStatusClosed": "Closed",
+  "placePriceFromLabel": "From",
+  "customerPlacesScreenTitle": "Places",
+  "customerPlacesScreenSubtitle": "Discover premium salons near you",
+  "customerPlacesEmpty": "No places available yet",
+  "customerPlacesLoadError": "Could not load places.",
+  "customerPlacesFilterTooltip": "Filters",
+
+  "placeCardLocationUnavailable": "Location not available"
 }

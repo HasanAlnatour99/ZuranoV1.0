@@ -81,6 +81,8 @@ class CustomerHomeRepository {
 
     final fallbackSalonRootQuery = _db
         .collection(FirestorePaths.salons)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
         .where('isPublished', isEqualTo: true)
         .where('countryCode', isEqualTo: cc)
         .limit(limit);

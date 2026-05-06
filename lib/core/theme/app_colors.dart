@@ -152,3 +152,21 @@ abstract final class FinanceDashboardColors {
   static const headerGradientMid = Color(0xFF6D35F2);
   static const headerGradientEnd = Color(0xFF8B5CF6);
 }
+
+/// Premium lavender/purple surfaces for [PremiumPlaceCard] and customer discovery lists.
+/// Keeps discovery UI consistent across home, search, map sheet, and favorites.
+abstract final class PlaceDiscoveryColors {
+  static const background = Color(0xFFFBF8FF);
+  static const card = Color(0xFFFFFFFF);
+
+  static const primary = Color(0xFF7C3AED);
+  static const primaryDark = Color(0xFF160A33);
+  static const primarySoft = Color(0xFFF0E7FF);
+
+  static const textPrimary = Color(0xFF130B2E);
+  static const textSecondary = Color(0xFF7A728C);
+  static const border = Color(0xFFEDE5F8);
+
+  static const gold = Color(0xFFFFC247);
+  static const darkOverlay = Color(0x99000000);
+}
