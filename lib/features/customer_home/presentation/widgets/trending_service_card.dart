@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/services/service_category_visual_style.dart';
 import '../../data/models/trending_service_model.dart';
 import '../theme/zurano_customer_colors.dart';
-import '../utils/trending_service_icons.dart';
 
 class TrendingServiceCard extends StatelessWidget {
   const TrendingServiceCard({super.key, required this.item});
@@ -14,6 +14,15 @@ class TrendingServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final rawIcon = item.iconKey.trim();
+    final rawCat = item.categoryId.trim();
+    final style = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: rawIcon.isNotEmpty ? rawIcon : null,
+      categoryKey: rawCat.isNotEmpty ? rawCat : null,
+      categoryLabel: item.label,
+      serviceName: item.label,
+    );
+
     return SizedBox(
       width: _tileW,
       height: _tileH,
@@ -28,10 +37,17 @@ class TrendingServiceCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                trendingServiceIconKey(item.iconKey),
-                size: 26,
-                color: ZuranoCustomerColors.primary.withValues(alpha: 0.9),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: style.background,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: style.foreground.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Icon(style.icon, size: 24, color: style.foreground),
               ),
               const SizedBox(height: 4),
               Text(

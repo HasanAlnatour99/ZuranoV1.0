@@ -9,7 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/models/service.dart';
 import '../../data/service_category_helpers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
-import 'package:barber_shop_app/shared/widgets/zurano_service_category_icon.dart';
+import 'package:barber_shop_app/shared/services/service_category_visual_style.dart';
 
 class ServiceCard extends StatelessWidget {
   const ServiceCard({
@@ -38,11 +38,17 @@ class ServiceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
+    final categoryLabelForResolve =
+        service.categoryLabel?.trim().isNotEmpty == true
+        ? service.categoryLabel!.trim()
+        : service.category?.trim();
     final thumb = _ServiceThumbnail(
       imageUrl: service.imageUrl,
       isActive: service.isActive,
       categoryKey: service.categoryKey,
       iconKey: service.iconKey,
+      categoryLabel: categoryLabelForResolve,
+      serviceName: _displayName,
     );
 
     final meta = [
@@ -253,17 +259,21 @@ class _ServiceThumbnail extends StatelessWidget {
     required this.isActive,
     required this.categoryKey,
     required this.iconKey,
+    required this.categoryLabel,
+    required this.serviceName,
   });
 
   final String? imageUrl;
   final bool isActive;
   final String? categoryKey;
   final String? iconKey;
+  final String? categoryLabel;
+  final String serviceName;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    const size = 52.0;
+    const size = 54.0;
     final url = imageUrl?.trim();
 
     final child = url != null && url.isNotEmpty
@@ -285,11 +295,11 @@ class _ServiceThumbnail extends StatelessWidget {
                     ),
                   ),
                 ),
-                errorWidget: _placeholder(context),
+                errorWidget: _placeholder(context, 54),
               ),
             ),
           )
-        : _placeholder(context);
+        : _placeholder(context, 54);
 
     return SizedBox(
       width: size,
@@ -306,19 +316,32 @@ class _ServiceThumbnail extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(BuildContext context) {
+  Widget _placeholder(BuildContext context, double tileSize) {
     final scheme = Theme.of(context).colorScheme;
+    final visualStyle = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: iconKey,
+      categoryKey: categoryKey,
+      categoryLabel: categoryLabel,
+      serviceName: serviceName,
+    );
     return ColoredBox(
       color: scheme.surfaceContainerHighest.withValues(alpha: 0.9),
       child: Center(
-        child: ZuranoServiceCategoryIcon(
-          categoryKey: categoryKey,
-          iconKey: iconKey,
-          size: 44,
-          iconSize: 22,
-          backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
-          iconColor: scheme.primary.withValues(alpha: 0.9),
-          borderRadius: 12,
+        child: Container(
+          width: tileSize,
+          height: tileSize,
+          decoration: BoxDecoration(
+            color: visualStyle.background,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: visualStyle.foreground.withValues(alpha: 0.12),
+            ),
+          ),
+          child: Icon(
+            visualStyle.icon,
+            color: visualStyle.foreground,
+            size: 26,
+          ),
         ),
       ),
     );

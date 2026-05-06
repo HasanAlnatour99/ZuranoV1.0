@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/services/service_category_icon_resolver.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 
 /// POS / legacy helpers that only need [IconData].
 IconData posServiceIconForCategoryKey(String? categoryKey, {String? iconKey}) {
-  return ServiceCategoryIconResolver.resolve(
+  return ServiceCategoryVisualStyleResolver.resolve(
     iconKey: iconKey,
     categoryKey: categoryKey,
-  );
+  ).icon;
 }

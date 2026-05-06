@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../shared/services/service_category_icon_resolver.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 import '../../../services/data/service_category_catalog.dart';
 import '../../data/models/customer_category_model.dart';
 import '../controllers/customer_home_providers.dart';
@@ -81,19 +81,16 @@ class _CategoryScrollerRow extends ConsumerWidget {
                             )
                           : null,
                     ),
-                    child: CircleAvatar(
-                      radius: _circle / 2,
-                      backgroundColor: ZuranoCustomerColors.lavenderSoft,
-                      foregroundImage: (c.imageUrl.trim().isNotEmpty)
-                          ? NetworkImage(c.imageUrl)
-                          : null,
-                      child: c.imageUrl.trim().isEmpty
-                          ? CategoryFallback(
-                              categoryId: c.id,
-                              iconSize: _iconSize,
-                            )
-                          : null,
-                    ),
+                    child: c.imageUrl.trim().isEmpty
+                        ? CategoryFallback(
+                            categoryId: c.id,
+                            iconSize: _iconSize,
+                          )
+                        : CircleAvatar(
+                            radius: _circle / 2,
+                            backgroundColor: ZuranoCustomerColors.lavenderSoft,
+                            foregroundImage: NetworkImage(c.imageUrl),
+                          ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -130,12 +127,23 @@ class CategoryFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const diameter = 44.0;
     final id = categoryId.trim().toLowerCase();
     if (id == 'all') {
-      return Icon(
-        Icons.dashboard_rounded,
-        color: ZuranoCustomerColors.primary,
-        size: iconSize,
+      return SizedBox(
+        width: diameter,
+        height: diameter,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ZuranoCustomerColors.lavenderSoft,
+          ),
+          child: Icon(
+            Icons.dashboard_rounded,
+            color: ZuranoCustomerColors.primary,
+            size: iconSize,
+          ),
+        ),
       );
     }
     final catalogKey = switch (id) {
@@ -147,10 +155,18 @@ class CategoryFallback extends StatelessWidget {
       'beauty' => ServiceCategoryKeys.facialSkincare,
       _ => ServiceCategoryKeys.other,
     };
-    return Icon(
-      ServiceCategoryIconResolver.resolve(categoryKey: catalogKey),
-      color: ZuranoCustomerColors.primary,
-      size: iconSize,
+    final style = ServiceCategoryVisualStyleResolver.resolve(
+      categoryKey: catalogKey,
+    );
+    return Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: style.background,
+        border: Border.all(color: style.foreground.withValues(alpha: 0.12)),
+      ),
+      child: Icon(style.icon, color: style.foreground, size: iconSize),
     );
   }
 }

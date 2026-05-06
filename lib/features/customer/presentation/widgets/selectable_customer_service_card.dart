@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../shared/widgets/zurano_service_category_icon.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 import '../../data/models/customer_service_public_model.dart';
 
 class SelectableCustomerServiceCard extends StatelessWidget {
@@ -34,9 +34,7 @@ class SelectableCustomerServiceCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.small),
       child: Material(
-        color: selected
-            ? AppBrandColors.primary.withValues(alpha: 0.07)
-            : scheme.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xlarge),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppRadius.xlarge),
@@ -159,8 +157,8 @@ class _ServiceIcon extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.large),
       child: SizedBox(
-        width: 52,
-        height: 52,
+        width: 58,
+        height: 58,
         child: url != null && url.isNotEmpty
             ? Image.network(
                 url,
@@ -181,19 +179,26 @@ class _ServiceIconFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppBrandColors.secondary,
-      child: Center(
-        child: ZuranoServiceCategoryIcon(
-          categoryKey: service.resolvedCategoryKeyForIcon,
-          iconKey: service.iconKey,
-          size: 48,
-          iconSize: 24,
-          backgroundColor: Colors.white.withValues(alpha: 0.35),
-          iconColor: AppBrandColors.primary.withValues(alpha: 0.85),
-          borderRadius: 14,
+    final categoryLabelForResolve = service.categoryLabel.trim().isNotEmpty
+        ? service.categoryLabel
+        : service.category;
+    final visualStyle = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: service.iconKey,
+      categoryKey: service.categoryKey,
+      categoryLabel: categoryLabelForResolve,
+      serviceName: service.displayTitle,
+    );
+    return Container(
+      width: 58,
+      height: 58,
+      decoration: BoxDecoration(
+        color: visualStyle.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: visualStyle.foreground.withValues(alpha: 0.12),
         ),
       ),
+      child: Icon(visualStyle.icon, color: visualStyle.foreground, size: 28),
     );
   }
 }

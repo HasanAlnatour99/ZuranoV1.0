@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/services/service_category_icon_resolver.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 
 class SelectedServiceTile extends StatelessWidget {
   const SelectedServiceTile({
@@ -13,6 +13,9 @@ class SelectedServiceTile extends StatelessWidget {
     this.iconKey,
     this.subtitle,
     this.dense = false,
+
+    /// Raw service name for category keyword inference (omit when [title] is only the name).
+    this.styleServiceName,
   });
 
   final String title;
@@ -23,11 +26,24 @@ class SelectedServiceTile extends StatelessWidget {
   final String? subtitle;
   final bool dense;
 
+  /// Passed from cart lines / models so inference does not use `"Name × 2"`.
+  final String? styleServiceName;
+
   @override
   Widget build(BuildContext context) {
-    final iconSize = dense ? 18.0 : 20.0;
-    final leading = dense ? 32.0 : 40.0;
-    final radius = dense ? 12.0 : 14.0;
+    final style = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: iconKey,
+      categoryKey: categoryKey,
+      categoryLabel: null,
+      serviceName:
+          (styleServiceName != null && styleServiceName!.trim().isNotEmpty)
+          ? styleServiceName
+          : title,
+    );
+
+    final tileSide = dense ? 36.0 : 48.0;
+    final radius = dense ? 12.0 : 16.0;
+    final iconSz = dense ? 18.0 : 24.0;
     final bottomPad = dense ? 6.0 : 8.0;
     final vPad = dense ? 8.0 : 10.0;
     final hStart = dense ? 10.0 : 12.0;
@@ -46,27 +62,16 @@ class SelectedServiceTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: leading,
-              height: leading,
+              width: tileSide,
+              height: tileSide,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    FinanceDashboardColors.primaryPurple,
-                    FinanceDashboardColors.deepPurple,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: style.background,
                 borderRadius: BorderRadius.circular(radius),
-              ),
-              child: Icon(
-                ServiceCategoryIconResolver.resolve(
-                  iconKey: iconKey,
-                  categoryKey: categoryKey,
+                border: Border.all(
+                  color: style.foreground.withValues(alpha: 0.12),
                 ),
-                color: Colors.white,
-                size: iconSize,
               ),
+              child: Icon(style.icon, color: style.foreground, size: iconSz),
             ),
             SizedBox(width: dense ? 10 : 12),
             Expanded(

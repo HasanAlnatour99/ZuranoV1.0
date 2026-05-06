@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/services/service_category_icon_resolver.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 
 class ServiceQuickCard extends StatelessWidget {
   const ServiceQuickCard({
@@ -10,6 +10,7 @@ class ServiceQuickCard extends StatelessWidget {
     required this.priceLabel,
     required this.categoryKey,
     this.iconKey,
+    this.categoryLabel,
     required this.isSelected,
     required this.onTap,
     this.compact = false,
@@ -19,6 +20,9 @@ class ServiceQuickCard extends StatelessWidget {
   final String priceLabel;
   final String? categoryKey;
   final String? iconKey;
+
+  /// Same source as owner/customer services (`categoryLabel` or legacy `category`).
+  final String? categoryLabel;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -27,6 +31,13 @@ class ServiceQuickCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: iconKey,
+      categoryKey: categoryKey,
+      categoryLabel: categoryLabel,
+      serviceName: title,
+    );
+
     if (compact) {
       return Material(
         color: Colors.transparent,
@@ -39,21 +50,9 @@ class ServiceQuickCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              gradient: isSelected
-                  ? LinearGradient(
-                      colors: [
-                        FinanceDashboardColors.primaryPurple.withValues(
-                          alpha: 0.10,
-                        ),
-                        FinanceDashboardColors.lightPurple.withValues(
-                          alpha: 0.32,
-                        ),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    )
-                  : null,
-              color: isSelected ? null : Colors.white,
+              color: isSelected
+                  ? FinanceDashboardColors.primaryPurple.withValues(alpha: 0.05)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
@@ -72,27 +71,16 @@ class ServiceQuickCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 54,
+                  height: 54,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        FinanceDashboardColors.primaryPurple,
-                        FinanceDashboardColors.deepPurple,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                    color: style.background,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: style.foreground.withValues(alpha: 0.12),
                     ),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    ServiceCategoryIconResolver.resolve(
-                      iconKey: iconKey,
-                      categoryKey: categoryKey,
-                    ),
-                    color: Colors.white,
-                    size: 18,
-                  ),
+                  child: Icon(style.icon, color: style.foreground, size: 26),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -147,21 +135,9 @@ class ServiceQuickCard extends StatelessWidget {
           width: 164,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      FinanceDashboardColors.primaryPurple.withValues(
-                        alpha: 0.12,
-                      ),
-                      FinanceDashboardColors.lightPurple.withValues(
-                        alpha: 0.42,
-                      ),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: isSelected ? null : Colors.white,
+            color: isSelected
+                ? FinanceDashboardColors.primaryPurple.withValues(alpha: 0.05)
+                : Colors.white,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
               color: isSelected
@@ -173,7 +149,7 @@ class ServiceQuickCard extends StatelessWidget {
               BoxShadow(
                 color: isSelected
                     ? FinanceDashboardColors.primaryPurple.withValues(
-                        alpha: 0.16,
+                        alpha: 0.12,
                       )
                     : Colors.black.withValues(alpha: 0.035),
                 blurRadius: isSelected ? 18 : 12,
@@ -190,34 +166,19 @@ class ServiceQuickCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        width: 46,
-                        height: 46,
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              FinanceDashboardColors.primaryPurple,
-                              FinanceDashboardColors.deepPurple,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                          color: style.background,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: style.foreground.withValues(alpha: 0.12),
                           ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: FinanceDashboardColors.primaryPurple
-                                  .withValues(alpha: 0.20),
-                              blurRadius: 14,
-                              offset: const Offset(0, 7),
-                            ),
-                          ],
                         ),
                         child: Icon(
-                          ServiceCategoryIconResolver.resolve(
-                            iconKey: iconKey,
-                            categoryKey: categoryKey,
-                          ),
-                          color: Colors.white,
-                          size: 22,
+                          style.icon,
+                          color: style.foreground,
+                          size: 28,
                         ),
                       ),
                       const Spacer(),

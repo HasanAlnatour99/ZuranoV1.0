@@ -5,7 +5,9 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
 import '../../../services/data/models/service.dart';
+import '../../../services/data/service_category_catalog.dart';
 import '../providers/add_sale_controller.dart';
 import 'service_quick_card.dart';
 import 'selected_service_tile.dart';
@@ -86,6 +88,9 @@ class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final headerStyle = ServiceCategoryVisualStyleResolver.resolve(
+      categoryKey: ServiceCategoryKeys.packages,
+    );
     final l10n = widget.l10n;
     final q = widget.searchQuery.trim().toLowerCase();
     final filtered = widget.services.where((s) {
@@ -119,16 +124,19 @@ class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
           Row(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: FinanceDashboardColors.lightPurple,
-                  borderRadius: BorderRadius.circular(14),
+                  color: headerStyle.background,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: headerStyle.foreground.withValues(alpha: 0.12),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.content_cut_rounded,
-                  color: FinanceDashboardColors.primaryPurple,
-                  size: 20,
+                child: Icon(
+                  headerStyle.icon,
+                  color: headerStyle.foreground,
+                  size: 26,
                 ),
               ),
               const SizedBox(width: 12),
@@ -242,6 +250,7 @@ class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
                           ),
                           categoryKey: line.categoryKey,
                           iconKey: line.iconKey,
+                          styleServiceName: line.serviceName,
                           onRemove: () => widget.onRemoveLine(line.serviceId),
                         ),
                     ],
@@ -328,6 +337,10 @@ class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
                           ),
                           categoryKey: s.categoryKey,
                           iconKey: s.iconKey,
+                          categoryLabel:
+                              s.categoryLabel?.trim().isNotEmpty == true
+                              ? s.categoryLabel
+                              : s.category,
                           isSelected: selected,
                           onTap: () => widget.onServiceTap(s),
                         );
