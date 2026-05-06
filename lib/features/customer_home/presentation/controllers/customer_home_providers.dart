@@ -7,6 +7,7 @@ import '../../../../providers/onboarding_providers.dart';
 import '../../../onboarding/application/device_country_iso.dart';
 import '../../../onboarding/domain/value_objects/country_option.dart';
 import '../../domain/customer_geo.dart';
+import 'customer_location_providers.dart';
 import '../../data/models/customer_banner_model.dart';
 import '../../data/models/customer_category_model.dart';
 import '../../data/models/customer_salon_model.dart';
@@ -77,7 +78,8 @@ final recommendedSalonsProvider =
       );
     });
 
-final nearbySalonsProvider =
+/// Raw stream from Firestore (country + category); distance sort applied in [nearbySalonsProvider].
+final _nearbySalonsFirestoreProvider =
     StreamProvider.autoDispose<List<CustomerSalonModel>>((ref) {
       final repo = ref.watch(customerHomeRepositoryProvider);
       final categoryId = ref.watch(selectedCustomerCategoryProvider);
@@ -87,6 +89,28 @@ final nearbySalonsProvider =
         discoveryCountryName: country,
         customerCountryCode: countryCode,
         categoryId: categoryId == 'all' ? null : categoryId,
+      );
+    });
+
+/// Near-me list ordered by GPS distance to each salon when [customerCurrentPositionProvider] resolves.
+final nearbySalonsProvider =
+    Provider.autoDispose<AsyncValue<List<CustomerSalonModel>>>((ref) {
+      final salonsAsync = ref.watch(_nearbySalonsFirestoreProvider);
+      final positionAsync = ref.watch(customerCurrentPositionProvider);
+      return salonsAsync.when(
+        data: (list) {
+          return positionAsync.when(
+            data: (pos) => AsyncValue.data(
+              sortNearbySalonsByDistance(list, pos),
+            ),
+            loading: () => AsyncValue.data(list),
+            error: (e, st) => AsyncValue.data(
+              sortNearbySalonsByDistance(list, null),
+            ),
+          );
+        },
+        loading: () => const AsyncValue.loading(),
+        error: (e, st) => AsyncValue.error(e, st),
       );
     });
 

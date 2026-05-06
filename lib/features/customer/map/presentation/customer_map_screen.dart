@@ -1,14 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../customer_home/presentation/controllers/customer_location_providers.dart';
 import '../data/customer_map_repository.dart';
 import '../domain/salon_map_item.dart';
 import 'widgets/map_permission_banner.dart';
@@ -26,79 +24,20 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   static const LatLng _doha = LatLng(25.2854, 51.5310);
 
   GoogleMapController? _mapController;
-  LatLng? _userPosition;
   SalonMapItem? _selectedSalon;
 
-  bool _locationDenied = false;
-  bool _locationLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadUserLocation());
-  }
-
-  Future<void> _loadUserLocation() async {
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-
-      if (!serviceEnabled) {
-        if (!mounted) return;
-        setState(() {
-          _locationDenied = true;
-          _locationLoading = false;
-        });
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        if (!mounted) return;
-        setState(() {
-          _locationDenied = true;
-          _locationLoading = false;
-        });
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-
-      final latLng = LatLng(position.latitude, position.longitude);
-
-      if (!mounted) return;
-
-      setState(() {
-        _userPosition = latLng;
-        _locationDenied = false;
-        _locationLoading = false;
-      });
-
-      await _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(latLng, 14),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _locationDenied = true;
-        _locationLoading = false;
-      });
-    }
-  }
-
-  Set<Marker> _buildMarkers(AppLocalizations l10n, List<SalonMapItem> salons) {
+  Set<Marker> _buildMarkers(
+    AppLocalizations l10n,
+    List<SalonMapItem> salons,
+    LatLng? userPosition,
+  ) {
     final markers = <Marker>{};
 
-    if (_userPosition != null) {
+    if (userPosition != null) {
       markers.add(
         Marker(
           markerId: const MarkerId('customer_location'),
-          position: _userPosition!,
+          position: userPosition,
           infoWindow: InfoWindow(title: l10n.customerMapMarkerYouAreHere),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueAzure,
@@ -129,8 +68,11 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
     return markers;
   }
 
-  List<SalonMapItem> _applyDistanceIfAvailable(List<SalonMapItem> salons) {
-    final user = _userPosition;
+  List<SalonMapItem> _applyDistanceIfAvailable(
+    List<SalonMapItem> salons,
+    LatLng? userPosition,
+  ) {
+    final user = userPosition;
 
     if (user == null) return salons;
 
@@ -141,11 +83,14 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
         );
   }
 
-  Future<void> _fitSalonsOnMap(List<SalonMapItem> salons) async {
+  Future<void> _fitSalonsOnMap(
+    List<SalonMapItem> salons,
+    LatLng? userPosition,
+  ) async {
     if (_mapController == null || salons.isEmpty) return;
 
     final points = <LatLng>[
-      ?_userPosition,
+      ?userPosition,
       ...salons.map((e) => e.position),
     ];
 
@@ -186,14 +131,42 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final salonsAsync = ref.watch(customerMapSalonsProvider);
+    final positionAsync = ref.watch(customerCurrentPositionProvider);
+
+    ref.listen(customerCurrentPositionProvider, (prev, next) {
+      next.maybeWhen(
+        data: (pos) {
+          if (pos == null || !mounted) return;
+          final latLng = LatLng(pos.latitude, pos.longitude);
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (!mounted) return;
+            await _mapController?.animateCamera(
+              CameraUpdate.newLatLngZoom(latLng, 14),
+            );
+          });
+        },
+        orElse: () {},
+      );
+    });
+
+    final userPosition = positionAsync.maybeWhen(
+      data: (p) => p != null ? LatLng(p.latitude, p.longitude) : null,
+      orElse: () => null,
+    );
+    final locationLoading = positionAsync.isLoading;
+    final locationDenied = positionAsync.maybeWhen(
+      data: (p) => p == null,
+      error: (e, st) => true,
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: salonsAsync.when(
         loading: () => const _MapLoadingView(),
         error: (_, _) => _MapErrorView(message: l10n.customerMapCouldNotLoadSalons),
         data: (rawSalons) {
-          final salons = _applyDistanceIfAvailable(rawSalons);
-          final markers = _buildMarkers(l10n, salons);
+          final salons = _applyDistanceIfAvailable(rawSalons, userPosition);
+          final markers = _buildMarkers(l10n, salons, userPosition);
 
           return Stack(
             children: [
@@ -210,12 +183,12 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                 onMapCreated: (controller) async {
                   _mapController = controller;
 
-                  if (_userPosition != null) {
+                  if (userPosition != null) {
                     await controller.animateCamera(
-                      CameraUpdate.newLatLngZoom(_userPosition!, 14),
+                      CameraUpdate.newLatLngZoom(userPosition, 14),
                     );
                   } else if (salons.isNotEmpty) {
-                    await _fitSalonsOnMap(salons);
+                    await _fitSalonsOnMap(salons, userPosition);
                   }
                 },
                 onTap: (_) {
@@ -240,7 +213,7 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                 ),
               ),
 
-              if (_locationDenied)
+              if (locationDenied)
                 PositionedDirectional(
                   top: 118,
                   start: 16,
@@ -250,7 +223,7 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                   ),
                 ),
 
-              if (_locationLoading)
+              if (locationLoading)
                 PositionedDirectional(
                   top: 118,
                   start: 16,
@@ -267,7 +240,9 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                   heroTag: 'customer_map_location',
                   backgroundColor: AppBrandColors.primary,
                   foregroundColor: AppBrandColors.onPrimary,
-                  onPressed: _loadUserLocation,
+                  onPressed: () {
+                    ref.invalidate(customerCurrentPositionProvider);
+                  },
                   child: const Icon(Icons.my_location_rounded),
                 ),
               ),
@@ -279,7 +254,7 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                   heroTag: 'customer_map_fit',
                   backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   foregroundColor: AppBrandColors.primary,
-                  onPressed: () => _fitSalonsOnMap(salons),
+                  onPressed: () => _fitSalonsOnMap(salons, userPosition),
                   child: const Icon(Icons.center_focus_strong_rounded),
                 ),
               ),
