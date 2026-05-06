@@ -33,6 +33,11 @@ class Salon {
     this.penaltySettings = const PenaltySettings(),
     this.defaultPayrollPeriod = SalonPayrollPeriods.monthly,
     this.isPublished = true,
+    this.searchKeywords = const [],
+    this.tags = const [],
+    this.audience,
+    this.area,
+    this.publicName,
     this.createdAt,
     this.updatedAt,
   });
@@ -93,6 +98,21 @@ class Salon {
 
   /// Listed on customer discovery when true (Firestore rules + queries align on this flag).
   final bool isPublished;
+
+  /// Lowercase tokens for discovery search (`customerSearchIndex` / mobile queries).
+  final List<String> searchKeywords;
+
+  /// Optional browse tags (also folded into [searchKeywords]).
+  final List<String> tags;
+
+  /// `men` | `ladies` | `unisex` — customer-facing audience filter.
+  final String? audience;
+
+  /// Neighborhood / district (optional; complements [city]).
+  final String? area;
+
+  /// Optional display name override for discovery cards.
+  final String? publicName;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -179,6 +199,13 @@ class Salon {
         json['isPublished'],
         fallback: true,
       ),
+      searchKeywords: FirestoreSerializers.stringList(json['searchKeywords']),
+      tags: FirestoreSerializers.stringList(json['tags']),
+      audience:
+          FirestoreSerializers.string(json['audience']) ??
+          FirestoreSerializers.string(json['customerAudience']),
+      area: FirestoreSerializers.string(json['area']),
+      publicName: FirestoreSerializers.string(json['publicName']),
       createdAt: FirestoreSerializers.dateTime(json['createdAt']),
       updatedAt: FirestoreSerializers.dateTime(json['updatedAt']),
     );
@@ -230,6 +257,12 @@ class Salon {
       'penaltySettings': penaltySettings.toJson(),
       'defaultPayrollPeriod': defaultPayrollPeriod,
       'isPublished': isPublished,
+      'searchKeywords': searchKeywords,
+      'tags': tags,
+      if (audience != null && audience!.trim().isNotEmpty) 'audience': audience!.trim(),
+      if (area != null && area!.trim().isNotEmpty) 'area': area!.trim(),
+      if (publicName != null && publicName!.trim().isNotEmpty)
+        'publicName': publicName!.trim(),
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -260,6 +293,11 @@ class Salon {
     PenaltySettings? penaltySettings,
     String? defaultPayrollPeriod,
     bool? isPublished,
+    List<String>? searchKeywords,
+    List<String>? tags,
+    Object? audience = _sentinel,
+    Object? area = _sentinel,
+    Object? publicName = _sentinel,
     Object? createdAt = _sentinel,
     Object? updatedAt = _sentinel,
   }) {
@@ -310,6 +348,15 @@ class Salon {
           ? SalonPayrollPeriods.normalize(defaultPayrollPeriod)
           : this.defaultPayrollPeriod,
       isPublished: isPublished ?? this.isPublished,
+      searchKeywords: searchKeywords ?? this.searchKeywords,
+      tags: tags ?? this.tags,
+      audience: identical(audience, _sentinel)
+          ? this.audience
+          : audience as String?,
+      area: identical(area, _sentinel) ? this.area : area as String?,
+      publicName: identical(publicName, _sentinel)
+          ? this.publicName
+          : publicName as String?,
       createdAt: identical(createdAt, _sentinel)
           ? this.createdAt
           : createdAt as DateTime?,

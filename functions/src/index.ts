@@ -1,6 +1,8 @@
-import { initializeApp } from "firebase-admin/app";
+import { getApps, initializeApp } from "firebase-admin/app";
 
-initializeApp();
+if (!getApps().length) {
+  initializeApp();
+}
 
 export { bookingCancel, bookingCreate, bookingReschedule } from "./bookingCallables";
 export { getCustomerAvailability } from "./customer/getCustomerAvailability";

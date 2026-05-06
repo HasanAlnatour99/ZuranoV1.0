@@ -43,7 +43,11 @@ export function salonToPublicSalonPayload(
   const city = str(s, "city");
   const area = str(s, "area") || city;
   const countryName = str(s, "countryName") || str(s, "country");
-  const countryCode = str(s, "countryCode");
+  let countryCode = str(s, "countryCode").toUpperCase();
+  if (!countryCode) {
+    console.warn(`[publicSalonMirror] salon ${salonId} missing countryCode — defaulting QA`);
+    countryCode = "QA";
+  }
 
   const isActive = s.isActive !== false;
   const isPublic = s.isPublished === true && isActive;
@@ -61,7 +65,7 @@ export function salonToPublicSalonPayload(
     city,
     countryName,
     country: countryName,
-    ...(countryCode ? { countryCode } : {}),
+    countryCode,
     phone: str(s, "phone") || null,
     whatsapp: str(s, "whatsapp") || null,
     coverImageUrl: str(s, "coverImageUrl") || null,

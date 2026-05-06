@@ -6,6 +6,7 @@
   },
   "main": "lib/index.js",
   "scripts": {
+    "backfill:customer-search-index": "npm run build && node lib/scripts/runBackfillCustomerSearchIndex.js",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "test": "vitest run",

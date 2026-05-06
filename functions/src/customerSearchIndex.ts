@@ -21,7 +21,8 @@ function numOrNull(v: unknown): number | null {
   return null;
 }
 
-function buildKeywords(values: Array<string | undefined | null>): string[] {
+/** Exported for backfill script — mirrors mobile `buildSalonSearchKeywords`. */
+export function buildKeywords(values: Array<string | undefined | null>): string[] {
   const set = new Set<string>();
 
   for (const value of values) {
@@ -70,6 +71,219 @@ function listStrings(v: unknown): string[] {
   return v.map((x) => `${x}`.trim()).filter((s) => s.length > 0);
 }
 
+/** ISO country on every index row — required for customer queries + rules. */
+export function countryMetaFromSalon(salon: DocumentData): {
+  countryCode: string;
+  countryName: string;
+} {
+  let code = str(salon, "countryCode").trim().toUpperCase();
+  const name = str(salon, "countryName") || str(salon, "country") || "";
+  if (!code) {
+    console.warn("[customerSearchIndex] missing salons.countryCode — defaulting QA");
+    code = "QA";
+  }
+  return { countryCode: code, countryName: name.trim() || code };
+}
+
+export async function upsertSalonSearchIndexFromFirestore(salonId: string): Promise<void> {
+  const ref = db.doc(`customerSearchIndex/salon_${salonId}`);
+  const snap = await db.doc(`salons/${salonId}`).get();
+  if (!snap.exists) {
+    await ref.delete().catch(() => undefined);
+    return;
+  }
+  const s = snap.data()!;
+  const name = str(s, "name") || "Salon";
+  const city = str(s, "city");
+  const area = str(s, "area") || city;
+  const businessType = str(s, "businessType");
+  const isActive = truthyBool(s.isActive, true);
+  const isPublic = truthyBool(s.isPublished, false) && isActive;
+
+  const tags = listStrings(s.tags);
+  const keywords = listStrings(s.searchKeywords);
+  const audienceLabel = normalizeAudience(s.audience ?? s.customerAudience);
+  const cm = countryMetaFromSalon(s);
+  const derivedKeywords = buildKeywords([
+    name,
+    str(s, "publicName"),
+    city,
+    area,
+    str(s, "country") || str(s, "countryName"),
+    cm.countryCode,
+    cm.countryName,
+    businessType,
+    audienceLabel,
+    ...tags,
+    ...keywords,
+  ]);
+
+  const payload: Record<string, unknown> = {
+    type: "salon",
+    salonId,
+    targetId: salonId,
+    title: name,
+    subtitle: [businessType, area].filter(Boolean).join(" • "),
+    imageUrl: str(s, "coverImageUrl") || str(s, "logoUrl") || null,
+    city,
+    area,
+    countryCode: cm.countryCode,
+    countryName: cm.countryName,
+    audience: audienceLabel,
+    ratingAvg: numOrNull(s.ratingAverage) ?? numOrNull(s.ratingAvg) ?? 0,
+    ratingCount: Math.max(0, Math.round(numOrNull(s.ratingCount) ?? 0)),
+    priceFrom: numOrNull(s.startingPrice) ?? numOrNull(s.minServicePrice) ?? null,
+    hasOffer: truthyBool(s.hasOffer, false),
+    isOpenNow: truthyBool(s.isOpen, false),
+    isActive,
+    isPublic,
+    searchKeywords: derivedKeywords,
+    location: geoFromDoc(s),
+    updatedAt: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+  };
+
+  await ref.set(payload, { merge: true });
+}
+
+export async function upsertServiceSearchIndexFromFirestore(
+  salonId: string,
+  serviceId: string,
+): Promise<void> {
+  const ref = db.doc(`customerSearchIndex/service_${salonId}_${serviceId}`);
+  const svcSnap = await db.doc(`salons/${salonId}/services/${serviceId}`).get();
+  if (!svcSnap.exists) {
+    await ref.delete().catch(() => undefined);
+    return;
+  }
+
+  const svc = svcSnap.data()!;
+  const salonSnap = await db.doc(`salons/${salonId}`).get();
+  const salon = salonSnap.exists ? salonSnap.data()! : {};
+
+  const isSalonActive = truthyBool(salon.isActive, true);
+  const isSalonPublic = truthyBool(salon.isPublished, false) && isSalonActive;
+
+  const title = str(svc, "serviceName") || str(svc, "name") || "Service";
+  const salonName = str(salon, "name") || "Salon";
+  const city = str(salon, "city");
+  const area = str(salon, "area") || city;
+  const priceFrom = numOrNull(svc.price) ?? null;
+
+  const keywords = [...listStrings(svc.searchKeywords), ...listStrings(salon.searchKeywords)];
+  const cm = countryMetaFromSalon(salon);
+  const derivedKeywords = buildKeywords([
+    title,
+    salonName,
+    city,
+    area,
+    cm.countryCode,
+    cm.countryName,
+    ...keywords,
+  ]);
+
+  const payload: Record<string, unknown> = {
+    type: "service",
+    salonId,
+    targetId: serviceId,
+    title,
+    subtitle: [salonName, priceFrom != null ? `${priceFrom}` : ""].filter(Boolean).join(" • "),
+    imageUrl: str(svc, "imageUrl") || str(salon, "coverImageUrl") || null,
+    city,
+    area,
+    countryCode: cm.countryCode,
+    countryName: cm.countryName,
+    audience: normalizeAudience(svc.audience ?? salon.audience),
+    ratingAvg: numOrNull(salon.ratingAverage) ?? 0,
+    ratingCount: Math.max(0, Math.round(numOrNull(salon.ratingCount) ?? 0)),
+    priceFrom,
+    hasOffer: truthyBool(svc.hasOffer, false) || truthyBool(salon.hasOffer, false),
+    isOpenNow: truthyBool(salon.isOpen, false),
+    isActive: truthyBool(svc.isActive, true),
+    isPublic: isSalonPublic,
+    searchKeywords: derivedKeywords,
+    location: geoFromDoc(salon),
+    updatedAt: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+  };
+
+  await ref.set(payload, { merge: true });
+}
+
+export async function upsertEmployeeSearchIndexFromFirestore(
+  salonId: string,
+  employeeId: string,
+): Promise<void> {
+  const ref = db.doc(`customerSearchIndex/specialist_${salonId}_${employeeId}`);
+  const empSnap = await db.doc(`salons/${salonId}/employees/${employeeId}`).get();
+  if (!empSnap.exists) {
+    await ref.delete().catch(() => undefined);
+    return;
+  }
+
+  const e = empSnap.data()!;
+  const isBookable = truthyBool(e.isBookable, false) || truthyBool(e.allowCustomerBooking, false);
+  const isActive = truthyBool(e.isActive, true);
+  if (!isBookable || !isActive) {
+    await ref.delete().catch(() => undefined);
+    return;
+  }
+
+  const salonSnap = await db.doc(`salons/${salonId}`).get();
+  const salon = salonSnap.exists ? salonSnap.data()! : {};
+
+  const isSalonActive = truthyBool(salon.isActive, true);
+  const isSalonPublic = truthyBool(salon.isPublished, false) && isSalonActive;
+
+  const title = str(e, "publicDisplayName") || str(e, "displayName") || str(e, "name") || "Specialist";
+  const roleTitle = str(e, "roleTitle") || str(e, "role") || "Specialist";
+  const salonName = str(salon, "name") || "Salon";
+  const city = str(salon, "city");
+  const area = str(salon, "area") || city;
+
+  const specialties = listStrings(e.specialties);
+  const keywords = [...listStrings(e.searchKeywords), ...listStrings(salon.searchKeywords)];
+
+  const cm = countryMetaFromSalon(salon);
+  const derivedKeywords = buildKeywords([
+    title,
+    roleTitle,
+    salonName,
+    city,
+    area,
+    cm.countryCode,
+    cm.countryName,
+    ...specialties,
+    ...keywords,
+  ]);
+
+  const payload: Record<string, unknown> = {
+    type: "specialist",
+    salonId,
+    targetId: employeeId,
+    title,
+    subtitle: [roleTitle, salonName].filter(Boolean).join(" • "),
+    imageUrl: str(e, "profileImageUrl") || str(e, "avatarUrl") || null,
+    city,
+    area,
+    countryCode: cm.countryCode,
+    countryName: cm.countryName,
+    audience: normalizeAudience(e.audience ?? salon.audience),
+    ratingAvg: numOrNull(e.ratingAverage) ?? numOrNull(e.ratingAvg) ?? 0,
+    ratingCount: Math.max(0, Math.round(numOrNull(e.ratingCount) ?? 0)),
+    hasOffer: truthyBool(salon.hasOffer, false),
+    isOpenNow: truthyBool(salon.isOpen, false),
+    isActive,
+    isPublic: isSalonPublic,
+    searchKeywords: derivedKeywords,
+    location: geoFromDoc(salon),
+    updatedAt: FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+  };
+
+  await ref.set(payload, { merge: true });
+}
+
 export const syncSalonSearchIndex = onDocumentWritten(
   { document: "salons/{salonId}", region: REGION },
   async (event) => {
@@ -82,49 +296,7 @@ export const syncSalonSearchIndex = onDocumentWritten(
       return;
     }
 
-    const s = after.data()!;
-    const name = str(s, "name") || "Salon";
-    const city = str(s, "city");
-    const area = str(s, "area") || city;
-    const businessType = str(s, "businessType");
-    const isActive = truthyBool(s.isActive, true);
-    const isPublic = truthyBool(s.isPublished, false) && isActive;
-
-    const tags = listStrings(s.tags);
-    const keywords = listStrings(s.searchKeywords);
-    const derivedKeywords = buildKeywords([
-      name,
-      city,
-      area,
-      businessType,
-      ...tags,
-      ...keywords,
-    ]);
-
-    const payload: Record<string, unknown> = {
-      type: "salon",
-      salonId,
-      targetId: salonId,
-      title: name,
-      subtitle: [businessType, area].filter(Boolean).join(" • "),
-      imageUrl: str(s, "coverImageUrl") || str(s, "logoUrl") || null,
-      city,
-      area,
-      audience: normalizeAudience(s.audience ?? s.customerAudience),
-      ratingAvg: numOrNull(s.ratingAverage) ?? numOrNull(s.ratingAvg) ?? 0,
-      ratingCount: Math.max(0, Math.round(numOrNull(s.ratingCount) ?? 0)),
-      priceFrom: numOrNull(s.startingPrice) ?? numOrNull(s.minServicePrice) ?? null,
-      hasOffer: truthyBool(s.hasOffer, false),
-      isOpenNow: truthyBool(s.isOpen, false),
-      isActive,
-      isPublic,
-      searchKeywords: derivedKeywords,
-      location: geoFromDoc(s),
-      updatedAt: FieldValue.serverTimestamp(),
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await ref.set(payload, { merge: true });
+    await upsertSalonSearchIndexFromFirestore(salonId);
   },
 );
 
@@ -141,57 +313,7 @@ export const syncServiceSearchIndex = onDocumentWritten(
       return;
     }
 
-    const svc = after.data()!;
-    const salonSnap = await db.doc(`salons/${salonId}`).get();
-    const salon = salonSnap.exists ? salonSnap.data()! : {};
-
-    const isSalonActive = truthyBool(salon.isActive, true);
-    const isSalonPublic = truthyBool(salon.isPublished, false) && isSalonActive;
-
-    const title = str(svc, "serviceName") || str(svc, "name") || "Service";
-    const salonName = str(salon, "name") || "Salon";
-    const city = str(salon, "city");
-    const area = str(salon, "area") || city;
-    const priceFrom = numOrNull(svc.price) ?? null;
-
-    const keywords = [
-      ...listStrings(svc.searchKeywords),
-      ...listStrings(salon.searchKeywords),
-    ];
-    const derivedKeywords = buildKeywords([
-      title,
-      salonName,
-      city,
-      area,
-      ...keywords,
-    ]);
-
-    const payload: Record<string, unknown> = {
-      type: "service",
-      salonId,
-      targetId: serviceId,
-      title,
-      subtitle: [salonName, priceFrom != null ? `${priceFrom}` : ""]
-        .filter(Boolean)
-        .join(" • "),
-      imageUrl: str(svc, "imageUrl") || str(salon, "coverImageUrl") || null,
-      city,
-      area,
-      audience: normalizeAudience(svc.audience ?? salon.audience),
-      ratingAvg: numOrNull(salon.ratingAverage) ?? 0,
-      ratingCount: Math.max(0, Math.round(numOrNull(salon.ratingCount) ?? 0)),
-      priceFrom,
-      hasOffer: truthyBool(svc.hasOffer, false) || truthyBool(salon.hasOffer, false),
-      isOpenNow: truthyBool(salon.isOpen, false),
-      isActive: truthyBool(svc.isActive, true),
-      isPublic: isSalonPublic,
-      searchKeywords: derivedKeywords,
-      location: geoFromDoc(salon),
-      updatedAt: FieldValue.serverTimestamp(),
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await ref.set(payload, { merge: true });
+    await upsertServiceSearchIndexFromFirestore(salonId, serviceId);
   },
 );
 
@@ -208,65 +330,6 @@ export const syncEmployeeSearchIndex = onDocumentWritten(
       return;
     }
 
-    const e = after.data()!;
-    const isBookable = truthyBool(e.isBookable, false) || truthyBool(e.allowCustomerBooking, false);
-    const isActive = truthyBool(e.isActive, true);
-    if (!isBookable || !isActive) {
-      await ref.delete().catch(() => undefined);
-      return;
-    }
-
-    const salonSnap = await db.doc(`salons/${salonId}`).get();
-    const salon = salonSnap.exists ? salonSnap.data()! : {};
-
-    const isSalonActive = truthyBool(salon.isActive, true);
-    const isSalonPublic = truthyBool(salon.isPublished, false) && isSalonActive;
-
-    const title = str(e, "publicDisplayName") || str(e, "displayName") || str(e, "name") || "Specialist";
-    const roleTitle = str(e, "roleTitle") || str(e, "role") || "Specialist";
-    const salonName = str(salon, "name") || "Salon";
-    const city = str(salon, "city");
-    const area = str(salon, "area") || city;
-
-    const specialties = listStrings(e.specialties);
-    const keywords = [
-      ...listStrings(e.searchKeywords),
-      ...listStrings(salon.searchKeywords),
-    ];
-
-    const derivedKeywords = buildKeywords([
-      title,
-      roleTitle,
-      salonName,
-      city,
-      area,
-      ...specialties,
-      ...keywords,
-    ]);
-
-    const payload: Record<string, unknown> = {
-      type: "specialist",
-      salonId,
-      targetId: employeeId,
-      title,
-      subtitle: [roleTitle, salonName].filter(Boolean).join(" • "),
-      imageUrl: str(e, "profileImageUrl") || str(e, "avatarUrl") || null,
-      city,
-      area,
-      audience: normalizeAudience(e.audience ?? salon.audience),
-      ratingAvg: numOrNull(e.ratingAverage) ?? numOrNull(e.ratingAvg) ?? 0,
-      ratingCount: Math.max(0, Math.round(numOrNull(e.ratingCount) ?? 0)),
-      hasOffer: truthyBool(salon.hasOffer, false),
-      isOpenNow: truthyBool(salon.isOpen, false),
-      isActive,
-      isPublic: isSalonPublic,
-      searchKeywords: derivedKeywords,
-      location: geoFromDoc(salon),
-      updatedAt: FieldValue.serverTimestamp(),
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await ref.set(payload, { merge: true });
+    await upsertEmployeeSearchIndexFromFirestore(salonId, employeeId);
   },
 );
-

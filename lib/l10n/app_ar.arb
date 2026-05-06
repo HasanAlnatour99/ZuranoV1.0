@@ -4287,6 +4287,7 @@
   "customerSearchNoResultsTitle": "لا توجد نتائج",
   "customerSearchNoResultsMessage": "جرّب خدمة أو منطقة أخرى.",
   "customerSearchErrorTitle": "حدث خطأ",
+  "customerSearchIndexUnavailable": "جاري تحميل البحث. حاول مرة أخرى بعد قليل.",
 
   "customerSearchGroupServices": "الخدمات",
   "customerSearchGroupSpecialists": "المختصون",

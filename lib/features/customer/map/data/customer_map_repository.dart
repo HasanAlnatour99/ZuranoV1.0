@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../../customer_home/presentation/controllers/customer_home_providers.dart';
 import '../domain/salon_map_item.dart';
 
 final customerMapRepositoryProvider = Provider<CustomerMapRepository>((ref) {
@@ -11,7 +12,10 @@ final customerMapRepositoryProvider = Provider<CustomerMapRepository>((ref) {
 });
 
 final customerMapSalonsProvider = StreamProvider<List<SalonMapItem>>((ref) {
-  return ref.watch(customerMapRepositoryProvider).watchMapSalons();
+  final code = ref.watch(customerDiscoveryCountryCodeProvider);
+  return ref
+      .watch(customerMapRepositoryProvider)
+      .watchMapSalons(countryCode: code);
 });
 
 class CustomerMapRepository {
@@ -23,10 +27,12 @@ class CustomerMapRepository {
   ///
   /// Listing raw **`salons`** is denied for customers (`permission-denied`). Coordinates
   /// must exist on the public doc (or nested shapes parsed by [SalonMapItem]).
-  Stream<List<SalonMapItem>> watchMapSalons() {
+  Stream<List<SalonMapItem>> watchMapSalons({required String countryCode}) {
     const limit = 100;
+    final cc = countryCode.trim().toUpperCase();
     return _firestore
         .collection(FirestorePaths.publicSalons)
+        .where('countryCode', isEqualTo: cc)
         .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
         .limit(limit)

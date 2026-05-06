@@ -20,13 +20,15 @@ class CustomerDiscoverySearchBar extends ConsumerStatefulWidget {
 
 class _CustomerDiscoverySearchBarState
     extends ConsumerState<CustomerDiscoverySearchBar> {
+  static const _placeholderGray = Color(0xFF6B7280);
+
   int _index = 0;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 2500), (_) {
+    _timer = Timer.periodic(const Duration(milliseconds: 2600), (_) {
       if (!mounted) return;
       setState(() => _index = (_index + 1) % 5);
     });
@@ -59,66 +61,104 @@ class _CustomerDiscoverySearchBarState
     final hint = _hintForIndex(l10n, _index);
 
     return Material(
-      color: Colors.white.withValues(alpha: 0.92),
-      borderRadius: BorderRadius.circular(24),
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(22),
+      elevation: 0,
       child: InkWell(
         onTap: _openSearch,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          height: 58,
-          padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search_rounded, color: ZuranoCustomerColors.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 260),
-                  child: Text(
-                    hint,
-                    key: ValueKey(hint),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: ZuranoCustomerColors.textMuted,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+        borderRadius: BorderRadius.circular(22),
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 14, end: 8),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search_rounded,
+                  color: ZuranoCustomerColors.primary,
+                  size: 25,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: SizedBox(
+                    height: 22,
+                    child: ClipRect(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        layoutBuilder: (currentChild, previousChildren) {
+                          return Stack(
+                            alignment: AlignmentDirectional.centerStart,
+                            clipBehavior: Clip.hardEdge,
+                            children: <Widget>[
+                              ...previousChildren,
+                              ?currentChild,
+                            ],
+                          );
+                        },
+                        transitionBuilder: (child, animation) {
+                          final offsetAnimation = Tween<Offset>(
+                            begin: const Offset(0, 0.35),
+                            end: Offset.zero,
+                          ).animate(CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ));
+
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: offsetAnimation,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Text(
+                          hint,
+                          key: ValueKey<String>(hint),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.start,
+                          style: const TextStyle(
+                            color: _placeholderGray,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                    ),
                     ),
                   ),
                 ),
-              ),
-              GestureDetector(
-                onTap: _openFilters,
-                child: Container(
-                  height: 44,
-                  width: 44,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        ZuranoCustomerColors.primary,
-                        ZuranoCustomerColors.headerGradientMid,
-                      ],
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _openFilters,
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          ZuranoCustomerColors.primary,
+                          Color(0xFFA855F7),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Icon(
-                    Icons.tune_rounded,
-                    color: Colors.white,
-                    size: 22,
+                    child: const Icon(
+                      Icons.tune_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

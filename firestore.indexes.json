@@ -4,15 +4,26 @@
       "collectionGroup": "publicSalons",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "ratingAverage", "order": "DESCENDING" }
       ]
     },
     {
+      "collectionGroup": "publicSalons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "customerSearchIndex",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "searchKeywords", "arrayConfig": "CONTAINS" }
@@ -22,6 +33,7 @@
       "collectionGroup": "customerSearchIndex",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "audience", "order": "ASCENDING" },
@@ -32,6 +44,7 @@
       "collectionGroup": "customerSearchIndex",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "hasOffer", "order": "ASCENDING" }
@@ -41,6 +54,7 @@
       "collectionGroup": "customerSearchIndex",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "isOpenNow", "order": "ASCENDING" }
@@ -870,6 +884,15 @@
       "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "sortOrder", "order": "ASCENDING" }
       ]
     },

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../providers/firebase_providers.dart';
+import '../../../customer_home/presentation/controllers/customer_home_providers.dart';
 
 class PopularCustomerSearchItem {
   const PopularCustomerSearchItem({
@@ -39,11 +40,13 @@ class PopularCustomerSearchItem {
 final customerPopularSearchesProvider =
     StreamProvider.autoDispose<List<PopularCustomerSearchItem>>((ref) {
   final db = ref.watch(firestoreProvider);
+  final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
   return db
       .collection(FirestorePaths.customerDiscovery)
       .doc(FirestorePaths.customerDiscoveryPopularSearchesDoc)
       .collection(FirestorePaths.customerDiscoveryItems)
       .where('isActive', isEqualTo: true)
+      .where('countryCode', whereIn: [countryCode, 'ALL'])
       .orderBy('sortOrder')
       .limit(24)
       .snapshots()

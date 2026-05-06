@@ -4364,6 +4364,7 @@
   "customerSearchNoResultsTitle": "No matches found",
   "customerSearchNoResultsMessage": "Try another service or area.",
   "customerSearchErrorTitle": "Something went wrong",
+  "customerSearchIndexUnavailable": "Search is loading. Try again shortly.",
 
   "customerSearchGroupServices": "Services",
   "customerSearchGroupSpecialists": "Specialists",

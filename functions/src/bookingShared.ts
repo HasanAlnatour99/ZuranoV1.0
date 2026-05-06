@@ -1,5 +1,10 @@
-import { HttpsError } from "firebase-functions/v2/https";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { HttpsError } from "firebase-functions/v2/https";
+
+if (!getApps().length) {
+  initializeApp();
+}
 
 export const db = getFirestore();
 

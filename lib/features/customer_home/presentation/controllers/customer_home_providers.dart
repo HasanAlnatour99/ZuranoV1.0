@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/legacy.dart' show StateProvider;
 
 import '../../../../providers/firebase_providers.dart';
 import '../../../../providers/onboarding_providers.dart';
+import '../../../onboarding/application/device_country_iso.dart';
 import '../../../onboarding/domain/value_objects/country_option.dart';
 import '../../domain/customer_geo.dart';
 import '../../data/models/customer_banner_model.dart';
@@ -13,6 +15,25 @@ import '../../data/repositories/customer_home_repository.dart';
 
 final customerHomeRepositoryProvider = Provider<CustomerHomeRepository>((ref) {
   return CustomerHomeRepository(ref.watch(firestoreProvider));
+});
+
+/// ISO 3166-1 alpha-2 for **all** customer discovery / search queries (e.g. `QA`).
+final customerDiscoveryCountryCodeProvider = Provider<String>((ref) {
+  final prefs = ref.watch(onboardingPrefsProvider);
+  final fromPrefs = prefs.countryCode?.trim().toUpperCase();
+  if (fromPrefs != null && fromPrefs.isNotEmpty) {
+    return fromPrefs;
+  }
+  final device = tryDeviceLocaleCountryIso();
+  if (device != null && device.isNotEmpty) {
+    return device;
+  }
+  if (kDebugMode) {
+    debugPrint(
+      '[CustomerDiscovery] countryCode fallback QA (set onboarding country for production)',
+    );
+  }
+  return 'QA';
 });
 
 /// English `salons.country` value for discovery queries (matches onboarding pick).
@@ -48,8 +69,10 @@ final recommendedSalonsProvider =
       final repo = ref.watch(customerHomeRepositoryProvider);
       final categoryId = ref.watch(selectedCustomerCategoryProvider);
       final country = ref.watch(customerDiscoveryCountryNameProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
       return repo.watchRecommendedSalons(
         discoveryCountryName: country,
+        customerCountryCode: countryCode,
         categoryId: categoryId == 'all' ? null : categoryId,
       );
     });
@@ -59,8 +82,10 @@ final nearbySalonsProvider =
       final repo = ref.watch(customerHomeRepositoryProvider);
       final categoryId = ref.watch(selectedCustomerCategoryProvider);
       final country = ref.watch(customerDiscoveryCountryNameProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
       return repo.watchNearbySalons(
         discoveryCountryName: country,
+        customerCountryCode: countryCode,
         categoryId: categoryId == 'all' ? null : categoryId,
       );
     });

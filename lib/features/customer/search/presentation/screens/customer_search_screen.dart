@@ -8,6 +8,7 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../application/customer_popular_searches_provider.dart';
 import '../../application/customer_recent_searches_controller.dart';
 import '../../application/customer_search_controller.dart';
+import '../../application/customer_search_view_state.dart';
 import '../../domain/models/customer_search_result.dart';
 import '../widgets/popular_searches_section.dart';
 import '../widgets/recent_searches_section.dart';
@@ -79,12 +80,17 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                   return false;
                 },
                 child: resultsAsync.when(
-                  data: (items) {
+                  data: (CustomerSearchViewState viewState) {
+                    final items = viewState.results;
                     final q = controller.text.trim();
                     if (q.isEmpty) {
                       return ListView(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                         children: [
+                          if (viewState.indexPermissionDenied)
+                            _SearchIndexUnavailableNotice(
+                              message: l10n.customerSearchIndexUnavailable,
+                            ),
                           RecentSearchesSection(
                             title: l10n.customerSearchRecentTitle,
                             items: recent,
@@ -147,6 +153,12 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                     }
 
                     if (items.isEmpty) {
+                      if (viewState.indexPermissionDenied) {
+                        return _SearchMessageView(
+                          title: l10n.customerSearchErrorTitle,
+                          message: l10n.customerSearchIndexUnavailable,
+                        );
+                      }
                       return _SearchMessageView(
                         title: l10n.customerSearchNoResultsTitle,
                         message: l10n.customerSearchNoResultsMessage,
@@ -179,7 +191,16 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                     return ListView(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                      children: tiles,
+                      children: [
+                        if (viewState.indexPermissionDenied)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _SearchIndexUnavailableNotice(
+                              message: l10n.customerSearchIndexUnavailable,
+                            ),
+                          ),
+                        ...tiles,
+                      ],
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),
@@ -277,6 +298,42 @@ class _SearchTopInput extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SearchIndexUnavailableNotice extends StatelessWidget {
+  const _SearchIndexUnavailableNotice({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.schedule_rounded, size: 20, color: scheme.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

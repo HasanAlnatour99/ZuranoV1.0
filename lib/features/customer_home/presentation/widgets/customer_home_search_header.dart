@@ -13,21 +13,14 @@ class CustomerHomeSearchHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final mq = MediaQuery.of(context);
+    final topInset = mq.padding.top;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            ZuranoCustomerColors.primary,
-            ZuranoCustomerColors.headerGradientMid,
-            ZuranoCustomerColors.headerGradientEnd,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
             color: ZuranoCustomerColors.primary.withValues(alpha: 0.24),
@@ -36,36 +29,101 @@ class CustomerHomeSearchHeader extends ConsumerWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CustomerLocationPill(),
-          const SizedBox(height: 18),
-          Text(
-            l10n.customerHomeSearchHeadline,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              height: 1.05,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      ZuranoCustomerColors.primary,
+                      ZuranoCustomerColors.headerGradientMid,
+                      ZuranoCustomerColors.headerGradientEnd,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            l10n.customerHomeSearchSubtitle,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+            Positioned(
+              right: -56,
+              top: -48,
+              child: IgnorePointer(
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.14),
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-          const CustomerDiscoverySearchBar(),
-          const SizedBox(height: 14),
-          const CustomerQuickFilterChips(),
-        ],
+            Positioned(
+              right: 20,
+              top: 14,
+              child: IgnorePointer(
+                child: Container(
+                  width: 72,
+                  height: 2,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0),
+                        Colors.white.withValues(alpha: 0.42),
+                        Colors.white.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                18 + mq.padding.left,
+                topInset + 12,
+                18 + mq.padding.right,
+                18,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CustomerLocationPill(),
+                  const SizedBox(height: 14),
+                  Text(
+                    l10n.customerHomeSearchHeadline,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.customerHomeSearchSubtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.72),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const CustomerDiscoverySearchBar(),
+                  const SizedBox(height: 12),
+                  const CustomerQuickFilterChips(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-

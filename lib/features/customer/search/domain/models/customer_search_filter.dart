@@ -10,6 +10,8 @@ enum CustomerSearchSort {
 
 class CustomerSearchFilter {
   final String query;
+  /// ISO 3166-1 alpha-2 — required for all Firestore queries.
+  final String countryCode;
   final CustomerSearchSort sort;
   final String? audience; // men | ladies | unisex
   final bool nearbyOnly;
@@ -18,6 +20,7 @@ class CustomerSearchFilter {
   final bool availableTodayOnly;
 
   const CustomerSearchFilter({
+    required this.countryCode,
     this.query = '',
     this.sort = CustomerSearchSort.recommended,
     this.audience,
@@ -29,6 +32,7 @@ class CustomerSearchFilter {
 
   CustomerSearchFilter copyWith({
     String? query,
+    String? countryCode,
     CustomerSearchSort? sort,
     String? audience,
     bool? nearbyOnly,
@@ -38,6 +42,7 @@ class CustomerSearchFilter {
   }) {
     return CustomerSearchFilter(
       query: query ?? this.query,
+      countryCode: countryCode ?? this.countryCode,
       sort: sort ?? this.sort,
       audience: audience ?? this.audience,
       nearbyOnly: nearbyOnly ?? this.nearbyOnly,
@@ -47,4 +52,3 @@ class CustomerSearchFilter {
     );
   }
 }
-

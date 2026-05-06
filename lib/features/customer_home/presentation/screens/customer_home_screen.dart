@@ -51,6 +51,9 @@ class _ZuranoCustomerHomeScreenState
                 discoveryCountryName: ref.read(
                   customerDiscoveryCountryNameProvider,
                 ),
+                customerCountryCode: ref.read(
+                  customerDiscoveryCountryCodeProvider,
+                ),
               );
         } catch (e, st) {
           debugPrint('[CUSTOMER_HOME_COUNT] run failed: $e\n$st');
@@ -70,13 +73,15 @@ class _ZuranoCustomerHomeScreenState
       child: Scaffold(
         backgroundColor: ZuranoCustomerColors.background,
         body: SafeArea(
+          top: false,
           bottom: false,
+          left: false,
+          right: false,
           child: Stack(
             children: [
               CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
                   const SliverToBoxAdapter(child: CustomerHomeSearchHeader()),
                   const SliverToBoxAdapter(child: SizedBox(height: 10)),
                   const SliverToBoxAdapter(child: CustomerCategoryScroller()),
@@ -130,6 +135,9 @@ class _ZuranoCustomerHomeScreenState
                               discoveryCountryName: ref.read(
                                 customerDiscoveryCountryNameProvider,
                               ),
+                              customerCountryCode: ref.read(
+                                customerDiscoveryCountryCodeProvider,
+                              ),
                             );
                       } catch (e, st) {
                         debugPrint('[CUSTOMER_HOME_SEED] failed: $e\n$st');
@@ -171,6 +179,9 @@ class _ZuranoCustomerHomeScreenState
                             .debugCustomerHomeCounts(
                               discoveryCountryName: ref.read(
                                 customerDiscoveryCountryNameProvider,
+                              ),
+                              customerCountryCode: ref.read(
+                                customerDiscoveryCountryCodeProvider,
                               ),
                             );
                       } catch (e, st) {

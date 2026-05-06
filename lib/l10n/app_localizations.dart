@@ -18952,6 +18952,12 @@ abstract class AppLocalizations {
   /// **'Something went wrong'**
   String get customerSearchErrorTitle;
 
+  /// No description provided for @customerSearchIndexUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Search is loading. Try again shortly.'**
+  String get customerSearchIndexUnavailable;
+
   /// No description provided for @customerSearchGroupServices.
   ///
   /// In en, this message translates to:

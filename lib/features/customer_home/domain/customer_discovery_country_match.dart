@@ -27,10 +27,22 @@ bool customerSalonMatchesDiscoveryCountry(
 /// Prefer salons in the selected country; if none match (field mismatch / legacy data), show all loaded.
 List<CustomerSalonModel> preferCountryFilteredElseAll(
   List<CustomerSalonModel> all,
-  String discoveryCountryName,
-) {
-  final filtered = all
+  String discoveryCountryName, {
+  required String customerCountryCode,
+}) {
+  final wantIso = customerCountryCode.trim().toUpperCase();
+  final byIso = all
+      .where((s) {
+        final iso = s.countryCodeIso?.trim().toUpperCase();
+        if (iso == null || iso.isEmpty) {
+          return false;
+        }
+        return iso == wantIso;
+      })
+      .toList(growable: false);
+  final pool = byIso.isNotEmpty ? byIso : all;
+  final filtered = pool
       .where((s) => customerSalonMatchesDiscoveryCountry(s, discoveryCountryName))
       .toList(growable: false);
-  return filtered.isNotEmpty ? filtered : all;
+  return filtered.isNotEmpty ? filtered : pool;
 }

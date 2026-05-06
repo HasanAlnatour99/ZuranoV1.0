@@ -8,6 +8,7 @@ import '../../employees/data/models/employee.dart';
 import '../../onboarding/domain/value_objects/salon_business_type.dart';
 import '../../onboarding/domain/value_objects/user_address.dart';
 import '../../users/data/models/app_user.dart';
+import '../domain/salon_search_keywords.dart';
 import 'models/salon.dart';
 
 class SalonRepository {
@@ -61,25 +62,27 @@ class SalonRepository {
 
       final salonDoc = _salons.doc();
       final employeeId = owner.uid;
-      final salon = Salon(
-        id: salonDoc.id,
-        salonId: salonDoc.id,
-        name: salonName.trim(),
-        phone: primaryPhone,
-        address: address.formattedAddress,
-        addressDetails: address,
-        countryCode: address.countryCode,
-        countryName: address.countryName,
-        city: address.city,
-        businessType: businessType.firestoreValue,
-        contactPhone: contactPhone != null && contactPhone.trim().isNotEmpty
-            ? PhoneNormalizer.normalizeForStorage(contactPhone)
-            : null,
-        ownerUid: owner.uid,
-        ownerName: owner.name.trim(),
-        ownerEmail: owner.email.trim(),
-        currencyCode: currencyCode,
-        timeZone: timeZone,
+      final salon = _withDerivedSearchKeywords(
+        Salon(
+          id: salonDoc.id,
+          salonId: salonDoc.id,
+          name: salonName.trim(),
+          phone: primaryPhone,
+          address: address.formattedAddress,
+          addressDetails: address,
+          countryCode: address.countryCode,
+          countryName: address.countryName,
+          city: address.city,
+          businessType: businessType.firestoreValue,
+          contactPhone: contactPhone != null && contactPhone.trim().isNotEmpty
+              ? PhoneNormalizer.normalizeForStorage(contactPhone)
+              : null,
+          ownerUid: owner.uid,
+          ownerName: owner.name.trim(),
+          ownerEmail: owner.email.trim(),
+          currencyCode: currencyCode,
+          timeZone: timeZone,
+        ),
       );
 
       transaction.set(
@@ -225,13 +228,18 @@ class SalonRepository {
   }
 
   Future<void> updateSalon(Salon salon) {
+    final merged = _withDerivedSearchKeywords(salon);
     return _salons
-        .doc(salon.id)
+        .doc(merged.id)
         .set(
           FirestoreWritePayload.withServerTimestampForUpdate(
-            salon.copyWith(salonId: salon.id).toJson(),
+            merged.copyWith(salonId: merged.id).toJson(),
           ),
           SetOptions(merge: true),
         );
+  }
+
+  Salon _withDerivedSearchKeywords(Salon salon) {
+    return salon.copyWith(searchKeywords: buildSalonSearchKeywords(salon));
   }
 }

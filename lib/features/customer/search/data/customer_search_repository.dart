@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../core/firestore/firestore_serializers.dart';
@@ -11,10 +12,16 @@ class CustomerSearchRepository {
   final FirebaseFirestore firestore;
 
   Future<List<CustomerSearchResult>> search(CustomerSearchFilter filter) async {
+    final cc = filter.countryCode.trim().toUpperCase();
+    if (cc.isEmpty) {
+      throw ArgumentError.value(filter.countryCode, 'countryCode', 'Country code is required.');
+    }
+
     final queryText = filter.query.trim().toLowerCase();
 
     Query<Map<String, dynamic>> query = firestore
         .collection(FirestorePaths.customerSearchIndex)
+        .where('countryCode', isEqualTo: cc)
         .where('isActive', isEqualTo: true)
         .where('isPublic', isEqualTo: true)
         .limit(30);
@@ -39,6 +46,19 @@ class CustomerSearchRepository {
     final results = snapshot.docs
         .map((doc) => _CustomerSearchResultDto.fromFirestore(doc).toDomain())
         .toList();
+
+    if (kDebugMode) {
+      final mismatch = results.where((r) => r.countryCode.toUpperCase() != cc).length;
+      if (mismatch > 0) {
+        debugPrint(
+          '[CustomerSearch] blocked cross-country results by country filter '
+          '(unexpected=$mismatch)',
+        );
+      }
+      debugPrint(
+        '[CustomerSearch] countryCode=$cc query=$queryText results=${results.length}',
+      );
+    }
 
     switch (filter.sort) {
       case CustomerSearchSort.priceLowToHigh:
@@ -71,13 +91,20 @@ class _CustomerSearchResultDto {
   const _CustomerSearchResultDto({
     required this.id,
     required this.salonId,
+    required this.targetId,
     required this.type,
     required this.title,
     required this.subtitle,
+    required this.countryCode,
+    required this.countryName,
+    required this.city,
+    required this.area,
     required this.searchKeywords,
     required this.isOpenNow,
     required this.hasOffer,
     required this.audience,
+    required this.isActive,
+    required this.isPublic,
     this.imageUrl,
     this.ratingAvg,
     this.ratingCount,
@@ -87,9 +114,14 @@ class _CustomerSearchResultDto {
 
   final String id;
   final String salonId;
+  final String targetId;
   final String type;
   final String title;
   final String subtitle;
+  final String countryCode;
+  final String countryName;
+  final String city;
+  final String area;
   final String? imageUrl;
   final double? ratingAvg;
   final int? ratingCount;
@@ -99,14 +131,21 @@ class _CustomerSearchResultDto {
   final bool hasOffer;
   final String audience;
   final List<String> searchKeywords;
+  final bool isActive;
+  final bool isPublic;
 
   CustomerSearchResult toDomain() {
     return CustomerSearchResult(
       id: id,
       salonId: salonId,
+      targetId: targetId,
       type: _parseType(type),
       title: title,
       subtitle: subtitle,
+      countryCode: countryCode,
+      countryName: countryName,
+      city: city,
+      area: area,
       imageUrl: imageUrl,
       ratingAvg: ratingAvg,
       ratingCount: ratingCount,
@@ -116,6 +155,8 @@ class _CustomerSearchResultDto {
       hasOffer: hasOffer,
       audience: audience,
       searchKeywords: searchKeywords,
+      isActive: isActive,
+      isPublic: isPublic,
     );
   }
 
@@ -136,12 +177,25 @@ class _CustomerSearchResultDto {
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data() ?? const <String, dynamic>{};
+    final salonId = FirestoreSerializers.string(data['salonId']) ?? '';
+    final targetRaw = FirestoreSerializers.string(data['targetId']);
+    final targetId =
+        (targetRaw != null && targetRaw.isNotEmpty) ? targetRaw : salonId;
+    final cc =
+        (FirestoreSerializers.string(data['countryCode']) ?? '').trim().toUpperCase();
+
     return _CustomerSearchResultDto(
       id: doc.id,
-      salonId: FirestoreSerializers.string(data['salonId']) ?? '',
+      salonId: salonId,
+      targetId: targetId,
       type: FirestoreSerializers.string(data['type']) ?? 'salon',
       title: FirestoreSerializers.string(data['title']) ?? '',
       subtitle: FirestoreSerializers.string(data['subtitle']) ?? '',
+      countryCode: cc,
+      countryName:
+          (FirestoreSerializers.string(data['countryName']) ?? '').trim(),
+      city: (FirestoreSerializers.string(data['city']) ?? '').trim(),
+      area: (FirestoreSerializers.string(data['area']) ?? '').trim(),
       imageUrl: FirestoreSerializers.string(data['imageUrl']),
       ratingAvg: FirestoreSerializers.doubleValue(data['ratingAvg']) == 0
           ? (data['ratingAvg'] is num ? (data['ratingAvg'] as num).toDouble() : null)
@@ -155,6 +209,8 @@ class _CustomerSearchResultDto {
       priceFrom: data['priceFrom'] is num ? data['priceFrom'] as num : null,
       isOpenNow: data['isOpenNow'] == true,
       hasOffer: data['hasOffer'] == true,
+      isActive: data['isActive'] != false,
+      isPublic: data['isPublic'] == true,
       audience: (FirestoreSerializers.string(data['audience']) ?? 'unisex')
           .trim()
           .toLowerCase(),
@@ -167,4 +223,3 @@ class _CustomerSearchResultDto {
     );
   }
 }
-

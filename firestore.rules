@@ -391,9 +391,13 @@ service cloud.firestore {
     }
 
     /// Public, read-only search index maintained by Cloud Functions (Admin SDK).
+    /// Anonymous + signed-in clients may only read active, published rows.
+    /// Country scoping is enforced in queries; `countryCode` must exist on indexed docs.
     match /customerSearchIndex/{docId} {
-      allow read: if resource.data.isPublic == true &&
-        resource.data.isActive == true;
+      allow read: if resource.data.get('isPublic', false) == true &&
+        resource.data.get('isActive', false) == true &&
+        resource.data.countryCode is string &&
+        resource.data.countryCode.size() > 0;
       allow write: if false;
     }
 

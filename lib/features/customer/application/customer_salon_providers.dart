@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/firebase_providers.dart';
+import '../../customer_home/presentation/controllers/customer_home_providers.dart';
 import '../data/models/salon_public_model.dart';
 import '../data/repositories/customer_salon_repository.dart';
 
@@ -12,7 +13,10 @@ final customerSalonRepositoryProvider = Provider<CustomerSalonRepository>((
 });
 
 final publicSalonsProvider = StreamProvider<List<SalonPublicModel>>((ref) {
-  return ref.watch(customerSalonRepositoryProvider).watchPublicSalons();
+  final code = ref.watch(customerDiscoveryCountryCodeProvider);
+  return ref
+      .watch(customerSalonRepositoryProvider)
+      .watchPublicSalons(countryCode: code);
 });
 
 class CustomerSalonSearchQueryNotifier extends Notifier<String> {

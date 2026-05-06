@@ -47,11 +47,14 @@ class CustomerHomeRepository {
   /// Country / legacy field mismatches are handled in memory via [preferCountryFilteredElseAll].
   Stream<List<CustomerSalonModel>> _watchPublishedSalonsForDiscovery({
     required String discoveryCountryName,
+    required String customerCountryCode,
     String? categoryId,
   }) {
     final limit = 100;
+    final cc = customerCountryCode.trim().toUpperCase();
     final publicQuery = _db
         .collection(FirestorePaths.publicSalons)
+        .where('countryCode', isEqualTo: cc)
         .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
         .limit(limit);
@@ -59,12 +62,15 @@ class CustomerHomeRepository {
     final fallbackSalonRootQuery = _db
         .collection(FirestorePaths.salons)
         .where('isPublished', isEqualTo: true)
+        .where('countryCode', isEqualTo: cc)
         .limit(limit);
 
     return (() async* {
       await for (final snapshot in publicQuery.snapshots()) {
         if (kDebugMode) {
-          debugPrint('[CustomerHome] publicSalons raw=${snapshot.docs.length}');
+          debugPrint(
+            '[CustomerHome] publicSalons country=$cc raw=${snapshot.docs.length}',
+          );
         }
 
         var parsed = snapshot.docs.map((doc) {
@@ -131,7 +137,11 @@ class CustomerHomeRepository {
                     .toList(growable: false)
                 : parsed;
 
-        yield preferCountryFilteredElseAll(categoryFiltered, discoveryCountryName);
+        yield preferCountryFilteredElseAll(
+          categoryFiltered,
+          discoveryCountryName,
+          customerCountryCode: cc,
+        );
       }
     })();
   }
@@ -156,21 +166,25 @@ class CustomerHomeRepository {
 
   Stream<List<CustomerSalonModel>> watchRecommendedSalons({
     required String discoveryCountryName,
+    required String customerCountryCode,
     String? categoryId,
   }) {
     return _watchPublishedSalonsForDiscovery(
       discoveryCountryName: discoveryCountryName,
+      customerCountryCode: customerCountryCode,
       categoryId: categoryId,
     ).map(_sortRecommended);
   }
 
-  /// Published salons (no strict Firestore `country` filter — uses client-side region filter).
+  /// Published salons scoped by `countryCode` on `publicSalons` (+ fallback `salons/*`).
   Stream<List<CustomerSalonModel>> watchNearbySalons({
     required String discoveryCountryName,
+    required String customerCountryCode,
     String? categoryId,
   }) {
     return _watchPublishedSalonsForDiscovery(
       discoveryCountryName: discoveryCountryName,
+      customerCountryCode: customerCountryCode,
       categoryId: categoryId,
     ).map((list) => list.take(50).toList(growable: false));
   }
@@ -208,6 +222,7 @@ class CustomerHomeRepository {
   /// Call once from Customer Home in debug; read console for `[CUSTOMER_HOME_COUNT]`.
   Future<void> debugCustomerHomeCounts({
     required String discoveryCountryName,
+    required String customerCountryCode,
   }) async {
     if (!kDebugMode) {
       return;
@@ -246,20 +261,23 @@ class CustomerHomeRepository {
           .limit(20),
     );
 
+    final cc = customerCountryCode.trim().toUpperCase();
     await countQuery(
-      'publicSalons isPublic+isActive (matches app query shape)',
+      'publicSalons country+isPublic+isActive',
       _db
           .collection(FirestorePaths.publicSalons)
+          .where('countryCode', isEqualTo: cc)
           .where('isPublic', isEqualTo: true)
           .where('isActive', isEqualTo: true)
           .limit(20),
     );
 
     await countQuery(
-      'published salons (no country filter; matches app query shape)',
+      'published salons root + countryCode',
       _db
           .collection(FirestorePaths.salons)
           .where('isPublished', isEqualTo: true)
+          .where('countryCode', isEqualTo: cc)
           .limit(20),
     );
 

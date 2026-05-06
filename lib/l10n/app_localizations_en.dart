@@ -10799,6 +10799,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerSearchErrorTitle => 'Something went wrong';
 
   @override
+  String get customerSearchIndexUnavailable =>
+      'Search is loading. Try again shortly.';
+
+  @override
   String get customerSearchGroupServices => 'Services';
 
   @override

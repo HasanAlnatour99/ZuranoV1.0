@@ -48,10 +48,14 @@ List<SalonPublicModel> filterPublicSalonsByQuery(
 }
 
 abstract class CustomerSalonRepository {
-  Stream<List<SalonPublicModel>> watchPublicSalons();
+  /// Customer-facing mirror rows scoped by ISO country (see `publicSalons.countryCode`).
+  Stream<List<SalonPublicModel>> watchPublicSalons({required String countryCode});
 
   /// Same backing stream as [watchPublicSalons], filtered in memory (MVP).
-  Stream<List<SalonPublicModel>> searchPublicSalons(String query);
+  Stream<List<SalonPublicModel>> searchPublicSalons({
+    required String countryCode,
+    required String query,
+  });
 
   Future<SalonPublicModel?> getPublicSalonById(String salonId);
 }
@@ -62,25 +66,25 @@ class FirestoreCustomerSalonRepository implements CustomerSalonRepository {
   final FirebaseFirestore _firestore;
 
   /// Real salon documents at `salons/{salonId}` (mirrors may be missing).
-  Query<Map<String, dynamic>> _publishedSalonRootQuery() {
-    return _firestore
-        .collection(FirestorePaths.salons)
-        .where('isPublished', isEqualTo: true)
-        .limit(64);
-  }
-
   @override
-  Stream<List<SalonPublicModel>> watchPublicSalons() {
-    return _publishedSalonRootQuery().snapshots().map(
+  Stream<List<SalonPublicModel>> watchPublicSalons({required String countryCode}) {
+    final cc = countryCode.trim().toUpperCase();
+    return _firestore
+        .collection(FirestorePaths.publicSalons)
+        .where('countryCode', isEqualTo: cc)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .limit(100)
+        .snapshots()
+        .map(
       (snap) {
         if (kDebugMode) {
           debugPrint(
-            '[publicSalons/watch] salons root docs=${snap.docs.length}',
+            '[publicSalons/watch] country=$cc docs=${snap.docs.length}',
           );
         }
         final rows = snap.docs
-            .map(SalonPublicModel.fromSalonRootDocument)
-            .where((s) => s.isActive && s.isPublic)
+            .map(SalonPublicModel.fromFirestore)
             .toList(growable: false);
         rows.sort((a, b) {
           final c = b.ratingAverage.compareTo(a.ratingAverage);
@@ -97,8 +101,11 @@ class FirestoreCustomerSalonRepository implements CustomerSalonRepository {
   }
 
   @override
-  Stream<List<SalonPublicModel>> searchPublicSalons(String query) {
-    return watchPublicSalons().map(
+  Stream<List<SalonPublicModel>> searchPublicSalons({
+    required String countryCode,
+    required String query,
+  }) {
+    return watchPublicSalons(countryCode: countryCode).map(
       (list) => filterPublicSalonsByQuery(list, query),
     );
   }

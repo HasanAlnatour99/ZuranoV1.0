@@ -10771,6 +10771,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerSearchErrorTitle => 'حدث خطأ';
 
   @override
+  String get customerSearchIndexUnavailable =>
+      'جاري تحميل البحث. حاول مرة أخرى بعد قليل.';
+
+  @override
   String get customerSearchGroupServices => 'الخدمات';
 
   @override
