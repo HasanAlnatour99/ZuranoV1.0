@@ -316,6 +316,7 @@ class CustomerHomeRepository {
       _db
           .collection(FirestorePaths.salons)
           .where('isPublished', isEqualTo: true)
+          .where('isPublic', isEqualTo: true)
           .where('countryCode', isEqualTo: cc)
           .limit(20),
     );
@@ -325,6 +326,7 @@ class CustomerHomeRepository {
       _db
           .collection(FirestorePaths.salons)
           .where('isPublished', isEqualTo: true)
+          .where('isPublic', isEqualTo: true)
           .where('categoryIds', arrayContains: 'hair')
           .limit(20),
     );

@@ -17,6 +17,7 @@ class CustomerBookingLookupModel {
     required this.startAt,
     required this.endAt,
     required this.createdAt,
+    this.feedbackSubmitted = false,
   });
 
   final String id;
@@ -34,6 +35,9 @@ class CustomerBookingLookupModel {
   final DateTime startAt;
   final DateTime endAt;
   final DateTime? createdAt;
+
+  /// Post-visit feedback already submitted on the booking document.
+  final bool feedbackSubmitted;
 
   factory CustomerBookingLookupModel.fromCallableJson(
     Map<String, dynamic> json,
@@ -56,6 +60,7 @@ class CustomerBookingLookupModel {
       startAt: _requiredDate(json['startAt']),
       endAt: _requiredDate(json['endAt']),
       createdAt: _date(json['createdAt']),
+      feedbackSubmitted: json['feedbackSubmitted'] == true,
     );
   }
 
@@ -78,6 +83,7 @@ class CustomerBookingLookupModel {
       startAt: _dateFromMillis(json['startAtMs']),
       endAt: _dateFromMillis(json['endAtMs']),
       createdAt: _optionalDateFromMillis(json['createdAtMs']),
+      feedbackSubmitted: json['feedbackSubmitted'] == true,
     );
   }
 
@@ -102,6 +108,7 @@ class CustomerBookingLookupModel {
       startAt: _requiredDate(data['startAt']),
       endAt: _requiredDate(data['endAt']),
       createdAt: _date(data['createdAt']),
+      feedbackSubmitted: data['feedbackSubmitted'] == true,
     );
   }
 

@@ -4,14 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/constants/booking_status_machine.dart';
 import '../../../../core/constants/booking_statuses.dart';
-import '../../../../core/firestore/firestore_page.dart';
 import '../../../../core/formatting/booking_status_localized.dart';
 import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../core/widgets/app_bar_leading_back.dart';
 import '../../../../core/widgets/app_empty_state.dart';
-import '../../../../core/widgets/app_loading_indicator.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../core/widgets/app_surface_card.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -30,9 +30,7 @@ class MyBookingsScreen extends ConsumerStatefulWidget {
 class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
   final List<Booking> _items = [];
   bool _loading = true;
-  bool _loadingMore = false;
   String? _pageError;
-  FirestorePage<Booking>? _lastPage;
 
   @override
   void initState() {
@@ -51,7 +49,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
       setState(() {
         _items.clear();
         _loading = false;
-        _lastPage = null;
         _pageError = null;
       });
       return;
@@ -62,7 +59,7 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
     });
     try {
       final repo = ref.read(bookingRepositoryProvider);
-      final page = await repo.getCustomerBookingsPage(uid, limit: 25);
+      final page = await repo.getCustomerBookingsPage(uid, limit: 80);
       if (!mounted) {
         return;
       }
@@ -70,7 +67,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
         _items
           ..clear()
           ..addAll(page.items);
-        _lastPage = page;
         _loading = false;
       });
     } on Object catch (_) {
@@ -81,36 +77,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
         _loading = false;
         _pageError = 'error';
       });
-    }
-  }
-
-  Future<void> _loadMore() async {
-    final uid = ref.read(sessionUserProvider).asData?.value?.uid ?? '';
-    final prev = _lastPage;
-    if (uid.isEmpty || prev == null || !prev.hasMore || _loadingMore) {
-      return;
-    }
-    setState(() => _loadingMore = true);
-    try {
-      final repo = ref.read(bookingRepositoryProvider);
-      final page = await repo.getCustomerBookingsNextPage(uid, prev);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _items.addAll(page.items);
-        _lastPage = FirestorePage(
-          items: page.items,
-          limit: page.limit,
-          lastDocument: page.lastDocument,
-        );
-        _loadingMore = false;
-      });
-    } on Object catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _loadingMore = false);
     }
   }
 
@@ -141,8 +107,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
     final past = _items.where((b) => !_isUpcoming(b)).toList()
       ..sort((a, b) => b.startAt.compareTo(a.startAt));
-
-    final hasMore = _lastPage?.hasMore ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -398,20 +362,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                         }, childCount: past.length),
                       ),
                     ),
-                  if (hasMore)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.large),
-                        child: Center(
-                          child: _loadingMore
-                              ? const AppLoadingIndicator(size: 32)
-                              : TextButton(
-                                  onPressed: _loadMore,
-                                  child: Text(l10n.listLoadMore),
-                                ),
-                        ),
-                      ),
-                    ),
                   const SliverToBoxAdapter(
                     child: SizedBox(height: AppSpacing.large),
                   ),
@@ -460,6 +410,10 @@ class _BookingRow extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final statusColor = _statusColor(scheme);
+    final normalized =
+        BookingStatusMachine.normalize(booking.status.trim());
+    final canRate = normalized == BookingStatuses.completed &&
+        !booking.feedbackSubmitted;
 
     return AppSurfaceCard(
       onTap: onOpen,
@@ -506,6 +460,31 @@ class _BookingRow extends StatelessWidget {
             Text(
               formatTeamMemberName(booking.barberName),
               style: theme.textTheme.bodySmall?.copyWith(color: scheme.primary),
+            ),
+          ],
+          if (canRate) ...[
+            const SizedBox(height: AppSpacing.medium),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ZuranoTokens.primary,
+                  side: const BorderSide(color: ZuranoTokens.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(ZuranoTokens.radiusButton),
+                  ),
+                ),
+                onPressed: () => context.pushNamed(
+                  AppRouteNames.customerBookingFeedback,
+                  pathParameters: {
+                    'salonId': booking.salonId,
+                    'bookingId': booking.id,
+                  },
+                ),
+                child: Text(l10n.customerBookingLookupRateBooking),
+              ),
             ),
           ],
           if (showActions) ...[

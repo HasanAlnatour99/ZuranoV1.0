@@ -86,6 +86,8 @@ abstract class Booking with _$Booking {
     String? operationalMarkedByUid,
     @JsonKey(fromJson: nullableLooseStringFromJson)
     String? operationalMarkedByRole,
+    /// Set when the customer submits post-visit feedback via [submitCustomerFeedback].
+    @Default(false) @JsonKey(name: 'feedbackSubmitted') bool feedbackSubmitted,
   }) = _Booking;
 
   String get reportPeriodKey => ReportPeriod.periodKey(reportYear, reportMonth);
@@ -108,6 +110,7 @@ abstract class Booking with _$Booking {
       reportYear: ReportPeriod.yearFrom(startAt),
       reportMonth: ReportPeriod.monthFrom(startAt),
       operationalState: BookingOperationalStates.waiting,
+      feedbackSubmitted: false,
     );
   }
 
@@ -147,6 +150,7 @@ Map<String, dynamic> _normalizedBookingJson(Map<String, dynamic> json) {
   normalized['operationalState'] = BookingOperationalStates.normalize(
     FirestoreSerializers.string(json['operationalState']),
   );
+  normalized['feedbackSubmitted'] = json['feedbackSubmitted'] == true;
   return normalized;
 }
 

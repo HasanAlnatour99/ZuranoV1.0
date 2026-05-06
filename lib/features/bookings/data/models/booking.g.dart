@@ -55,6 +55,7 @@ _Booking _$BookingFromJson(Map<String, dynamic> json) => _Booking(
   operationalMarkedByRole: nullableLooseStringFromJson(
     json['operationalMarkedByRole'],
   ),
+  feedbackSubmitted: json['feedbackSubmitted'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$BookingToJson(_Booking instance) => <String, dynamic>{
@@ -94,4 +95,5 @@ Map<String, dynamic> _$BookingToJson(_Booking instance) => <String, dynamic>{
   'noShowParty': instance.noShowParty,
   'operationalMarkedByUid': instance.operationalMarkedByUid,
   'operationalMarkedByRole': instance.operationalMarkedByRole,
+  'feedbackSubmitted': instance.feedbackSubmitted,
 };

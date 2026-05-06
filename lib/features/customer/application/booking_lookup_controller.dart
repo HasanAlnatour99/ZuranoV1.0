@@ -19,26 +19,41 @@ final bookingLookupRepositoryProvider = Provider<BookingLookupRepository>((ref) 
   return CallableBookingLookupRepository(functions: appCloudFunctions());
 });
 
-/// Bookings tied to the signed-in user (`guestUid` / `createdByAuthUid`). Empty when anonymous.
+/// Find Booking tab: first five account bookings + whether to show **View all**.
 final customerAccountBookingsForFindProvider =
-    FutureProvider.autoDispose<List<CustomerBookingLookupModel>>((ref) async {
+    FutureProvider.autoDispose<CustomerAccountBookingsPreview>((ref) async {
       final uid =
           (ref.watch(sessionUserProvider).asData?.value?.uid ?? '').trim();
       if (uid.isEmpty) {
-        return const <CustomerBookingLookupModel>[];
+        return const CustomerAccountBookingsPreview(
+          items: [],
+          showViewAll: false,
+        );
       }
       final page = await ref
           .read(bookingRepositoryProvider)
-          .getCustomerBookingDocumentsPage(uid, limit: 50);
-      return page.items
-          .map(
-            (d) => CustomerBookingLookupModel.fromSalonBookingMap(
-              d.id,
-              d.data(),
-            ),
-          )
+          .getCustomerBookingDocumentsPage(uid, limit: 6);
+      final mapped = page.items
+          .map(CustomerBookingLookupModel.fromFirestore)
           .toList(growable: false);
+      final showViewAll = page.hasMore || mapped.length > 5;
+      final visible = mapped.take(5).toList(growable: false);
+      return CustomerAccountBookingsPreview(
+        items: visible,
+        showViewAll: showViewAll,
+      );
     });
+
+/// Account booking list preview for [FindBookingScreen].
+class CustomerAccountBookingsPreview {
+  const CustomerAccountBookingsPreview({
+    required this.items,
+    required this.showViewAll,
+  });
+
+  final List<CustomerBookingLookupModel> items;
+  final bool showViewAll;
+}
 
 final bookingLookupControllerProvider =
     AsyncNotifierProvider<BookingLookupController, List<CustomerBookingLookupModel>?>(

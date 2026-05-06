@@ -34,18 +34,22 @@ class SalonQuickActionRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _ActionDisc(
-            icon: Icons.call_outlined,
+            icon: Icons.phone_in_talk_rounded,
             label: callLabel,
             onTap: onCall,
           ),
           _ActionDisc(
-            icon: Icons.chat_outlined,
+            icon: Icons.chat_rounded,
             label: whatsappLabel,
             onTap: onWhatsApp,
           ),
-          _ActionDisc(icon: Icons.map_outlined, label: mapLabel, onTap: onMap),
           _ActionDisc(
-            icon: Icons.ios_share_rounded,
+            icon: Icons.location_on_rounded,
+            label: mapLabel,
+            onTap: onMap,
+          ),
+          _ActionDisc(
+            icon: Icons.share_rounded,
             label: shareLabel,
             onTap: onShare,
           ),
@@ -77,23 +81,37 @@ class _ActionDisc extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 54,
+              height: 54,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.surface,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppBrandColors.secondary,
+                    AppBrandColors.secondary.withValues(alpha: 0.82),
+                  ],
+                ),
                 border: Border.all(
                   color: AppBrandColors.primary.withValues(alpha: 0.2),
+                  width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
+                    color: AppBrandColors.primary.withValues(alpha: 0.1),
+                    blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Icon(icon, color: AppBrandColors.primary),
+              child: Icon(
+                icon,
+                color: AppBrandColors.primary,
+                size: 26,
+                weight: 600,
+                grade: 25,
+              ),
             ),
             const SizedBox(height: 6),
             Text(

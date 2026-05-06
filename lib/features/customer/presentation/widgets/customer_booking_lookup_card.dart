@@ -4,11 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/constants/booking_status_machine.dart';
+import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_currency.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
@@ -38,6 +41,10 @@ class CustomerBookingLookupCard extends ConsumerWidget {
         ? l10n.customerBookingLookupAnySpecialist
         : formatTeamMemberName(booking.employeeName);
     final moneyCode = watchCustomerSalonMoneyCode(ref, booking.salonId);
+    final normalizedStatus =
+        BookingStatusMachine.normalize(booking.status.trim());
+    final canRate = normalizedStatus == BookingStatuses.completed &&
+        !booking.feedbackSubmitted;
 
     return Material(
       color: scheme.surface,
@@ -128,6 +135,33 @@ class CustomerBookingLookupCard extends ConsumerWidget {
                   child: Text(l10n.customerBookingLookupViewDetails),
                 ),
               ),
+              if (canRate) ...[
+                const SizedBox(height: AppSpacing.small),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ZuranoTokens.primary,
+                      side: const BorderSide(color: ZuranoTokens.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(ZuranoTokens.radiusButton),
+                      ),
+                    ),
+                    onPressed: () {
+                      context.pushNamed(
+                        AppRouteNames.customerBookingFeedback,
+                        pathParameters: {
+                          'salonId': booking.salonId,
+                          'bookingId': booking.id,
+                        },
+                      );
+                    },
+                    child: Text(l10n.customerBookingLookupRateBooking),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

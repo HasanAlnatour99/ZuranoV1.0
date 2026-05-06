@@ -802,29 +802,97 @@ export const submitCustomerFeedback = onCall(CALL, async (request) => {
   const bookingCode = `${data.bookingCode ?? ""}`.trim().toUpperCase();
   const comment = `${data.comment ?? ""}`.trim().slice(0, 2000);
 
-  const ref = db.doc(`salons/${salonId}/bookings/${bookingId}`);
-  const snap = await ref.get();
+  const bookingRef = db.doc(`salons/${salonId}/bookings/${bookingId}`);
+  const snap = await bookingRef.get();
   if (!snap.exists) {
     throw new HttpsError("not-found", "Booking not found.");
   }
   const b = snap.data()!;
+  if (b.feedbackSubmitted === true) {
+    return { ok: true, idempotent: true };
+  }
+
+  const bookingStatus = normalizeBookingStatus(`${b.status ?? ""}`);
+  if (bookingStatus !== BookingStatuses.completed) {
+    throw new HttpsError(
+      "failed-precondition",
+      "booking_not_completed",
+    );
+  }
+
   assertCustomerBookingIdentity(
     request.auth,
     b as Record<string, unknown>,
     phoneNormalized,
     bookingCode,
   );
-  if (b.feedbackSubmitted === true) {
+
+  const salonRef = db.doc(`salons/${salonId}`);
+  const reviewRef = db.doc(`salons/${salonId}/reviews/${bookingId}`);
+
+  let skippedDuplicate = false;
+  await db.runTransaction(async (tx) => {
+    const bSnap = await tx.get(bookingRef);
+    if (!bSnap.exists) {
+      throw new HttpsError("not-found", "Booking not found.");
+    }
+    const booking = bSnap.data()!;
+    if (booking.feedbackSubmitted === true) {
+      skippedDuplicate = true;
+      return;
+    }
+    const st = normalizeBookingStatus(`${booking.status ?? ""}`);
+    if (st !== BookingStatuses.completed) {
+      throw new HttpsError(
+        "failed-precondition",
+        "booking_not_completed",
+      );
+    }
+
+    const salonSnap = await tx.get(salonRef);
+    if (!salonSnap.exists) {
+      throw new HttpsError("not-found", "Salon not found.");
+    }
+    const salon = salonSnap.data()!;
+    const oldCount = Math.max(0, Math.round(Number(salon.ratingCount) || 0));
+    const oldAvg = Number(salon.ratingAverage) || 0;
+    const newCount = oldCount + 1;
+    const newAvg =
+      Math.round(((oldAvg * oldCount + rating) / newCount) * 100) / 100;
+
+    const customerName =
+      `${booking.customerName ?? ""}`.trim() || "Customer";
+    const customerId = `${booking.customerId ?? ""}`.trim();
+
+    tx.set(reviewRef, {
+      salonId,
+      bookingId,
+      customerId: customerId.length > 0 ? customerId : null,
+      customerName,
+      rating,
+      comment: comment.length > 0 ? comment : null,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    tx.update(salonRef, {
+      ratingAverage: newAvg,
+      ratingCount: newCount,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    tx.update(bookingRef, {
+      feedbackSubmitted: true,
+      feedbackSubmittedAt: FieldValue.serverTimestamp(),
+      customerRating: rating,
+      customerFeedback: comment.length > 0 ? comment : null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  if (skippedDuplicate) {
     return { ok: true, idempotent: true };
   }
-
-  await ref.update({
-    feedbackSubmitted: true,
-    feedbackSubmittedAt: FieldValue.serverTimestamp(),
-    customerRating: rating,
-    customerFeedback: comment.length > 0 ? comment : null,
-    updatedAt: FieldValue.serverTimestamp(),
-  });
 
   return { ok: true };
 });

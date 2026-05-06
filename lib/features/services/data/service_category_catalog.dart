@@ -213,8 +213,78 @@ abstract final class ServiceCategoryKeys {
         return bodyTreatments;
       case 'permanent makeup':
         return makeupPermanent;
+      case 'haircut':
+      case 'classic haircut':
+      case 'combo':
+        return haircutStyling;
+      case 'kids':
+      case 'kids haircut':
+        return kidsServices;
+      case 'skin fade':
+      case 'fade':
+        return haircutStyling;
       default:
         return null;
     }
+  }
+
+  /// When [migrateLegacyCategoryLabelToKey] returns null, infer from free-form labels.
+  static String? inferKeyFromLooseLabel(String? label) {
+    final raw = label?.trim();
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    final lower = raw.toLowerCase();
+
+    if (RegExp(r'\b(kids?|children|child)\b').hasMatch(lower)) {
+      return kidsServices;
+    }
+    if (lower.contains('combo')) {
+      return haircutStyling;
+    }
+    if (lower.contains('beard') ||
+        lower.contains('mustache') ||
+        lower.contains('goatee') ||
+        lower.contains('shave')) {
+      return barberBeard;
+    }
+    if (lower.contains('fade') ||
+        lower.contains('haircut') ||
+        lower.contains('hair cut') ||
+        lower.contains('clipper')) {
+      return haircutStyling;
+    }
+    if (lower.contains('hair treatment') || lower.contains('hair mask')) {
+      return hairTreatments;
+    }
+    if (lower.contains('threading')) {
+      return threading;
+    }
+    if (lower.contains('wax')) {
+      return hairRemovalWaxing;
+    }
+    if (lower.contains('color') ||
+        lower.contains('dye') ||
+        lower.contains('highlight')) {
+      return coloring;
+    }
+    if (lower.contains('manicure') ||
+        lower.contains('pedicure') ||
+        RegExp(r'\bnails?\b').hasMatch(lower)) {
+      return nails;
+    }
+    if (lower.contains('facial')) {
+      return facialSkincare;
+    }
+    if (lower.contains('massage')) {
+      return massageSpa;
+    }
+    if (lower.contains('package')) {
+      return packages;
+    }
+    if (lower == 'hair' || lower.startsWith('hair ')) {
+      return hair;
+    }
+    return null;
   }
 }

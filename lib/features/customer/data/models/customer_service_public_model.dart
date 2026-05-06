@@ -71,10 +71,17 @@ class CustomerServicePublicModel {
     if (k != null && k.isNotEmpty) {
       return k;
     }
+    final labelSource = categoryLabel.trim().isNotEmpty
+        ? categoryLabel
+        : category;
     final migrated = ServiceCategoryKeys.migrateLegacyCategoryLabelToKey(
-      categoryLabel.trim().isNotEmpty ? categoryLabel : category,
+      labelSource,
     );
-    return migrated ?? ServiceCategoryKeys.other;
+    if (migrated != null) {
+      return migrated;
+    }
+    final inferred = ServiceCategoryKeys.inferKeyFromLooseLabel(labelSource);
+    return inferred ?? ServiceCategoryKeys.other;
   }
 
   static DateTime? _ts(Object? value) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -33,6 +34,21 @@ String resolveSalonHoursText({
   );
   if (fromWeekly != null) {
     return fromWeekly;
+  }
+
+  if (kDebugMode) {
+    final wh = salon.workingHours;
+    if (wh == null || wh.isEmpty) {
+      debugPrint(
+        '[SalonProfileHours] salonId=${salon.id} workingHours missing',
+      );
+    } else {
+      debugPrint(
+        '[SalonProfileHours] salonId=${salon.id} '
+        'workingHours present (${wh.length} keys) but no usable line for '
+        'today or weeklyAvailability fallback empty — showing placeholder',
+      );
+    }
   }
 
   return l10n.customerProfileWorkingHoursPlaceholder;

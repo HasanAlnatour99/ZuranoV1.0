@@ -15,6 +15,7 @@ class SalonPublicModel {
     this.phone,
     this.whatsapp,
     this.coverImageUrl,
+    this.photoUrls = const [],
     this.latitude,
     this.longitude,
     required this.isPublic,
@@ -36,6 +37,9 @@ class SalonPublicModel {
     this.updatedAt,
     this.weeklyAvailability,
     this.workingHours,
+    this.customerAbout,
+    this.ownerDisplayName,
+    this.formattedAddress,
   });
 
   final String id;
@@ -47,6 +51,10 @@ class SalonPublicModel {
   final String? phone;
   final String? whatsapp;
   final String? coverImageUrl;
+
+  /// Gallery images (`salons.photoUrls`), mirrored to `publicSalons` for customer hero carousel.
+  final List<String> photoUrls;
+
   final double? latitude;
   final double? longitude;
   final bool isPublic;
@@ -90,6 +98,35 @@ class SalonPublicModel {
 
   /// Customer-facing hours map (`monday` … `sunday` → `{ open, start, end }`), when mirrored on `publicSalons`.
   final Map<String, dynamic>? workingHours;
+
+  /// Owner-written intro / story (`customerAbout` on `salons/{id}`, mirrored).
+  final String? customerAbout;
+
+  /// Salon owner display name (mirrored from `ownerName`).
+  final String? ownerDisplayName;
+
+  /// Single-line address for maps / About (mirrored or composed on backend).
+  final String? formattedAddress;
+
+  /// Cover first (if set), then gallery URLs; duplicates removed.
+  List<String> get heroImageUrls {
+    final seen = <String>{};
+    final out = <String>[];
+    void add(String? u) {
+      final t = u?.trim();
+      if (t == null || t.isEmpty || seen.contains(t)) {
+        return;
+      }
+      seen.add(t);
+      out.add(t);
+    }
+
+    add(coverImageUrl);
+    for (final p in photoUrls) {
+      add(p);
+    }
+    return out;
+  }
 
   /// Discovery rule: backend slot fields when present, else [weeklyAvailability].
   bool get meetsAvailableTodayFilter => salonPassesAvailableTodayDiscovery(
@@ -136,6 +173,16 @@ class SalonPublicModel {
     return const [];
   }
 
+  static List<String> _photoUrlList(dynamic v) {
+    if (v is List) {
+      return v
+          .map((e) => '$e'.trim())
+          .where((s) => s.isNotEmpty)
+          .toList(growable: false);
+    }
+    return const [];
+  }
+
   static Map<String, dynamic>? _mapOrNull(Object? v) {
     if (v is Map<String, dynamic>) {
       return Map<String, dynamic>.from(v);
@@ -167,6 +214,7 @@ class SalonPublicModel {
       phone: (data['phone'] as String?)?.trim(),
       whatsapp: (data['whatsapp'] as String?)?.trim(),
       coverImageUrl: (data['coverImageUrl'] as String?)?.trim(),
+      photoUrls: _photoUrlList(data['photoUrls']),
       latitude: _nullableDouble(data['latitude']),
       longitude: _nullableDouble(data['longitude']),
       isPublic: data['isPublic'] == true,
@@ -190,7 +238,18 @@ class SalonPublicModel {
         data['weeklyAvailability'],
       ),
       workingHours: _mapOrNull(data['workingHours']),
+      customerAbout: _nullableTrimmedString(data['customerAbout']),
+      ownerDisplayName: _nullableTrimmedString(data['ownerDisplayName']),
+      formattedAddress: _nullableTrimmedString(data['formattedAddress']),
     );
+  }
+
+  static String? _nullableTrimmedString(Object? value) {
+    if (value is! String) {
+      return null;
+    }
+    final t = value.trim();
+    return t.isEmpty ? null : t;
   }
 
   /// Maps a top-level `salons/{salonId}` document when `publicSalons/{salonId}` mirror is absent.
@@ -228,6 +287,7 @@ class SalonPublicModel {
       phone: (data['phone'] as String?)?.trim(),
       whatsapp: (data['whatsapp'] as String?)?.trim(),
       coverImageUrl: (data['coverImageUrl'] as String?)?.trim(),
+      photoUrls: _photoUrlList(data['photoUrls']),
       latitude: lat,
       longitude: lng,
       isPublic: published && isActive,
@@ -251,6 +311,28 @@ class SalonPublicModel {
         data['weeklyAvailability'],
       ),
       workingHours: _mapOrNull(data['workingHours']),
+      customerAbout: _nullableTrimmedString(data['customerAbout']) ??
+          _nullableTrimmedString(data['about']) ??
+          _nullableTrimmedString(data['description']),
+      ownerDisplayName: _nullableTrimmedString(data['ownerName']),
+      formattedAddress: _nullableTrimmedString(data['formattedAddress']) ??
+          _composeLegacyAddress(data),
     );
+  }
+
+  static String? _composeLegacyAddress(Map<String, dynamic> data) {
+    final city = (data['city'] as String?)?.trim();
+    final area = (data['area'] as String?)?.trim();
+    final addr = data['address'];
+    final line = addr is String ? addr.trim() : '';
+    final parts = <String>[
+      if (line.isNotEmpty) line,
+      if (area != null && area.isNotEmpty) area,
+      if (city != null && city.isNotEmpty) city,
+    ];
+    if (parts.isEmpty) {
+      return null;
+    }
+    return parts.join(', ');
   }
 }

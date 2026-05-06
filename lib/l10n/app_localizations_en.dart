@@ -2797,6 +2797,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerProfileAboutGender => 'Gender';
 
   @override
+  String get customerProfileAboutSalonStory => 'About this salon';
+
+  @override
+  String get customerProfileAboutMeetOwner => 'Owner';
+
+  @override
+  String get customerProfileAboutAddress => 'Address';
+
+  @override
+  String get customerProfileAboutLocationTitle => 'Location';
+
+  @override
+  String get customerProfileAboutOpenInMaps => 'Open in maps';
+
+  @override
+  String get customerProfileAboutServicesTitle => 'Services';
+
+  @override
+  String get customerProfileAboutNoDescription =>
+      'No description has been added yet.';
+
+  @override
+  String get customerProfileReviewDateUnknown => 'Recently';
+
+  @override
+  String get customerBookingReviewInviteTitle => 'How was your visit?';
+
+  @override
+  String get customerBookingReviewInviteBody =>
+      'Rate your appointment and help others discover this salon.';
+
+  @override
+  String get customerBookingReviewInviteLater => 'Maybe later';
+
+  @override
+  String get customerBookingReviewInviteRate => 'Rate now';
+
+  @override
   String customerProfileGenderValue(String gender) {
     return '$gender';
   }
@@ -3199,6 +3237,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerBookingLookupAnySpecialist => 'Any available specialist';
 
   @override
+  String get customerBookingLookupViewAll => 'View all';
+
+  @override
+  String get customerBookingLookupRateBooking => 'Rate visit';
+
+  @override
   String get customerBookingDetailsTitle => 'Booking details';
 
   @override
@@ -3405,7 +3449,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerFeedbackCommentTooLong =>
-      'Comment cannot exceed 500 characters';
+      'Comment cannot exceed 2000 characters';
 
   @override
   String get customerFeedbackOnlyCompleted =>

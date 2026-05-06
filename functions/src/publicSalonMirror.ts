@@ -11,6 +11,14 @@ function str(data: DocumentData, key: string): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+function strList(data: DocumentData, key: string): string[] {
+  const v = data[key];
+  if (!Array.isArray(v)) {
+    return [];
+  }
+  return v.map((x: unknown) => `${x}`.trim()).filter((t: string) => t.length > 0);
+}
+
 function numOrNull(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) {
     return v;
@@ -71,6 +79,25 @@ export function salonToPublicSalonPayload(
   const ratingAverageRaw = numOrNull(s.ratingAverage);
   const ratingCountRaw = numOrNull(s.ratingCount);
 
+  const customerAbout =
+    str(s, "customerAbout") ||
+    str(s, "about") ||
+    str(s, "description") ||
+    "";
+  const ownerDisplayName = str(s, "ownerName");
+  let formattedAddress = str(s, "formattedAddress");
+  if (!formattedAddress) {
+    const city = str(s, "city");
+    const areaPart = str(s, "area");
+    const addrRaw = s.address;
+    const addrLine =
+      typeof addrRaw === "string"
+        ? addrRaw.trim()
+        : "";
+    const parts = [addrLine, areaPart, city].filter((p) => p.length > 0);
+    formattedAddress = parts.join(", ");
+  }
+
   const payload: Record<string, unknown> = {
     salonId,
     id: salonId,
@@ -83,6 +110,7 @@ export function salonToPublicSalonPayload(
     phone: str(s, "phone") || null,
     whatsapp: str(s, "whatsapp") || null,
     coverImageUrl: str(s, "coverImageUrl") || null,
+    photoUrls: strList(s, "photoUrls"),
     logoUrl: str(s, "logoUrl") || null,
     ...(latitude != null ? { latitude } : {}),
     ...(longitude != null ? { longitude } : {}),
@@ -92,6 +120,9 @@ export function salonToPublicSalonPayload(
     isPromoted: s.isPromoted === true,
     ratingAverage: ratingAverageRaw != null ? Math.min(5, Math.max(0, ratingAverageRaw)) : 0,
     ratingCount: ratingCountRaw != null ? Math.max(0, Math.round(ratingCountRaw)) : 0,
+    ...(customerAbout.length > 0 ? { customerAbout } : {}),
+    ...(ownerDisplayName.length > 0 ? { ownerDisplayName } : {}),
+    ...(formattedAddress.length > 0 ? { formattedAddress } : {}),
     currencyCode: str(s, "currencyCode") || "USD",
     // Optional discovery fields (present in customer home models)
     tags: Array.isArray(s.tags) ? s.tags.map((x: unknown) => `${x}`.trim()).filter((t: string) => t) : [],

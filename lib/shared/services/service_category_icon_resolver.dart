@@ -21,7 +21,31 @@ abstract final class ServiceCategoryIconResolver {
     return ServiceCategoryKeys.other;
   }
 
-  static IconData resolve({String? iconKey, String? categoryKey}) {
+  /// Optional [labelHint] combines service title + category for nicer icons on
+  /// customer salon profile when every service mapped to the same catalog key.
+  static IconData resolve({
+    String? iconKey,
+    String? categoryKey,
+    String? labelHint,
+  }) {
+    final hint = labelHint?.trim().toLowerCase() ?? '';
+    if (hint.isNotEmpty) {
+      if (hint.contains('beard')) {
+        return Icons.content_cut_rounded;
+      }
+      if (hint.contains('combo')) {
+        return Icons.auto_awesome_rounded;
+      }
+      if (hint.contains('haircut') ||
+          hint.contains('hair cut') ||
+          hint.contains('hair-cut')) {
+        return Icons.face_retouching_natural_rounded;
+      }
+      if (hint.contains('hair')) {
+        return Icons.face_retouching_natural_rounded;
+      }
+    }
+
     final trimmedIcon = iconKey?.trim();
     final raw = (trimmedIcon != null && trimmedIcon.isNotEmpty)
         ? trimmedIcon
@@ -87,9 +111,9 @@ abstract final class ServiceCategoryIconResolver {
       case ServiceCategoryKeys.makeupPermanent:
         return Icons.auto_fix_high_rounded;
       case ServiceCategoryKeys.other:
-        return Icons.auto_awesome_rounded;
+        return Icons.spa_rounded;
       default:
-        return Icons.auto_awesome_rounded;
+        return Icons.spa_rounded;
     }
   }
 }

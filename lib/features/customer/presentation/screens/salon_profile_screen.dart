@@ -8,7 +8,10 @@ import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/edge_swipe_back.dart';
 import '../../../../shared/widgets/slide_to_book_button.dart';
 import '../../../../shared/widgets/zurano_service_category_icon.dart';
 import '../../application/customer_booking_availability_providers.dart';
@@ -23,6 +26,7 @@ import '../../domain/salon_profile_hours_text.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_review_card.dart';
 import '../widgets/customer_team_member_card.dart';
+import '../widgets/salon_hero_carousel.dart';
 
 /// Two-letter initials for the salon summary tile (e.g. "Golden Xx" → GX).
 String _salonInitials(String salonName) {
@@ -75,6 +79,13 @@ double resolveStartingPrice(
 
   prices.sort();
   return prices.first;
+}
+
+/// EN/AR title + category for keyword-based service icons on this screen.
+String _serviceLabelHintForIcon(CustomerServicePublicModel s, String lang) {
+  final t = s.localizedTitleForLanguageCode(lang);
+  final c = s.categoryLabel.trim().isNotEmpty ? s.categoryLabel : s.category;
+  return '$t $c'.trim();
 }
 
 class SalonProfileScreen extends ConsumerStatefulWidget {
@@ -180,6 +191,14 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
     );
   }
 
+  void _navigateBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.go(AppRoutes.customerSalonDiscovery);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -201,81 +220,84 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
       orElse: () => false,
     );
 
-    return CustomerGradientScaffold(
-      bottomNavigationBar: profileAsync.maybeWhen(
-        data: (salon) {
-          if (salon == null) {
-            return null;
-          }
-          final bookingOpen = _bookingEnabled(bookingPolicyAsync);
-          return _StickyBookingBar(
-            child: SafeArea(
-              minimum: const EdgeInsets.only(bottom: AppSpacing.medium),
-              child: SlideToBookButton(
-                enabled: ctaEnabled,
-                text: bookingOpen
-                    ? l10n.customerProfileSlideToBookAppointment
-                    : l10n.customerBookingClosedTitle,
-                loadingText: l10n.customerProfileOpeningBooking,
-                margin: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.large,
-                ),
-                onCompleted: () async {
-                  context.pushNamed(
-                    AppRouteNames.customerServiceSelection,
-                    pathParameters: {'salonId': sid},
-                    queryParameters: _selectedServiceId == null
-                        ? {}
-                        : {'serviceId': _selectedServiceId!},
-                  );
-                },
-              ),
-            ),
-          );
-        },
-        orElse: () => null,
-      ),
-      child: profileAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator.adaptive()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.large),
-            child: Text(l10n.genericError),
-          ),
-        ),
-        data: (salon) {
-          if (salon == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.large),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l10n.customerProfileSalonNotFound,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.large),
-                    FilledButton(
-                      onPressed: () => context.pop(),
-                      child: Text(l10n.customerBackHome),
-                    ),
-                  ],
+    return EdgeSwipeBack(
+      onBack: () => _navigateBack(context),
+      child: CustomerGradientScaffold(
+        bottomNavigationBar: profileAsync.maybeWhen(
+          data: (salon) {
+            if (salon == null) {
+              return null;
+            }
+            final bookingOpen = _bookingEnabled(bookingPolicyAsync);
+            return _StickyBookingBar(
+              child: SafeArea(
+                minimum: const EdgeInsets.only(bottom: AppSpacing.medium),
+                child: SlideToBookButton(
+                  enabled: ctaEnabled,
+                  text: bookingOpen
+                      ? l10n.customerProfileSlideToBookAppointment
+                      : l10n.customerBookingClosedTitle,
+                  loadingText: l10n.customerProfileOpeningBooking,
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.large,
+                  ),
+                  onCompleted: () async {
+                    context.pushNamed(
+                      AppRouteNames.customerServiceSelection,
+                      pathParameters: {'salonId': sid},
+                      queryParameters: _selectedServiceId == null
+                          ? {}
+                          : {'serviceId': _selectedServiceId!},
+                    );
+                  },
                 ),
               ),
             );
-          }
-          return _buildBody(
-            context,
-            l10n,
-            salon,
-            servicesAsync,
-            teamAsync,
-            reviewsAsync,
-            repo,
-          );
-        },
+          },
+          orElse: () => null,
+        ),
+        child: profileAsync.when(
+          loading: () =>
+              const Center(child: CircularProgressIndicator.adaptive()),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.large),
+              child: Text(l10n.genericError),
+            ),
+          ),
+          data: (salon) {
+            if (salon == null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.large),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.customerProfileSalonNotFound,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSpacing.large),
+                      FilledButton(
+                        onPressed: () => context.pop(),
+                        child: Text(l10n.customerBackHome),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return _buildBody(
+              context,
+              l10n,
+              salon,
+              servicesAsync,
+              teamAsync,
+              reviewsAsync,
+              repo,
+            );
+          },
+        ),
       ),
     );
   }
@@ -292,14 +314,6 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
     final locale = Localizations.localeOf(context);
 
     void share() => repo.shareSalon(salon);
-
-    void onBack() {
-      if (context.canPop()) {
-        context.pop();
-        return;
-      }
-      context.go(AppRoutes.customerSalonDiscovery);
-    }
 
     final servicesList = servicesAsync.maybeWhen(
       data: (list) => list,
@@ -324,7 +338,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
             l10n: l10n,
             locale: locale,
             favoriteSelected: _favoriteLocal,
-            onBack: onBack,
+            onBack: () => _navigateBack(context),
             onFavoriteTap: () {
               setState(() => _favoriteLocal = !_favoriteLocal);
             },
@@ -371,7 +385,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
               AppSpacing.large,
               AppSpacing.medium,
               AppSpacing.large,
-              170,
+              210,
             ),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
@@ -524,7 +538,7 @@ class _PremiumHeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
     return SizedBox(
-      height: topInset + 390,
+      height: topInset + 410,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -537,7 +551,7 @@ class _PremiumHeroSection extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(AppRadius.xlarge),
               ),
-              child: _HeroImage(url: salon.coverImageUrl),
+              child: SalonHeroCarousel(imageUrls: salon.heroImageUrls),
             ),
           ),
           SafeArea(
@@ -585,52 +599,6 @@ class _PremiumHeroSection extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeroImage extends StatelessWidget {
-  const _HeroImage({this.url});
-
-  final String? url;
-
-  @override
-  Widget build(BuildContext context) {
-    final u = url?.trim();
-    if (u != null && u.isNotEmpty) {
-      return Image.network(
-        u,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (context, error, stackTrace) => const _HeroFallback(),
-      );
-    }
-    return const _HeroFallback();
-  }
-}
-
-class _HeroFallback extends StatelessWidget {
-  const _HeroFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF7B2FF7), Color(0xFF9B51E0), Color(0xFFB794F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.storefront_rounded,
-        size: 72,
-        color: Colors.white.withValues(alpha: 0.85),
       ),
     );
   }
@@ -718,8 +686,8 @@ class _PremiumSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.small),
                   Wrap(
-                    spacing: AppSpacing.small,
-                    runSpacing: 4,
+                    spacing: 0,
+                    runSpacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _StatusChip(
@@ -727,6 +695,7 @@ class _PremiumSummaryCard extends StatelessWidget {
                         openLabel: l10n.customerSalonOpenNowBadge,
                         closedLabel: l10n.customerSalonClosedBadge,
                       ),
+                      const SizedBox(width: 12),
                       if (salon.ratingAverage > 0)
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -880,18 +849,22 @@ class _PremiumQuickActionsRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _QuickAction(
-            icon: Icons.call_outlined,
+            icon: Icons.phone_in_talk_rounded,
             label: callLabel,
             onTap: onCall,
           ),
           _QuickAction(
-            icon: Icons.chat_outlined,
+            icon: Icons.chat_rounded,
             label: whatsappLabel,
             onTap: onWhatsApp,
           ),
-          _QuickAction(icon: Icons.map_outlined, label: mapLabel, onTap: onMap),
           _QuickAction(
-            icon: Icons.ios_share_rounded,
+            icon: Icons.location_on_rounded,
+            label: mapLabel,
+            onTap: onMap,
+          ),
+          _QuickAction(
+            icon: Icons.share_rounded,
             label: shareLabel,
             onTap: onShare,
           ),
@@ -923,16 +896,37 @@ class _QuickAction extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 58,
-              height: 58,
+              width: 54,
+              height: 54,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppBrandColors.secondary,
-                border: Border.all(
-                  color: AppBrandColors.primary.withValues(alpha: 0.12),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppBrandColors.secondary,
+                    AppBrandColors.secondary.withValues(alpha: 0.82),
+                  ],
                 ),
+                border: Border.all(
+                  color: AppBrandColors.primary.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppBrandColors.primary.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: AppBrandColors.primary, size: 27),
+              child: Icon(
+                icon,
+                color: AppBrandColors.primary,
+                size: 26,
+                weight: 600,
+                grade: 25,
+              ),
             ),
             const SizedBox(height: AppSpacing.small),
             Text(
@@ -1049,6 +1043,15 @@ class _PremiumServiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final price = formatMoney(service.price, currencyCode, locale);
+    final categoryLabelForResolve = service.categoryLabel.trim().isNotEmpty
+        ? service.categoryLabel
+        : service.category;
+    final visualStyle = ServiceCategoryVisualStyleResolver.resolve(
+      iconKey: service.iconKey,
+      categoryKey: service.categoryKey,
+      categoryLabel: categoryLabelForResolve,
+      serviceName: service.displayTitle,
+    );
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -1080,12 +1083,21 @@ class _PremiumServiceCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ZuranoServiceCategoryIcon(
-                  categoryKey: service.resolvedCategoryKeyForIcon,
-                  iconKey: service.iconKey,
-                  size: 48,
-                  iconSize: 24,
-                  borderRadius: AppRadius.medium,
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: visualStyle.background,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: visualStyle.foreground.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Icon(
+                    visualStyle.icon,
+                    color: visualStyle.foreground,
+                    size: 28,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
@@ -1122,8 +1134,10 @@ class _PremiumServiceCard extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.schedule_rounded,
-                          size: 16,
-                          color: AppColorsLight.textSecondary,
+                          size: 18,
+                          color: AppColorsLight.statIconMuted,
+                          weight: 600,
+                          grade: 25,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -1212,7 +1226,7 @@ class _StickyBookingBar extends StatelessWidget {
 
 // --- About ------------------------------------------------------------------
 
-class _AboutTab extends StatelessWidget {
+class _AboutTab extends ConsumerWidget {
   const _AboutTab({
     required this.l10n,
     required this.salon,
@@ -1224,51 +1238,250 @@ class _AboutTab extends StatelessWidget {
   final String genderLabel;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repo = ref.watch(customerSalonProfileRepositoryProvider);
+    final servicesAsync = ref.watch(customerVisibleServicesProvider(salon.id));
+    final lat = salon.latitude;
+    final lng = salon.longitude;
+    final hasCoords = lat != null && lng != null;
+
+    Widget zuranoCard({required Widget child}) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: ZuranoTokens.surface,
+          borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+          border: Border.all(color: ZuranoTokens.sectionBorder),
+          boxShadow: ZuranoTokens.softCardShadow,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.large),
+          child: child,
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _PremiumInfoRow(
-          label: l10n.customerProfileAboutArea,
-          value: salon.area,
+        zuranoCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.customerProfileAboutSalonStory,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: ZuranoTokens.textDark,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.small),
+              Text(
+                salon.customerAbout?.trim().isNotEmpty == true
+                    ? salon.customerAbout!.trim()
+                    : l10n.customerProfileAboutNoDescription,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: salon.customerAbout?.trim().isNotEmpty == true
+                      ? ZuranoTokens.textDark
+                      : ZuranoTokens.textGray,
+                  height: 1.45,
+                ),
+              ),
+              if (salon.ownerDisplayName?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: AppSpacing.medium),
+                Text(
+                  l10n.customerProfileAboutMeetOwner,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: ZuranoTokens.textGray,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  salon.ownerDisplayName!.trim(),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: ZuranoTokens.textDark,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-        _PremiumInfoRow(
-          label: l10n.customerProfileAboutPhone,
-          value: salon.phone?.trim().isNotEmpty == true ? salon.phone! : '—',
+        const SizedBox(height: AppSpacing.medium),
+        zuranoCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PremiumInfoRow(
+                label: l10n.customerProfileAboutArea,
+                value: salon.area.trim().isNotEmpty ? salon.area : '—',
+              ),
+              _PremiumInfoRow(
+                label: l10n.customerProfileAboutPhone,
+                value: salon.phone?.trim().isNotEmpty == true
+                    ? salon.phone!
+                    : '—',
+              ),
+              if (salon.formattedAddress?.trim().isNotEmpty == true)
+                _PremiumInfoRow(
+                  label: l10n.customerProfileAboutAddress,
+                  value: salon.formattedAddress!.trim(),
+                ),
+              Text(
+                l10n.customerProfileAboutGender,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: ZuranoTokens.textGray),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                genderLabel,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: ZuranoTokens.textDark),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.medium),
         Text(
-          l10n.customerProfileAboutGender,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: AppColorsLight.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(genderLabel, style: Theme.of(context).textTheme.bodyLarge),
-        const SizedBox(height: AppSpacing.large),
-        Text(
-          l10n.customerProfileMapPreviewPlaceholder,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: AppColorsLight.textSecondary,
+          l10n.customerProfileAboutLocationTitle,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: ZuranoTokens.textDark,
           ),
         ),
         const SizedBox(height: AppSpacing.small),
-        Container(
-          height: 120,
+        DecoratedBox(
           decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(AppRadius.large),
-            border: Border.all(
-              color: scheme.outlineVariant.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+            border: Border.all(color: ZuranoTokens.sectionBorder),
+            boxShadow: ZuranoTokens.softCardShadow,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+            child: Material(
+              color: ZuranoTokens.searchFill,
+              child: InkWell(
+                onTap: () {
+                  final la = salon.latitude;
+                  final ln = salon.longitude;
+                  if (la != null && ln != null) {
+                    repo.openMap(la, ln);
+                  }
+                },
+                child: SizedBox(
+                  height: 140,
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.map_rounded,
+                        size: 44,
+                        color: ZuranoTokens.textGray.withValues(alpha: 0.45),
+                      ),
+                      const SizedBox(height: AppSpacing.small),
+                      Text(
+                        hasCoords
+                            ? l10n.customerProfileAboutOpenInMaps
+                            : l10n.customerProfileMapPreviewPlaceholder,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppBrandColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.map_outlined,
-            size: 40,
-            color: AppColorsLight.textSecondary,
+        ),
+        const SizedBox(height: AppSpacing.large),
+        Text(
+          l10n.customerProfileAboutServicesTitle,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: ZuranoTokens.textDark,
           ),
+        ),
+        const SizedBox(height: AppSpacing.small),
+        servicesAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(AppSpacing.large),
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          ),
+          error: (_, _) => Text(l10n.genericError),
+          data: (services) {
+            final visible = services
+                .where((s) => s.isActive && s.isCustomerVisible)
+                .toList(growable: false);
+            if (visible.isEmpty) {
+              return zuranoCard(
+                child: Text(
+                  l10n.customerProfileEmptyServices,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: ZuranoTokens.textGray,
+                  ),
+                ),
+              );
+            }
+            final lang = Localizations.localeOf(context).languageCode;
+            return zuranoCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < visible.length && i < 8; i++) ...[
+                    if (i > 0) const Divider(height: AppSpacing.large),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ZuranoServiceCategoryIcon(
+                          categoryKey: visible[i].resolvedCategoryKeyForIcon,
+                          iconKey: visible[i].iconKey,
+                          labelHint: _serviceLabelHintForIcon(visible[i], lang),
+                          size: 44,
+                          iconSize: 22,
+                          borderRadius: AppRadius.medium,
+                        ),
+                        const SizedBox(width: AppSpacing.medium),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                visible[i].localizedTitleForLanguageCode(lang),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: ZuranoTokens.textDark,
+                                    ),
+                              ),
+                              if (visible[i].description != null &&
+                                  visible[i].description!.trim().isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    visible[i].description!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: ZuranoTokens.textGray,
+                                        ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
         ),
       ],
     );

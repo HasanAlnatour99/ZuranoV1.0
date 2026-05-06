@@ -5072,6 +5072,78 @@ abstract class AppLocalizations {
   /// **'Gender'**
   String get customerProfileAboutGender;
 
+  /// No description provided for @customerProfileAboutSalonStory.
+  ///
+  /// In en, this message translates to:
+  /// **'About this salon'**
+  String get customerProfileAboutSalonStory;
+
+  /// No description provided for @customerProfileAboutMeetOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get customerProfileAboutMeetOwner;
+
+  /// No description provided for @customerProfileAboutAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get customerProfileAboutAddress;
+
+  /// No description provided for @customerProfileAboutLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get customerProfileAboutLocationTitle;
+
+  /// No description provided for @customerProfileAboutOpenInMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in maps'**
+  String get customerProfileAboutOpenInMaps;
+
+  /// No description provided for @customerProfileAboutServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get customerProfileAboutServicesTitle;
+
+  /// No description provided for @customerProfileAboutNoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No description has been added yet.'**
+  String get customerProfileAboutNoDescription;
+
+  /// No description provided for @customerProfileReviewDateUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently'**
+  String get customerProfileReviewDateUnknown;
+
+  /// No description provided for @customerBookingReviewInviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your visit?'**
+  String get customerBookingReviewInviteTitle;
+
+  /// No description provided for @customerBookingReviewInviteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your appointment and help others discover this salon.'**
+  String get customerBookingReviewInviteBody;
+
+  /// No description provided for @customerBookingReviewInviteLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get customerBookingReviewInviteLater;
+
+  /// No description provided for @customerBookingReviewInviteRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate now'**
+  String get customerBookingReviewInviteRate;
+
   /// No description provided for @customerProfileGenderValue.
   ///
   /// In en, this message translates to:
@@ -5768,6 +5840,18 @@ abstract class AppLocalizations {
   /// **'Any available specialist'**
   String get customerBookingLookupAnySpecialist;
 
+  /// No description provided for @customerBookingLookupViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get customerBookingLookupViewAll;
+
+  /// No description provided for @customerBookingLookupRateBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate visit'**
+  String get customerBookingLookupRateBooking;
+
   /// No description provided for @customerBookingDetailsTitle.
   ///
   /// In en, this message translates to:
@@ -6149,7 +6233,7 @@ abstract class AppLocalizations {
   /// No description provided for @customerFeedbackCommentTooLong.
   ///
   /// In en, this message translates to:
-  /// **'Comment cannot exceed 500 characters'**
+  /// **'Comment cannot exceed 2000 characters'**
   String get customerFeedbackCommentTooLong;
 
   /// No description provided for @customerFeedbackOnlyCompleted.

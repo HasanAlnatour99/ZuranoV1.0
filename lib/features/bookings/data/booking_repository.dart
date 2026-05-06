@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
@@ -788,48 +790,93 @@ class BookingRepository {
 
   /// Raw documents for [getCustomerBookingsPage] / UI mappers (preserves fields not on [Booking]).
   ///
-  /// [customerId] is Firebase Auth uid. Guest bookings use [guestUid] / [createdByAuthUid].
+  /// [customerId] is Firebase Auth uid. Loads matching rows via **two** queries
+  /// (`guestUid` and `createdByAuthUid`) and merges client-side. A single
+  /// collection-group query with `Filter.or(...)` is rejected by Firestore security
+  /// rules evaluation even when each branch would be allowed.
   Future<FirestorePage<QueryDocumentSnapshot<Map<String, dynamic>>>>
       getCustomerBookingDocumentsPage(
     String customerId, {
     int limit = 30,
-    DocumentSnapshot? startAfter,
   }) async {
     if (customerId.isEmpty) {
       return FirestorePage(items: const [], limit: limit, lastDocument: null);
     }
-    Query<Map<String, dynamic>> query = _firestore
-        .collectionGroup('bookings')
-        .where(
-          Filter.or(
-            Filter('guestUid', isEqualTo: customerId),
-            Filter('createdByAuthUid', isEqualTo: customerId),
-          ),
-        )
-        .orderBy('startAt', descending: true)
-        .orderBy(FieldPath.documentId, descending: true);
-    if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
-    }
-    final snapshot = await query.limit(limit).get();
-    final docs = snapshot.docs;
+    final fetchCap = limit.clamp(1, 120);
+    final guestSnap = await _customerBookingsBranchQuery(
+      field: 'guestUid',
+      customerId: customerId,
+    ).limit(fetchCap).get();
+    final createdSnap = await _customerBookingsBranchQuery(
+      field: 'createdByAuthUid',
+      customerId: customerId,
+    ).limit(fetchCap).get();
+
+    final merged = _mergeBookingDocSnapshots(
+      guestSnap.docs,
+      createdSnap.docs,
+      fetchCap,
+    );
+
+    final hitCap = merged.length >= fetchCap;
+
     return FirestorePage(
-      items: docs,
+      items: merged,
       limit: limit,
-      lastDocument: docs.isEmpty ? null : docs.last,
+      lastDocument: merged.isEmpty ? null : (hitCap ? merged.last : null),
     );
   }
 
-  /// Paged customer bookings (`collectionGroup('bookings')`), newest first.
+  Query<Map<String, dynamic>> _customerBookingsBranchQuery({
+    required String field,
+    required String customerId,
+  }) {
+    return _firestore
+        .collectionGroup('bookings')
+        .where(field, isEqualTo: customerId)
+        .orderBy('startAt', descending: true)
+        .orderBy(FieldPath.documentId, descending: true);
+  }
+
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> _mergeBookingDocSnapshots(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> guestDocs,
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> createdDocs,
+    int limit,
+  ) {
+    final byPath = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
+    for (final d in [...guestDocs, ...createdDocs]) {
+      byPath[d.reference.path] = d;
+    }
+    final merged = byPath.values.toList()
+      ..sort((a, b) {
+        final c = _startAtMs(b.data()).compareTo(_startAtMs(a.data()));
+        if (c != 0) {
+          return c;
+        }
+        return b.id.compareTo(a.id);
+      });
+    if (merged.length <= limit) {
+      return merged;
+    }
+    return merged.sublist(0, limit);
+  }
+
+  int _startAtMs(Map<String, dynamic> data) {
+    final s = data['startAt'];
+    if (s is Timestamp) {
+      return s.millisecondsSinceEpoch;
+    }
+    return 0;
+  }
+
+  /// Customer bookings (`collectionGroup('bookings')`), newest first (merged).
   Future<FirestorePage<Booking>> getCustomerBookingsPage(
     String customerId, {
     int limit = 30,
-    DocumentSnapshot? startAfter,
   }) async {
     final page = await getCustomerBookingDocumentsPage(
       customerId,
       limit: limit,
-      startAfter: startAfter,
     );
     return FirestorePage(
       items: page.items
@@ -840,24 +887,17 @@ class BookingRepository {
     );
   }
 
-  /// Next page for [getCustomerBookingsPage].
+  /// Reserved for future cursor-based pagination (merged queries).
   Future<FirestorePage<Booking>> getCustomerBookingsNextPage(
     String customerId,
     FirestorePage<Booking> previous,
   ) {
-    if (!previous.hasMore || previous.lastDocument == null) {
-      return Future.value(
-        FirestorePage(
-          items: const [],
-          limit: previous.limit,
-          lastDocument: null,
-        ),
-      );
-    }
-    return getCustomerBookingsPage(
-      customerId,
-      limit: previous.limit,
-      startAfter: previous.lastDocument,
+    return Future.value(
+      FirestorePage(
+        items: const [],
+        limit: previous.limit,
+        lastDocument: null,
+      ),
     );
   }
 
@@ -955,22 +995,53 @@ class BookingRepository {
     if (customerId.isEmpty) {
       return Stream.value(const <Booking>[]);
     }
-    return _firestore
-        .collectionGroup('bookings')
-        .where(
-          Filter.or(
-            Filter('guestUid', isEqualTo: customerId),
-            Filter('createdByAuthUid', isEqualTo: customerId),
-          ),
-        )
-        .orderBy('startAt', descending: true)
-        .orderBy(FieldPath.documentId, descending: true)
-        .limit(limit)
-        .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Booking.fromJson(doc.data())).toList(),
+    final qg = _customerBookingsBranchQuery(
+      field: 'guestUid',
+      customerId: customerId,
+    ).limit(limit);
+    final qc = _customerBookingsBranchQuery(
+      field: 'createdByAuthUid',
+      customerId: customerId,
+    ).limit(limit);
+
+    return Stream.multi((controller) {
+      var guestDocs = const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+      var createdDocs = const <QueryDocumentSnapshot<Map<String, dynamic>>>[];
+      var hasGuest = false;
+      var hasCreated = false;
+
+      void emit() {
+        if (!hasGuest || !hasCreated) {
+          return;
+        }
+        final merged = _mergeBookingDocSnapshots(guestDocs, createdDocs, limit);
+        controller.add(
+          merged.map((d) => Booking.fromJson(d.data())).toList(growable: false),
         );
+      }
+
+      final subG = qg.snapshots().listen(
+        (snap) {
+          guestDocs = snap.docs;
+          hasGuest = true;
+          emit();
+        },
+        onError: controller.addError,
+      );
+      final subC = qc.snapshots().listen(
+        (snap) {
+          createdDocs = snap.docs;
+          hasCreated = true;
+          emit();
+        },
+        onError: controller.addError,
+      );
+
+      controller.onCancel = () {
+        subG.cancel();
+        subC.cancel();
+      };
+    });
   }
 
   /// Returns true when no overlapping booking exists for the barber.

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/session_provider.dart';
@@ -196,7 +199,8 @@ List<Widget> _signedInAccountBookingSlivers(
         ),
       ),
     ],
-    data: (List<CustomerBookingLookupModel> list) {
+    data: (CustomerAccountBookingsPreview preview) {
+      final list = preview.items;
       final titleSliver = SliverPadding(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.large,
@@ -208,8 +212,9 @@ List<Widget> _signedInAccountBookingSlivers(
           child: Text(
             l10n.customerBookingLookupYourBookingsSection,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColorsLight.textPrimary,
+              color: ZuranoTokens.textDark,
               fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
             ),
           ),
         ),
@@ -240,6 +245,34 @@ List<Widget> _signedInAccountBookingSlivers(
             },
           ),
         ),
+        if (preview.showViewAll)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.large,
+              AppSpacing.medium,
+              AppSpacing.large,
+              AppSpacing.small,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ZuranoTokens.primary,
+                    side: const BorderSide(color: ZuranoTokens.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(ZuranoTokens.radiusButton),
+                    ),
+                  ),
+                  onPressed: () =>
+                      context.push(AppRoutes.customerMyBookings),
+                  child: Text(l10n.customerBookingLookupViewAll),
+                ),
+              ),
+            ),
+          ),
       ];
     },
   );

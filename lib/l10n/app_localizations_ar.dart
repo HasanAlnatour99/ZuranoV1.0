@@ -2798,6 +2798,43 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerProfileAboutGender => 'الجنس';
 
   @override
+  String get customerProfileAboutSalonStory => 'عن الصالون';
+
+  @override
+  String get customerProfileAboutMeetOwner => 'المالك';
+
+  @override
+  String get customerProfileAboutAddress => 'العنوان';
+
+  @override
+  String get customerProfileAboutLocationTitle => 'الموقع';
+
+  @override
+  String get customerProfileAboutOpenInMaps => 'فتح في الخرائط';
+
+  @override
+  String get customerProfileAboutServicesTitle => 'الخدمات';
+
+  @override
+  String get customerProfileAboutNoDescription => 'لم يتم إضافة وصف بعد.';
+
+  @override
+  String get customerProfileReviewDateUnknown => 'مؤخرًا';
+
+  @override
+  String get customerBookingReviewInviteTitle => 'كيف كانت زيارتك؟';
+
+  @override
+  String get customerBookingReviewInviteBody =>
+      'قيّم موعدك وساعد الآخرين على اكتشاف هذا الصالون.';
+
+  @override
+  String get customerBookingReviewInviteLater => 'لاحقًا';
+
+  @override
+  String get customerBookingReviewInviteRate => 'قيّم الآن';
+
+  @override
   String customerProfileGenderValue(String gender) {
     return '$gender';
   }
@@ -3193,6 +3230,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingLookupAnySpecialist => 'أي مختص متاح';
 
   @override
+  String get customerBookingLookupViewAll => 'عرض الكل';
+
+  @override
+  String get customerBookingLookupRateBooking => 'قيّم الزيارة';
+
+  @override
   String get customerBookingDetailsTitle => 'تفاصيل الحجز';
 
   @override
@@ -3394,7 +3437,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerFeedbackCommentTooLong =>
-      'لا يمكن أن يتجاوز التعليق 500 حرفًا';
+      'لا يمكن أن يتجاوز التعليق 2000 حرفًا';
 
   @override
   String get customerFeedbackOnlyCompleted =>

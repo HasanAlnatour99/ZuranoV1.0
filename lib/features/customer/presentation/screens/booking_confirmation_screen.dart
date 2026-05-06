@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_routes.dart';
+import '../../../../core/constants/app_routes.dart'
+    show AppRouteNames, AppRoutes;
+import '../../../bookings/data/models/booking.dart';
+import '../../../../core/constants/booking_status_machine.dart';
+import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/formatting/booking_status_localized.dart';
 import '../../../../core/motion/app_motion.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
@@ -21,7 +25,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lottie/lottie.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 
-class BookingConfirmationScreen extends ConsumerWidget {
+class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({
     super.key,
     required this.salonId,
@@ -32,13 +36,66 @@ class BookingConfirmationScreen extends ConsumerWidget {
   final String bookingId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BookingConfirmationScreen> createState() =>
+      _BookingConfirmationScreenState();
+}
+
+class _BookingConfirmationScreenState
+    extends ConsumerState<BookingConfirmationScreen> {
+  bool _reviewInviteShown = false;
+
+  void _maybeOfferReview(Booking? booking) {
+    if (_reviewInviteShown || booking == null) {
+      return;
+    }
+    final normalized = BookingStatusMachine.normalize(booking.status);
+    if (normalized != BookingStatuses.completed || booking.feedbackSubmitted) {
+      return;
+    }
+    _reviewInviteShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
+      }
+      final l10n = AppLocalizations.of(context)!;
+      final go = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.customerBookingReviewInviteTitle),
+          content: Text(l10n.customerBookingReviewInviteBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.customerBookingReviewInviteLater),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.customerBookingReviewInviteRate),
+            ),
+          ],
+        ),
+      );
+      if (go == true && mounted) {
+        await context.pushNamed(
+          AppRouteNames.customerBookingFeedback,
+          pathParameters: {
+            'salonId': widget.salonId,
+            'bookingId': widget.bookingId,
+          },
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final key = (salonId: salonId, bookingId: bookingId);
+    final key = (salonId: widget.salonId, bookingId: widget.bookingId);
     final bookingAsync = ref.watch(customerBookingStreamProvider(key));
-    final salonAsync = ref.watch(customerSalonStreamProvider(salonId));
+    final salonAsync = ref.watch(customerSalonStreamProvider(widget.salonId));
     final localeTag = Localizations.localeOf(context).toString();
     final timeFmt = DateFormat.jm(localeTag);
     final dateFmt = DateFormat.yMMMd(localeTag);
@@ -56,7 +113,9 @@ class BookingConfirmationScreen extends ConsumerWidget {
           if (booking == null) {
             return Center(child: Text(l10n.bookingNotFound));
           }
-          final salonName = salonAsync.asData?.value?.name ?? salonId;
+          _maybeOfferReview(booking);
+          final salonName =
+              salonAsync.asData?.value?.name ?? widget.salonId;
           final durationMin = booking.endAt
               .difference(booking.startAt)
               .inMinutes;
@@ -71,7 +130,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.large),
                       Center(
                         child: AppEntranceMotion(
-                          motionId: '$bookingId-confirm-hero',
+                          motionId: '${widget.bookingId}-confirm-hero',
                           index: 0,
                           duration: AppMotion.emphasized,
                           slideOffset: AppMotion.cardSlideOffset,
@@ -120,7 +179,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.large),
                       AppEntranceMotion(
-                        motionId: '$bookingId-confirm-title',
+                        motionId: '${widget.bookingId}-confirm-title',
                         index: 1,
                         duration: AppMotion.cardEntrance,
                         slideOffset: AppMotion.listSlideOffset,
@@ -148,7 +207,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                       ).animate().fadeIn(delay: 400.ms),
                       const SizedBox(height: AppSpacing.large),
                       AppEntranceMotion(
-                        motionId: '$bookingId-confirm-card',
+                        motionId: '${widget.bookingId}-confirm-card',
                         index: 2,
                         duration: AppMotion.cardEntrance,
                         slideOffset: AppMotion.cardSlideOffset,
@@ -206,7 +265,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.large),
                       AppEntranceMotion(
-                        motionId: '$bookingId-confirm-cta',
+                        motionId: '${widget.bookingId}-confirm-cta',
                         index: 3,
                         duration: AppMotion.medium,
                         slideOffset: AppMotion.listSlideOffset,
