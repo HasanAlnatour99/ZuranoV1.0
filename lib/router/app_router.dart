@@ -45,7 +45,8 @@ import '../features/customer/presentation/screens/service_selection_screen.dart'
 import '../features/customer/presentation/screens/team_member_selection_screen.dart';
 import '../features/customer/presentation/screens/booking_review_screen.dart';
 import '../features/customer/data/models/customer_booking_create_result.dart';
-import '../features/customer_home/presentation/screens/customer_nearby_map_screen.dart';
+import '../features/customer/map/presentation/customer_map_screen.dart';
+import '../features/customer/search/presentation/screens/customer_search_screen.dart';
 import '../features/employee_notifications/presentation/employee_notification_settings_screen.dart';
 import '../features/employee_notifications/presentation/employee_notifications_screen.dart';
 import '../features/notifications/presentation/screens/notification_preferences_screen.dart';
@@ -336,6 +337,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.customerMap,
+        redirect: (_, _) => AppRoutes.customerNearbyMap,
+      ),
+      GoRoute(
         path: AppRoutes.customerLogin,
         redirect: (_, _) => AppRoutes.customerAuth,
       ),
@@ -529,7 +534,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'nearby-map',
             pageBuilder: (context, state) => appFadeThroughPage(
               key: goRouterPageKey(state),
-              child: const CustomerNearbyMapScreen(),
+              child: const CustomerMapScreen(),
             ),
           ),
           GoRoute(
@@ -581,6 +586,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: AppRoutes.customerSearch,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const CustomerSearchScreen(),
+        ),
       ),
       ...ownerRoutes,
       // Employee shell (tabs): /employee/today, /employee/sales, /employee/attendance,

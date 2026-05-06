@@ -146,6 +146,7 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
       onRefresh: () async => onRetry(),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(

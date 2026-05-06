@@ -51,6 +51,7 @@ class _MyBookingLookupScreenState extends ConsumerState<MyBookingLookupScreen> {
     return CustomerGradientScaffold(
       child: SafeArea(
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(

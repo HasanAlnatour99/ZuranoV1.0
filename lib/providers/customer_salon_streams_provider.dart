@@ -122,7 +122,10 @@ typedef CustomerBarberDayKey = ({
   String barberId,
 });
 
-/// Bookings for one barber on a local calendar day (for slot masking).
+/// Busy intervals for one barber on a local calendar day (for slot masking).
+///
+/// Uses [BookingRepository.fetchDayBusyMask] (`bookingDayBusyMask` callable).
+/// Customers are not allowed to list `salons/{id}/bookings` in Firestore rules.
 final customerBarberDayBookingsStreamProvider =
     StreamProvider.family<List<Booking>, CustomerBarberDayKey>((ref, key) {
       if (!_canReadCustomerStreams(ref)) {
@@ -135,13 +138,20 @@ final customerBarberDayBookingsStreamProvider =
       final d = key.day;
       final startLocal = DateTime(d.year, d.month, d.day);
       final endLocal = DateTime(d.year, d.month, d.day, 23, 59, 59, 999);
-      return repo.watchBookingsBySalon(
-        key.salonId,
-        limit: 120,
-        barberId: key.barberId,
-        startFrom: startLocal.toUtc(),
-        startTo: endLocal.toUtc(),
-      );
+      return Stream.fromFuture(() async {
+        try {
+          final all = await repo.fetchDayBusyMask(
+            salonId: key.salonId,
+            startFromUtc: startLocal.toUtc(),
+            startToUtc: endLocal.toUtc(),
+          );
+          return all
+              .where((b) => b.barberId == key.barberId)
+              .toList(growable: false);
+        } on Object {
+          return const <Booking>[];
+        }
+      }());
     });
 
 typedef CustomerBookingKey = ({String salonId, String bookingId});

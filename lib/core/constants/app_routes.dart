@@ -110,7 +110,11 @@ class AppRoutes {
   static const legacyAccountProfileBootstrapPath = '/owner-firestore-bootstrap';
 
   static const customerHome = '/customer/home';
+  static const customerSearch = '/customer/search';
   static const customerNearbyMap = '$customerHome/nearby-map';
+
+  /// Deep-link alias; redirects to [customerNearbyMap] in [GoRouter].
+  static const customerMap = '/customer/map';
 
   /// Guest-friendly salon browse (no auth). Doc mirror: `publicSalons/{salonId}`.
   static const customerSalonDiscovery = '/customer/salons';
@@ -206,6 +210,7 @@ class AppRoutes {
 
   static bool isPublicCustomerExperiencePath(String location) {
     return location == customerMyBooking ||
+        location == customerSearch ||
         location == customerHome ||
         isPublicCustomerSalonBrowsePath(location) ||
         isPublicCustomerBookPath(location) ||

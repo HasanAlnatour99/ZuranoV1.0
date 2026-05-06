@@ -11,6 +11,7 @@ import 'providers/app_settings_providers.dart' show appLocalePreferenceProvider;
 import 'providers/notification_providers.dart';
 import 'providers/session_provider.dart';
 import 'router/app_router.dart';
+import 'core/widgets/app_keyboard_dismiss.dart';
 
 class BarberShopApp extends ConsumerStatefulWidget {
   const BarberShopApp({super.key});
@@ -126,6 +127,11 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      builder: (context, child) {
+        return AppKeyboardDismiss(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

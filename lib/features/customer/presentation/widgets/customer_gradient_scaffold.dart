@@ -30,6 +30,9 @@ class CustomerPrimaryButtonStyle {
       backgroundColor: AppBrandColors.primary,
       foregroundColor: AppBrandColors.onPrimary,
       elevation: 0,
+      // App theme uses minimum width infinity for full-bleed CTAs; in a Row that
+      // yields unbounded width. Use intrinsic width with a fixed min height.
+      minimumSize: const Size(0, 52),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );

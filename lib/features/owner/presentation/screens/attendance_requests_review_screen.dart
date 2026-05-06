@@ -190,6 +190,8 @@ class _AttendanceRequestsReviewBody extends ConsumerWidget {
             builder: (context, constraints) {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.all(AppSpacing.large),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),

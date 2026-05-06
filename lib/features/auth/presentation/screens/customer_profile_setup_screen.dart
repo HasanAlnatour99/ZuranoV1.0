@@ -132,6 +132,7 @@ class _CustomerProfileSetupScreenState
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
                 autofillHints: const [AutofillHints.telephoneNumber],
                 decoration: InputDecoration(
                   labelText: l10n.customerProfileSetupPhoneLabel,

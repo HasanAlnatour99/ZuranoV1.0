@@ -238,6 +238,7 @@ class _OwnerMoneyModuleState extends ConsumerState<OwnerMoneyModule> {
     final saleTimeFmt = DateFormat.jm(localeTag);
 
     return CustomScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         SliverPadding(
           padding: const EdgeInsetsDirectional.fromSTEB(

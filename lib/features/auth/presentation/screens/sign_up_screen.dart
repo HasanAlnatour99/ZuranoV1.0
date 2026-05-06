@@ -302,7 +302,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen>
                             labelText: l10n.fieldLabelPhone,
                             hintText: l10n.registerHintPhone,
                             keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
+                            textInputAction: TextInputAction.done,
                             autofillHints: const [
                               AutofillHints.telephoneNumber,
                             ],

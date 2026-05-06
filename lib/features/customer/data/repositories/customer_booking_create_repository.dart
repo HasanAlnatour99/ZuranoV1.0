@@ -77,11 +77,14 @@ class FirestoreCustomerBookingCreateRepository
         .get();
     final salonName =
         (publicSalonSnap.data()?['name'] as String?)?.trim() ?? salonId;
-    final bookingCode = await _pickUniquePublicBookingCode();
 
     final bookingRef = _firestore
         .collection(FirestorePaths.salonBookings(salonId))
         .doc();
+    final bookingCode = await _pickUniquePublicBookingCode(
+      salonId: salonId,
+      bookingId: bookingRef.id,
+    );
     final customerDocId = _stableCustomerDocId(
       draft: draft,
       bookingId: bookingRef.id,
@@ -278,19 +281,24 @@ class FirestoreCustomerBookingCreateRepository
     }
   }
 
-  Future<String> _pickUniquePublicBookingCode() async {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  /// Six-digit numeric codes (100000–999999), globally unique via [FirestorePaths.bookingCodeLock].
+  Future<String> _pickUniquePublicBookingCode({
+    required String salonId,
+    required String bookingId,
+  }) async {
     final rnd = Random.secure();
-    for (var attempt = 0; attempt < 16; attempt++) {
-      final body = StringBuffer();
-      for (var i = 0; i < 6; i++) {
-        body.write(chars[rnd.nextInt(chars.length)]);
-      }
-      final code = 'ZR-${body.toString()}';
-      final exists = await _firestore
-          .doc(FirestorePaths.guestBooking(code))
-          .get();
-      if (!exists.exists) {
+    for (var attempt = 0; attempt < 32; attempt++) {
+      final n = rnd.nextInt(900000) + 100000;
+      final code = n.toString();
+      final lockRef =
+          _firestore.doc(FirestorePaths.bookingCodeLock(code));
+      final snap = await lockRef.get();
+      if (!snap.exists) {
+        await lockRef.set(<String, dynamic>{
+          'salonId': salonId,
+          'bookingId': bookingId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
         return code;
       }
     }

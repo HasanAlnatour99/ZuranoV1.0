@@ -61,6 +61,8 @@ class _SelectLanguageScreenState extends ConsumerState<SelectLanguageScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

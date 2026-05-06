@@ -4,13 +4,16 @@ import '../../../../providers/firebase_providers.dart';
 import '../data/models/customer_booking_create_result.dart';
 import '../data/models/customer_booking_draft.dart';
 import '../data/models/customer_booking_settings.dart';
+import '../data/repositories/callable_customer_booking_create_repository.dart';
 import '../data/repositories/customer_booking_create_repository.dart';
 import 'customer_booking_create_service.dart';
 
 final customerBookingCreateRepositoryProvider =
     Provider<CustomerBookingCreateRepository>((ref) {
-      return FirestoreCustomerBookingCreateRepository(
-        ref.watch(firestoreProvider),
+      return CallableCustomerBookingCreateRepository(
+        functions: ref.watch(firebaseFunctionsProvider),
+        firestore: ref.watch(firestoreProvider),
+        auth: ref.watch(firebaseAuthProvider),
       );
     });
 

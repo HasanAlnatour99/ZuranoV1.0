@@ -792,9 +792,11 @@ class BookingRepository {
     if (customerId.isEmpty) {
       return FirestorePage(items: const [], limit: limit, lastDocument: null);
     }
+    /// [customerId] here is the Firebase Auth uid. Booking docs store a salon-scoped
+    /// [Booking.customerId] plus optional [createdByAuthUid] for the signed-in creator.
     Query<Map<String, dynamic>> query = _firestore
         .collectionGroup('bookings')
-        .where('customerId', isEqualTo: customerId)
+        .where('createdByAuthUid', isEqualTo: customerId)
         .orderBy('startAt', descending: true)
         .orderBy(FieldPath.documentId, descending: true);
     if (startAfter != null) {
@@ -926,7 +928,7 @@ class BookingRepository {
     }
     return _firestore
         .collectionGroup('bookings')
-        .where('customerId', isEqualTo: customerId)
+        .where('createdByAuthUid', isEqualTo: customerId)
         .orderBy('startAt', descending: true)
         .orderBy(FieldPath.documentId, descending: true)
         .limit(limit)

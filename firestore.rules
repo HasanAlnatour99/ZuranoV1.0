@@ -912,12 +912,19 @@ service cloud.firestore {
       }
 
       match /bookings/{bookingId} {
+        // customerId is often salon-scoped (`phone_*` / `guest_*`); signed-in reads use createdByAuthUid.
         allow read: if isOwnerOfSalon(salonId) ||
           (isStaffOfSalon(salonId) && currentRole() == 'admin') ||
           (isStaffOfSalon(salonId) &&
             currentRole() == 'barber' &&
             resource.data.barberId == currentEmployeeId()) ||
-          (isCustomer() && resource.data.customerId == request.auth.uid);
+          (
+            isCustomer() &&
+            (
+              resource.data.customerId == request.auth.uid ||
+              resource.data.get('createdByAuthUid', '') == request.auth.uid
+            )
+          );
 
         allow create: if isOwnerOrStaffOfSalon(salonId) ||
           (
@@ -1016,11 +1023,20 @@ service cloud.firestore {
     }
 
     match /guestProfiles/{nicknameKey} {
-      allow read: if signedIn() && resource.data.authUid == request.auth.uid;
+      // Allow read when doc is missing (transaction collision check) or owned by caller.
+      allow read: if signedIn() && (
+          !exists(/databases/$(database)/documents/guestProfiles/$(nicknameKey)) ||
+          resource.data.authUid == request.auth.uid
+        );
       allow create: if signedIn() &&
         request.resource.data.authUid == request.auth.uid &&
         request.resource.data.nicknameKey == nicknameKey;
       allow update, delete: if false;
+    }
+
+    // Booking-code reservations are created only by Cloud Functions (Admin SDK).
+    match /bookingCodes/{bookingNumber} {
+      allow read, write: if false;
     }
 
     match /guestBookings/{bookingCode} {

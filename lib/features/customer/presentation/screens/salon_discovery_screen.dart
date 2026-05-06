@@ -72,6 +72,7 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
           : null,
       child: SafeArea(
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(

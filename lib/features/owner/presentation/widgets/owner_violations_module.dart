@@ -799,6 +799,7 @@ class _PenaltySettingsFormState extends State<_PenaltySettingsForm> {
             label: l10n.ownerPenaltyGraceMinutes,
             controller: _grace,
             keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
           ),
           AppSelectField<String>(
             key: ValueKey<String>('late_calc_$_lateType'),
@@ -824,6 +825,7 @@ class _PenaltySettingsFormState extends State<_PenaltySettingsForm> {
             label: l10n.ownerPenaltyLateValue,
             controller: _lateVal,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
           ),
         ],
         const SizedBox(height: AppSpacing.large),
@@ -863,6 +865,7 @@ class _PenaltySettingsFormState extends State<_PenaltySettingsForm> {
             label: l10n.ownerPenaltyNoShowValue,
             controller: _nsVal,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
           ),
         ],
         const SizedBox(height: AppSpacing.medium),

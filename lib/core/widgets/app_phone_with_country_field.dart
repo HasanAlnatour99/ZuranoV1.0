@@ -19,6 +19,7 @@ class AppPhoneWithCountryField extends StatelessWidget {
     this.nationalErrorText,
     this.enabled = true,
     this.nationalHintText,
+    this.nationalTextInputAction = TextInputAction.done,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class AppPhoneWithCountryField extends StatelessWidget {
   final String? nationalErrorText;
   final bool enabled;
   final String? nationalHintText;
+  final TextInputAction nationalTextInputAction;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +62,7 @@ class AppPhoneWithCountryField extends StatelessWidget {
           hintText: nationalHintText ?? l10n.onboardingMobileNationalHint,
           controller: nationalController,
           keyboardType: TextInputType.phone,
-          textInputAction: TextInputAction.next,
+          textInputAction: nationalTextInputAction,
           errorText: nationalErrorText,
           enabled: enabled,
           inputFormatters: [NationalPhoneInputFormatter()],

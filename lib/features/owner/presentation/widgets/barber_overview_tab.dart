@@ -72,6 +72,7 @@ class BarberOverviewTab extends ConsumerWidget {
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

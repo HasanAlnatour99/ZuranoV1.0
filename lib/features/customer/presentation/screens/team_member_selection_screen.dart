@@ -120,6 +120,7 @@ class _TeamMemberSelectionScreenState
       child: SafeArea(
         bottom: false,
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(

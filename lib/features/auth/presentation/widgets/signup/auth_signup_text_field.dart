@@ -15,6 +15,7 @@ class AuthSignupTextField extends StatelessWidget {
     this.textInputAction,
     this.validator,
     this.onChanged,
+    this.onFieldSubmitted,
     this.suffixIcon,
     this.autofillHints,
     this.inputFormatters,
@@ -30,6 +31,7 @@ class AuthSignupTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
   final Widget? suffixIcon;
   final Iterable<String>? autofillHints;
   final List<TextInputFormatter>? inputFormatters;
@@ -61,6 +63,11 @@ class AuthSignupTextField extends StatelessWidget {
           textInputAction: textInputAction,
           validator: validator,
           onChanged: onChanged,
+          onFieldSubmitted:
+              onFieldSubmitted ??
+              (textInputAction == TextInputAction.done
+                  ? (_) => FocusManager.instance.primaryFocus?.unfocus()
+                  : null),
           autofillHints: autofillHints,
           inputFormatters: inputFormatters,
           autocorrect: autocorrect,

@@ -271,6 +271,7 @@ class _ChangeTemporaryPasswordScreenState
               horizontal: AuthPremiumLayout.screenPadding,
               vertical: AppSpacing.medium,
             ),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

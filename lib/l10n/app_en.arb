@@ -983,6 +983,8 @@
   "customerProfileTabReviews": "Reviews",
   "customerProfileTabAbout": "About",
   "customerProfileBookAppointment": "Book appointment",
+  "customerProfileSlideToBookAppointment": "Slide to book appointment",
+  "customerProfileOpeningBooking": "Opening booking...",
   "customerProfileActionCall": "Call",
   "customerProfileActionWhatsApp": "WhatsApp",
   "customerProfileActionMap": "Map",
@@ -1141,6 +1143,7 @@
   "customerBookingReviewServices": "Services",
   "customerBookingReviewSpecialist": "Specialist",
   "customerBookingReviewDateTime": "Date & Time",
+  "customerBookingReviewDateTimeNotSet": "Not selected",
   "customerBookingReviewCustomer": "Customer",
   "customerBookingReviewPaymentSummary": "Payment summary",
   "customerBookingReviewSubtotal": "Subtotal",
@@ -4111,6 +4114,39 @@
       "second": {"type": "String"}
     }
   },
+  "customerMapFindingLocation": "Finding your location…",
+  "customerMapCouldNotLoadSalons": "Couldn’t load map salons.",
+  "customerMapNoSalonsOnMap": "No salons available on map yet.",
+  "customerMapSalonsOnMapCount": "{count} salons on map",
+  "@customerMapSalonsOnMapCount": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "customerMapPermissionBanner": "Enable location to sort salons by nearest. You can still browse the map.",
+  "customerMapMarkerYouAreHere": "You are here",
+  "customerMapDistanceMeters": "{meters} m away",
+  "@customerMapDistanceMeters": {
+    "placeholders": {
+      "meters": {"type": "String"}
+    }
+  },
+  "customerMapDistanceKm": "{km} km away",
+  "@customerMapDistanceKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "customerMapRatingSummary": "{ratingAvg} ({ratingCount})",
+  "@customerMapRatingSummary": {
+    "placeholders": {
+      "ratingAvg": {"type": "String"},
+      "ratingCount": {"type": "String"}
+    }
+  },
+  "customerMapDetailsCta": "Details",
+  "customerMapStatusOpen": "Open",
+  "customerMapStatusSoon": "Soon",
   "zuranoBottomNavHome": "Home",
   "zuranoBottomNavBookings": "Bookings",
   "zuranoBottomNavRewards": "Rewards",

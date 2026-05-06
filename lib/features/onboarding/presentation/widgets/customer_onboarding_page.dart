@@ -28,6 +28,7 @@ class CustomerOnboardingPage extends StatelessWidget {
       builder: (context, constraints) {
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.only(bottom: 8),
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),

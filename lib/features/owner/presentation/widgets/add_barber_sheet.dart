@@ -1133,6 +1133,7 @@ class _AddBarberSheetState extends ConsumerState<AddBarberSheet> {
                 keyboardType: TextInputType.phone,
                 errorText: _phoneError,
                 enabled: !_saving,
+                textInputAction: TextInputAction.done,
               ),
             ],
             const SizedBox(height: AppSpacing.medium),

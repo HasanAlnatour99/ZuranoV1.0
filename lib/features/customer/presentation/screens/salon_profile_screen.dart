@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_routes.dart' show AppRouteNames;
+import '../../../../core/constants/app_routes.dart' show AppRouteNames, AppRoutes;
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/slide_to_book_button.dart';
 import '../../application/customer_booking_availability_providers.dart';
 import '../../application/customer_salon_profile_providers.dart';
 import '../../data/repositories/customer_salon_profile_repository.dart';
@@ -102,27 +103,20 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
             orElse: () => true,
           );
           return SafeArea(
-            minimum: const EdgeInsets.fromLTRB(
-              AppSpacing.large,
-              0,
-              AppSpacing.large,
-              AppSpacing.medium,
-            ),
-            child: FilledButton(
-              style: CustomerPrimaryButtonStyle.filled(context),
-              onPressed: bookingOpen
-                  ? () {
-                      context.pushNamed(
-                        AppRouteNames.customerServiceSelection,
-                        pathParameters: {'salonId': sid},
-                      );
-                    }
-                  : null,
-              child: Text(
-                bookingOpen
-                    ? l10n.customerProfileBookAppointment
-                    : l10n.customerBookingClosedTitle,
-              ),
+            minimum: const EdgeInsets.only(bottom: AppSpacing.medium),
+            child: SlideToBookButton(
+              enabled: bookingOpen,
+              text: bookingOpen
+                  ? l10n.customerProfileSlideToBookAppointment
+                  : l10n.customerBookingClosedTitle,
+              loadingText: l10n.customerProfileOpeningBooking,
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+              onCompleted: () async {
+                context.pushNamed(
+                  AppRouteNames.customerServiceSelection,
+                  pathParameters: {'salonId': sid},
+                );
+              },
             ),
           );
         },
@@ -188,6 +182,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
     void share() => repo.shareSalon(salon);
 
     return CustomScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         SliverToBoxAdapter(
           child: SizedBox(
@@ -204,7 +199,13 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
                   child: SalonProfileHeader(
                     coverImageUrl: salon.coverImageUrl,
                     favoriteSelected: _favoriteLocal,
-                    onBack: () => context.pop(),
+                    onBack: () {
+                      if (context.canPop()) {
+                        context.pop();
+                        return;
+                      }
+                      context.go(AppRoutes.customerSalonDiscovery);
+                    },
                     onFavoriteTap: () {
                       setState(() => _favoriteLocal = !_favoriteLocal);
                     },
@@ -279,7 +280,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
               AppSpacing.large,
               AppSpacing.medium,
               AppSpacing.large,
-              100,
+              118,
             ),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),

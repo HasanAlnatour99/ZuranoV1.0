@@ -2693,6 +2693,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerProfileBookAppointment => 'Book appointment';
 
   @override
+  String get customerProfileSlideToBookAppointment =>
+      'Slide to book appointment';
+
+  @override
+  String get customerProfileOpeningBooking => 'Opening booking...';
+
+  @override
   String get customerProfileActionCall => 'Call';
 
   @override
@@ -2978,6 +2985,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerBookingReviewDateTime => 'Date & Time';
+
+  @override
+  String get customerBookingReviewDateTimeNotSet => 'Not selected';
 
   @override
   String get customerBookingReviewCustomer => 'Customer';
@@ -10151,6 +10161,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String zuranoNearbyLocationTwoParts(String first, String second) {
     return '$first • $second';
   }
+
+  @override
+  String get customerMapFindingLocation => 'Finding your location…';
+
+  @override
+  String get customerMapCouldNotLoadSalons => 'Couldn’t load map salons.';
+
+  @override
+  String get customerMapNoSalonsOnMap => 'No salons available on map yet.';
+
+  @override
+  String customerMapSalonsOnMapCount(String count) {
+    return '$count salons on map';
+  }
+
+  @override
+  String get customerMapPermissionBanner =>
+      'Enable location to sort salons by nearest. You can still browse the map.';
+
+  @override
+  String get customerMapMarkerYouAreHere => 'You are here';
+
+  @override
+  String customerMapDistanceMeters(String meters) {
+    return '$meters m away';
+  }
+
+  @override
+  String customerMapDistanceKm(String km) {
+    return '$km km away';
+  }
+
+  @override
+  String customerMapRatingSummary(String ratingAvg, String ratingCount) {
+    return '$ratingAvg ($ratingCount)';
+  }
+
+  @override
+  String get customerMapDetailsCta => 'Details';
+
+  @override
+  String get customerMapStatusOpen => 'Open';
+
+  @override
+  String get customerMapStatusSoon => 'Soon';
 
   @override
   String get zuranoBottomNavHome => 'Home';

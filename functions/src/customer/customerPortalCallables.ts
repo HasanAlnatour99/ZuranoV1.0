@@ -129,14 +129,6 @@ function tsToDate(v: unknown): Date | null {
   return null;
 }
 
-function bookingCodeFromDate(startAt: Date): string {
-  const y = startAt.getUTCFullYear();
-  const m = String(startAt.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(startAt.getUTCDate()).padStart(2, "0");
-  const rnd = randomInt(10_000, 100_000);
-  return `ZR-${y}${m}${d}-${rnd}`;
-}
-
 function stableCustomerId(phoneNormalized: string, bookingId: string): string {
   const p = phoneNormalized.trim();
   if (p.length > 0) {
@@ -256,6 +248,10 @@ export const getCustomerAvailability = onCall(CALL, async (request) => {
 export const createCustomerBooking = onCall(CALL, async (request) => {
   const data = request.data as Record<string, unknown>;
   const salonId = requireString(data, "salonId");
+  const callerAuthUid =
+    request.auth?.uid != null && `${request.auth.uid}`.trim().length > 0
+      ? `${request.auth.uid}`.trim()
+      : "";
   const draft = data.draft as Record<string, unknown> | undefined;
   if (!draft || typeof draft !== "object") {
     throw new HttpsError("invalid-argument", "draft is required.");
@@ -313,7 +309,6 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
   const status = settings.autoConfirmBookings
     ? BookingStatuses.confirmed
     : BookingStatuses.pending;
-  const bookingCode = bookingCodeFromDate(startAt);
   const { reportYear, reportMonth, reportPeriodKey } = reportFieldsFromStart(
     startAt,
   );
@@ -345,6 +340,8 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     ? draft.durationMinutes
     : Number(draft.durationMinutes) || 0;
 
+  let bookingCode = "";
+  let bookingSearchKey = "";
   await db.runTransaction(async (tx) => {
     for (const ref of candidateRefs) {
       const snap = await tx.get(ref);
@@ -358,6 +355,30 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
           "slot_unavailable",
         );
       }
+    }
+
+    for (let attempt = 0; attempt < 48; attempt++) {
+      const digits = String(randomInt(100_000, 1_000_000));
+      const candidate = `ZR-${digits}`;
+      const lockRef = db.doc(`bookingCodes/${candidate}`);
+      const lockSnap = await tx.get(lockRef);
+      if (!lockSnap.exists) {
+        bookingCode = candidate;
+        bookingSearchKey = digits;
+        tx.set(lockRef, {
+          bookingNumber: candidate,
+          salonId,
+          bookingId: bookingRef.id,
+          createdAt: now,
+        });
+        break;
+      }
+    }
+    if (bookingCode.length === 0) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "Could not allocate a booking code. Try again.",
+      );
     }
 
     const customerData: Record<string, unknown> = {
@@ -377,9 +398,12 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       createdAt: now,
       updatedAt: now,
     };
+    if (callerAuthUid.length > 0) {
+      customerData.createdByAuthUid = callerAuthUid;
+    }
     tx.set(stableCustomerRef, customerData, { merge: true });
 
-    tx.set(bookingRef, {
+    const bookingWrite: Record<string, unknown> = {
       salonId,
       customerId: customerDocId,
       customerName,
@@ -400,6 +424,7 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       status,
       source: "customer_app",
       bookingCode,
+      bookingSearchKey,
       customerNote: draft.customerNote ?? null,
       customerGender: draft.customerGender ?? null,
       reportYear,
@@ -407,7 +432,11 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       reportPeriodKey,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+    if (callerAuthUid.length > 0) {
+      bookingWrite.createdByAuthUid = callerAuthUid;
+    }
+    tx.set(bookingRef, bookingWrite);
   });
 
   return {

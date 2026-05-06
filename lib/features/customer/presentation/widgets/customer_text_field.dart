@@ -18,6 +18,7 @@ class CustomerTextField extends StatelessWidget {
     this.maxLines = 1,
     this.inputFormatters,
     this.onChanged,
+    this.onSubmitted,
   });
 
   final TextEditingController controller;
@@ -31,6 +32,7 @@ class CustomerTextField extends StatelessWidget {
   final int maxLines;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,11 @@ class CustomerTextField extends StatelessWidget {
       maxLines: maxLines,
       inputFormatters: inputFormatters,
       onChanged: onChanged,
+      onSubmitted:
+          onSubmitted ??
+          (textInputAction == TextInputAction.done
+              ? (_) => FocusManager.instance.primaryFocus?.unfocus()
+              : null),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

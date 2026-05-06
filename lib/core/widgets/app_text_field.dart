@@ -74,7 +74,11 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           textInputAction: textInputAction,
           onChanged: onChanged,
-          onSubmitted: onSubmitted,
+          onSubmitted:
+              onSubmitted ??
+              (textInputAction == TextInputAction.done
+                  ? (_) => FocusManager.instance.primaryFocus?.unfocus()
+                  : null),
           enabled: enabled,
           maxLines: maxLines,
           inputFormatters: inputFormatters,

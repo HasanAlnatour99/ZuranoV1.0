@@ -7,14 +7,20 @@ class FirestorePaths {
   /// Guest display nickname registry (doc id = lowercase nickname key).
   static const guestProfiles = 'guestProfiles';
 
-  /// Cross-salon guest booking index (doc id = public booking code, e.g. ZR-AB12CD).
+  /// Cross-salon guest booking index (doc id = public booking code).
   static const guestBookings = 'guestBookings';
+
+  /// Global lock docs for unique public booking codes (doc id = code string).
+  static const bookingCodes = 'bookingCodes';
 
   static String guestProfile(String nicknameKey) =>
       '$guestProfiles/$nicknameKey';
 
   static String guestBooking(String bookingCode) =>
       '$guestBookings/$bookingCode';
+
+  static String bookingCodeLock(String bookingCode) =>
+      '$bookingCodes/$bookingCode';
 
   /// Public salon browse index (customer discovery). Doc id = salonId.
   static const publicSalons = 'publicSalons';
@@ -73,7 +79,14 @@ class FirestorePaths {
   static const customerDiscoveryCategoriesDoc = 'categories';
   static const customerDiscoveryTrendingServicesDoc = 'trendingServices';
   static const customerDiscoveryBannersDoc = 'banners';
+  static const customerDiscoveryPopularSearchesDoc = 'popularSearches';
   static const customerDiscoveryItems = 'items';
+
+  /// Public customer search index (Cloud Functions maintained).
+  static const customerSearchIndex = 'customerSearchIndex';
+
+  static String customerSearchIndexDoc(String docId) =>
+      '$customerSearchIndex/$docId';
 
   static String user(String uid) => '$users/$uid';
 

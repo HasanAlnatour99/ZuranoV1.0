@@ -2695,6 +2695,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerProfileBookAppointment => 'احجز موعدًا';
 
   @override
+  String get customerProfileSlideToBookAppointment => 'اسحب لحجز موعد';
+
+  @override
+  String get customerProfileOpeningBooking => 'جارٍ فتح الحجز…';
+
+  @override
   String get customerProfileActionCall => 'اتصال';
 
   @override
@@ -2975,6 +2981,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerBookingReviewDateTime => 'التاريخ والوقت';
+
+  @override
+  String get customerBookingReviewDateTimeNotSet => 'غير محدد';
 
   @override
   String get customerBookingReviewCustomer => 'العميل';
@@ -10127,6 +10136,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String zuranoNearbyLocationTwoParts(String first, String second) {
     return '$first • $second';
   }
+
+  @override
+  String get customerMapFindingLocation => 'جارٍ تحديد موقعك…';
+
+  @override
+  String get customerMapCouldNotLoadSalons =>
+      'تعذّر تحميل الصالونات على الخريطة.';
+
+  @override
+  String get customerMapNoSalonsOnMap => 'لا توجد صالونات على الخريطة بعد.';
+
+  @override
+  String customerMapSalonsOnMapCount(String count) {
+    return '$count صالونًا على الخريطة';
+  }
+
+  @override
+  String get customerMapPermissionBanner =>
+      'فعّل الموقع لترتيب الصالونات حسب الأقرب. ما زال بإمكانك تصفّح الخريطة.';
+
+  @override
+  String get customerMapMarkerYouAreHere => 'أنت هنا';
+
+  @override
+  String customerMapDistanceMeters(String meters) {
+    return 'على بُعد $meters م';
+  }
+
+  @override
+  String customerMapDistanceKm(String km) {
+    return 'على بُعد $km كم';
+  }
+
+  @override
+  String customerMapRatingSummary(String ratingAvg, String ratingCount) {
+    return '$ratingAvg ($ratingCount)';
+  }
+
+  @override
+  String get customerMapDetailsCta => 'التفاصيل';
+
+  @override
+  String get customerMapStatusOpen => 'مفتوح';
+
+  @override
+  String get customerMapStatusSoon => 'قريبًا';
 
   @override
   String get zuranoBottomNavHome => 'الرئيسية';

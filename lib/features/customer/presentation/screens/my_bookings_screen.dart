@@ -186,6 +186,7 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
               )
             : CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsetsDirectional.fromSTEB(

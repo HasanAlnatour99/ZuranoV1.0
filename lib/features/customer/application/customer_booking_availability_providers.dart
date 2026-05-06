@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/firebase_providers.dart';
+import '../../../providers/repository_providers.dart';
 import '../data/models/customer_booking_settings.dart';
 import '../data/models/customer_booking_slot.dart';
 import '../data/repositories/customer_booking_availability_repository.dart';
@@ -13,6 +14,7 @@ final customerBookingAvailabilityRepositoryProvider =
     Provider<CustomerBookingAvailabilityRepository>((ref) {
       return FirestoreCustomerBookingAvailabilityRepository(
         ref.watch(firestoreProvider),
+        ref.watch(bookingRepositoryProvider),
       );
     });
 

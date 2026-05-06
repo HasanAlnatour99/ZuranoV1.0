@@ -4880,6 +4880,18 @@ abstract class AppLocalizations {
   /// **'Book appointment'**
   String get customerProfileBookAppointment;
 
+  /// No description provided for @customerProfileSlideToBookAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to book appointment'**
+  String get customerProfileSlideToBookAppointment;
+
+  /// No description provided for @customerProfileOpeningBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening booking...'**
+  String get customerProfileOpeningBooking;
+
   /// No description provided for @customerProfileActionCall.
   ///
   /// In en, this message translates to:
@@ -5371,6 +5383,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date & Time'**
   String get customerBookingReviewDateTime;
+
+  /// No description provided for @customerBookingReviewDateTimeNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not selected'**
+  String get customerBookingReviewDateTimeNotSet;
 
   /// No description provided for @customerBookingReviewCustomer.
   ///
@@ -17775,6 +17793,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{first} • {second}'**
   String zuranoNearbyLocationTwoParts(String first, String second);
+
+  /// No description provided for @customerMapFindingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your location…'**
+  String get customerMapFindingLocation;
+
+  /// No description provided for @customerMapCouldNotLoadSalons.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load map salons.'**
+  String get customerMapCouldNotLoadSalons;
+
+  /// No description provided for @customerMapNoSalonsOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'No salons available on map yet.'**
+  String get customerMapNoSalonsOnMap;
+
+  /// No description provided for @customerMapSalonsOnMapCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} salons on map'**
+  String customerMapSalonsOnMapCount(String count);
+
+  /// No description provided for @customerMapPermissionBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location to sort salons by nearest. You can still browse the map.'**
+  String get customerMapPermissionBanner;
+
+  /// No description provided for @customerMapMarkerYouAreHere.
+  ///
+  /// In en, this message translates to:
+  /// **'You are here'**
+  String get customerMapMarkerYouAreHere;
+
+  /// No description provided for @customerMapDistanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'{meters} m away'**
+  String customerMapDistanceMeters(String meters);
+
+  /// No description provided for @customerMapDistanceKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km away'**
+  String customerMapDistanceKm(String km);
+
+  /// No description provided for @customerMapRatingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{ratingAvg} ({ratingCount})'**
+  String customerMapRatingSummary(String ratingAvg, String ratingCount);
+
+  /// No description provided for @customerMapDetailsCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get customerMapDetailsCta;
+
+  /// No description provided for @customerMapStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get customerMapStatusOpen;
+
+  /// No description provided for @customerMapStatusSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Soon'**
+  String get customerMapStatusSoon;
 
   /// No description provided for @zuranoBottomNavHome.
   ///

@@ -435,6 +435,15 @@
     },
     {
       "collectionGroup": "bookings",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "createdByAuthUid", "order": "ASCENDING" },
+        { "fieldPath": "startAt", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "customerPhoneNormalized", "order": "ASCENDING" },

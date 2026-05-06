@@ -200,6 +200,7 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       child: SafeArea(
         bottom: false,
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -304,10 +305,16 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                       icon: Icons.event_available_outlined,
                       child: _KeyValueLines(
                         lines: [
-                          (
-                            dateFormatter.format(draft.selectedStartAt!),
-                            '${timeFormatter.format(draft.selectedStartAt!)} - ${timeFormatter.format(draft.selectedEndAt!)}',
-                          ),
+                          switch ((draft.selectedStartAt, draft.selectedEndAt)) {
+                            (final s?, final e?) => (
+                              dateFormatter.format(s.toLocal()),
+                              '${timeFormatter.format(s.toLocal())} - ${timeFormatter.format(e.toLocal())}',
+                            ),
+                            _ => (
+                              l10n.customerBookingReviewDateTimeNotSet,
+                              '',
+                            ),
+                          },
                         ],
                       ),
                     ),

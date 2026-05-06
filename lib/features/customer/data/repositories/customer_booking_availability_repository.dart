@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../../bookings/data/booking_repository.dart';
+import '../../../bookings/data/models/booking.dart';
 import '../models/customer_booking_settings.dart';
 
 abstract class CustomerBookingAvailabilityRepository {
@@ -20,9 +22,13 @@ abstract class CustomerBookingAvailabilityRepository {
 
 class FirestoreCustomerBookingAvailabilityRepository
     implements CustomerBookingAvailabilityRepository {
-  FirestoreCustomerBookingAvailabilityRepository(this._firestore);
+  FirestoreCustomerBookingAvailabilityRepository(
+    this._firestore,
+    this._bookings,
+  );
 
   final FirebaseFirestore _firestore;
+  final BookingRepository _bookings;
 
   static const _blockingStatuses = {
     'pending',
@@ -47,38 +53,38 @@ class FirestoreCustomerBookingAvailabilityRepository
     required DateTime date,
     String? excludeBookingId,
   }) async {
-    final day = DateTime(date.year, date.month, date.day);
-    final start = Timestamp.fromDate(day);
-    final end = Timestamp.fromDate(day.add(const Duration(days: 1)));
+    final startLocal = DateTime(date.year, date.month, date.day);
+    final endLocal = DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
 
-    final snap = await _firestore
-        .collection(FirestorePaths.salonBookings(salonId))
-        .where('startAt', isGreaterThanOrEqualTo: start)
-        .where('startAt', isLessThan: end)
-        .get();
+    final List<Booking> masks;
+    try {
+      masks = await _bookings.fetchDayBusyMask(
+        salonId: salonId,
+        startFromUtc: startLocal.toUtc(),
+        startToUtc: endLocal.toUtc(),
+      );
+    } on Object {
+      return const [];
+    }
 
-    return snap.docs
-        .where((doc) => excludeBookingId == null || doc.id != excludeBookingId)
-        .map((doc) => doc.data())
-        .where((data) {
-          final status = '${data['status'] ?? ''}'.trim();
-          return _blockingStatuses.contains(status);
+    return masks
+        .where((b) {
+          if (excludeBookingId != null &&
+              excludeBookingId.isNotEmpty &&
+              b.id == excludeBookingId) {
+            return false;
+          }
+          return _blockingStatuses.contains(b.status.trim());
         })
-        .map((data) {
-          final employeeId =
-              (data['employeeId'] as String?) ?? (data['barberId'] as String?);
-          final employeeName =
-              (data['employeeName'] as String?) ??
-              (data['barberName'] as String?);
+        .map((b) {
           return <String, dynamic>{
-            'employeeId': employeeId,
-            'employeeName': employeeName,
-            'startAt': _dateTime(data['startAt']),
-            'endAt': _dateTime(data['endAt']),
-            'status': data['status'],
+            'employeeId': b.barberId,
+            'employeeName': b.barberName,
+            'startAt': b.startAt,
+            'endAt': b.endAt,
+            'status': b.status,
           };
         })
-        .where((data) => data['startAt'] != null && data['endAt'] != null)
         .toList(growable: false);
   }
 
@@ -98,16 +104,6 @@ class FirestoreCustomerBookingAvailabilityRepository
       }
     }
     return const {'open': true, 'start': '09:00', 'end': '21:00'};
-  }
-
-  static DateTime? _dateTime(Object? value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
-    if (value is DateTime) {
-      return value;
-    }
-    return null;
   }
 
   static String _weekdayKey(int weekday) {

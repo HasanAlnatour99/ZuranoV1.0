@@ -678,7 +678,8 @@ class _CustomerBookingScreenState extends ConsumerState<CustomerBookingScreen> {
                 AppTextField(
                   controller: _notesController,
                   label: l10n.customerNotes,
-                  textInputAction: TextInputAction.done,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
                   maxLines: 3,
                   onChanged: (v) => ref
                       .read(

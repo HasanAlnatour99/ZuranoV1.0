@@ -967,6 +967,8 @@
   "customerProfileTabReviews": "التقييمات",
   "customerProfileTabAbout": "عن الصالون",
   "customerProfileBookAppointment": "احجز موعدًا",
+  "customerProfileSlideToBookAppointment": "اسحب لحجز موعد",
+  "customerProfileOpeningBooking": "جارٍ فتح الحجز…",
   "customerProfileActionCall": "اتصال",
   "customerProfileActionWhatsApp": "واتساب",
   "customerProfileActionMap": "الخريطة",
@@ -1125,6 +1127,7 @@
   "customerBookingReviewServices": "الخدمات",
   "customerBookingReviewSpecialist": "المختص",
   "customerBookingReviewDateTime": "التاريخ والوقت",
+  "customerBookingReviewDateTimeNotSet": "غير محدد",
   "customerBookingReviewCustomer": "العميل",
   "customerBookingReviewPaymentSummary": "ملخص الدفع",
   "customerBookingReviewSubtotal": "المجموع الفرعي",
@@ -4034,6 +4037,39 @@
       "second": {"type": "String"}
     }
   },
+  "customerMapFindingLocation": "جارٍ تحديد موقعك…",
+  "customerMapCouldNotLoadSalons": "تعذّر تحميل الصالونات على الخريطة.",
+  "customerMapNoSalonsOnMap": "لا توجد صالونات على الخريطة بعد.",
+  "customerMapSalonsOnMapCount": "{count} صالونًا على الخريطة",
+  "@customerMapSalonsOnMapCount": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "customerMapPermissionBanner": "فعّل الموقع لترتيب الصالونات حسب الأقرب. ما زال بإمكانك تصفّح الخريطة.",
+  "customerMapMarkerYouAreHere": "أنت هنا",
+  "customerMapDistanceMeters": "على بُعد {meters} م",
+  "@customerMapDistanceMeters": {
+    "placeholders": {
+      "meters": {"type": "String"}
+    }
+  },
+  "customerMapDistanceKm": "على بُعد {km} كم",
+  "@customerMapDistanceKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "customerMapRatingSummary": "{ratingAvg} ({ratingCount})",
+  "@customerMapRatingSummary": {
+    "placeholders": {
+      "ratingAvg": {"type": "String"},
+      "ratingCount": {"type": "String"}
+    }
+  },
+  "customerMapDetailsCta": "التفاصيل",
+  "customerMapStatusOpen": "مفتوح",
+  "customerMapStatusSoon": "قريبًا",
   "zuranoBottomNavHome": "الرئيسية",
   "zuranoBottomNavBookings": "الحجوزات",
   "zuranoBottomNavRewards": "المكافآت",

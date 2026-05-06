@@ -67,6 +67,7 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     return CustomerGradientScaffold(
       child: SafeArea(
         child: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverFillRemaining(
               hasScrollBody: false,
