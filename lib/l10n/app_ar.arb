@@ -967,6 +967,7 @@
   "customerSalonClosedBadge": "مغلق",
   "customerSalonFilterNearby": "بالقرب",
   "customerSalonFilterOpenNow": "مفتوح الآن",
+  "customerSalonFilterAvailableToday": "متاح اليوم",
   "customerSalonFilterTopRated": "الأعلى تقييماً",
   "customerSalonFilterOffers": "عروض",
   "customerSalonFilterLadies": "سيدات",
@@ -3827,6 +3828,7 @@
   "ownerCustomerBookingPublicPhone": "الهاتف العام",
   "ownerCustomerBookingPublicWhatsapp": "واتساب العام",
   "ownerCustomerBookingGenderTarget": "الفئة",
+  "ownerCustomerBookingGenderTargetSectionHint": "من يخدمه الصالون بشكل أساسي — يظهر للعملاء عند التصفح.",
   "ownerCustomerBookingGenderMen": "رجال",
   "ownerCustomerBookingGenderLadies": "سيدات",
   "ownerCustomerBookingGenderUnisex": "للجميع",
@@ -4378,6 +4380,16 @@
   "customerPlacesEmpty": "لا توجد أماكن حتى الآن",
   "customerPlacesLoadError": "تعذّر تحميل الأماكن.",
   "customerPlacesFilterTooltip": "تصفية",
+
+  "placeCardNewLabel": "جديد",
+  "placeCardSlotsTodayCount": "{count} مواعيد متاحة اليوم",
+  "@placeCardSlotsTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "placeCardLocationUnavailable": "الموقع غير متاح"
 }

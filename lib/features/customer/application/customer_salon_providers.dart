@@ -38,6 +38,7 @@ class CustomerSalonDiscoveryFilters {
   const CustomerSalonDiscoveryFilters({
     this.nearby = false,
     this.openNow = false,
+    this.availableToday = false,
     this.topRated = false,
     this.offers = false,
     this.ladies = false,
@@ -47,6 +48,7 @@ class CustomerSalonDiscoveryFilters {
 
   final bool nearby;
   final bool openNow;
+  final bool availableToday;
   final bool topRated;
   final bool offers;
   final bool ladies;
@@ -56,6 +58,7 @@ class CustomerSalonDiscoveryFilters {
   CustomerSalonDiscoveryFilters copyWith({
     bool? nearby,
     bool? openNow,
+    bool? availableToday,
     bool? topRated,
     bool? offers,
     bool? ladies,
@@ -65,6 +68,7 @@ class CustomerSalonDiscoveryFilters {
     return CustomerSalonDiscoveryFilters(
       nearby: nearby ?? this.nearby,
       openNow: openNow ?? this.openNow,
+      availableToday: availableToday ?? this.availableToday,
       topRated: topRated ?? this.topRated,
       offers: offers ?? this.offers,
       ladies: ladies ?? this.ladies,
@@ -98,6 +102,11 @@ List<SalonPublicModel> _applyDiscoveryFilters(
   var list = salons;
   if (filters.openNow) {
     list = list.where((s) => s.isOpen).toList(growable: false);
+  }
+  if (filters.availableToday) {
+    list = list
+        .where((s) => s.meetsAvailableTodayFilter)
+        .toList(growable: false);
   }
   if (filters.topRated) {
     list = list.where((s) => s.ratingAverage >= 4.0).toList(growable: false);

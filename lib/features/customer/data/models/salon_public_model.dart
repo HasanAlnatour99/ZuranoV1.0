@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/booking/availability_schedule.dart';
 import '../../../../core/utils/currency_for_country.dart';
+import '../../domain/customer_available_today_logic.dart';
+import '../../domain/customer_salon_audience.dart';
 
 /// Denormalized public salon row under `publicSalons/{salonId}` for guest browse.
 class SalonPublicModel {
@@ -17,6 +20,11 @@ class SalonPublicModel {
     required this.isPublic,
     required this.isActive,
     required this.isOpen,
+    required this.isClosedToday,
+    required this.isAvailableToday,
+    required this.todayAvailableSlotsCount,
+    this.nextAvailableAt,
+    this.openingStatusUpdatedAt,
     required this.ratingAverage,
     required this.ratingCount,
     required this.startingPrice,
@@ -26,6 +34,7 @@ class SalonPublicModel {
     this.serviceKeywords = const [],
     this.createdAt,
     this.updatedAt,
+    this.weeklyAvailability,
   });
 
   final String id;
@@ -42,6 +51,22 @@ class SalonPublicModel {
   final bool isPublic;
   final bool isActive;
   final bool isOpen;
+
+  /// Salon does not operate today or is marked closed (holiday / day off).
+  final bool isClosedToday;
+
+  /// Backend flag: has bookable availability today (see [meetsAvailableTodayFilter]).
+  final bool isAvailableToday;
+
+  /// Remaining bookable slots today (denormalized).
+  final int todayAvailableSlotsCount;
+
+  /// Next bookable time from backend aggregation.
+  final DateTime? nextAvailableAt;
+
+  /// When opening / availability fields were last refreshed.
+  final DateTime? openingStatusUpdatedAt;
+
   final double ratingAverage;
   final int ratingCount;
   final double startingPrice;
@@ -58,6 +83,18 @@ class SalonPublicModel {
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// When mirrored from salon doc — used if slot aggregation fields are absent.
+  final WeeklyAvailability? weeklyAvailability;
+
+  /// Discovery rule: backend slot fields when present, else [weeklyAvailability].
+  bool get meetsAvailableTodayFilter => salonPassesAvailableTodayDiscovery(
+        isClosedToday: isClosedToday,
+        isAvailableToday: isAvailableToday,
+        todayAvailableSlotsCount: todayAvailableSlotsCount,
+        openingStatusUpdatedAt: openingStatusUpdatedAt,
+        weeklyAvailability: weeklyAvailability,
+      );
 
   static DateTime? _ts(Timestamp? t) => t?.toDate();
 
@@ -120,15 +157,23 @@ class SalonPublicModel {
       isPublic: data['isPublic'] == true,
       isActive: data['isActive'] == true,
       isOpen: data['isOpen'] == true,
+      isClosedToday: data['isClosedToday'] == true,
+      isAvailableToday: data['isAvailableToday'] == true,
+      todayAvailableSlotsCount: _int(data['todayAvailableSlotsCount'], 0),
+      nextAvailableAt: _ts(data['nextAvailableAt'] as Timestamp?),
+      openingStatusUpdatedAt:
+          _ts(data['openingStatusUpdatedAt'] as Timestamp?),
       ratingAverage: _double(data['ratingAverage'], 0).clamp(0.0, 5.0),
       ratingCount: _int(data['ratingCount'], 0),
       startingPrice: _double(data['startingPrice'], 0),
-      genderTarget: (data['genderTarget'] as String?)?.trim().toLowerCase(),
+      genderTarget: readSalonAudienceForCustomers(data),
       searchKeywords: _stringList(data['searchKeywords']),
       areaKeywords: _stringList(data['areaKeywords']),
       serviceKeywords: _stringList(data['serviceKeywords']),
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
+      weeklyAvailability:
+          WeeklyAvailability.maybeParse(data['weeklyAvailability']),
     );
   }
 
@@ -171,15 +216,23 @@ class SalonPublicModel {
       isPublic: published && isActive,
       isActive: isActive,
       isOpen: data['isOpen'] == true,
+      isClosedToday: data['isClosedToday'] == true,
+      isAvailableToday: data['isAvailableToday'] == true,
+      todayAvailableSlotsCount: _int(data['todayAvailableSlotsCount'], 0),
+      nextAvailableAt: _ts(data['nextAvailableAt'] as Timestamp?),
+      openingStatusUpdatedAt:
+          _ts(data['openingStatusUpdatedAt'] as Timestamp?),
       ratingAverage: _double(data['ratingAverage'], 0).clamp(0.0, 5.0),
       ratingCount: _int(data['ratingCount'], 0),
       startingPrice: _double(data['startingPrice'], 0),
-      genderTarget: (data['genderTarget'] as String?)?.trim().toLowerCase(),
+      genderTarget: readSalonAudienceForCustomers(data),
       searchKeywords: _stringList(data['searchKeywords']),
       areaKeywords: const [],
       serviceKeywords: const [],
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
+      weeklyAvailability:
+          WeeklyAvailability.maybeParse(data['weeklyAvailability']),
     );
   }
 }

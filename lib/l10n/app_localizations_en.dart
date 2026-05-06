@@ -2693,6 +2693,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerSalonFilterOpenNow => 'Open now';
 
   @override
+  String get customerSalonFilterAvailableToday => 'Available today';
+
+  @override
   String get customerSalonFilterTopRated => 'Top rated';
 
   @override
@@ -9612,6 +9615,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerCustomerBookingGenderTarget => 'Gender target';
 
   @override
+  String get ownerCustomerBookingGenderTargetSectionHint =>
+      'Who your salon primarily serves — customers use this when browsing.';
+
+  @override
   String get ownerCustomerBookingGenderMen => 'Men';
 
   @override
@@ -10944,6 +10951,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerPlacesFilterTooltip => 'Filters';
+
+  @override
+  String get placeCardNewLabel => 'New';
+
+  @override
+  String placeCardSlotsTodayCount(int count) {
+    return '$count slots today';
+  }
 
   @override
   String get placeCardLocationUnavailable => 'Location not available';

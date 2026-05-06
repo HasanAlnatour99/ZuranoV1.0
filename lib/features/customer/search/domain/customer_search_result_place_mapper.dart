@@ -27,6 +27,11 @@ extension CustomerSearchResultPlaceMapper on CustomerSearchResult {
       hasOffer: hasOffer,
       searchKeywords: searchKeywords,
       isOpenNowCache: isOpenNow,
+      isClosedToday: false,
+      isAvailableToday: false,
+      todayAvailableSlotsCount: 0,
+      nextAvailableAt: null,
+      openingStatusUpdatedAt: null,
     );
   }
 }

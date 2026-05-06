@@ -15,8 +15,12 @@ import 'place_status_chip.dart';
 
 /// Visual density for [PremiumPlaceCard].
 enum PlaceCardVariant {
-  large,
+  /// Hero / tall tile (e.g. home discovery).
+  featured,
+
+  /// Dense list row (e.g. salon discovery list).
   compact,
+
   mapPreview,
 }
 
@@ -32,10 +36,10 @@ class PremiumPlaceCard extends StatelessWidget {
     required this.isClosed,
     required this.onTap,
     required this.onFavoriteTap,
-    this.variant = PlaceCardVariant.large,
+    this.variant = PlaceCardVariant.featured,
   });
 
-  const PremiumPlaceCard.large({
+  const PremiumPlaceCard.featured({
     Key? key,
     required CustomerPlaceModel place,
     required String distanceOverlayLine,
@@ -55,7 +59,7 @@ class PremiumPlaceCard extends StatelessWidget {
           isClosed: isClosed,
           onTap: onTap,
           onFavoriteTap: onFavoriteTap,
-          variant: PlaceCardVariant.large,
+          variant: PlaceCardVariant.featured,
         );
 
   const PremiumPlaceCard.compact({
@@ -131,7 +135,7 @@ class PremiumPlaceCard extends StatelessWidget {
           onTap: onTap,
           onFavoriteTap: onFavoriteTap,
         );
-      case PlaceCardVariant.large:
+      case PlaceCardVariant.featured:
         return _PremiumLargePlaceCard(
           place: place,
           distanceOverlayLine: distanceOverlayLine,
@@ -254,7 +258,7 @@ class _PremiumLargePlaceCard extends StatelessWidget {
   }
 }
 
-const double _kCompactThumbSize = 96;
+const double _kCompactThumbSize = 104;
 
 /// Dense list row (~100–112px): fits ~5 cards per typical phone viewport when scrolling.
 class _PremiumCompactPlaceCard extends StatelessWidget {
@@ -287,6 +291,15 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
     final typeLabel = _formatTypeLabel(context, place.type);
 
     final hasDistance = _hasUsableDistance(l10n, distanceMetaTitle);
+    final showSlotsLine =
+        place.todayAvailableSlotsCount > 0 && !place.isClosedToday;
+    final showPrice = place.minServicePrice > 0;
+
+    const secondaryMeta = TextStyle(
+      fontSize: 12,
+      color: PlaceDiscoveryColors.textSecondary,
+      fontWeight: FontWeight.w600,
+    );
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -311,7 +324,7 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _CompactThumbnail(
                   imageUrl: place.coverImageUrl,
@@ -359,84 +372,50 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            size: 15,
-                            color: PlaceDiscoveryColors.gold,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            place.ratingAvg.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: PlaceDiscoveryColors.gold,
-                            ),
-                          ),
-                          if (place.ratingCount > 0) ...[
-                            const Text(
-                              ' · ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: PlaceDiscoveryColors.textSecondary,
-                              ),
-                            ),
-                            Flexible(
-                              child: Text(
-                                l10n.placeCardReviewsCount(place.ratingCount),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: PlaceDiscoveryColors.textSecondary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                          const Text(
-                            ' · ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: PlaceDiscoveryColors.textSecondary,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              _distanceTypeLine(
-                                l10n: l10n,
-                                distanceMetaTitle: distanceMetaTitle,
-                                typeLabel: typeLabel,
-                                hasDistance: hasDistance,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: hasDistance
-                                    ? FontWeight.w800
-                                    : FontWeight.w500,
-                                color: hasDistance
-                                    ? PlaceDiscoveryColors.textPrimary
-                                    : PlaceDiscoveryColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${l10n.placePriceFromLabel} ${place.currency} ${place.formattedMinPriceAmount}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: PlaceDiscoveryColors.primary,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 0,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: _compactMetaSegments(
+                          place: place,
+                          l10n: l10n,
+                          typeLabel: typeLabel,
+                          hasDistance: hasDistance,
+                          distanceMetaTitle: distanceMetaTitle,
+                          secondaryMeta: secondaryMeta,
+                        ),
                       ),
+                      if (showSlotsLine) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.placeCardSlotsTodayCount(
+                            place.todayAvailableSlotsCount,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: PlaceDiscoveryColors.primary,
+                          ),
+                        ),
+                      ],
+                      if (showPrice) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          '${l10n.placePriceFromLabel} '
+                          '${place.currency} '
+                          '${place.formattedMinPriceAmount}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: PlaceDiscoveryColors.primary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -451,13 +430,13 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
                         customBorder: const CircleBorder(),
                         onTap: onFavoriteTap,
                         child: SizedBox(
-                          width: 40,
-                          height: 40,
+                          width: 34,
+                          height: 34,
                           child: Icon(
                             isFavorite
                                 ? Icons.favorite_rounded
                                 : Icons.favorite_border_rounded,
-                            size: 20,
+                            size: 18,
                             color: PlaceDiscoveryColors.primary,
                           ),
                         ),
@@ -472,7 +451,7 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
                         child: Icon(
                           Icons.chevron_right_rounded,
                           color: PlaceDiscoveryColors.primaryDark,
-                          size: 24,
+                          size: 22,
                         ),
                       ),
                     ),
@@ -484,6 +463,91 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Rating / reviews / optional distance / venue type — wraps instead of clipping.
+  static List<Widget> _compactMetaSegments({
+    required CustomerPlaceModel place,
+    required AppLocalizations l10n,
+    required String typeLabel,
+    required bool hasDistance,
+    required String distanceMetaTitle,
+    required TextStyle secondaryMeta,
+  }) {
+    final out = <Widget>[];
+
+    Text sep() => Text(' · ', style: secondaryMeta);
+
+    if (place.ratingCount > 0) {
+      out.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.star_rounded,
+              size: 15,
+              color: PlaceDiscoveryColors.gold,
+            ),
+            const SizedBox(width: 3),
+            Text(
+              place.ratingAvg.toStringAsFixed(1),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: PlaceDiscoveryColors.gold,
+              ),
+            ),
+          ],
+        ),
+      );
+      out.add(sep());
+      out.add(
+        Text(
+          l10n.placeCardReviewsCount(place.ratingCount),
+          style: secondaryMeta,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    } else {
+      out.add(
+        Text(
+          l10n.placeCardNewLabel,
+          style: secondaryMeta.copyWith(
+            color: PlaceDiscoveryColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
+    if (hasDistance) {
+      out.add(sep());
+      out.add(
+        Text(
+          distanceMetaTitle,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: PlaceDiscoveryColors.textPrimary,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      );
+    }
+
+    out.add(sep());
+    out.add(
+      Text(
+        typeLabel,
+        style: secondaryMeta,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+
+    return out;
   }
 
   String _formatTypeLabel(BuildContext context, String value) {
@@ -506,19 +570,6 @@ class _PremiumCompactPlaceCard extends StatelessWidget {
       return false;
     }
     return true;
-  }
-
-  /// Distance (km) when available, else em dash; always shows venue [type] after a separator.
-  String _distanceTypeLine({
-    required AppLocalizations l10n,
-    required String distanceMetaTitle,
-    required String typeLabel,
-    required bool hasDistance,
-  }) {
-    final dist = hasDistance
-        ? distanceMetaTitle
-        : l10n.placeCardDistanceUnavailable;
-    return '$dist · $typeLabel';
   }
 }
 

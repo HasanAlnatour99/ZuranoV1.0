@@ -2695,6 +2695,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerSalonFilterOpenNow => 'مفتوح الآن';
 
   @override
+  String get customerSalonFilterAvailableToday => 'متاح اليوم';
+
+  @override
   String get customerSalonFilterTopRated => 'الأعلى تقييماً';
 
   @override
@@ -9587,6 +9590,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerCustomerBookingGenderTarget => 'الفئة';
 
   @override
+  String get ownerCustomerBookingGenderTargetSectionHint =>
+      'من يخدمه الصالون بشكل أساسي — يظهر للعملاء عند التصفح.';
+
+  @override
   String get ownerCustomerBookingGenderMen => 'رجال';
 
   @override
@@ -10916,6 +10923,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerPlacesFilterTooltip => 'تصفية';
+
+  @override
+  String get placeCardNewLabel => 'جديد';
+
+  @override
+  String placeCardSlotsTodayCount(int count) {
+    return '$count مواعيد متاحة اليوم';
+  }
 
   @override
   String get placeCardLocationUnavailable => 'الموقع غير متاح';

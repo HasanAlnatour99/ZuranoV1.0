@@ -9,7 +9,6 @@ import '../../../../../l10n/app_localizations.dart';
 import '../../../../customer_home/presentation/controllers/customer_location_providers.dart';
 import '../../providers/customer_places_provider.dart';
 import '../../utils/distance_utils.dart';
-import '../../utils/opening_hours_utils.dart';
 import '../widgets/premium_place_card.dart';
 
 /// Standalone “Places” list — same cards as the Discover tab; useful for deep links
@@ -125,9 +124,7 @@ class CustomerPlacesScreen extends ConsumerWidget {
                     );
                     final showDist =
                         parts.overlayLine != l10n.placeCardDistanceUnavailable;
-                    final isClosed = place.isOpenNowCache != null
-                        ? !place.isOpenNowCache!
-                        : OpeningHoursUtils.isClosedNow(place.openingHours);
+                    final isClosed = !place.isOpenNowEffective;
 
                     return PremiumPlaceCard.compact(
                       place: place,

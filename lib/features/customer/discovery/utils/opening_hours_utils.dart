@@ -1,6 +1,54 @@
+import '../../../../core/booking/availability_schedule.dart';
+
 /// Parses `openingHours` maps shaped like `{ monday: { open, close, isClosed } }`.
+///
+/// Also supports owner-configured [WeeklyAvailability] on `salons/{salonId}` when
+/// `openingHours` / `isOpenNow` are absent.
 class OpeningHoursUtils {
   OpeningHoursUtils._();
+
+  /// Returns `true` when the salon is **closed right now** using [WeeklyAvailability]
+  /// (local device time vs open/close minutes for today's weekday).
+  ///
+  /// Missing weekday entry, day off, outside window, or inside a break ⇒ closed.
+  static bool isClosedNowFromWeeklyAvailability(WeeklyAvailability weekly) {
+    final now = DateTime.now();
+    final weekday = now.weekday;
+    final day = weekly.dayIfSet(weekday);
+    if (day == null) {
+      return true;
+    }
+    if (day.isDayOff) {
+      return true;
+    }
+    final minuteOfDay = now.hour * 60 + now.minute;
+    if (minuteOfDay < day.openMinute || minuteOfDay >= day.closeMinute) {
+      return true;
+    }
+    for (final br in day.breaks) {
+      if (minuteOfDay >= br.$1 && minuteOfDay < br.$2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// True when today’s [WeeklyAvailability] still has time **before [closeMinute]**
+  /// (salon not day-off today). Used when slot-count fields are not on Firestore yet.
+  ///
+  /// Includes “opens later today” (before [openMinute]) and currently open.
+  static bool hasBookableWindowRemainingToday(WeeklyAvailability? weekly) {
+    if (weekly == null) {
+      return false;
+    }
+    final now = DateTime.now();
+    final day = weekly.dayIfSet(now.weekday);
+    if (day == null || day.isDayOff) {
+      return false;
+    }
+    final minuteOfDay = now.hour * 60 + now.minute;
+    return minuteOfDay < day.closeMinute;
+  }
 
   /// Returns `true` when the venue should be treated as **closed right now**
   /// (missing data → closed).

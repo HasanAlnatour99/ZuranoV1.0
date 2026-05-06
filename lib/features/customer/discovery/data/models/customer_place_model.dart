@@ -1,5 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../../core/booking/availability_schedule.dart';
+import '../../../domain/customer_available_today_logic.dart';
+import '../../../domain/customer_salon_audience.dart';
+import '../../utils/opening_hours_utils.dart';
+
 /// Customer-facing salon row from `salons/{salonId}` for discovery cards.
 class CustomerPlaceModel {
   const CustomerPlaceModel({
@@ -20,10 +25,16 @@ class CustomerPlaceModel {
     required this.currency,
     this.location,
     this.openingHours,
+    this.weeklyAvailability,
     this.genderTarget,
     this.hasOffer = false,
     this.searchKeywords = const [],
     this.isOpenNowCache,
+    this.isClosedToday = false,
+    this.isAvailableToday = false,
+    this.todayAvailableSlotsCount = 0,
+    this.nextAvailableAt,
+    this.openingStatusUpdatedAt,
   });
 
   final String id;
@@ -44,6 +55,9 @@ class CustomerPlaceModel {
   final GeoPoint? location;
   final Map<String, dynamic>? openingHours;
 
+  /// Owner weekly hours (`salons/{salonId}` — same shape as [Salon.weeklyAvailability]).
+  final WeeklyAvailability? weeklyAvailability;
+
   /// Optional browse filters (may be absent on older salon docs).
   final String? genderTarget;
   final bool hasOffer;
@@ -52,10 +66,70 @@ class CustomerPlaceModel {
   /// Denormalized cache when present (`true` = open now at last write).
   final bool? isOpenNowCache;
 
+  /// Salon does not operate today or owner marked day off.
+  final bool isClosedToday;
+
+  /// Denormalized: backend slot aggregation says slots exist today.
+  final bool isAvailableToday;
+
+  final int todayAvailableSlotsCount;
+
+  final DateTime? nextAvailableAt;
+
+  final DateTime? openingStatusUpdatedAt;
+
+  /// Discovery filter for “Available today” (not the same as [isOpenNowCache]).
+  ///
+  /// Uses backend slot fields when present; otherwise approximates from
+  /// [weeklyAvailability] until aggregation is deployed.
+  bool get meetsAvailableTodayFilter => salonPassesAvailableTodayDiscovery(
+        isClosedToday: isClosedToday,
+        isAvailableToday: isAvailableToday,
+        todayAvailableSlotsCount: todayAvailableSlotsCount,
+        openingStatusUpdatedAt: openingStatusUpdatedAt,
+        weeklyAvailability: weeklyAvailability,
+      );
+
+  /// Open **right now** for discovery chips and “Open now” filter.
+  ///
+  /// Precedence: denormalized [isOpenNowCache] → legacy [openingHours] map →
+  /// [weeklyAvailability] from owner settings. If none apply, closed.
+  bool get isOpenNowEffective {
+    if (isOpenNowCache != null) {
+      return isOpenNowCache!;
+    }
+    if (openingHours != null && openingHours!.isNotEmpty) {
+      return !OpeningHoursUtils.isClosedNow(openingHours);
+    }
+    if (weeklyAvailability != null) {
+      return !OpeningHoursUtils.isClosedNowFromWeeklyAvailability(
+        weeklyAvailability!,
+      );
+    }
+    return false;
+  }
+
   factory CustomerPlaceModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data() ?? {};
+
+    DateTime? ts(dynamic v) {
+      if (v is Timestamp) {
+        return v.toDate();
+      }
+      return null;
+    }
+
+    int intField(dynamic v, int fallback) {
+      if (v is int) {
+        return v;
+      }
+      if (v is num) {
+        return v.round();
+      }
+      return fallback;
+    }
 
     final keywordsRaw = data['searchKeywords'];
     final keywords = <String>[];
@@ -98,12 +172,19 @@ class CustomerPlaceModel {
       openingHours: data['openingHours'] is Map<String, dynamic>
           ? Map<String, dynamic>.from(data['openingHours'] as Map)
           : null,
-      genderTarget: data['genderTarget']?.toString(),
+      weeklyAvailability:
+          WeeklyAvailability.maybeParse(data['weeklyAvailability']),
+      genderTarget: readSalonAudienceForCustomers(data),
       hasOffer: data['hasOffer'] == true,
       searchKeywords: keywords,
       isOpenNowCache: data['isOpenNow'] is bool
           ? data['isOpenNow'] as bool
           : null,
+      isClosedToday: data['isClosedToday'] == true,
+      isAvailableToday: data['isAvailableToday'] == true,
+      todayAvailableSlotsCount: intField(data['todayAvailableSlotsCount'], 0),
+      nextAvailableAt: ts(data['nextAvailableAt']),
+      openingStatusUpdatedAt: ts(data['openingStatusUpdatedAt']),
     );
   }
 

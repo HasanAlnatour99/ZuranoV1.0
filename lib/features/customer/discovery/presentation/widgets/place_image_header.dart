@@ -124,32 +124,42 @@ class _RatingOverlay extends StatelessWidget {
         children: [
           const Icon(Icons.star_rounded, color: PlaceDiscoveryColors.gold, size: 20),
           const SizedBox(width: 6),
-          Text(
-            rating.toStringAsFixed(1),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          Container(
-            height: 16,
-            width: 1,
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-            color: Colors.white.withValues(alpha: 0.45),
-          ),
-          Flexible(
-            child: Text(
-              l10n.placeCardReviewsCount(reviewCount),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          if (reviewCount > 0) ...[
+            Text(
+              rating.toStringAsFixed(1),
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
+            Container(
+              height: 16,
+              width: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              color: Colors.white.withValues(alpha: 0.45),
+            ),
+            Flexible(
+              child: Text(
+                l10n.placeCardReviewsCount(reviewCount),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ] else
+            Text(
+              l10n.placeCardNewLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
         ],
       ),
     );

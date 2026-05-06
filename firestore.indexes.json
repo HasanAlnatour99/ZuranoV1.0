@@ -20,6 +20,18 @@
       ]
     },
     {
+      "collectionGroup": "publicSalons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isAvailableToday", "order": "ASCENDING" },
+        { "fieldPath": "isClosedToday", "order": "ASCENDING" },
+        { "fieldPath": "todayAvailableSlotsCount", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "customerSearchIndex",
       "queryScope": "COLLECTION",
       "fields": [

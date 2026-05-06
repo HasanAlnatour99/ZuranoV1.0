@@ -34,8 +34,11 @@ class PlaceMetaRow extends StatelessWidget {
             child: _MetaItem(
               icon: Icons.star_border_rounded,
               iconColor: PlaceDiscoveryColors.gold,
-              title: rating.toStringAsFixed(1),
-              subtitle: l10n.placeCardReviewsCount(reviewCount),
+              title: reviewCount > 0
+                  ? rating.toStringAsFixed(1)
+                  : l10n.placeCardNewLabel,
+              subtitle:
+                  reviewCount > 0 ? l10n.placeCardReviewsCount(reviewCount) : '',
             ),
           ),
           const _Divider(),
@@ -103,17 +106,19 @@ class _MetaItem extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: PlaceDiscoveryColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: PlaceDiscoveryColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

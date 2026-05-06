@@ -16,7 +16,6 @@ import '../../application/customer_salon_providers.dart';
 import '../../discovery/presentation/widgets/premium_place_card.dart';
 import '../../discovery/providers/customer_places_provider.dart';
 import '../../discovery/utils/distance_utils.dart';
-import '../../discovery/utils/opening_hours_utils.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 
 class SalonDiscoveryScreen extends ConsumerStatefulWidget {
@@ -177,6 +176,15 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                           _toggleFilter((f) => f.copyWith(openNow: !f.openNow)),
                     ),
                     _FilterChip(
+                      label: l10n.customerSalonFilterAvailableToday,
+                      selected: filters.availableToday,
+                      onTap: () => _toggleFilter(
+                        (f) => f.copyWith(
+                          availableToday: !f.availableToday,
+                        ),
+                      ),
+                    ),
+                    _FilterChip(
                       label: l10n.customerSalonFilterTopRated,
                       selected: filters.topRated,
                       onTap: () => _toggleFilter(
@@ -278,9 +286,7 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                       );
                       final showDist =
                           parts.overlayLine != l10n.placeCardDistanceUnavailable;
-                      final isClosed = place.isOpenNowCache != null
-                          ? !place.isOpenNowCache!
-                          : OpeningHoursUtils.isClosedNow(place.openingHours);
+                      final isClosed = !place.isOpenNowEffective;
 
                       return PremiumPlaceCard.compact(
                         place: place,

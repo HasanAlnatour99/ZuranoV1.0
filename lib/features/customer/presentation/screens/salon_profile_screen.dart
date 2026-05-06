@@ -69,14 +69,27 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
   }
 
   String _genderLabel(AppLocalizations l10n, String? raw) {
-    final g = raw?.trim();
+    final g = raw?.trim().toLowerCase();
     if (g == null || g.isEmpty) {
-      return '—';
+      return l10n.placeCardDistanceUnavailable;
     }
-    final pretty = g.length == 1
-        ? g.toUpperCase()
-        : '${g[0].toUpperCase()}${g.substring(1).toLowerCase()}';
-    return l10n.customerProfileGenderValue(pretty);
+    switch (g) {
+      case 'men':
+      case 'male':
+      case 'gentlemen':
+        return l10n.ownerCustomerBookingGenderMen;
+      case 'ladies':
+      case 'women':
+      case 'female':
+        return l10n.ownerCustomerBookingGenderLadies;
+      case 'unisex':
+        return l10n.ownerCustomerBookingGenderUnisex;
+      default:
+        final pretty = g.length == 1
+            ? g.toUpperCase()
+            : '${g[0].toUpperCase()}${g.substring(1)}';
+        return l10n.customerProfileGenderValue(pretty);
+    }
   }
 
   @override

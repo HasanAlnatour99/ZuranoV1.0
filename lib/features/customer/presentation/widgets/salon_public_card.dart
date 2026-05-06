@@ -82,12 +82,18 @@ class SalonPublicCard extends StatelessWidget {
                           ),
                           IconButton(
                             visualDensity: VisualDensity.compact,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
                             tooltip: l10n.customerSalonBookmarkTooltip,
                             onPressed: onBookmarkTap,
                             icon: Icon(
                               bookmarked
                                   ? Icons.bookmark
                                   : Icons.bookmark_outline,
+                              size: 22,
                               color: bookmarked
                                   ? AppBrandColors.primary
                                   : AppColorsLight.textSecondary,
@@ -111,36 +117,63 @@ class SalonPublicCard extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _OpenBadge(isOpen: salon.isOpen, l10n: l10n),
-                          _RatingRow(
-                            rating: salon.ratingAverage,
-                            count: salon.ratingCount,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.small),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.customerSalonStartingFrom(price),
-                              style: Theme.of(context).textTheme.labelLarge
+                          if (salon.todayAvailableSlotsCount > 0 &&
+                              !salon.isClosedToday)
+                            _AvailabilityBadge(
+                              count: salon.todayAvailableSlotsCount,
+                              l10n: l10n,
+                            ),
+                          if (salon.ratingCount > 0)
+                            _RatingRow(
+                              rating: salon.ratingAverage,
+                              count: salon.ratingCount,
+                            )
+                          else
+                            Text(
+                              l10n.placeCardNewLabel,
+                              style: Theme.of(context).textTheme.labelMedium
                                   ?.copyWith(
-                                    color: AppBrandColors.primary,
+                                    color: AppColorsLight.textSecondary,
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),
-                          ),
-                          if (distanceLabel != null &&
-                              distanceLabel!.trim().isNotEmpty)
-                            Text(
-                              distanceLabel!,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: AppColorsLight.textSecondary,
-                                  ),
-                            ),
                         ],
                       ),
+                      if (salon.startingPrice > 0 ||
+                          (distanceLabel != null &&
+                              distanceLabel!.trim().isNotEmpty)) ...[
+                        const SizedBox(height: AppSpacing.small),
+                        Row(
+                          children: [
+                            if (salon.startingPrice > 0)
+                              Expanded(
+                                child: Text(
+                                  l10n.customerSalonStartingFrom(price),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                        color: AppBrandColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                              )
+                            else
+                              const Spacer(),
+                            if (distanceLabel != null &&
+                                distanceLabel!.trim().isNotEmpty)
+                              Text(
+                                distanceLabel!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: AppColorsLight.textSecondary,
+                                    ),
+                              ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -218,6 +251,34 @@ class _OpenBadge extends StatelessWidget {
               ? const Color(0xFF166534)
               : AppColorsLight.textSecondary,
         ),
+      ),
+    );
+  }
+}
+
+class _AvailabilityBadge extends StatelessWidget {
+  const _AvailabilityBadge({
+    required this.count,
+    required this.l10n,
+  });
+
+  final int count;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppBrandColors.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        l10n.placeCardSlotsTodayCount(count),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppBrandColors.primary,
+            ),
       ),
     );
   }

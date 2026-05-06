@@ -44,6 +44,11 @@ class _OwnerCustomerBookingSettingsScreenState
   WeeklyAvailability? _weeklyBaseline;
   bool _weeklySeeded = false;
 
+  /// `men` | `ladies` | `unisex` — matches [Salon.audience] / customer discovery filters.
+  String? _audienceDraft;
+  String? _audienceBaseline;
+  bool _audienceSeeded = false;
+
   @override
   void initState() {
     super.initState();
@@ -83,7 +88,45 @@ class _OwnerCustomerBookingSettingsScreenState
     final msg = _messageController.text;
     return !d.samePolicyAs(b) ||
         msg != b.publicBookingMessage ||
-        !_sameWeekly(_weeklyDraft, _weeklyBaseline);
+        !_sameWeekly(_weeklyDraft, _weeklyBaseline) ||
+        _audienceDirty;
+  }
+
+  bool get _audienceDirty {
+    final a = _audienceDraft;
+    final b = _audienceBaseline;
+    if (a == null || b == null) {
+      return false;
+    }
+    return a != b;
+  }
+
+  static String _normalizeAudience(String? raw) {
+    final s = raw?.trim().toLowerCase() ?? '';
+    if (s == 'men' || s == 'ladies' || s == 'unisex') {
+      return s;
+    }
+    return 'unisex';
+  }
+
+  void _syncAudienceFromSalon(Salon? salon) {
+    if (salon == null) {
+      return;
+    }
+    final normalized = _normalizeAudience(salon.audience);
+    if (!_audienceSeeded) {
+      _audienceDraft = normalized;
+      _audienceBaseline = normalized;
+      _audienceSeeded = true;
+      return;
+    }
+    if (_audienceDirty) {
+      return;
+    }
+    if (normalized != _audienceDraft) {
+      _audienceDraft = normalized;
+      _audienceBaseline = normalized;
+    }
   }
 
   bool _sameWeekly(WeeklyAvailability? a, WeeklyAvailability? b) {
@@ -253,6 +296,25 @@ class _OwnerCustomerBookingSettingsScreenState
         return;
       }
     }
+
+    final audienceSel = _audienceDraft;
+    if (salon != null &&
+        audienceSel != null &&
+        _audienceBaseline != null &&
+        audienceSel != _audienceBaseline) {
+      try {
+        await ref
+            .read(salonRepositoryProvider)
+            .updateSalon(salon.copyWith(audience: audienceSel));
+      } catch (_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.ownerCustomerBookingSaveError)),
+        );
+        return;
+      }
+    }
+
     if (!mounted) {
       return;
     }
@@ -263,6 +325,9 @@ class _OwnerCustomerBookingSettingsScreenState
       _baseline = merged;
       _draft = merged;
       _weeklyBaseline = weekly ?? _weeklyBaseline;
+      if (_audienceDraft != null) {
+        _audienceBaseline = _audienceDraft;
+      }
     });
     ref.read(customerBookingSettingsControllerProvider.notifier).reset();
   }
@@ -359,6 +424,7 @@ class _OwnerCustomerBookingSettingsScreenState
                   final salon = salonAsync.asData?.value;
                   if (salon != null) {
                     _syncWeeklyFromSalonInBuild(salon);
+                    _syncAudienceFromSalon(salon);
                   }
                   return GestureDetector(
                     behavior: HitTestBehavior.translucent,
@@ -399,6 +465,44 @@ class _OwnerCustomerBookingSettingsScreenState
                               salon: salon,
                               publish: v,
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        SettingsSectionCard(
+                          icon: Icons.groups_outlined,
+                          title: l10n.ownerCustomerBookingGenderTarget,
+                          subtitle:
+                              l10n.ownerCustomerBookingGenderTargetSectionHint,
+                          child: SegmentedButton<String>(
+                            segments: [
+                              ButtonSegment<String>(
+                                value: 'men',
+                                label: Text(l10n.ownerCustomerBookingGenderMen),
+                              ),
+                              ButtonSegment<String>(
+                                value: 'ladies',
+                                label:
+                                    Text(l10n.ownerCustomerBookingGenderLadies),
+                              ),
+                              ButtonSegment<String>(
+                                value: 'unisex',
+                                label:
+                                    Text(l10n.ownerCustomerBookingGenderUnisex),
+                              ),
+                            ],
+                            emptySelectionAllowed: false,
+                            showSelectedIcon: false,
+                            selected: <String>{
+                              _audienceDraft ?? 'unisex',
+                            },
+                            onSelectionChanged: (next) {
+                              if (next.isEmpty) {
+                                return;
+                              }
+                              setState(() {
+                                _audienceDraft = next.first;
+                              });
+                            },
                           ),
                         ),
                         const SizedBox(height: 14),

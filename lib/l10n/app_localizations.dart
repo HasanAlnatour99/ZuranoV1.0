@@ -4880,6 +4880,12 @@ abstract class AppLocalizations {
   /// **'Open now'**
   String get customerSalonFilterOpenNow;
 
+  /// No description provided for @customerSalonFilterAvailableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get customerSalonFilterAvailableToday;
+
   /// No description provided for @customerSalonFilterTopRated.
   ///
   /// In en, this message translates to:
@@ -16804,6 +16810,12 @@ abstract class AppLocalizations {
   /// **'Gender target'**
   String get ownerCustomerBookingGenderTarget;
 
+  /// No description provided for @ownerCustomerBookingGenderTargetSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Who your salon primarily serves — customers use this when browsing.'**
+  String get ownerCustomerBookingGenderTargetSectionHint;
+
   /// No description provided for @ownerCustomerBookingGenderMen.
   ///
   /// In en, this message translates to:
@@ -19215,6 +19227,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filters'**
   String get customerPlacesFilterTooltip;
+
+  /// No description provided for @placeCardNewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get placeCardNewLabel;
+
+  /// No description provided for @placeCardSlotsTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} slots today'**
+  String placeCardSlotsTodayCount(int count);
 
   /// No description provided for @placeCardLocationUnavailable.
   ///

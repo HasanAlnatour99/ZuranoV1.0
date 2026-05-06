@@ -983,6 +983,7 @@
   "customerSalonClosedBadge": "Closed",
   "customerSalonFilterNearby": "Nearby",
   "customerSalonFilterOpenNow": "Open now",
+  "customerSalonFilterAvailableToday": "Available today",
   "customerSalonFilterTopRated": "Top rated",
   "customerSalonFilterOffers": "Offers",
   "customerSalonFilterLadies": "Ladies",
@@ -3904,6 +3905,7 @@
   "ownerCustomerBookingPublicPhone": "Public phone",
   "ownerCustomerBookingPublicWhatsapp": "Public WhatsApp",
   "ownerCustomerBookingGenderTarget": "Gender target",
+  "ownerCustomerBookingGenderTargetSectionHint": "Who your salon primarily serves — customers use this when browsing.",
   "ownerCustomerBookingGenderMen": "Men",
   "ownerCustomerBookingGenderLadies": "Ladies",
   "ownerCustomerBookingGenderUnisex": "Unisex",
@@ -4455,6 +4457,16 @@
   "customerPlacesEmpty": "No places available yet",
   "customerPlacesLoadError": "Could not load places.",
   "customerPlacesFilterTooltip": "Filters",
+
+  "placeCardNewLabel": "New",
+  "placeCardSlotsTodayCount": "{count} slots today",
+  "@placeCardSlotsTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "placeCardLocationUnavailable": "Location not available"
 }

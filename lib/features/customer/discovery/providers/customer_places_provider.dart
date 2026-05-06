@@ -7,7 +7,6 @@ import '../../../customer_home/presentation/controllers/customer_location_provid
 import '../data/models/customer_place_model.dart';
 import '../data/repositories/customer_places_repository.dart';
 import '../utils/distance_utils.dart';
-import '../utils/opening_hours_utils.dart';
 
 final customerPlacesRepositoryProvider = Provider<CustomerPlacesRepository>((
   ref,
@@ -30,12 +29,12 @@ List<CustomerPlaceModel> _applyDiscoveryFilters(
 ) {
   var list = salons;
   if (filters.openNow) {
-    list = list.where((p) {
-      if (p.isOpenNowCache != null) {
-        return p.isOpenNowCache == true;
-      }
-      return !OpeningHoursUtils.isClosedNow(p.openingHours);
-    }).toList(growable: false);
+    list = list.where((p) => p.isOpenNowEffective).toList(growable: false);
+  }
+  if (filters.availableToday) {
+    list = list
+        .where((p) => p.meetsAvailableTodayFilter)
+        .toList(growable: false);
   }
   if (filters.topRated) {
     list = list.where((p) => p.ratingAvg >= 4.0).toList(growable: false);
