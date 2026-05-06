@@ -44,15 +44,16 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
   void initState() {
     super.initState();
 
-    _resetController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-    )..addListener(() {
-        final curved = Curves.easeOutCubic.transform(_resetController.value);
-        setState(() {
-          _dragX = lerpDouble(_resetStartX, 0, curved) ?? 0;
+    _resetController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 320),
+        )..addListener(() {
+          final curved = Curves.easeOutCubic.transform(_resetController.value);
+          setState(() {
+            _dragX = lerpDouble(_resetStartX, 0, curved) ?? 0;
+          });
         });
-      });
 
     _shineController = AnimationController(
       vsync: this,
@@ -110,14 +111,17 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
   Widget build(BuildContext context) {
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
-    final thumbIcon =
-        isRtl ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded;
+    final thumbIcon = isRtl
+        ? Icons.arrow_back_rounded
+        : Icons.arrow_forward_rounded;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth - widget.margin.horizontal;
         final maxDrag = totalWidth - widget.thumbSize - 8;
-        final progress = maxDrag <= 0 ? 0.0 : (_dragX / maxDrag).clamp(0.0, 1.0);
+        final progress = maxDrag <= 0
+            ? 0.0
+            : (_dragX / maxDrag).clamp(0.0, 1.0);
 
         return Padding(
           padding: widget.margin,
@@ -127,34 +131,43 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
             child: SizedBox(
               height: widget.height,
               child: Stack(
+                clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  _SliderBackground(
-                    progress: progress,
-                    shineController: _shineController,
-                    enabled: widget.enabled,
+                  Positioned.fill(
+                    child: _SliderBackground(
+                      progress: progress,
+                      shineController: _shineController,
+                      enabled: widget.enabled,
+                    ),
                   ),
                   Positioned.fill(
-                    child: Center(
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 160),
-                        opacity: 1 - (progress * 0.55),
-                        child: Text(
-                          _isLoading ? widget.loadingText : widget.text,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: colorScheme.onPrimary,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.1,
-                              ) ??
-                              TextStyle(
-                                color: colorScheme.onPrimary,
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.1,
-                              ),
+                    child: Padding(
+                      padding: EdgeInsetsDirectional.only(start: 96, end: 72),
+                      child: Center(
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 160),
+                          opacity: 1 - (progress * 0.55),
+                          child: Text(
+                            _isLoading ? widget.loadingText : widget.text,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style:
+                                Theme.of(
+                                  context,
+                                ).textTheme.titleSmall?.copyWith(
+                                  color: colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.1,
+                                ) ??
+                                TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.1,
+                                ),
+                          ),
                         ),
                       ),
                     ),
@@ -195,7 +208,9 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
                             color: colorScheme.onPrimary,
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withValues(alpha: 0.28),
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.28,
+                                ),
                                 blurRadius: 26,
                                 offset: const Offset(0, 12),
                               ),
@@ -222,12 +237,15 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
                   ),
                   if (!_isLoading)
                     PositionedDirectional(
-                      start: isRtl ? null : widget.thumbSize + 34,
-                      end: isRtl ? widget.thumbSize + 34 : null,
+                      end: 10,
+                      top: 0,
+                      bottom: 0,
                       child: IgnorePointer(
-                        child: _AnimatedChevrons(
-                          controller: _shineController,
-                          isRtl: isRtl,
+                        child: Center(
+                          child: _AnimatedChevrons(
+                            controller: _shineController,
+                            isRtl: isRtl,
+                          ),
                         ),
                       ),
                     ),
@@ -325,10 +343,7 @@ class _SliderBackground extends StatelessWidget {
 }
 
 class _AnimatedChevrons extends StatelessWidget {
-  const _AnimatedChevrons({
-    required this.controller,
-    required this.isRtl,
-  });
+  const _AnimatedChevrons({required this.controller, required this.isRtl});
 
   final AnimationController controller;
   final bool isRtl;
@@ -341,8 +356,9 @@ class _AnimatedChevrons extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final opacity1 = (controller.value < 0.33) ? 1.0 : 0.35;
-        final opacity2 =
-            (controller.value >= 0.33 && controller.value < 0.66) ? 1.0 : 0.35;
+        final opacity2 = (controller.value >= 0.33 && controller.value < 0.66)
+            ? 1.0
+            : 0.35;
         final opacity3 = (controller.value >= 0.66) ? 1.0 : 0.35;
 
         final icon = isRtl
@@ -352,7 +368,11 @@ class _AnimatedChevrons extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: scheme.onPrimary.withValues(alpha: opacity1), size: 22),
+            Icon(
+              icon,
+              color: scheme.onPrimary.withValues(alpha: opacity1),
+              size: 22,
+            ),
             Transform.translate(
               offset: const Offset(-8, 0),
               child: Icon(
@@ -375,4 +395,3 @@ class _AnimatedChevrons extends StatelessWidget {
     );
   }
 }
-

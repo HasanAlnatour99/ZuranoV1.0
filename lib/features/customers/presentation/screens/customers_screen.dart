@@ -191,7 +191,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             );
                           },
                           loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
+                          error: (error, stackTrace) =>
+                              const SizedBox.shrink(),
                         ),
                       ],
                       const SizedBox(height: 16),

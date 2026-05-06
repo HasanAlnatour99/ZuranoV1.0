@@ -963,6 +963,8 @@
       "price": {"type": "String"}
     }
   },
+  "customerSalonPricesAppearSoon": "ستظهر الأسعار قريباً",
+  "customerSalonRatingNew": "جديد",
   "customerSalonOpenNowBadge": "مفتوح الآن",
   "customerSalonClosedBadge": "مغلق",
   "customerSalonFilterNearby": "بالقرب",

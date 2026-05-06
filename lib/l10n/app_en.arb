@@ -979,6 +979,8 @@
       "price": {"type": "String"}
     }
   },
+  "customerSalonPricesAppearSoon": "Prices will appear soon",
+  "customerSalonRatingNew": "New",
   "customerSalonOpenNowBadge": "Open now",
   "customerSalonClosedBadge": "Closed",
   "customerSalonFilterNearby": "Nearby",

@@ -40,7 +40,7 @@ void main() {
       'isActive': true,
       'isPublic': true,
       'searchKeywords': keywords ?? <String>['haircut', 'beard'],
-      if (location != null) 'location': location,
+      'location': ?location,
     };
   }
 

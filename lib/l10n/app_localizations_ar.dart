@@ -2683,6 +2683,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get customerSalonPricesAppearSoon => 'ستظهر الأسعار قريباً';
+
+  @override
+  String get customerSalonRatingNew => 'جديد';
+
+  @override
   String get customerSalonOpenNowBadge => 'مفتوح الآن';
 
   @override

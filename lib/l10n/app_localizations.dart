@@ -4856,6 +4856,18 @@ abstract class AppLocalizations {
   /// **'From {price}'**
   String customerSalonStartingFrom(String price);
 
+  /// No description provided for @customerSalonPricesAppearSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices will appear soon'**
+  String get customerSalonPricesAppearSoon;
+
+  /// No description provided for @customerSalonRatingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get customerSalonRatingNew;
+
   /// No description provided for @customerSalonOpenNowBadge.
   ///
   /// In en, this message translates to:

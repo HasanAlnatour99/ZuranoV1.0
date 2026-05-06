@@ -87,7 +87,8 @@ class BookingsPreviewContainer extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: visible.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (context, index) =>
+                const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final b = visible[index];
               return Material(

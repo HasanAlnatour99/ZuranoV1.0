@@ -31,6 +31,8 @@ class ServiceSelectionScreen extends ConsumerStatefulWidget {
 
 class _ServiceSelectionScreenState
     extends ConsumerState<ServiceSelectionScreen> {
+  bool _appliedQueryServiceId = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +43,7 @@ class _ServiceSelectionScreenState
   void didUpdateWidget(covariant ServiceSelectionScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.salonId != widget.salonId) {
+      _appliedQueryServiceId = false;
       Future.microtask(_ensureDraftForSalon);
     }
   }
@@ -82,6 +85,39 @@ class _ServiceSelectionScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ref.listen(customerVisibleServicesProvider(widget.salonId), (
+      previous,
+      next,
+    ) {
+      if (_appliedQueryServiceId || !mounted) {
+        return;
+      }
+      next.maybeWhen(
+        data: (services) {
+          final raw = GoRouterState.of(
+            context,
+          ).uri.queryParameters['serviceId']?.trim();
+          if (raw == null || raw.isEmpty) {
+            _appliedQueryServiceId = true;
+            return;
+          }
+          CustomerServicePublicModel? match;
+          for (final s in services) {
+            if (s.id == raw) {
+              match = s;
+              break;
+            }
+          }
+          if (match != null) {
+            ref
+                .read(customerBookingDraftProvider.notifier)
+                .toggleService(match);
+          }
+          _appliedQueryServiceId = true;
+        },
+        orElse: () {},
+      );
+    });
     final bookingPolicyAsync = ref.watch(
       customerPublicBookingFlowSettingsProvider(widget.salonId),
     );

@@ -2681,6 +2681,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get customerSalonPricesAppearSoon => 'Prices will appear soon';
+
+  @override
+  String get customerSalonRatingNew => 'New';
+
+  @override
   String get customerSalonOpenNowBadge => 'Open now';
 
   @override
