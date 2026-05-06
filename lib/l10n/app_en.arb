@@ -1007,6 +1007,26 @@
   "customerProfileEmptyReviews": "No reviews yet.",
   "customerProfileSalonNotFound": "This salon is not available.",
   "customerProfileWorkingHoursPlaceholder": "Opening hours will appear here soon.",
+  "customerProfileHoursClosedToday": "Closed today",
+  "customerProfileHoursOpenNowCloses": "Open now · Closes {time}",
+  "@customerProfileHoursOpenNowCloses": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "customerProfileHoursClosedOpens": "Closed · Opens {time}",
+  "@customerProfileHoursClosedOpens": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "customerProfileHoursOpenTodayRange": "Open today {start} – {end}",
+  "@customerProfileHoursOpenTodayRange": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "customerProfileMapPreviewPlaceholder": "Map preview",
   "customerProfileAboutArea": "Area",
   "customerProfileAboutPhone": "Phone",

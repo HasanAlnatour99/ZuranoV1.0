@@ -2767,6 +2767,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Opening hours will appear here soon.';
 
   @override
+  String get customerProfileHoursClosedToday => 'Closed today';
+
+  @override
+  String customerProfileHoursOpenNowCloses(String time) {
+    return 'Open now · Closes $time';
+  }
+
+  @override
+  String customerProfileHoursClosedOpens(String time) {
+    return 'Closed · Opens $time';
+  }
+
+  @override
+  String customerProfileHoursOpenTodayRange(String start, String end) {
+    return 'Open today $start – $end';
+  }
+
+  @override
   String get customerProfileMapPreviewPlaceholder => 'Map preview';
 
   @override

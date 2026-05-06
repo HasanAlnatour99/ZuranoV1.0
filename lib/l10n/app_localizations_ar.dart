@@ -2768,6 +2768,24 @@ class AppLocalizationsAr extends AppLocalizations {
       'ساعات العمل ستظهر هنا قريبًا.';
 
   @override
+  String get customerProfileHoursClosedToday => 'مغلق اليوم';
+
+  @override
+  String customerProfileHoursOpenNowCloses(String time) {
+    return 'مفتوح الآن · يغلق $time';
+  }
+
+  @override
+  String customerProfileHoursClosedOpens(String time) {
+    return 'مغلق · يفتح $time';
+  }
+
+  @override
+  String customerProfileHoursOpenTodayRange(String start, String end) {
+    return 'مفتوح اليوم $start – $end';
+  }
+
+  @override
   String get customerProfileMapPreviewPlaceholder => 'معاينة الخريطة';
 
   @override

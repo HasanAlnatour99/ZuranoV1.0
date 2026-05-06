@@ -106,6 +106,11 @@ export function salonToPublicSalonPayload(
     updatedAt: FieldValue.serverTimestamp(),
   };
 
+  const wh = s["workingHours"];
+  if (wh != null && typeof wh === "object" && !Array.isArray(wh)) {
+    payload.workingHours = wh as Record<string, unknown>;
+  }
+
   // Preserve debug seed flag if present (dev only rules use this).
   if (s.debugSeed === true) {
     payload.debugSeed = true;

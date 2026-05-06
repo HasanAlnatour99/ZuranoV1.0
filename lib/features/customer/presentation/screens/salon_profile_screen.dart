@@ -19,6 +19,7 @@ import '../../data/models/customer_review_model.dart';
 import '../../data/models/customer_service_public_model.dart';
 import '../../data/models/customer_team_member_public_model.dart';
 import '../../data/models/salon_public_model.dart';
+import '../../domain/salon_profile_hours_text.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_review_card.dart';
 import '../widgets/customer_team_member_card.dart';
@@ -305,6 +306,12 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
       orElse: () => <CustomerServicePublicModel>[],
     );
     final resolvedStartingPrice = resolveStartingPrice(salon, servicesList);
+    final resolvedHoursText = resolveSalonHoursText(
+      salon: salon,
+      now: DateTime.now(),
+      l10n: l10n,
+      locale: locale,
+    );
 
     return CustomScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -313,6 +320,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
           child: _PremiumHeroSection(
             salon: salon,
             resolvedStartingPrice: resolvedStartingPrice,
+            resolvedHoursText: resolvedHoursText,
             l10n: l10n,
             locale: locale,
             favoriteSelected: _favoriteLocal,
@@ -493,6 +501,7 @@ class _PremiumHeroSection extends StatelessWidget {
   const _PremiumHeroSection({
     required this.salon,
     required this.resolvedStartingPrice,
+    required this.resolvedHoursText,
     required this.l10n,
     required this.locale,
     required this.favoriteSelected,
@@ -503,6 +512,7 @@ class _PremiumHeroSection extends StatelessWidget {
 
   final SalonPublicModel salon;
   final double resolvedStartingPrice;
+  final String resolvedHoursText;
   final AppLocalizations l10n;
   final Locale locale;
   final bool favoriteSelected;
@@ -568,6 +578,7 @@ class _PremiumHeroSection extends StatelessWidget {
             child: _PremiumSummaryCard(
               salon: salon,
               resolvedStartingPrice: resolvedStartingPrice,
+              resolvedHoursText: resolvedHoursText,
               initials: _salonInitials(salon.salonName),
               l10n: l10n,
               locale: locale,
@@ -655,6 +666,7 @@ class _PremiumSummaryCard extends StatelessWidget {
   const _PremiumSummaryCard({
     required this.salon,
     required this.resolvedStartingPrice,
+    required this.resolvedHoursText,
     required this.initials,
     required this.l10n,
     required this.locale,
@@ -662,6 +674,7 @@ class _PremiumSummaryCard extends StatelessWidget {
 
   final SalonPublicModel salon;
   final double resolvedStartingPrice;
+  final String resolvedHoursText;
   final String initials;
   final AppLocalizations l10n;
   final Locale locale;
@@ -744,7 +757,7 @@ class _PremiumSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    l10n.customerProfileWorkingHoursPlaceholder,
+                    resolvedHoursText,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColorsLight.textSecondary,
                     ),

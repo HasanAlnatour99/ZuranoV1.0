@@ -5024,6 +5024,30 @@ abstract class AppLocalizations {
   /// **'Opening hours will appear here soon.'**
   String get customerProfileWorkingHoursPlaceholder;
 
+  /// No description provided for @customerProfileHoursClosedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed today'**
+  String get customerProfileHoursClosedToday;
+
+  /// No description provided for @customerProfileHoursOpenNowCloses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now · Closes {time}'**
+  String customerProfileHoursOpenNowCloses(String time);
+
+  /// No description provided for @customerProfileHoursClosedOpens.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed · Opens {time}'**
+  String customerProfileHoursClosedOpens(String time);
+
+  /// No description provided for @customerProfileHoursOpenTodayRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Open today {start} – {end}'**
+  String customerProfileHoursOpenTodayRange(String start, String end);
+
   /// No description provided for @customerProfileMapPreviewPlaceholder.
   ///
   /// In en, this message translates to:

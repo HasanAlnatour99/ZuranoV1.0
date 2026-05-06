@@ -35,6 +35,7 @@ class SalonPublicModel {
     this.createdAt,
     this.updatedAt,
     this.weeklyAvailability,
+    this.workingHours,
   });
 
   final String id;
@@ -87,14 +88,17 @@ class SalonPublicModel {
   /// When mirrored from salon doc — used if slot aggregation fields are absent.
   final WeeklyAvailability? weeklyAvailability;
 
+  /// Customer-facing hours map (`monday` … `sunday` → `{ open, start, end }`), when mirrored on `publicSalons`.
+  final Map<String, dynamic>? workingHours;
+
   /// Discovery rule: backend slot fields when present, else [weeklyAvailability].
   bool get meetsAvailableTodayFilter => salonPassesAvailableTodayDiscovery(
-        isClosedToday: isClosedToday,
-        isAvailableToday: isAvailableToday,
-        todayAvailableSlotsCount: todayAvailableSlotsCount,
-        openingStatusUpdatedAt: openingStatusUpdatedAt,
-        weeklyAvailability: weeklyAvailability,
-      );
+    isClosedToday: isClosedToday,
+    isAvailableToday: isAvailableToday,
+    todayAvailableSlotsCount: todayAvailableSlotsCount,
+    openingStatusUpdatedAt: openingStatusUpdatedAt,
+    weeklyAvailability: weeklyAvailability,
+  );
 
   static DateTime? _ts(Timestamp? t) => t?.toDate();
 
@@ -132,6 +136,16 @@ class SalonPublicModel {
     return const [];
   }
 
+  static Map<String, dynamic>? _mapOrNull(Object? v) {
+    if (v is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(v);
+    }
+    if (v is Map) {
+      return Map<String, dynamic>.from(Map<Object?, Object?>.from(v));
+    }
+    return null;
+  }
+
   factory SalonPublicModel.fromFirestore(DocumentSnapshot doc) {
     final raw = doc.data();
     final data = raw is Map<String, dynamic> ? raw : const <String, dynamic>{};
@@ -141,8 +155,9 @@ class SalonPublicModel {
     final rawCcy = (data['currencyCode'] as String?)?.trim();
     final currencyCode = resolvedSalonMoneyCurrency(
       salonCurrencyCode: rawCcy,
-      salonCountryIso:
-          (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
+      salonCountryIso: (countryIso != null && countryIso.isNotEmpty)
+          ? countryIso
+          : null,
     );
     return SalonPublicModel(
       id: doc.id,
@@ -161,8 +176,7 @@ class SalonPublicModel {
       isAvailableToday: data['isAvailableToday'] == true,
       todayAvailableSlotsCount: _int(data['todayAvailableSlotsCount'], 0),
       nextAvailableAt: _ts(data['nextAvailableAt'] as Timestamp?),
-      openingStatusUpdatedAt:
-          _ts(data['openingStatusUpdatedAt'] as Timestamp?),
+      openingStatusUpdatedAt: _ts(data['openingStatusUpdatedAt'] as Timestamp?),
       ratingAverage: _double(data['ratingAverage'], 0).clamp(0.0, 5.0),
       ratingCount: _int(data['ratingCount'], 0),
       startingPrice: _double(data['startingPrice'], 0),
@@ -172,8 +186,10 @@ class SalonPublicModel {
       serviceKeywords: _stringList(data['serviceKeywords']),
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
-      weeklyAvailability:
-          WeeklyAvailability.maybeParse(data['weeklyAvailability']),
+      weeklyAvailability: WeeklyAvailability.maybeParse(
+        data['weeklyAvailability'],
+      ),
+      workingHours: _mapOrNull(data['workingHours']),
     );
   }
 
@@ -188,8 +204,9 @@ class SalonPublicModel {
     final rawCcy = (data['currencyCode'] as String?)?.trim();
     final currencyCode = resolvedSalonMoneyCurrency(
       salonCurrencyCode: rawCcy,
-      salonCountryIso:
-          (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
+      salonCountryIso: (countryIso != null && countryIso.isNotEmpty)
+          ? countryIso
+          : null,
     );
 
     double? lat = _nullableDouble(data['latitude']);
@@ -220,8 +237,7 @@ class SalonPublicModel {
       isAvailableToday: data['isAvailableToday'] == true,
       todayAvailableSlotsCount: _int(data['todayAvailableSlotsCount'], 0),
       nextAvailableAt: _ts(data['nextAvailableAt'] as Timestamp?),
-      openingStatusUpdatedAt:
-          _ts(data['openingStatusUpdatedAt'] as Timestamp?),
+      openingStatusUpdatedAt: _ts(data['openingStatusUpdatedAt'] as Timestamp?),
       ratingAverage: _double(data['ratingAverage'], 0).clamp(0.0, 5.0),
       ratingCount: _int(data['ratingCount'], 0),
       startingPrice: _double(data['startingPrice'], 0),
@@ -231,8 +247,10 @@ class SalonPublicModel {
       serviceKeywords: const [],
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
-      weeklyAvailability:
-          WeeklyAvailability.maybeParse(data['weeklyAvailability']),
+      weeklyAvailability: WeeklyAvailability.maybeParse(
+        data['weeklyAvailability'],
+      ),
+      workingHours: _mapOrNull(data['workingHours']),
     );
   }
 }

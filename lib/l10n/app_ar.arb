@@ -991,6 +991,26 @@
   "customerProfileEmptyReviews": "لا توجد تقييمات بعد.",
   "customerProfileSalonNotFound": "هذا الصالون غير متاح.",
   "customerProfileWorkingHoursPlaceholder": "ساعات العمل ستظهر هنا قريبًا.",
+  "customerProfileHoursClosedToday": "مغلق اليوم",
+  "customerProfileHoursOpenNowCloses": "مفتوح الآن · يغلق {time}",
+  "@customerProfileHoursOpenNowCloses": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "customerProfileHoursClosedOpens": "مغلق · يفتح {time}",
+  "@customerProfileHoursClosedOpens": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "customerProfileHoursOpenTodayRange": "مفتوح اليوم {start} – {end}",
+  "@customerProfileHoursOpenTodayRange": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "customerProfileMapPreviewPlaceholder": "معاينة الخريطة",
   "customerProfileAboutArea": "المنطقة",
   "customerProfileAboutPhone": "الهاتف",
