@@ -888,15 +888,6 @@
       ]
     },
     {
-      "collectionGroup": "items",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "isActive", "order": "ASCENDING" },
-        { "fieldPath": "countryCode", "order": "ASCENDING" },
-        { "fieldPath": "sortOrder", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "employee_element_entries",
       "queryScope": "COLLECTION",
       "fields": [

@@ -111,6 +111,28 @@ class AppRoutes {
 
   static const customerHome = '/customer/home';
   static const customerSearch = '/customer/search';
+
+  /// Query keys for [customerSearch] deep links from home quick chips.
+  static const customerSearchQueryQuickFilter = 'quickFilter';
+  static const customerSearchQuerySort = 'sort';
+
+  /// Builds `/customer/search?quickFilter=…&sort=…` for chip navigation.
+  static String customerSearchUri({
+    String? quickFilter,
+    String? sort,
+  }) {
+    final params = <String, String>{};
+    if (quickFilter != null && quickFilter.isNotEmpty) {
+      params[customerSearchQueryQuickFilter] = quickFilter;
+    }
+    if (sort != null && sort.isNotEmpty) {
+      params[customerSearchQuerySort] = sort;
+    }
+    if (params.isEmpty) {
+      return customerSearch;
+    }
+    return Uri(path: customerSearch, queryParameters: params).toString();
+  }
   static const customerNearbyMap = '$customerHome/nearby-map';
 
   /// Deep-link alias; redirects to [customerNearbyMap] in [GoRouter].

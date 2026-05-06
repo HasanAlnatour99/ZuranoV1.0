@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../domain/customer_discovery_country_match.dart';
 import '../../domain/customer_geo.dart';
+import '../../domain/salon_coordinates.dart';
 import '../models/customer_banner_model.dart';
 import '../models/customer_category_model.dart';
 import '../models/customer_salon_model.dart';
@@ -14,6 +15,25 @@ class CustomerHomeRepository {
   CustomerHomeRepository(this._db);
 
   final FirebaseFirestore _db;
+
+  /// Case-insensitive match against `CustomerSalonModel.categoryIds`.
+  static List<CustomerSalonModel> _filterSalonsByCategoryId(
+    List<CustomerSalonModel> parsed,
+    String? categoryId,
+  ) {
+    final id = categoryId?.trim() ?? '';
+    if (id.isEmpty || id.toLowerCase() == 'all') {
+      return parsed;
+    }
+    final want = id.toLowerCase();
+    return parsed
+        .where(
+          (s) => s.categoryIds.any(
+            (c) => c.trim().toLowerCase() == want,
+          ),
+        )
+        .toList(growable: false);
+  }
 
   CollectionReference<Map<String, dynamic>> get _categoriesItems => _db
       .collection(FirestorePaths.customerDiscovery)
@@ -75,6 +95,9 @@ class CustomerHomeRepository {
 
         var parsed = snapshot.docs.map((doc) {
           final data = doc.data();
+          final parsedGeo = tryParseSalonCoordinates(data);
+          final lat = (data['latitude'] as num?)?.toDouble() ?? parsedGeo?.latitude;
+          final lng = (data['longitude'] as num?)?.toDouble() ?? parsedGeo?.longitude;
           return CustomerSalonModel(
             id: doc.id,
             name: (data['salonName'] as String?)?.trim() ?? '',
@@ -84,9 +107,9 @@ class CustomerHomeRepository {
                 (data['countryName'] as String?)?.trim() ??
                 (data['country'] as String?)?.trim() ??
                 discoveryCountryName,
-            address: (data['address'] as String?)?.trim() ?? '',
-            latitude: (data['latitude'] as num?)?.toDouble(),
-            longitude: (data['longitude'] as num?)?.toDouble(),
+            address: CustomerSalonModel.discoveryAddressLine(data),
+            latitude: lat,
+            longitude: lng,
             isPublished: true,
             isOpen: data['isOpen'] == true,
             isPromoted: data['isPromoted'] == true,
@@ -130,12 +153,26 @@ class CustomerHomeRepository {
         }
 
         // Category filtering is optional on public docs; apply client-side for resilience.
-        final categoryFiltered =
-            (categoryId != null && categoryId != 'all')
-                ? parsed
-                    .where((s) => s.categoryIds.contains(categoryId))
-                    .toList(growable: false)
-                : parsed;
+        var categoryFiltered = _filterSalonsByCategoryId(parsed, categoryId);
+
+        // If CMS categories are set but `publicSalons` never got `categoryIds`, the filter
+        // would hide every salon. Only then fall back to the full in-country list.
+        if (categoryFiltered.isEmpty &&
+            parsed.isNotEmpty &&
+            categoryId != null &&
+            categoryId.trim().isNotEmpty &&
+            categoryId != 'all') {
+          final noCategoryData = parsed.every((s) => s.categoryIds.isEmpty);
+          if (noCategoryData) {
+            if (kDebugMode) {
+              debugPrint(
+                '[CustomerHome] category=$categoryId: no categoryIds on publicSalons; '
+                'showing all salons for country',
+              );
+            }
+            categoryFiltered = parsed;
+          }
+        }
 
         yield preferCountryFilteredElseAll(
           categoryFiltered,

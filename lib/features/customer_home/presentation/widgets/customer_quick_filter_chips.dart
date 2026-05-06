@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../customer/search/application/customer_search_controller.dart';
+import '../../../customer/search/domain/models/customer_search_filter.dart';
 import '../theme/zurano_customer_colors.dart';
 
 class CustomerQuickFilterChips extends ConsumerWidget {
@@ -21,32 +22,44 @@ class CustomerQuickFilterChips extends ConsumerWidget {
       String label,
       IconData icon,
       bool selected,
-      Future<void> Function() onToggle,
+      String pushLocation,
     })>[
       (
         label: l10n.customerSearchFilterNearby,
         icon: Icons.near_me_rounded,
-        selected: filter.nearbyOnly,
-        onToggle: () => ref.read(customerSearchControllerProvider.notifier).toggleNearbyOnly(),
+        selected:
+            filter.nearbyOnly || filter.sort == CustomerSearchSort.nearby,
+        pushLocation: AppRoutes.customerSearchUri(
+          quickFilter: 'nearby',
+          sort: 'nearby',
+        ),
       ),
       (
         label: l10n.customerSearchFilterOpenNow,
         icon: Icons.schedule_rounded,
         selected: filter.openNowOnly,
-        onToggle: () => ref.read(customerSearchControllerProvider.notifier).toggleOpenNow(),
+        pushLocation: AppRoutes.customerSearchUri(
+          quickFilter: 'openNow',
+          sort: 'openNow',
+        ),
       ),
       (
         label: l10n.customerSearchFilterAvailableToday,
         icon: Icons.event_available_rounded,
         selected: filter.availableTodayOnly,
-        onToggle: () =>
-            ref.read(customerSearchControllerProvider.notifier).toggleAvailableToday(),
+        pushLocation: AppRoutes.customerSearchUri(
+          quickFilter: 'availableToday',
+          sort: 'recommended',
+        ),
       ),
       (
         label: l10n.customerSearchFilterOffers,
         icon: Icons.local_offer_rounded,
         selected: filter.offersOnly,
-        onToggle: () => ref.read(customerSearchControllerProvider.notifier).toggleOffers(),
+        pushLocation: AppRoutes.customerSearchUri(
+          quickFilter: 'offers',
+          sort: 'offers',
+        ),
       ),
     ];
 
@@ -71,12 +84,9 @@ class CustomerQuickFilterChips extends ConsumerWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: () async {
+              onTap: () {
                 HapticFeedback.selectionClick();
-                await chip.onToggle();
-                if (context.mounted) {
-                  context.push(AppRoutes.customerSearch);
-                }
+                context.push(chip.pushLocation);
               },
               child: Container(
                 height: 38,

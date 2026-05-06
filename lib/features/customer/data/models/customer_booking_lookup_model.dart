@@ -81,12 +81,13 @@ class CustomerBookingLookupModel {
     );
   }
 
-  factory CustomerBookingLookupModel.fromFirestore(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  /// Snapshot under `salons/{salonId}/bookings/{id}` (collection-group read).
+  factory CustomerBookingLookupModel.fromSalonBookingMap(
+    String documentId,
+    Map<String, dynamic> data,
   ) {
-    final data = doc.data();
     return CustomerBookingLookupModel(
-      id: doc.id,
+      id: documentId,
       salonId: _string(data['salonId']),
       salonName: _string(data['salonName']),
       bookingCode: _publicBookingCode(data),
@@ -102,6 +103,12 @@ class CustomerBookingLookupModel {
       endAt: _requiredDate(data['endAt']),
       createdAt: _date(data['createdAt']),
     );
+  }
+
+  factory CustomerBookingLookupModel.fromFirestore(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    return CustomerBookingLookupModel.fromSalonBookingMap(doc.id, doc.data());
   }
 
   static String _string(Object? value) {

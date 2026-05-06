@@ -1190,6 +1190,8 @@
   "customerBookingLookupBookingCodeHint": "e.g. ZR-123456",
   "customerBookingLookupSearch": "Search",
   "customerBookingLookupPhoneHint": "Use the same phone number and booking code you received when you booked.",
+  "customerBookingLookupYourBookingsSection": "Your bookings",
+  "customerBookingLookupSignedInEmpty": "No bookings linked to your account yet.",
   "customerBookingLookupNoBookings": "No bookings found",
   "customerBookingLookupBothRequired": "Phone number and booking code are required.",
   "customerBookingLookupNotFound": "No booking found. Please check your phone number and booking code.",
@@ -4365,6 +4367,7 @@
   "customerSearchNoResultsMessage": "Try another service or area.",
   "customerSearchErrorTitle": "Something went wrong",
   "customerSearchIndexUnavailable": "Search is loading. Try again shortly.",
+  "customerSearchEnableLocationForNearby": "Enable location to sort by nearest salons.",
 
   "customerSearchGroupServices": "Services",
   "customerSearchGroupSpecialists": "Specialists",
@@ -4388,5 +4391,31 @@
   "customerSearchAudienceLadies": "Ladies",
   "customerSearchAudienceUnisex": "Unisex",
   "customerSearchFiltersReset": "Reset",
-  "customerSearchFiltersDone": "Done"
+  "customerSearchFiltersDone": "Done",
+
+  "customerSearchPlaceOfferBadge": "Offer",
+  "customerSearchPlaceServicesCount": "{count} services",
+  "@customerSearchPlaceServicesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customerSearchPlaceTeamCount": "{count} team",
+  "@customerSearchPlaceTeamCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customerSearchPlacePriceFrom": "From {price}",
+  "@customerSearchPlacePriceFrom": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  }
 }

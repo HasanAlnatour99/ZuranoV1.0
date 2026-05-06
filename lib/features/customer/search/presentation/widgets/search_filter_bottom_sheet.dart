@@ -12,7 +12,8 @@ class SearchFilterBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final c = ref.watch(customerSearchControllerProvider.notifier);
+    ref.watch(customerSearchControllerProvider);
+    final c = ref.read(customerSearchControllerProvider.notifier);
     final filter = c.filter;
 
     return DraggableScrollableSheet(

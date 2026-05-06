@@ -590,10 +590,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.customerSearch,
-        pageBuilder: (context, state) => appFadeThroughPage(
-          key: goRouterPageKey(state),
-          child: const CustomerSearchScreen(),
-        ),
+        pageBuilder: (context, state) {
+          final q = state.uri.queryParameters;
+          return appFadeThroughPage(
+            key: goRouterPageKey(state),
+            child: CustomerSearchScreen(
+              initialQuickFilter: q[AppRoutes.customerSearchQueryQuickFilter],
+              initialSort: q[AppRoutes.customerSearchQuerySort],
+            ),
+          );
+        },
       ),
       ...ownerRoutes,
       // Employee shell (tabs): /employee/today, /employee/sales, /employee/attendance,

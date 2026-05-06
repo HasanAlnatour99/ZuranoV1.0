@@ -19,6 +19,10 @@ class CustomerSearchFilter {
   final bool offersOnly;
   final bool availableTodayOnly;
 
+  /// Customer device WGS84 — used for [CustomerSearchSort.nearby] and [nearbyOnly] ranking.
+  final double? userLatitude;
+  final double? userLongitude;
+
   const CustomerSearchFilter({
     required this.countryCode,
     this.query = '',
@@ -28,6 +32,8 @@ class CustomerSearchFilter {
     this.openNowOnly = false,
     this.offersOnly = false,
     this.availableTodayOnly = false,
+    this.userLatitude,
+    this.userLongitude,
   });
 
   CustomerSearchFilter copyWith({
@@ -39,6 +45,8 @@ class CustomerSearchFilter {
     bool? openNowOnly,
     bool? offersOnly,
     bool? availableTodayOnly,
+    double? userLatitude,
+    double? userLongitude,
   }) {
     return CustomerSearchFilter(
       query: query ?? this.query,
@@ -49,6 +57,8 @@ class CustomerSearchFilter {
       openNowOnly: openNowOnly ?? this.openNowOnly,
       offersOnly: offersOnly ?? this.offersOnly,
       availableTodayOnly: availableTodayOnly ?? this.availableTodayOnly,
+      userLatitude: userLatitude ?? this.userLatitude,
+      userLongitude: userLongitude ?? this.userLongitude,
     );
   }
 }

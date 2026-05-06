@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/firebase/cloud_functions_region.dart';
+import '../../../providers/repository_providers.dart';
+import '../../../providers/session_provider.dart';
 import '../data/models/customer_booking_lookup_model.dart';
 import '../data/repositories/booking_lookup_repository.dart';
 import 'customer_phone_normalizer.dart';
@@ -16,6 +18,27 @@ class BookingLookupException implements Exception {
 final bookingLookupRepositoryProvider = Provider<BookingLookupRepository>((ref) {
   return CallableBookingLookupRepository(functions: appCloudFunctions());
 });
+
+/// Bookings tied to the signed-in user (`guestUid` / `createdByAuthUid`). Empty when anonymous.
+final customerAccountBookingsForFindProvider =
+    FutureProvider.autoDispose<List<CustomerBookingLookupModel>>((ref) async {
+      final uid =
+          (ref.watch(sessionUserProvider).asData?.value?.uid ?? '').trim();
+      if (uid.isEmpty) {
+        return const <CustomerBookingLookupModel>[];
+      }
+      final page = await ref
+          .read(bookingRepositoryProvider)
+          .getCustomerBookingDocumentsPage(uid, limit: 50);
+      return page.items
+          .map(
+            (d) => CustomerBookingLookupModel.fromSalonBookingMap(
+              d.id,
+              d.data(),
+            ),
+          )
+          .toList(growable: false);
+    });
 
 final bookingLookupControllerProvider =
     AsyncNotifierProvider<BookingLookupController, List<CustomerBookingLookupModel>?>(

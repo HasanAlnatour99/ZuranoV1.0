@@ -31,6 +31,19 @@ function geoFromSalonDoc(d: DocumentData): { latitude?: number; longitude?: numb
   if (loc instanceof GeoPoint) {
     return { latitude: loc.latitude, longitude: loc.longitude };
   }
+  const addr = d.address;
+  if (addr && typeof addr === "object" && !Array.isArray(addr)) {
+    const a = addr as Record<string, unknown>;
+    const innerLoc = a.location;
+    if (innerLoc instanceof GeoPoint) {
+      return { latitude: innerLoc.latitude, longitude: innerLoc.longitude };
+    }
+    const alat = numOrNull(a.latitude ?? a.lat);
+    const alng = numOrNull(a.longitude ?? a.lng);
+    if (alat != null && alng != null) {
+      return { latitude: alat, longitude: alng };
+    }
+  }
   return {};
 }
 

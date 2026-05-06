@@ -3117,6 +3117,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'استخدم نفس رقم الهاتف ورمز الحجز اللذين وصلاك بعد الحجز.';
 
   @override
+  String get customerBookingLookupYourBookingsSection => 'حجوزاتك';
+
+  @override
+  String get customerBookingLookupSignedInEmpty =>
+      'لا توجد حجوزات مرتبطة بحسابك بعد.';
+
+  @override
   String get customerBookingLookupNoBookings => 'لم يتم العثور على حجوزات';
 
   @override
@@ -10775,6 +10782,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'جاري تحميل البحث. حاول مرة أخرى بعد قليل.';
 
   @override
+  String get customerSearchEnableLocationForNearby =>
+      'فعّل الموقع لترتيب أقرب الصالونات.';
+
+  @override
   String get customerSearchGroupServices => 'الخدمات';
 
   @override
@@ -10836,4 +10847,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerSearchFiltersDone => 'تم';
+
+  @override
+  String get customerSearchPlaceOfferBadge => 'عرض';
+
+  @override
+  String customerSearchPlaceServicesCount(int count) {
+    return '$count خدمة';
+  }
+
+  @override
+  String customerSearchPlaceTeamCount(int count) {
+    return '$count أعضاء فريق';
+  }
+
+  @override
+  String customerSearchPlacePriceFrom(String price) {
+    return 'من $price';
+  }
 }

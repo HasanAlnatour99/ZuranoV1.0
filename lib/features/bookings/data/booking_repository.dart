@@ -786,8 +786,11 @@ class BookingRepository {
     });
   }
 
-  /// Paged customer bookings (`collectionGroup('bookings')`), newest first.
-  Future<FirestorePage<Booking>> getCustomerBookingsPage(
+  /// Raw documents for [getCustomerBookingsPage] / UI mappers (preserves fields not on [Booking]).
+  ///
+  /// [customerId] is Firebase Auth uid. Guest bookings use [guestUid] / [createdByAuthUid].
+  Future<FirestorePage<QueryDocumentSnapshot<Map<String, dynamic>>>>
+      getCustomerBookingDocumentsPage(
     String customerId, {
     int limit = 30,
     DocumentSnapshot? startAfter,
@@ -795,7 +798,6 @@ class BookingRepository {
     if (customerId.isEmpty) {
       return FirestorePage(items: const [], limit: limit, lastDocument: null);
     }
-    /// [customerId] is Firebase Auth uid. Guest bookings use [guestUid] / [createdByAuthUid].
     Query<Map<String, dynamic>> query = _firestore
         .collectionGroup('bookings')
         .where(
@@ -812,9 +814,29 @@ class BookingRepository {
     final snapshot = await query.limit(limit).get();
     final docs = snapshot.docs;
     return FirestorePage(
-      items: docs.map((d) => Booking.fromJson(d.data())).toList(),
+      items: docs,
       limit: limit,
       lastDocument: docs.isEmpty ? null : docs.last,
+    );
+  }
+
+  /// Paged customer bookings (`collectionGroup('bookings')`), newest first.
+  Future<FirestorePage<Booking>> getCustomerBookingsPage(
+    String customerId, {
+    int limit = 30,
+    DocumentSnapshot? startAfter,
+  }) async {
+    final page = await getCustomerBookingDocumentsPage(
+      customerId,
+      limit: limit,
+      startAfter: startAfter,
+    );
+    return FirestorePage(
+      items: page.items
+          .map((d) => Booking.fromJson(d.data()))
+          .toList(growable: false),
+      limit: page.limit,
+      lastDocument: page.lastDocument,
     );
   }
 

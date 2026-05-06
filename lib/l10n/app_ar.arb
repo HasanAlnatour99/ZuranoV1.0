@@ -1174,6 +1174,8 @@
   "customerBookingLookupBookingCodeHint": "مثال: ZR-123456",
   "customerBookingLookupSearch": "بحث",
   "customerBookingLookupPhoneHint": "استخدم نفس رقم الهاتف ورمز الحجز اللذين وصلاك بعد الحجز.",
+  "customerBookingLookupYourBookingsSection": "حجوزاتك",
+  "customerBookingLookupSignedInEmpty": "لا توجد حجوزات مرتبطة بحسابك بعد.",
   "customerBookingLookupNoBookings": "لم يتم العثور على حجوزات",
   "customerBookingLookupBothRequired": "رقم الهاتف ورمز الحجز مطلوبان.",
   "customerBookingLookupNotFound": "لم يُعثر على حجز. يُرجى التحقق من رقم الهاتف ورمز الحجز.",
@@ -4288,6 +4290,7 @@
   "customerSearchNoResultsMessage": "جرّب خدمة أو منطقة أخرى.",
   "customerSearchErrorTitle": "حدث خطأ",
   "customerSearchIndexUnavailable": "جاري تحميل البحث. حاول مرة أخرى بعد قليل.",
+  "customerSearchEnableLocationForNearby": "فعّل الموقع لترتيب أقرب الصالونات.",
 
   "customerSearchGroupServices": "الخدمات",
   "customerSearchGroupSpecialists": "المختصون",
@@ -4311,5 +4314,31 @@
   "customerSearchAudienceLadies": "سيدات",
   "customerSearchAudienceUnisex": "للجميع",
   "customerSearchFiltersReset": "إعادة ضبط",
-  "customerSearchFiltersDone": "تم"
+  "customerSearchFiltersDone": "تم",
+
+  "customerSearchPlaceOfferBadge": "عرض",
+  "customerSearchPlaceServicesCount": "{count} خدمة",
+  "@customerSearchPlaceServicesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customerSearchPlaceTeamCount": "{count} أعضاء فريق",
+  "@customerSearchPlaceTeamCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customerSearchPlacePriceFrom": "من {price}",
+  "@customerSearchPlacePriceFrom": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  }
 }

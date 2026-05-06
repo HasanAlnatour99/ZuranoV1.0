@@ -7,6 +7,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/session_provider.dart';
 import '../../application/booking_lookup_controller.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
 import '../widgets/customer_booking_lookup_card.dart';
@@ -49,74 +50,199 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
         (lookupState.error! as BookingLookupException).error ==
             BookingLookupError.missingPhoneOrCode;
 
+    final signedInUid =
+        (ref.watch(sessionUserProvider).asData?.value?.uid ?? '').trim();
+
     return CustomerGradientScaffold(
       child: SafeArea(
-        child: CustomScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.medium,
-                AppSpacing.small,
-                AppSpacing.medium,
-                AppSpacing.large,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: _Header(
-                  title: l10n.customerBookingLookupTitle,
-                  subtitle: l10n.customerBookingLookupSubtitle,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(customerAccountBookingsForFindProvider);
+          },
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.medium,
+                  AppSpacing.small,
+                  AppSpacing.medium,
+                  AppSpacing.large,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _Header(
+                    title: l10n.customerBookingLookupTitle,
+                    subtitle: l10n.customerBookingLookupSubtitle,
+                  ),
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
-              sliver: SliverToBoxAdapter(
-                child: _SearchCard(
-                  phoneController: _phoneController,
-                  bookingCodeController: _bookingCodeController,
-                  phoneLabel: l10n.customerBookingLookupPhoneNumber,
-                  bookingCodeLabel: l10n.customerBookingLookupBookingCode,
-                  bookingCodeHint: l10n.customerBookingLookupBookingCodeHint,
-                  searchLabel: l10n.customerBookingLookupSearch,
-                  phoneErrorText: invalidPhone
-                      ? l10n.customerBookingLookupInvalidPhone
-                      : null,
-                  bookingCodeErrorText: missingFields
-                      ? l10n.customerBookingLookupBothRequired
-                      : null,
-                  loading: lookupState.isLoading,
-                  onChanged: () {
-                    if (lookupState.hasError) {
-                      ref.read(bookingLookupControllerProvider.notifier).clear();
-                    }
-                  },
-                  onSearch: () => ref
-                      .read(bookingLookupControllerProvider.notifier)
-                      .search(
-                        phoneInput: _phoneController.text,
-                        bookingCodeInput: _bookingCodeController.text,
-                      ),
+              SliverPadding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+                sliver: SliverToBoxAdapter(
+                  child: _SearchCard(
+                    phoneController: _phoneController,
+                    bookingCodeController: _bookingCodeController,
+                    phoneLabel: l10n.customerBookingLookupPhoneNumber,
+                    bookingCodeLabel: l10n.customerBookingLookupBookingCode,
+                    bookingCodeHint: l10n.customerBookingLookupBookingCodeHint,
+                    searchLabel: l10n.customerBookingLookupSearch,
+                    phoneErrorText: invalidPhone
+                        ? l10n.customerBookingLookupInvalidPhone
+                        : null,
+                    bookingCodeErrorText: missingFields
+                        ? l10n.customerBookingLookupBothRequired
+                        : null,
+                    loading: lookupState.isLoading,
+                    onChanged: () {
+                      if (lookupState.hasError) {
+                        ref
+                            .read(bookingLookupControllerProvider.notifier)
+                            .clear();
+                      }
+                    },
+                    onSearch: () => ref
+                        .read(bookingLookupControllerProvider.notifier)
+                        .search(
+                          phoneInput: _phoneController.text,
+                          bookingCodeInput: _bookingCodeController.text,
+                        ),
+                  ),
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.large,
-                AppSpacing.medium,
-                AppSpacing.large,
-                AppSpacing.medium,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.large,
+                  AppSpacing.medium,
+                  AppSpacing.large,
+                  AppSpacing.medium,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: _InfoCard(message: l10n.customerBookingLookupPhoneHint),
+                ),
               ),
-              sliver: SliverToBoxAdapter(
-                child: _InfoCard(message: l10n.customerBookingLookupPhoneHint),
-              ),
-            ),
-            _ResultArea(state: lookupState),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.large)),
-          ],
+              if (signedInUid.isNotEmpty)
+                ..._signedInAccountBookingSlivers(context, ref, l10n),
+              _ResultArea(state: lookupState),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.large)),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+List<Widget> _signedInAccountBookingSlivers(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+) {
+  final theme = Theme.of(context);
+  final async = ref.watch(customerAccountBookingsForFindProvider);
+  return async.when(
+    loading: () => [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.customerBookingLookupYourBookingsSection,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColorsLight.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+        sliver: SliverList.list(
+          children: const [
+            AppSkeletonBlock(height: 132),
+            SizedBox(height: AppSpacing.medium),
+            AppSkeletonBlock(height: 132),
+          ],
+        ),
+      ),
+    ],
+    error: (Object error, StackTrace stackTrace) => [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.customerBookingLookupYourBookingsSection,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColorsLight.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+        sliver: SliverToBoxAdapter(
+          child: _StateCard(message: l10n.customerBookingLookupGenericError),
+        ),
+      ),
+    ],
+    data: (List<CustomerBookingLookupModel> list) {
+      final titleSliver = SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.customerBookingLookupYourBookingsSection,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColorsLight.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      );
+      if (list.isEmpty) {
+        return [
+          titleSliver,
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+            sliver: SliverToBoxAdapter(
+              child: _StateCard(
+                message: l10n.customerBookingLookupSignedInEmpty,
+              ),
+            ),
+          ),
+        ];
+      }
+      return [
+        titleSliver,
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+          sliver: SliverList.separated(
+            itemCount: list.length,
+            separatorBuilder: (context, index) =>
+                const SizedBox(height: AppSpacing.medium),
+            itemBuilder: (context, index) {
+              return CustomerBookingLookupCard(booking: list[index]);
+            },
+          ),
+        ),
+      ];
+    },
+  );
 }
 
 class _Header extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/utils/currency_for_country.dart';
+import '../../domain/salon_coordinates.dart';
 
 class CustomerSalonModel {
   const CustomerSalonModel({
@@ -69,6 +70,11 @@ class CustomerSalonModel {
     return a;
   }
 
+  /// Safe for `publicSalons` / salon docs where `address` may be a string or map.
+  static String discoveryAddressLine(Map<String, dynamic> data) {
+    return _addressLine(data);
+  }
+
   static String _addressLine(Map<String, dynamic> data) {
     final raw = data['address'];
     if (raw is String) {
@@ -76,7 +82,9 @@ class CustomerSalonModel {
     }
     if (raw is Map) {
       final m = Map<String, dynamic>.from(raw);
-      final formatted = (m['formatted'] as String?)?.trim();
+      final formatted =
+          (m['formattedAddress'] as String?)?.trim() ??
+          (m['formatted'] as String?)?.trim();
       if (formatted != null && formatted.isNotEmpty) {
         return formatted;
       }
@@ -116,6 +124,9 @@ class CustomerSalonModel {
       lat ??= loc.latitude;
       lng ??= loc.longitude;
     }
+    final parsedGeo = tryParseSalonCoordinates(data);
+    lat ??= parsedGeo?.latitude;
+    lng ??= parsedGeo?.longitude;
 
     return CustomerSalonModel(
       id: doc.id,

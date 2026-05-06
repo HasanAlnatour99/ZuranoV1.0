@@ -11,13 +11,14 @@ bool customerSalonMatchesDiscoveryCountry(
     return true;
   }
   final direct = salon.country.trim();
-  if (direct.isNotEmpty && direct == want) {
+  if (direct.isNotEmpty &&
+      direct.toLowerCase() == want.toLowerCase()) {
     return true;
   }
   final iso = salon.countryCodeIso;
   if (iso != null && iso.isNotEmpty) {
     final name = CountryOption.tryFindByIso(iso)?.nameEn;
-    if (name != null && name == want) {
+    if (name != null && name.toLowerCase() == want.toLowerCase()) {
       return true;
     }
   }

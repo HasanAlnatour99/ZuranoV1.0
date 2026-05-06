@@ -9,16 +9,25 @@ import '../../application/customer_popular_searches_provider.dart';
 import '../../application/customer_recent_searches_controller.dart';
 import '../../application/customer_search_controller.dart';
 import '../../application/customer_search_view_state.dart';
+import '../../domain/models/customer_search_filter.dart';
 import '../../domain/models/customer_search_result.dart';
+import '../../../../customer_home/presentation/theme/zurano_customer_colors.dart';
 import '../widgets/popular_searches_section.dart';
 import '../widgets/recent_searches_section.dart';
 import '../widgets/search_filter_bottom_sheet.dart';
 import '../widgets/search_result_tile.dart';
-import '../widgets/search_sort_bar.dart';
+import '../widgets/search_quick_filter_strip.dart';
 import '../widgets/search_suggestion_section.dart';
 
 class CustomerSearchScreen extends ConsumerStatefulWidget {
-  const CustomerSearchScreen({super.key});
+  const CustomerSearchScreen({
+    super.key,
+    this.initialQuickFilter,
+    this.initialSort,
+  });
+
+  final String? initialQuickFilter;
+  final String? initialSort;
 
   @override
   ConsumerState<CustomerSearchScreen> createState() => _CustomerSearchScreenState();
@@ -27,6 +36,27 @@ class CustomerSearchScreen extends ConsumerStatefulWidget {
 class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
   final controller = TextEditingController();
   Timer? debounce;
+  bool _initialFilterApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _initialFilterApplied) {
+        return;
+      }
+      final qf = widget.initialQuickFilter?.trim();
+      final s = widget.initialSort?.trim();
+      if ((qf == null || qf.isEmpty) && (s == null || s.isEmpty)) {
+        return;
+      }
+      _initialFilterApplied = true;
+      ref.read(customerSearchControllerProvider.notifier).applyInitialQuickFilter(
+            quickFilter: qf,
+            sort: s,
+          );
+    });
+  }
 
   void _onChanged(String value) {
     debounce?.cancel();
@@ -48,7 +78,10 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const SearchFilterBottomSheet(),
+      builder: (sheetContext) => Theme(
+        data: ZuranoCustomerColors.discoveryShellTheme(Theme.of(context)),
+        child: const SearchFilterBottomSheet(),
+      ),
     );
   }
 
@@ -56,11 +89,14 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final resultsAsync = ref.watch(customerSearchControllerProvider);
+    final searchFilter = ref.read(customerSearchControllerProvider.notifier).filter;
     final recent = ref.watch(customerRecentSearchesControllerProvider);
     final popularAsync = ref.watch(customerPopularSearchesProvider);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+    return Theme(
+      data: ZuranoCustomerColors.discoveryShellTheme(Theme.of(context)),
+      child: Scaffold(
+      backgroundColor: ZuranoCustomerColors.searchBackground,
       body: SafeArea(
         child: Column(
           children: [
@@ -70,7 +106,7 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
               onChanged: _onChanged,
               onOpenFilters: _openFilters,
             ),
-            const SearchSortBar(),
+            const SearchQuickFilterStrip(),
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (n) {
@@ -83,7 +119,15 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                   data: (CustomerSearchViewState viewState) {
                     final items = viewState.results;
                     final q = controller.text.trim();
-                    if (q.isEmpty) {
+                    final showDiscoveryLanding =
+                        q.isEmpty &&
+                        searchFilter.sort == CustomerSearchSort.recommended &&
+                        !searchFilter.nearbyOnly &&
+                        !searchFilter.openNowOnly &&
+                        !searchFilter.offersOnly &&
+                        !searchFilter.availableTodayOnly &&
+                        searchFilter.audience == null;
+                    if (showDiscoveryLanding) {
                       return ListView(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                         children: [
@@ -192,6 +236,13 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                       children: [
+                        if (viewState.showLocationHintForNearby)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _LocationHintBanner(
+                              message: l10n.customerSearchEnableLocationForNearby,
+                            ),
+                          ),
                         if (viewState.indexPermissionDenied)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
@@ -214,6 +265,7 @@ class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -243,9 +295,9 @@ class _SearchTopInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(22);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       child: Row(
         children: [
           IconButton(
@@ -258,20 +310,47 @@ class _SearchTopInput extends StatelessWidget {
               valueListenable: controller,
               builder: (context, value, _) {
                 final hasText = value.text.trim().isNotEmpty;
-                return TextField(
+                return Material(
+                  elevation: 6,
+                  shadowColor: ZuranoCustomerColors.primary.withValues(alpha: 0.12),
+                  borderRadius: radius,
+                  color: Colors.white,
+                  child: TextField(
                   controller: controller,
                   autofocus: true,
                   textInputAction: TextInputAction.search,
+                  cursorColor: ZuranoCustomerColors.primary,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: ZuranoCustomerColors.textStrong,
+                        fontWeight: FontWeight.w600,
+                      ),
                   onChanged: onChanged,
                   decoration: InputDecoration(
                     hintText: hintText,
+                    hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: ZuranoCustomerColors.textMuted,
+                          fontWeight: FontWeight.w500,
+                        ),
                     filled: true,
-                    fillColor: scheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: radius,
+                      borderSide: BorderSide(
+                        color: ZuranoCustomerColors.primary.withValues(alpha: 0.22),
+                      ),
                     ),
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: radius,
+                      borderSide: const BorderSide(
+                        color: ZuranoCustomerColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    border: OutlineInputBorder(borderRadius: radius),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: ZuranoCustomerColors.primary.withValues(alpha: 0.85),
+                    ),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -283,21 +362,66 @@ class _SearchTopInput extends StatelessWidget {
                               controller.clear();
                               onChanged('');
                             },
-                            icon: const Icon(Icons.close_rounded),
+                            icon: Icon(
+                              Icons.close_rounded,
+                              color: ZuranoCustomerColors.textMuted,
+                            ),
                           ),
                         IconButton(
                           tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                           onPressed: onOpenFilters,
-                          icon: const Icon(Icons.tune_rounded),
+                          icon: const Icon(
+                            Icons.tune_rounded,
+                            color: ZuranoCustomerColors.primary,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                ),
                 );
               },
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LocationHintBanner extends StatelessWidget {
+  const _LocationHintBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ZuranoCustomerColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: ZuranoCustomerColors.primary.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.location_off_rounded, color: ZuranoCustomerColors.primary),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: ZuranoCustomerColors.textStrong,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

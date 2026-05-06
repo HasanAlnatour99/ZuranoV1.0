@@ -5636,6 +5636,18 @@ abstract class AppLocalizations {
   /// **'Use the same phone number and booking code you received when you booked.'**
   String get customerBookingLookupPhoneHint;
 
+  /// No description provided for @customerBookingLookupYourBookingsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your bookings'**
+  String get customerBookingLookupYourBookingsSection;
+
+  /// No description provided for @customerBookingLookupSignedInEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookings linked to your account yet.'**
+  String get customerBookingLookupSignedInEmpty;
+
   /// No description provided for @customerBookingLookupNoBookings.
   ///
   /// In en, this message translates to:
@@ -18958,6 +18970,12 @@ abstract class AppLocalizations {
   /// **'Search is loading. Try again shortly.'**
   String get customerSearchIndexUnavailable;
 
+  /// No description provided for @customerSearchEnableLocationForNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location to sort by nearest salons.'**
+  String get customerSearchEnableLocationForNearby;
+
   /// No description provided for @customerSearchGroupServices.
   ///
   /// In en, this message translates to:
@@ -19083,6 +19101,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get customerSearchFiltersDone;
+
+  /// No description provided for @customerSearchPlaceOfferBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get customerSearchPlaceOfferBadge;
+
+  /// No description provided for @customerSearchPlaceServicesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} services'**
+  String customerSearchPlaceServicesCount(int count);
+
+  /// No description provided for @customerSearchPlaceTeamCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} team'**
+  String customerSearchPlaceTeamCount(int count);
+
+  /// No description provided for @customerSearchPlacePriceFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {price}'**
+  String customerSearchPlacePriceFrom(String price);
 }
 
 class _AppLocalizationsDelegate

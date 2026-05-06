@@ -1,10 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../core/firestore/firestore_serializers.dart';
+import '../../../customer_home/domain/salon_coordinates.dart';
 import '../domain/models/customer_search_filter.dart';
 import '../domain/models/customer_search_result.dart';
+
+int? _optionalNonNegativeInt(Map<String, dynamic> data, List<String> keys) {
+  for (final k in keys) {
+    final v = data[k];
+    if (v is num) {
+      final i = v.round();
+      if (i >= 0) {
+        return i;
+      }
+    }
+  }
+  return null;
+}
 
 class CustomerSearchRepository {
   CustomerSearchRepository(this.firestore);
@@ -43,9 +58,18 @@ class CustomerSearchRepository {
     }
 
     final snapshot = await query.get();
-    final results = snapshot.docs
-        .map((doc) => _CustomerSearchResultDto.fromFirestore(doc).toDomain())
+    var results = snapshot.docs
+        .map(
+          (doc) => _CustomerSearchResultDto.fromFirestore(doc).toDomain(
+                userLatitude: filter.userLatitude,
+                userLongitude: filter.userLongitude,
+              ),
+        )
         .toList();
+
+    if (results.isEmpty) {
+      results = await _searchPublicSalonsFallback(filter);
+    }
 
     if (kDebugMode) {
       final mismatch = results.where((r) => r.countryCode.toUpperCase() != cc).length;
@@ -83,7 +107,99 @@ class CustomerSearchRepository {
         break;
     }
 
+    final sortByDistance =
+        filter.sort == CustomerSearchSort.nearby || filter.nearbyOnly;
+    if (sortByDistance) {
+      _sortSearchResultsByDistance(results);
+    }
+
     return results;
+  }
+
+  static const double _kNoDistanceSortKey = 1e9;
+
+  static void _sortSearchResultsByDistance(List<CustomerSearchResult> results) {
+    double rank(CustomerSearchResult r) {
+      final d = r.distanceKm;
+      if (d != null) {
+        return d;
+      }
+      return _kNoDistanceSortKey;
+    }
+
+    results.sort((a, b) {
+      final c = rank(a).compareTo(rank(b));
+      if (c != 0) {
+        return c;
+      }
+      return (b.ratingAvg ?? 0).compareTo(a.ratingAvg ?? 0);
+    });
+  }
+
+  /// When `customerSearchIndex` has no rows yet (Functions/backfill), surface real salons.
+  Future<List<CustomerSearchResult>> _searchPublicSalonsFallback(
+    CustomerSearchFilter filter,
+  ) async {
+    final cc = filter.countryCode.trim().toUpperCase();
+    final snap = await firestore
+        .collection(FirestorePaths.publicSalons)
+        .where('countryCode', isEqualTo: cc)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .limit(50)
+        .get();
+
+    var mapped = snap.docs
+        .map(
+          (doc) => _CustomerSearchResultDto.fromPublicSalonDoc(
+            doc.id,
+            doc.data(),
+          ).toDomain(
+            userLatitude: filter.userLatitude,
+            userLongitude: filter.userLongitude,
+          ),
+        )
+        .toList();
+
+    final q = filter.query.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      mapped = mapped.where((r) {
+        if (r.title.toLowerCase().contains(q)) {
+          return true;
+        }
+        if (r.subtitle.toLowerCase().contains(q)) {
+          return true;
+        }
+        if (r.city.toLowerCase().contains(q)) {
+          return true;
+        }
+        if (r.area.toLowerCase().contains(q)) {
+          return true;
+        }
+        for (final k in r.searchKeywords) {
+          if (k.contains(q)) {
+            return true;
+          }
+        }
+        return false;
+      }).toList();
+    }
+
+    if (filter.openNowOnly) {
+      mapped = mapped.where((r) => r.isOpenNow).toList();
+    }
+    if (filter.offersOnly) {
+      mapped = mapped.where((r) => r.hasOffer).toList();
+    }
+
+    if (kDebugMode) {
+      debugPrint(
+        '[CustomerSearch] publicSalons fallback countryCode=$cc '
+        'query="$q" results=${mapped.length}',
+      );
+    }
+
+    return mapped;
   }
 }
 
@@ -110,6 +226,10 @@ class _CustomerSearchResultDto {
     this.ratingCount,
     this.distanceKm,
     this.priceFrom,
+    this.salonLatitude,
+    this.salonLongitude,
+    this.serviceCount,
+    this.teamCount,
   });
 
   final String id;
@@ -134,7 +254,30 @@ class _CustomerSearchResultDto {
   final bool isActive;
   final bool isPublic;
 
-  CustomerSearchResult toDomain() {
+  /// WGS84 when present on index / `publicSalons` (for client-side distance).
+  final double? salonLatitude;
+  final double? salonLongitude;
+
+  final int? serviceCount;
+  final int? teamCount;
+
+  CustomerSearchResult toDomain({
+    double? userLatitude,
+    double? userLongitude,
+  }) {
+    double? dist = distanceKm;
+    if (userLatitude != null &&
+        userLongitude != null &&
+        salonLatitude != null &&
+        salonLongitude != null) {
+      dist = Geolocator.distanceBetween(
+            userLatitude,
+            userLongitude,
+            salonLatitude!,
+            salonLongitude!,
+          ) /
+          1000.0;
+    }
     return CustomerSearchResult(
       id: id,
       salonId: salonId,
@@ -149,7 +292,7 @@ class _CustomerSearchResultDto {
       imageUrl: imageUrl,
       ratingAvg: ratingAvg,
       ratingCount: ratingCount,
-      distanceKm: distanceKm,
+      distanceKm: dist,
       priceFrom: priceFrom,
       isOpenNow: isOpenNow,
       hasOffer: hasOffer,
@@ -157,6 +300,8 @@ class _CustomerSearchResultDto {
       searchKeywords: searchKeywords,
       isActive: isActive,
       isPublic: isPublic,
+      serviceCount: serviceCount,
+      teamCount: teamCount,
     );
   }
 
@@ -173,6 +318,79 @@ class _CustomerSearchResultDto {
     }
   }
 
+  factory _CustomerSearchResultDto.fromPublicSalonDoc(
+    String docId,
+    Map<String, dynamic> data,
+  ) {
+    final salonIdRaw = FirestoreSerializers.string(data['salonId']);
+    final salonId =
+        (salonIdRaw != null && salonIdRaw.trim().isNotEmpty)
+        ? salonIdRaw.trim()
+        : docId;
+    final title =
+        (FirestoreSerializers.string(data['salonName']) ??
+                FirestoreSerializers.string(data['name']) ??
+                '')
+            .trim();
+    final city = (FirestoreSerializers.string(data['city']) ?? '').trim();
+    final area = (FirestoreSerializers.string(data['area']) ?? '').trim();
+    final countryName =
+        (FirestoreSerializers.string(data['countryName']) ??
+                FirestoreSerializers.string(data['country']) ??
+                '')
+            .trim();
+    final cc =
+        (FirestoreSerializers.string(data['countryCode']) ?? '').trim().toUpperCase();
+    final subtitle = [area, city].where((s) => s.isNotEmpty).join(', ');
+    final keywords = (data['searchKeywords'] is List)
+        ? (data['searchKeywords'] as List)
+            .map((e) => '$e'.trim().toLowerCase())
+            .where((e) => e.isNotEmpty)
+            .toList(growable: false)
+        : const <String>[];
+    final ratingAvg = FirestoreSerializers.doubleValue(data['ratingAverage']);
+    final ratingCount = (data['ratingCount'] is num)
+        ? (data['ratingCount'] as num).toInt()
+        : null;
+    final priceFrom = data['startingPrice'] is num ? data['startingPrice'] as num : null;
+    final geo = tryParseSalonCoordinates(data);
+
+    return _CustomerSearchResultDto(
+      id: 'fallback_salon_$salonId',
+      salonId: salonId,
+      targetId: salonId,
+      type: 'salon',
+      title: title.isNotEmpty ? title : 'Salon',
+      subtitle: subtitle,
+      countryCode: cc,
+      countryName: countryName,
+      city: city,
+      area: area,
+      imageUrl: FirestoreSerializers.string(data['coverImageUrl']) ??
+          FirestoreSerializers.string(data['logoUrl']),
+      ratingAvg: ratingAvg,
+      ratingCount: ratingCount,
+      distanceKm: null,
+      priceFrom: priceFrom,
+      isOpenNow: data['isOpen'] == true,
+      hasOffer: data['hasOffer'] == true,
+      audience: 'unisex',
+      searchKeywords: keywords,
+      isActive: data['isActive'] != false,
+      isPublic: data['isPublic'] == true,
+      salonLatitude: geo?.latitude,
+      salonLongitude: geo?.longitude,
+      serviceCount: _optionalNonNegativeInt(
+        Map<String, dynamic>.from(data),
+        const ['serviceCount', 'servicesCount', 'activeServiceCount'],
+      ),
+      teamCount: _optionalNonNegativeInt(
+        Map<String, dynamic>.from(data),
+        const ['teamCount', 'teamSize', 'staffCount', 'employeeCount', 'activeTeamCount'],
+      ),
+    );
+  }
+
   factory _CustomerSearchResultDto.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -183,6 +401,7 @@ class _CustomerSearchResultDto {
         (targetRaw != null && targetRaw.isNotEmpty) ? targetRaw : salonId;
     final cc =
         (FirestoreSerializers.string(data['countryCode']) ?? '').trim().toUpperCase();
+    final geo = tryParseSalonCoordinates(data);
 
     return _CustomerSearchResultDto(
       id: doc.id,
@@ -220,6 +439,16 @@ class _CustomerSearchResultDto {
               .where((e) => e.isNotEmpty)
               .toList(growable: false)
           : const <String>[],
+      salonLatitude: geo?.latitude,
+      salonLongitude: geo?.longitude,
+      serviceCount: _optionalNonNegativeInt(
+        data,
+        const ['serviceCount', 'servicesCount', 'activeServiceCount'],
+      ),
+      teamCount: _optionalNonNegativeInt(
+        data,
+        const ['teamCount', 'teamSize', 'staffCount', 'employeeCount', 'activeTeamCount'],
+      ),
     );
   }
 }

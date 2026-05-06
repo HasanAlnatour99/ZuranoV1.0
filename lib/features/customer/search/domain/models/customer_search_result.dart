@@ -31,6 +31,12 @@ class CustomerSearchResult {
   final bool isActive;
   final bool isPublic;
 
+  /// Active services count when mirrored on `customerSearchIndex` (optional).
+  final int? serviceCount;
+
+  /// Active team / employees count when mirrored (optional).
+  final int? teamCount;
+
   const CustomerSearchResult({
     required this.id,
     required this.salonId,
@@ -53,5 +59,39 @@ class CustomerSearchResult {
     this.isOpenNow = false,
     this.hasOffer = false,
     this.audience = 'unisex',
+    this.serviceCount,
+    this.teamCount,
   });
+
+  CustomerSearchResult copyWith({
+    double? distanceKm,
+    int? serviceCount,
+    int? teamCount,
+  }) {
+    return CustomerSearchResult(
+      id: id,
+      salonId: salonId,
+      targetId: targetId,
+      type: type,
+      title: title,
+      subtitle: subtitle,
+      countryCode: countryCode,
+      countryName: countryName,
+      city: city,
+      area: area,
+      searchKeywords: searchKeywords,
+      isActive: isActive,
+      isPublic: isPublic,
+      imageUrl: imageUrl,
+      ratingAvg: ratingAvg,
+      ratingCount: ratingCount,
+      distanceKm: distanceKm ?? this.distanceKm,
+      priceFrom: priceFrom,
+      isOpenNow: isOpenNow,
+      hasOffer: hasOffer,
+      audience: audience,
+      serviceCount: serviceCount ?? this.serviceCount,
+      teamCount: teamCount ?? this.teamCount,
+    );
+  }
 }

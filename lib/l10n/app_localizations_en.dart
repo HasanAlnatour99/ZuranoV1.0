@@ -3123,6 +3123,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use the same phone number and booking code you received when you booked.';
 
   @override
+  String get customerBookingLookupYourBookingsSection => 'Your bookings';
+
+  @override
+  String get customerBookingLookupSignedInEmpty =>
+      'No bookings linked to your account yet.';
+
+  @override
   String get customerBookingLookupNoBookings => 'No bookings found';
 
   @override
@@ -10803,6 +10810,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search is loading. Try again shortly.';
 
   @override
+  String get customerSearchEnableLocationForNearby =>
+      'Enable location to sort by nearest salons.';
+
+  @override
   String get customerSearchGroupServices => 'Services';
 
   @override
@@ -10864,4 +10875,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerSearchFiltersDone => 'Done';
+
+  @override
+  String get customerSearchPlaceOfferBadge => 'Offer';
+
+  @override
+  String customerSearchPlaceServicesCount(int count) {
+    return '$count services';
+  }
+
+  @override
+  String customerSearchPlaceTeamCount(int count) {
+    return '$count team';
+  }
+
+  @override
+  String customerSearchPlacePriceFrom(String price) {
+    return 'From $price';
+  }
 }

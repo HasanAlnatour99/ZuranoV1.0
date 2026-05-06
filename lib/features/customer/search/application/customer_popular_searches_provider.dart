@@ -5,6 +5,20 @@ import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../providers/firebase_providers.dart';
 import '../../../customer_home/presentation/controllers/customer_home_providers.dart';
 
+/// Firestore `countryCode` on the item, or null/empty/`ALL` = show in every country.
+bool _popularSearchDocMatchesCountry(
+  Map<String, dynamic> data,
+  String customerCountryCode,
+) {
+  final want = customerCountryCode.trim().toUpperCase();
+  final raw = data['countryCode'];
+  final d = raw == null ? '' : '$raw'.trim().toUpperCase();
+  if (d.isEmpty || d == 'ALL') {
+    return true;
+  }
+  return d == want;
+}
+
 class PopularCustomerSearchItem {
   const PopularCustomerSearchItem({
     required this.id,
@@ -41,20 +55,34 @@ final customerPopularSearchesProvider =
     StreamProvider.autoDispose<List<PopularCustomerSearchItem>>((ref) {
   final db = ref.watch(firestoreProvider);
   final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
+  // Use only isActive + sortOrder in Firestore (existing index). Country is
+  // applied in memory so we do not require a new composite while indexes build.
   return db
       .collection(FirestorePaths.customerDiscovery)
       .doc(FirestorePaths.customerDiscoveryPopularSearchesDoc)
       .collection(FirestorePaths.customerDiscoveryItems)
       .where('isActive', isEqualTo: true)
-      .where('countryCode', whereIn: [countryCode, 'ALL'])
       .orderBy('sortOrder')
-      .limit(24)
+      .limit(64)
       .snapshots()
       .map(
-        (snap) => snap.docs
-            .map(PopularCustomerSearchItem.fromDoc)
-            .where((e) => e.label.isNotEmpty)
-            .toList(growable: false),
+        (snap) {
+          final out = <PopularCustomerSearchItem>[];
+          for (final doc in snap.docs) {
+            if (!_popularSearchDocMatchesCountry(doc.data(), countryCode)) {
+              continue;
+            }
+            final item = PopularCustomerSearchItem.fromDoc(doc);
+            if (item.label.isEmpty) {
+              continue;
+            }
+            out.add(item);
+            if (out.length >= 24) {
+              break;
+            }
+          }
+          return out;
+        },
       );
 });
 

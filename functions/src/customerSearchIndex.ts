@@ -118,6 +118,19 @@ export async function upsertSalonSearchIndexFromFirestore(salonId: string): Prom
     ...keywords,
   ]);
 
+  let serviceCount = 0;
+  let teamCount = 0;
+  try {
+    const [svcSnap, empSnap] = await Promise.all([
+      db.collection(`salons/${salonId}/services`).where("isActive", "==", true).get(),
+      db.collection(`salons/${salonId}/employees`).where("isActive", "==", true).get(),
+    ]);
+    serviceCount = svcSnap.size;
+    teamCount = empSnap.size;
+  } catch (e) {
+    console.warn(`[customerSearchIndex] subcollection counts failed salon=${salonId}`, e);
+  }
+
   const payload: Record<string, unknown> = {
     type: "salon",
     salonId,
@@ -139,6 +152,8 @@ export async function upsertSalonSearchIndexFromFirestore(salonId: string): Prom
     isPublic,
     searchKeywords: derivedKeywords,
     location: geoFromDoc(s),
+    serviceCount,
+    teamCount,
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),
   };
