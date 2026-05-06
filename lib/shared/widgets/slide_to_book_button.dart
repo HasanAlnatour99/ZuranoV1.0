@@ -110,6 +110,8 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
   Widget build(BuildContext context) {
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
+    final thumbIcon =
+        isRtl ? Icons.arrow_back_rounded : Icons.arrow_forward_rounded;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -210,7 +212,7 @@ class _SlideToBookButtonState extends State<SlideToBookButton>
                                   ),
                                 )
                               : Icon(
-                                  Icons.event_available_rounded,
+                                  thumbIcon,
                                   color: colorScheme.primary,
                                   size: 30,
                                 ),

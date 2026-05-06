@@ -42,7 +42,9 @@ class CustomerBookingLookupModel {
       id: _string(json['bookingId']),
       salonId: _string(json['salonId']),
       salonName: _string(json['salonName']),
-      bookingCode: _string(json['bookingCode']),
+      bookingCode: _string(
+        json['bookingNumber'] ?? json['bookingCode'],
+      ),
       status: _string(json['status']),
       customerName: _string(json['customerName']),
       customerPhone: _string(json['customerPhone']),
@@ -57,6 +59,28 @@ class CustomerBookingLookupModel {
     );
   }
 
+  factory CustomerBookingLookupModel.fromLookupCallableJson(
+    Map<String, dynamic> json,
+  ) {
+    return CustomerBookingLookupModel(
+      id: _string(json['bookingId']),
+      salonId: _string(json['salonId']),
+      salonName: _string(json['salonName']),
+      bookingCode: _string(json['bookingCode']),
+      status: _string(json['status']),
+      customerName: _string(json['customerName']),
+      customerPhone: _string(json['customerPhone']),
+      customerPhoneNormalized: _string(json['customerPhoneNormalized']),
+      employeeId: _string(json['employeeId']),
+      employeeName: _string(json['employeeName']),
+      serviceNames: _serviceNames(json['serviceNames'], null),
+      totalAmount: _double(json['totalAmount']),
+      startAt: _dateFromMillis(json['startAtMs']),
+      endAt: _dateFromMillis(json['endAtMs']),
+      createdAt: _optionalDateFromMillis(json['createdAtMs']),
+    );
+  }
+
   factory CustomerBookingLookupModel.fromFirestore(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -65,7 +89,7 @@ class CustomerBookingLookupModel {
       id: doc.id,
       salonId: _string(data['salonId']),
       salonName: _string(data['salonName']),
-      bookingCode: _string(data['bookingCode']),
+      bookingCode: _publicBookingCode(data),
       status: _string(data['status']),
       customerName: _string(data['customerName']),
       customerPhone: _string(data['customerPhone']),
@@ -82,6 +106,37 @@ class CustomerBookingLookupModel {
 
   static String _string(Object? value) {
     return value is String ? value.trim() : '';
+  }
+
+  static String _publicBookingCode(Map<String, dynamic> data) {
+    final n = _string(data['bookingNumber']);
+    if (n.isNotEmpty) {
+      return n;
+    }
+    return _string(data['bookingCode']);
+  }
+
+  static DateTime _dateFromMillis(Object? value) {
+    final ms = _millis(value);
+    return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+  }
+
+  static DateTime? _optionalDateFromMillis(Object? value) {
+    final ms = _millis(value);
+    if (ms <= 0) {
+      return null;
+    }
+    return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+  }
+
+  static int _millis(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return 0;
   }
 
   static double _double(Object? value) {

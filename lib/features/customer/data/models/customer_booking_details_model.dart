@@ -86,6 +86,14 @@ class CustomerBookingDetailsModel {
     return value is String ? value.trim() : '';
   }
 
+  static String _publicBookingCode(Map<String, dynamic> data) {
+    final n = _string(data['bookingNumber']);
+    if (n.isNotEmpty) {
+      return n;
+    }
+    return _string(data['bookingCode']);
+  }
+
   static double _double(Object? value) {
     return value is num ? value.toDouble() : 0;
   }
@@ -208,7 +216,7 @@ class CustomerBookingDetailsModel {
       salonArea: publicSalon.area,
       salonPhone: publicSalon.phone,
       salonWhatsapp: publicSalon.whatsapp,
-      bookingCode: _string(bookingData['bookingCode']),
+      bookingCode: _publicBookingCode(bookingData),
       status: _string(bookingData['status']),
       customerName: _string(bookingData['customerName']),
       customerPhone: _string(bookingData['customerPhone']),

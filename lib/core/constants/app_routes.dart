@@ -232,6 +232,9 @@ class AppRoutes {
   static const ownerTeamStack = '/owner/team-stack';
   static const ownerCustomers = '/owner/customers';
 
+  /// Full salon bookings list (owner / admin).
+  static const ownerBookings = '/owner/bookings';
+
   static String ownerCustomerDetails(String customerId) =>
       '$ownerCustomers/$customerId';
 
@@ -366,6 +369,9 @@ class AppRoutes {
       '/employee/attendance/correction';
   static const employeeAttendanceRequest = '/employee/attendance/request';
   static const employeeToday = '/employee/today';
+
+  /// Barber / employee: upcoming bookings (7-day window) and actions.
+  static const employeeBookings = '/employee/bookings';
 
   /// Legacy path; redirects to [employeeAttendanceCorrectionNested].
   static const employeeAttendanceCorrection = '/employee/attendance-correction';

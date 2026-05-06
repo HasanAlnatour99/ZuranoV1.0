@@ -73,3 +73,9 @@ export {
 export {
   createSalonInAppNotification,
 } from "./notifications/salonInAppNotificationService";
+
+export {
+  syncSalonSearchIndex,
+  syncServiceSearchIndex,
+  syncEmployeeSearchIndex,
+} from "./customerSearchIndex";

@@ -298,6 +298,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerBookingsListTitle => 'Bookings';
 
   @override
+  String get bookingsPreviewViewAll => 'View all';
+
+  @override
+  String get bookingsPreviewSectionTitle => 'Appointments';
+
+  @override
+  String get bookingsPreviewGuestLabel => 'Guest';
+
+  @override
+  String get employeeBookingsTitle => 'Your bookings';
+
+  @override
+  String get employeeBookingsSubtitle => 'Next 7 days';
+
+  @override
+  String get employeeBookingsEmpty => 'No upcoming bookings in the next week.';
+
+  @override
+  String get employeeBookingMarkCompleted => 'Completed';
+
+  @override
+  String get employeeBookingNotAttended => 'Not attended';
+
+  @override
+  String get employeeBookingsAddSaleByCode => 'Checkout with booking code';
+
+  @override
+  String get employeeBookingActionSaved => 'Booking updated';
+
+  @override
   String get ownerBookingCancel => 'Cancel';
 
   @override
@@ -3070,7 +3100,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerBookingLookupSubtitle =>
-      'Enter your phone number to view your appointment';
+      'Enter your phone number and booking code to view your booking.';
 
   @override
   String get customerBookingLookupPhoneNumber => 'Phone number';
@@ -3083,14 +3113,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Booking code optional';
 
   @override
+  String get customerBookingLookupBookingCodeHint => 'e.g. ZR-123456';
+
+  @override
   String get customerBookingLookupSearch => 'Search';
 
   @override
   String get customerBookingLookupPhoneHint =>
-      'Use the same phone number you used when booking.';
+      'Use the same phone number and booking code you received when you booked.';
 
   @override
   String get customerBookingLookupNoBookings => 'No bookings found';
+
+  @override
+  String get customerBookingLookupBothRequired =>
+      'Phone number and booking code are required.';
+
+  @override
+  String get customerBookingLookupNotFound =>
+      'No booking found. Please check your phone number and booking code.';
 
   @override
   String get customerBookingLookupViewDetails => 'View details';
@@ -10701,4 +10742,122 @@ class AppLocalizationsEn extends AppLocalizations {
   String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes) {
     return '${hours}h ${minutes}m';
   }
+
+  @override
+  String get customerHomeSearchHeadline => 'Find your style today';
+
+  @override
+  String get customerHomeSearchSubtitle =>
+      'Book barber, salon, or spa near you';
+
+  @override
+  String get customerHomeSearchHintHaircut => 'Search haircut…';
+
+  @override
+  String get customerHomeSearchHintBeard => 'Search beard trim…';
+
+  @override
+  String get customerHomeSearchHintSalonsNearby => 'Search salons near you…';
+
+  @override
+  String get customerHomeSearchHintSpecialists => 'Search specialists…';
+
+  @override
+  String get customerHomeSearchHintSpaNails => 'Search spa or nails…';
+
+  @override
+  String get customerSearchRecentTitle => 'Recent searches';
+
+  @override
+  String get customerSearchClearAll => 'Clear all';
+
+  @override
+  String get customerSearchPopularTitle => 'Popular searches';
+
+  @override
+  String get customerSearchTryTitle => 'Try searching';
+
+  @override
+  String get customerSearchTryHaircut => 'Haircut';
+
+  @override
+  String get customerSearchTryBeard => 'Beard trim';
+
+  @override
+  String get customerSearchTrySalonNearYou => 'Salons near you';
+
+  @override
+  String get customerSearchTrySpecialist => 'Ahmed';
+
+  @override
+  String get customerSearchNoResultsTitle => 'No matches found';
+
+  @override
+  String get customerSearchNoResultsMessage => 'Try another service or area.';
+
+  @override
+  String get customerSearchErrorTitle => 'Something went wrong';
+
+  @override
+  String get customerSearchGroupServices => 'Services';
+
+  @override
+  String get customerSearchGroupSpecialists => 'Specialists';
+
+  @override
+  String get customerSearchGroupPlaces => 'Places';
+
+  @override
+  String get customerSearchSortRecommended => 'Recommended';
+
+  @override
+  String get customerSearchSortNearby => 'Nearby';
+
+  @override
+  String get customerSearchSortOpenNow => 'Open now';
+
+  @override
+  String get customerSearchSortTopRated => 'Top rated';
+
+  @override
+  String get customerSearchSortPriceLow => 'Price ↑';
+
+  @override
+  String get customerSearchSortPriceHigh => 'Price ↓';
+
+  @override
+  String get customerSearchSortOffers => 'Offers';
+
+  @override
+  String get customerSearchFiltersTitle => 'Filters';
+
+  @override
+  String get customerSearchFilterNearby => 'Nearby';
+
+  @override
+  String get customerSearchFilterOpenNow => 'Open now';
+
+  @override
+  String get customerSearchFilterOffers => 'Offers';
+
+  @override
+  String get customerSearchFilterAvailableToday => 'Available today';
+
+  @override
+  String get customerSearchFilterAudienceTitle => 'Audience';
+
+  @override
+  String get customerSearchAudienceMen => 'Men';
+
+  @override
+  String get customerSearchAudienceLadies => 'Ladies';
+
+  @override
+  String get customerSearchAudienceUnisex => 'Unisex';
+
+  @override
+  String get customerSearchFiltersReset => 'Reset';
+
+  @override
+  String get customerSearchFiltersDone => 'Done';
 }

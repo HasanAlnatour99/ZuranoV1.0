@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../bookings/presentation/widgets/bookings_preview_container.dart';
 import '../../data/models/customer.dart';
 import '../../domain/customer_model.dart';
 import '../../logic/customer_providers.dart';
@@ -96,6 +97,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     // not swap to [customerSearchProvider] per keystroke (that re-ran a Future
     // and showed a full-screen loading spinner on every character).
     final rawAsync = ref.watch(customersListProvider(salonId));
+    final bookingsAsync = ref.watch(bookingsStreamProvider);
 
     final canCreate =
         user != null && (user.role == 'owner' || user.role == 'admin');
@@ -171,6 +173,26 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       if (salonId.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         CustomerInsightCard(salonId: salonId),
+                      ],
+                      if (salonId.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        bookingsAsync.when(
+                          data: (allBookings) {
+                            final upcoming =
+                                filterUpcomingBookings(allBookings).take(3).toList();
+                            return BookingsPreviewContainer(
+                              title: l10n.bookingsPreviewSectionTitle,
+                              bookings: upcoming,
+                              l10n: l10n,
+                              localeName: localeName,
+                              maxVisible: 3,
+                              onViewAll: () =>
+                                  context.push(AppRoutes.ownerBookings),
+                            );
+                          },
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
                       ],
                       const SizedBox(height: 16),
                       CustomerSearchBar(

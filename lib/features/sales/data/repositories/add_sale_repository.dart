@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/constants/booking_status_machine.dart';
+import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/constants/sale_reporting.dart';
 import '../../../../core/text/team_member_name.dart';
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../../../core/firestore/firestore_serializers.dart';
 import '../../../../core/firestore/firestore_write_payload.dart';
 import '../../../../core/firestore/report_period.dart';
 import '../../../customers/data/models/customer.dart';
@@ -232,6 +235,8 @@ class AddSaleRepository {
             'authUid': authUidTrimmed,
           'phone': '',
           'isActive': true,
+          'category': 'new',
+          'isVip': false,
           'customerType': customerType,
           'source': 'booking',
           'firstBookingCode': normalizedCode,
@@ -248,7 +253,6 @@ class AddSaleRepository {
           'updatedAt': FieldValue.serverTimestamp(),
           'createdBy': actor.uid,
           'searchKeywords': keywords,
-          'category': 'new',
         });
       } else if (privileged) {
         transaction.set(customerRef, {
@@ -264,6 +268,9 @@ class AddSaleRepository {
             'authUid': authUidTrimmed,
           'customerType': customerType,
           'source': 'booking',
+          'isActive': true,
+          'category': 'new',
+          'isVip': false,
           'lastBookingCode': normalizedCode,
           'lastSaleId': saleRef.id,
           'totalVisits': FieldValue.increment(1),
@@ -276,6 +283,7 @@ class AddSaleRepository {
         }, SetOptions(merge: true));
       } else {
         transaction.update(customerRef, {
+          'isActive': true,
           'totalVisits': FieldValue.increment(1),
           'visitsCount': FieldValue.increment(1),
           'visitCount': FieldValue.increment(1),
@@ -297,6 +305,13 @@ class AddSaleRepository {
         'bookingStatus': 'completed',
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      await _completeSalonBookingFromGuestMirror(
+        _db,
+        transaction,
+        salonId: salonId,
+        salonBookingId: booking.salonBookingId,
+      );
 
       saleLineItemsForSubdocs = sale.lineItems;
       return saleRef.id;
@@ -493,4 +508,52 @@ String _visibleCustomerNameFromBooking(GuestBookingSnapshot booking) {
     return nicknameKey;
   }
   return 'Guest';
+}
+
+/// Marks the salon booking completed when a guest mirror doc links it.
+/// Does not increment customer visit stats (the sale transaction already does).
+Future<void> _completeSalonBookingFromGuestMirror(
+  FirebaseFirestore db,
+  Transaction transaction, {
+  required String salonId,
+  required String? salonBookingId,
+}) async {
+  final id = salonBookingId?.trim() ?? '';
+  if (id.isEmpty) return;
+  FirestoreWritePayload.assertSalonId(salonId);
+
+  final salonBookingRef = db.doc(FirestorePaths.salonBooking(salonId, id));
+  final snap = await transaction.get(salonBookingRef);
+  if (!snap.exists) return;
+  final data = snap.data();
+  if (data == null) return;
+
+  final cur = BookingStatusMachine.normalize(
+    FirestoreSerializers.string(data['status']),
+  );
+  if (cur == BookingStatuses.completed) return;
+  if (cur == BookingStatuses.cancelled) return;
+
+  final now = FieldValue.serverTimestamp();
+  transaction.set(salonBookingRef, {
+    'status': BookingStatuses.completed,
+    'serviceCompletedAt': now,
+    'updatedAt': now,
+  }, SetOptions(merge: true));
+
+  final dayKey = (data['dayKey'] as String? ?? '').trim();
+  final barberId =
+      (FirestoreSerializers.string(data['barberId']) ??
+              FirestoreSerializers.string(data['employeeId']) ??
+              '')
+          .trim();
+  if (dayKey.isNotEmpty && barberId.isNotEmpty) {
+    final lockRef = db.doc(
+      '${FirestorePaths.salon(salonId)}/booking_locks/${barberId}_$dayKey',
+    );
+    transaction.set(lockRef, {
+      'activeBookingIds': FieldValue.arrayRemove([id]),
+      'updatedAt': now,
+    }, SetOptions(merge: true));
+  }
 }

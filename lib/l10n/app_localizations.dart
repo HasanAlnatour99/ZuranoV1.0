@@ -614,6 +614,66 @@ abstract class AppLocalizations {
   /// **'Bookings'**
   String get ownerBookingsListTitle;
 
+  /// No description provided for @bookingsPreviewViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get bookingsPreviewViewAll;
+
+  /// No description provided for @bookingsPreviewSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointments'**
+  String get bookingsPreviewSectionTitle;
+
+  /// No description provided for @bookingsPreviewGuestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get bookingsPreviewGuestLabel;
+
+  /// No description provided for @employeeBookingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your bookings'**
+  String get employeeBookingsTitle;
+
+  /// No description provided for @employeeBookingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 7 days'**
+  String get employeeBookingsSubtitle;
+
+  /// No description provided for @employeeBookingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming bookings in the next week.'**
+  String get employeeBookingsEmpty;
+
+  /// No description provided for @employeeBookingMarkCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get employeeBookingMarkCompleted;
+
+  /// No description provided for @employeeBookingNotAttended.
+  ///
+  /// In en, this message translates to:
+  /// **'Not attended'**
+  String get employeeBookingNotAttended;
+
+  /// No description provided for @employeeBookingsAddSaleByCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout with booking code'**
+  String get employeeBookingsAddSaleByCode;
+
+  /// No description provided for @employeeBookingActionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking updated'**
+  String get employeeBookingActionSaved;
+
   /// No description provided for @ownerBookingCancel.
   ///
   /// In en, this message translates to:
@@ -5537,7 +5597,7 @@ abstract class AppLocalizations {
   /// No description provided for @customerBookingLookupSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter your phone number to view your appointment'**
+  /// **'Enter your phone number and booking code to view your booking.'**
   String get customerBookingLookupSubtitle;
 
   /// No description provided for @customerBookingLookupPhoneNumber.
@@ -5558,6 +5618,12 @@ abstract class AppLocalizations {
   /// **'Booking code optional'**
   String get customerBookingLookupBookingCodeOptional;
 
+  /// No description provided for @customerBookingLookupBookingCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. ZR-123456'**
+  String get customerBookingLookupBookingCodeHint;
+
   /// No description provided for @customerBookingLookupSearch.
   ///
   /// In en, this message translates to:
@@ -5567,7 +5633,7 @@ abstract class AppLocalizations {
   /// No description provided for @customerBookingLookupPhoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Use the same phone number you used when booking.'**
+  /// **'Use the same phone number and booking code you received when you booked.'**
   String get customerBookingLookupPhoneHint;
 
   /// No description provided for @customerBookingLookupNoBookings.
@@ -5575,6 +5641,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No bookings found'**
   String get customerBookingLookupNoBookings;
+
+  /// No description provided for @customerBookingLookupBothRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number and booking code are required.'**
+  String get customerBookingLookupBothRequired;
+
+  /// No description provided for @customerBookingLookupNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No booking found. Please check your phone number and booking code.'**
+  String get customerBookingLookupNotFound;
 
   /// No description provided for @customerBookingLookupViewDetails.
   ///
@@ -18765,6 +18843,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{hours}h {minutes}m'**
   String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @customerHomeSearchHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your style today'**
+  String get customerHomeSearchHeadline;
+
+  /// No description provided for @customerHomeSearchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book barber, salon, or spa near you'**
+  String get customerHomeSearchSubtitle;
+
+  /// No description provided for @customerHomeSearchHintHaircut.
+  ///
+  /// In en, this message translates to:
+  /// **'Search haircut…'**
+  String get customerHomeSearchHintHaircut;
+
+  /// No description provided for @customerHomeSearchHintBeard.
+  ///
+  /// In en, this message translates to:
+  /// **'Search beard trim…'**
+  String get customerHomeSearchHintBeard;
+
+  /// No description provided for @customerHomeSearchHintSalonsNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Search salons near you…'**
+  String get customerHomeSearchHintSalonsNearby;
+
+  /// No description provided for @customerHomeSearchHintSpecialists.
+  ///
+  /// In en, this message translates to:
+  /// **'Search specialists…'**
+  String get customerHomeSearchHintSpecialists;
+
+  /// No description provided for @customerHomeSearchHintSpaNails.
+  ///
+  /// In en, this message translates to:
+  /// **'Search spa or nails…'**
+  String get customerHomeSearchHintSpaNails;
+
+  /// No description provided for @customerSearchRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent searches'**
+  String get customerSearchRecentTitle;
+
+  /// No description provided for @customerSearchClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get customerSearchClearAll;
+
+  /// No description provided for @customerSearchPopularTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular searches'**
+  String get customerSearchPopularTitle;
+
+  /// No description provided for @customerSearchTryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try searching'**
+  String get customerSearchTryTitle;
+
+  /// No description provided for @customerSearchTryHaircut.
+  ///
+  /// In en, this message translates to:
+  /// **'Haircut'**
+  String get customerSearchTryHaircut;
+
+  /// No description provided for @customerSearchTryBeard.
+  ///
+  /// In en, this message translates to:
+  /// **'Beard trim'**
+  String get customerSearchTryBeard;
+
+  /// No description provided for @customerSearchTrySalonNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Salons near you'**
+  String get customerSearchTrySalonNearYou;
+
+  /// No description provided for @customerSearchTrySpecialist.
+  ///
+  /// In en, this message translates to:
+  /// **'Ahmed'**
+  String get customerSearchTrySpecialist;
+
+  /// No description provided for @customerSearchNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found'**
+  String get customerSearchNoResultsTitle;
+
+  /// No description provided for @customerSearchNoResultsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another service or area.'**
+  String get customerSearchNoResultsMessage;
+
+  /// No description provided for @customerSearchErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get customerSearchErrorTitle;
+
+  /// No description provided for @customerSearchGroupServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get customerSearchGroupServices;
+
+  /// No description provided for @customerSearchGroupSpecialists.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialists'**
+  String get customerSearchGroupSpecialists;
+
+  /// No description provided for @customerSearchGroupPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Places'**
+  String get customerSearchGroupPlaces;
+
+  /// No description provided for @customerSearchSortRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get customerSearchSortRecommended;
+
+  /// No description provided for @customerSearchSortNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get customerSearchSortNearby;
+
+  /// No description provided for @customerSearchSortOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get customerSearchSortOpenNow;
+
+  /// No description provided for @customerSearchSortTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rated'**
+  String get customerSearchSortTopRated;
+
+  /// No description provided for @customerSearchSortPriceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Price ↑'**
+  String get customerSearchSortPriceLow;
+
+  /// No description provided for @customerSearchSortPriceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Price ↓'**
+  String get customerSearchSortPriceHigh;
+
+  /// No description provided for @customerSearchSortOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get customerSearchSortOffers;
+
+  /// No description provided for @customerSearchFiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get customerSearchFiltersTitle;
+
+  /// No description provided for @customerSearchFilterNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get customerSearchFilterNearby;
+
+  /// No description provided for @customerSearchFilterOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get customerSearchFilterOpenNow;
+
+  /// No description provided for @customerSearchFilterOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get customerSearchFilterOffers;
+
+  /// No description provided for @customerSearchFilterAvailableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get customerSearchFilterAvailableToday;
+
+  /// No description provided for @customerSearchFilterAudienceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audience'**
+  String get customerSearchFilterAudienceTitle;
+
+  /// No description provided for @customerSearchAudienceMen.
+  ///
+  /// In en, this message translates to:
+  /// **'Men'**
+  String get customerSearchAudienceMen;
+
+  /// No description provided for @customerSearchAudienceLadies.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladies'**
+  String get customerSearchAudienceLadies;
+
+  /// No description provided for @customerSearchAudienceUnisex.
+  ///
+  /// In en, this message translates to:
+  /// **'Unisex'**
+  String get customerSearchAudienceUnisex;
+
+  /// No description provided for @customerSearchFiltersReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get customerSearchFiltersReset;
+
+  /// No description provided for @customerSearchFiltersDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get customerSearchFiltersDone;
 }
 
 class _AppLocalizationsDelegate

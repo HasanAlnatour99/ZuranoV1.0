@@ -17,6 +17,8 @@ import '../../../employee_dashboard/presentation/widgets/employee_bottom_nav_bar
 import '../../../employee_dashboard/presentation/widgets/employee_quick_action_fab.dart';
 import '../../../employee_dashboard/presentation/widgets/today_activity_timeline.dart';
 import '../../../employee_dashboard/presentation/widgets/today_attendance_card.dart';
+import '../../../bookings/presentation/widgets/bookings_preview_container.dart';
+import '../../../employee_bookings/application/employee_bookings_providers.dart';
 import '../../providers/employee_today_providers.dart';
 import '../employee_today_theme.dart';
 import '../widgets/employee_today_section_error.dart';
@@ -54,6 +56,7 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
     final performanceAsync = ref.watch(employeeTodayPerformanceProvider);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
+    final localeName = locale.toString();
     const fabDockClearance = 88.0;
     final scrollBottomPadding =
         ZuranoFloatingBottomNav.scrollBottomPadding(context) +
@@ -86,6 +89,34 @@ class _EmployeeTodayScreenState extends ConsumerState<EmployeeTodayScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: TodayAttendanceCard(onRetry: _invalidateTodayPage),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: ref
+                      .watch(employeeBookingsNext7DaysProvider)
+                      .when(
+                        data: (bookings) {
+                          final preview = bookings.take(3).toList();
+                          if (preview.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return BookingsPreviewContainer(
+                            title: l10n.bookingsPreviewSectionTitle,
+                            bookings: preview,
+                            l10n: l10n,
+                            localeName: localeName,
+                            maxVisible: 3,
+                            useEmployeePalette: true,
+                            onViewAll: () =>
+                                context.push(AppRoutes.employeeBookings),
+                          );
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (Object error, StackTrace stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
                 ),
               ),
               SliverToBoxAdapter(

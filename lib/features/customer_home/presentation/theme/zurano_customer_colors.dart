@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 abstract final class ZuranoCustomerColors {
   static const Color background = Color(0xFFFCFAFF);
   static const Color primary = Color(0xFF7C3AED);
+  static const Color headerGradientMid = Color(0xFF9B51E0);
+  static const Color headerGradientEnd = Color(0xFFC084FC);
   static const Color lavenderSoft = Color(0xFFF2E9FF);
   static const Color lavenderOutline = Color(0xFF8B5CF6);
   static const Color textStrong = Color(0xFF11162E);

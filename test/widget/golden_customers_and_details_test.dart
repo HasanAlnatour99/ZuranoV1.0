@@ -40,10 +40,12 @@ AppUser _owner() => AppUser(
 
 void main() {
   testWidgets('golden - Customers screen', (tester) async {
+    final prefs = await createTestSharedPreferences();
     await tester.binding.setSurfaceSize(const Size(430, 932));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
           unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith((ref) => Stream.value(_owner())),
           customersListProvider.overrideWith(

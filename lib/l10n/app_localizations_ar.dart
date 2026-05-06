@@ -298,6 +298,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerBookingsListTitle => 'الحجوزات';
 
   @override
+  String get bookingsPreviewViewAll => 'عرض الكل';
+
+  @override
+  String get bookingsPreviewSectionTitle => 'المواعيد';
+
+  @override
+  String get bookingsPreviewGuestLabel => 'ضيف';
+
+  @override
+  String get employeeBookingsTitle => 'حجوزاتك';
+
+  @override
+  String get employeeBookingsSubtitle => 'خلال 7 أيام';
+
+  @override
+  String get employeeBookingsEmpty => 'لا توجد حجوزات قادمة هذا الأسبوع.';
+
+  @override
+  String get employeeBookingMarkCompleted => 'مكتمل';
+
+  @override
+  String get employeeBookingNotAttended => 'لم يحضر';
+
+  @override
+  String get employeeBookingsAddSaleByCode => 'إتمام البيع برمز الحجز';
+
+  @override
+  String get employeeBookingActionSaved => 'تم تحديث الحجز';
+
+  @override
   String get ownerBookingCancel => 'إلغاء';
 
   @override
@@ -3064,7 +3094,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingLookupTitle => 'ابحث عن حجزك';
 
   @override
-  String get customerBookingLookupSubtitle => 'أدخل رقم هاتفك لعرض موعدك';
+  String get customerBookingLookupSubtitle =>
+      'أدخل رقم هاتفك ورمز الحجز لعرض حجزك.';
 
   @override
   String get customerBookingLookupPhoneNumber => 'رقم الهاتف';
@@ -3076,14 +3107,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingLookupBookingCodeOptional => 'رمز الحجز اختياري';
 
   @override
+  String get customerBookingLookupBookingCodeHint => 'مثال: ZR-123456';
+
+  @override
   String get customerBookingLookupSearch => 'بحث';
 
   @override
   String get customerBookingLookupPhoneHint =>
-      'استخدم نفس رقم الهاتف الذي استخدمته عند الحجز.';
+      'استخدم نفس رقم الهاتف ورمز الحجز اللذين وصلاك بعد الحجز.';
 
   @override
   String get customerBookingLookupNoBookings => 'لم يتم العثور على حجوزات';
+
+  @override
+  String get customerBookingLookupBothRequired =>
+      'رقم الهاتف ورمز الحجز مطلوبان.';
+
+  @override
+  String get customerBookingLookupNotFound =>
+      'لم يُعثر على حجز. يُرجى التحقق من رقم الهاتف ورمز الحجز.';
 
   @override
   String get customerBookingLookupViewDetails => 'عرض التفاصيل';
@@ -10672,4 +10714,122 @@ class AppLocalizationsAr extends AppLocalizations {
   String employeeAttendanceTabDurationHoursMinutes(int hours, int minutes) {
     return '$hours س $minutes د';
   }
+
+  @override
+  String get customerHomeSearchHeadline => 'اعثر على أسلوبك اليوم';
+
+  @override
+  String get customerHomeSearchSubtitle =>
+      'احجز حلاقًا أو صالونًا أو سبا قريبًا منك';
+
+  @override
+  String get customerHomeSearchHintHaircut => 'ابحث عن قصة شعر…';
+
+  @override
+  String get customerHomeSearchHintBeard => 'ابحث عن تهذيب اللحية…';
+
+  @override
+  String get customerHomeSearchHintSalonsNearby => 'ابحث عن صالونات قريبة…';
+
+  @override
+  String get customerHomeSearchHintSpecialists => 'ابحث عن مختصين…';
+
+  @override
+  String get customerHomeSearchHintSpaNails => 'ابحث عن سبا أو أظافر…';
+
+  @override
+  String get customerSearchRecentTitle => 'عمليات البحث الأخيرة';
+
+  @override
+  String get customerSearchClearAll => 'مسح الكل';
+
+  @override
+  String get customerSearchPopularTitle => 'بحث شائع';
+
+  @override
+  String get customerSearchTryTitle => 'جرّب البحث عن';
+
+  @override
+  String get customerSearchTryHaircut => 'قصة شعر';
+
+  @override
+  String get customerSearchTryBeard => 'تهذيب اللحية';
+
+  @override
+  String get customerSearchTrySalonNearYou => 'صالونات قريبة منك';
+
+  @override
+  String get customerSearchTrySpecialist => 'أحمد';
+
+  @override
+  String get customerSearchNoResultsTitle => 'لا توجد نتائج';
+
+  @override
+  String get customerSearchNoResultsMessage => 'جرّب خدمة أو منطقة أخرى.';
+
+  @override
+  String get customerSearchErrorTitle => 'حدث خطأ';
+
+  @override
+  String get customerSearchGroupServices => 'الخدمات';
+
+  @override
+  String get customerSearchGroupSpecialists => 'المختصون';
+
+  @override
+  String get customerSearchGroupPlaces => 'الأماكن';
+
+  @override
+  String get customerSearchSortRecommended => 'مقترح';
+
+  @override
+  String get customerSearchSortNearby => 'بالقرب';
+
+  @override
+  String get customerSearchSortOpenNow => 'مفتوح الآن';
+
+  @override
+  String get customerSearchSortTopRated => 'الأعلى تقييمًا';
+
+  @override
+  String get customerSearchSortPriceLow => 'السعر ↑';
+
+  @override
+  String get customerSearchSortPriceHigh => 'السعر ↓';
+
+  @override
+  String get customerSearchSortOffers => 'العروض';
+
+  @override
+  String get customerSearchFiltersTitle => 'التصفية';
+
+  @override
+  String get customerSearchFilterNearby => 'بالقرب';
+
+  @override
+  String get customerSearchFilterOpenNow => 'مفتوح الآن';
+
+  @override
+  String get customerSearchFilterOffers => 'العروض';
+
+  @override
+  String get customerSearchFilterAvailableToday => 'متاح اليوم';
+
+  @override
+  String get customerSearchFilterAudienceTitle => 'الفئة';
+
+  @override
+  String get customerSearchAudienceMen => 'رجال';
+
+  @override
+  String get customerSearchAudienceLadies => 'سيدات';
+
+  @override
+  String get customerSearchAudienceUnisex => 'للجميع';
+
+  @override
+  String get customerSearchFiltersReset => 'إعادة ضبط';
+
+  @override
+  String get customerSearchFiltersDone => 'تم';
 }

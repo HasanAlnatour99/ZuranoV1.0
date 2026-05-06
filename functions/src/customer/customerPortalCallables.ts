@@ -4,7 +4,12 @@
  */
 import { randomInt } from "crypto";
 
-import { FieldValue, Timestamp, type DocumentData } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  Timestamp,
+  type DocumentData,
+  type QueryDocumentSnapshot,
+} from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import {
@@ -37,6 +42,62 @@ type ParsedBookingSettings = {
   rescheduleCutoffMinutes: number;
   allowCustomerFeedback: boolean;
 };
+
+function normalizePublicBookingCode(raw: string): string {
+  return `${raw ?? ""}`.trim().toUpperCase();
+}
+
+/** Matches [bookingNumber] or legacy [bookingCode], with optional ZR- prefix. */
+function publicBookingCodesMatch(
+  booking: Record<string, unknown>,
+  enteredRaw: string,
+): boolean {
+  const entered = normalizePublicBookingCode(enteredRaw);
+  if (!entered) {
+    return false;
+  }
+  const num = `${booking.bookingNumber ?? ""}`.trim().toUpperCase();
+  const leg = `${booking.bookingCode ?? ""}`.trim().toUpperCase();
+  if (entered === num || entered === leg) {
+    return true;
+  }
+  const digits = entered.startsWith("ZR-") ? entered.slice(3) : entered;
+  if (digits.length === 6 && leg === digits) {
+    return true;
+  }
+  if (leg.length === 6 && entered === `ZR-${leg}`) {
+    return true;
+  }
+  return false;
+}
+
+function assertCustomerBookingIdentity(
+  auth: { uid: string } | undefined,
+  booking: Record<string, unknown>,
+  phoneNormalized: string,
+  bookingCodeUpper: string,
+): void {
+  const uid = auth?.uid != null ? `${auth.uid}`.trim() : "";
+  const guestUid = `${booking.guestUid ?? ""}`.trim();
+  const createdBy = `${booking.createdByAuthUid ?? ""}`.trim();
+  const uidOk = uid.length > 0 && (uid === guestUid || uid === createdBy);
+
+  if (uidOk) {
+    return;
+  }
+  if (phoneNormalized.length === 0 || bookingCodeUpper.length === 0) {
+    throw new HttpsError(
+      "invalid-argument",
+      "phone_and_booking_code_required",
+    );
+  }
+  if (`${booking.customerPhoneNormalized ?? ""}`.trim() !== phoneNormalized) {
+    throw new HttpsError("permission-denied", "Phone does not match booking.");
+  }
+  if (!publicBookingCodesMatch(booking, bookingCodeUpper)) {
+    throw new HttpsError("permission-denied", "Booking code does not match.");
+  }
+}
 
 function parseBookingSettings(raw: unknown): ParsedBookingSettings {
   const map = raw && typeof raw === "object"
@@ -394,7 +455,8 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       totalVisits: 0,
       totalSpent: 0,
       lastVisitAt: null,
-      isActive: true,
+      isActive: false,
+      source: "customer_app",
       createdAt: now,
       updatedAt: now,
     };
@@ -424,7 +486,9 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       status,
       source: "customer_app",
       bookingCode,
+      bookingNumber: bookingCode,
       bookingSearchKey,
+      publicLookupEnabled: true,
       customerNote: draft.customerNote ?? null,
       customerGender: draft.customerGender ?? null,
       reportYear,
@@ -435,6 +499,7 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     };
     if (callerAuthUid.length > 0) {
       bookingWrite.createdByAuthUid = callerAuthUid;
+      bookingWrite.guestUid = callerAuthUid;
     }
     tx.set(bookingRef, bookingWrite);
   });
@@ -453,59 +518,104 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
 export const lookupCustomerBookings = onCall(CALL, async (request) => {
   const data = request.data as Record<string, unknown>;
   const phoneNormalized = requireString(data, "phoneNormalized").trim();
-  const bookingCode = `${data.bookingCode ?? ""}`.trim().toUpperCase();
-  const salonIdForPolicy = `${data.salonIdForPolicy ?? ""}`.trim();
+  const bookingCodeRaw = requireString(data, "bookingCode").trim();
+  const bookingCodeUp = bookingCodeRaw.toUpperCase();
 
-  if (salonIdForPolicy.length > 0) {
-    const { data: pub } = await loadPublicSalon(salonIdForPolicy);
-    const settings = parseBookingSettings(pub.customerBookingSettings);
-    if (settings.requireBookingCodeForLookup && bookingCode.length === 0) {
-      throw new HttpsError(
-        "invalid-argument",
-        "bookingCode is required for this salon.",
-      );
+  if (phoneNormalized.length === 0) {
+    throw new HttpsError("invalid-argument", "phone_normalized_required");
+  }
+  if (bookingCodeUp.length === 0) {
+    throw new HttpsError("invalid-argument", "booking_code_required");
+  }
+
+  async function firstMatch(
+    field: "bookingNumber" | "bookingCode",
+    value: string,
+  ): Promise<QueryDocumentSnapshot<DocumentData> | null> {
+    const snap = await db
+      .collectionGroup("bookings")
+      .where("customerPhoneNormalized", "==", phoneNormalized)
+      .where(field, "==", value)
+      .limit(1)
+      .get();
+    return snap.empty ? null : (snap.docs[0] ?? null);
+  }
+
+  let doc: QueryDocumentSnapshot<DocumentData> | null = await firstMatch(
+    "bookingNumber",
+    bookingCodeUp,
+  );
+  if (!doc) {
+    doc = await firstMatch("bookingCode", bookingCodeUp);
+  }
+  if (!doc && bookingCodeUp.startsWith("ZR-")) {
+    const digits = bookingCodeUp.slice(3);
+    doc = await firstMatch("bookingCode", digits);
+  }
+  if (!doc && /^[0-9]{6}$/.test(bookingCodeUp)) {
+    doc = await firstMatch("bookingNumber", `ZR-${bookingCodeUp}`);
+    if (!doc) {
+      doc = await firstMatch("bookingCode", `ZR-${bookingCodeUp}`);
     }
   }
 
-  const snap = await db
-    .collectionGroup("bookings")
-    .where("customerPhoneNormalized", "==", phoneNormalized)
-    .orderBy("startAt", "desc")
-    .limit(20)
-    .get();
+  if (!doc) {
+    return { bookings: [] };
+  }
 
-  const out = snap.docs
-    .map((doc) => {
-      const d = doc.data();
-      const src = `${d.source ?? ""}`.trim();
-      const phone = `${d.customerPhoneNormalized ?? ""}`.trim();
-      const visible = src === "customer_app" || phone.length > 0;
-      if (!visible) {
-        return null;
-      }
-      if (bookingCode.length > 0) {
-        const c = `${d.bookingCode ?? ""}`.trim().toUpperCase();
-        if (c !== bookingCode) {
-          return null;
-        }
-      }
-      const salonId = `${d.salonId ?? ""}`.trim();
-      if (!salonId) {
-        return null;
-      }
-      return {
-        bookingId: doc.id,
-        salonId,
-        status: d.status,
-        startAtMs: tsToDate(d.startAt)?.getTime(),
-        endAtMs: tsToDate(d.endAt)?.getTime(),
-        bookingCode: d.bookingCode,
-        employeeName: d.employeeName ?? d.barberName,
-      };
-    })
-    .filter((x): x is NonNullable<typeof x> => x != null);
+  const d = doc.data();
+  const src = `${d.source ?? ""}`.trim();
+  if (src !== "customer_app") {
+    return { bookings: [] };
+  }
+  if (d.publicLookupEnabled === false) {
+    return { bookings: [] };
+  }
+  if (!publicBookingCodesMatch(d as Record<string, unknown>, bookingCodeRaw)) {
+    return { bookings: [] };
+  }
 
-  return { bookings: out };
+  const salonId = `${d.salonId ?? ""}`.trim();
+  if (!salonId) {
+    return { bookings: [] };
+  }
+
+  const pubSnap = await db.doc(`publicSalons/${salonId}`).get();
+  const salonName = pubSnap.exists
+    ? `${pubSnap.data()?.name ?? ""}`.trim()
+    : "";
+
+  const serviceNames = Array.isArray(d.serviceNames)
+    ? (d.serviceNames as unknown[]).filter((x): x is string =>
+      typeof x === "string"
+    )
+    : [];
+  const displayCode =
+    `${d.bookingNumber ?? d.bookingCode ?? ""}`.trim().toUpperCase();
+  const totalRaw = d.totalAmount;
+  const totalAmount = typeof totalRaw === "number"
+    ? totalRaw
+    : Number(totalRaw) || 0;
+
+  const bookingPayload = {
+    bookingId: doc.id,
+    salonId,
+    salonName,
+    bookingCode: displayCode,
+    status: `${d.status ?? ""}`.trim(),
+    customerName: `${d.customerName ?? ""}`.trim(),
+    customerPhone: `${d.customerPhone ?? ""}`.trim(),
+    customerPhoneNormalized: `${d.customerPhoneNormalized ?? ""}`.trim(),
+    employeeId: `${d.employeeId ?? d.barberId ?? ""}`.trim(),
+    employeeName: `${d.employeeName ?? d.barberName ?? ""}`.trim(),
+    serviceNames,
+    totalAmount,
+    startAtMs: tsToDate(d.startAt)?.getTime() ?? 0,
+    endAtMs: tsToDate(d.endAt)?.getTime() ?? 0,
+    createdAtMs: tsToDate(d.createdAt)?.getTime(),
+  };
+
+  return { bookings: [bookingPayload] };
 });
 
 export const getCustomerBookingDetails = onCall(CALL, async (request) => {
@@ -530,8 +640,8 @@ export const cancelCustomerBooking = onCall(CALL, async (request) => {
   const data = request.data as Record<string, unknown>;
   const salonId = requireString(data, "salonId");
   const bookingId = requireString(data, "bookingId");
-  const phoneNormalized = requireString(data, "phoneNormalized").trim();
-  const bookingCode = requireString(data, "bookingCode").trim().toUpperCase();
+  const phoneNormalized = `${data.phoneNormalized ?? ""}`.trim();
+  const bookingCode = `${data.bookingCode ?? ""}`.trim().toUpperCase();
   const cancelReason = `${data.cancelReason ?? ""}`.trim();
 
   const { data: pub } = await loadPublicSalon(salonId);
@@ -546,12 +656,12 @@ export const cancelCustomerBooking = onCall(CALL, async (request) => {
     throw new HttpsError("not-found", "Booking not found.");
   }
   const b = snap.data()!;
-  if (`${b.customerPhoneNormalized ?? ""}`.trim() !== phoneNormalized) {
-    throw new HttpsError("permission-denied", "Phone does not match booking.");
-  }
-  if (`${b.bookingCode ?? ""}`.trim().toUpperCase() !== bookingCode) {
-    throw new HttpsError("permission-denied", "Booking code does not match.");
-  }
+  assertCustomerBookingIdentity(
+    request.auth,
+    b as Record<string, unknown>,
+    phoneNormalized,
+    bookingCode,
+  );
 
   const st = normalizeBookingStatus(`${b.status ?? ""}`);
   if (st !== BookingStatuses.pending && st !== BookingStatuses.confirmed) {
@@ -586,8 +696,8 @@ export const rescheduleCustomerBooking = onCall(CALL, async (request) => {
   const data = request.data as Record<string, unknown>;
   const salonId = requireString(data, "salonId");
   const bookingId = requireString(data, "bookingId");
-  const phoneNormalized = requireString(data, "phoneNormalized").trim();
-  const bookingCode = requireString(data, "bookingCode").trim().toUpperCase();
+  const phoneNormalized = `${data.phoneNormalized ?? ""}`.trim();
+  const bookingCode = `${data.bookingCode ?? ""}`.trim().toUpperCase();
   const startAt = msToDate(data.startAtMs ?? data.startAt);
   const endAt = msToDate(data.endAtMs ?? data.endAt);
 
@@ -600,12 +710,12 @@ export const rescheduleCustomerBooking = onCall(CALL, async (request) => {
     throw new HttpsError("not-found", "Booking not found.");
   }
   const b = snap.data()!;
-  if (`${b.customerPhoneNormalized ?? ""}`.trim() !== phoneNormalized) {
-    throw new HttpsError("permission-denied", "Phone does not match booking.");
-  }
-  if (`${b.bookingCode ?? ""}`.trim().toUpperCase() !== bookingCode) {
-    throw new HttpsError("permission-denied", "Booking code does not match.");
-  }
+  assertCustomerBookingIdentity(
+    request.auth,
+    b as Record<string, unknown>,
+    phoneNormalized,
+    bookingCode,
+  );
 
   const st = normalizeBookingStatus(`${b.status ?? ""}`);
   if (st !== BookingStatuses.pending && st !== BookingStatuses.confirmed) {
@@ -698,14 +808,12 @@ export const submitCustomerFeedback = onCall(CALL, async (request) => {
     throw new HttpsError("not-found", "Booking not found.");
   }
   const b = snap.data()!;
-  if (phoneNormalized.length > 0 &&
-    `${b.customerPhoneNormalized ?? ""}`.trim() !== phoneNormalized) {
-    throw new HttpsError("permission-denied", "Phone does not match booking.");
-  }
-  if (bookingCode.length > 0 &&
-    `${b.bookingCode ?? ""}`.trim().toUpperCase() !== bookingCode) {
-    throw new HttpsError("permission-denied", "Booking code does not match.");
-  }
+  assertCustomerBookingIdentity(
+    request.auth,
+    b as Record<string, unknown>,
+    phoneNormalized,
+    bookingCode,
+  );
   if (b.feedbackSubmitted === true) {
     return { ok: true, idempotent: true };
   }

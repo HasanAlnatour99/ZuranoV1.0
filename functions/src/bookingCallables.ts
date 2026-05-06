@@ -213,13 +213,15 @@ function assertCanCancelBooking(
   const barberId = (booking.barberId as string) ?? "";
 
   if (user.role === "customer") {
-    if (customerId !== uid) {
-      throw new HttpsError(
-        "permission-denied",
-        "Unauthorized role: not your booking.",
-      );
+    const createdBy = `${booking.createdByAuthUid ?? ""}`.trim();
+    const guestUid = `${booking.guestUid ?? ""}`.trim();
+    if (customerId === uid || createdBy === uid || guestUid === uid) {
+      return;
     }
-    return;
+    throw new HttpsError(
+      "permission-denied",
+      "Unauthorized role: not your booking.",
+    );
   }
   if (user.salonId !== salonId) {
     throw new HttpsError(
@@ -259,13 +261,15 @@ function assertCanRescheduleBooking(
   const barberId = (booking.barberId as string) ?? "";
 
   if (user.role === "customer") {
-    if (customerId !== uid) {
-      throw new HttpsError(
-        "permission-denied",
-        "Unauthorized role: not your booking.",
-      );
+    const createdBy = `${booking.createdByAuthUid ?? ""}`.trim();
+    const guestUid = `${booking.guestUid ?? ""}`.trim();
+    if (customerId === uid || createdBy === uid || guestUid === uid) {
+      return;
     }
-    return;
+    throw new HttpsError(
+      "permission-denied",
+      "Unauthorized role: not your booking.",
+    );
   }
   if (user.salonId !== salonId) {
     throw new HttpsError(

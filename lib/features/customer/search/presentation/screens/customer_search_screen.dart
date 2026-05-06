@@ -1,0 +1,318 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../../l10n/app_localizations.dart';
+import '../../application/customer_popular_searches_provider.dart';
+import '../../application/customer_recent_searches_controller.dart';
+import '../../application/customer_search_controller.dart';
+import '../../domain/models/customer_search_result.dart';
+import '../widgets/popular_searches_section.dart';
+import '../widgets/recent_searches_section.dart';
+import '../widgets/search_filter_bottom_sheet.dart';
+import '../widgets/search_result_tile.dart';
+import '../widgets/search_sort_bar.dart';
+import '../widgets/search_suggestion_section.dart';
+
+class CustomerSearchScreen extends ConsumerStatefulWidget {
+  const CustomerSearchScreen({super.key});
+
+  @override
+  ConsumerState<CustomerSearchScreen> createState() => _CustomerSearchScreenState();
+}
+
+class _CustomerSearchScreenState extends ConsumerState<CustomerSearchScreen> {
+  final controller = TextEditingController();
+  Timer? debounce;
+
+  void _onChanged(String value) {
+    debounce?.cancel();
+    debounce = Timer(const Duration(milliseconds: 350), () {
+      ref.read(customerSearchControllerProvider.notifier).updateQuery(value);
+    });
+  }
+
+  @override
+  void dispose() {
+    debounce?.cancel();
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _openFilters() {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const SearchFilterBottomSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final resultsAsync = ref.watch(customerSearchControllerProvider);
+    final recent = ref.watch(customerRecentSearchesControllerProvider);
+    final popularAsync = ref.watch(customerPopularSearchesProvider);
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _SearchTopInput(
+              controller: controller,
+              hintText: l10n.customerSearchHint,
+              onChanged: _onChanged,
+              onOpenFilters: _openFilters,
+            ),
+            const SearchSortBar(),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (n) {
+                  if (n is ScrollUpdateNotification) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  }
+                  return false;
+                },
+                child: resultsAsync.when(
+                  data: (items) {
+                    final q = controller.text.trim();
+                    if (q.isEmpty) {
+                      return ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        children: [
+                          RecentSearchesSection(
+                            title: l10n.customerSearchRecentTitle,
+                            items: recent,
+                            clearAllLabel: l10n.customerSearchClearAll,
+                            onTapItem: (q) {
+                              controller.text = q;
+                              controller.selection = TextSelection.collapsed(
+                                offset: controller.text.length,
+                              );
+                              ref
+                                  .read(customerRecentSearchesControllerProvider.notifier)
+                                  .add(q);
+                              ref.read(customerSearchControllerProvider.notifier).updateQuery(q);
+                            },
+                            onClearAll: () => ref
+                                .read(customerRecentSearchesControllerProvider.notifier)
+                                .clear(),
+                          ),
+                          const SizedBox(height: 16),
+                          PopularSearchesSection(
+                            title: l10n.customerSearchPopularTitle,
+                            itemsAsync: popularAsync,
+                            onTapItem: (label) {
+                              controller.text = label;
+                              controller.selection = TextSelection.collapsed(
+                                offset: controller.text.length,
+                              );
+                              ref
+                                  .read(customerRecentSearchesControllerProvider.notifier)
+                                  .add(label);
+                              ref
+                                  .read(customerSearchControllerProvider.notifier)
+                                  .updateQuery(label);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          SearchSuggestionSection(
+                            title: l10n.customerSearchTryTitle,
+                            suggestions: [
+                              l10n.customerSearchTryHaircut,
+                              l10n.customerSearchTryBeard,
+                              l10n.customerSearchTrySalonNearYou,
+                              l10n.customerSearchTrySpecialist,
+                            ],
+                            onTapSuggestion: (label) {
+                              controller.text = label;
+                              controller.selection = TextSelection.collapsed(
+                                offset: controller.text.length,
+                              );
+                              ref
+                                  .read(customerRecentSearchesControllerProvider.notifier)
+                                  .add(label);
+                              ref
+                                  .read(customerSearchControllerProvider.notifier)
+                                  .updateQuery(label);
+                            },
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (items.isEmpty) {
+                      return _SearchMessageView(
+                        title: l10n.customerSearchNoResultsTitle,
+                        message: l10n.customerSearchNoResultsMessage,
+                      );
+                    }
+
+                    final grouped = _group(items);
+                    final tiles = <Widget>[];
+                    void addGroup(CustomerSearchResultType type, String title) {
+                      final list = grouped[type] ?? const <CustomerSearchResult>[];
+                      if (list.isEmpty) return;
+                      tiles.add(Padding(
+                        padding: const EdgeInsetsDirectional.only(bottom: 8, top: 10),
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ));
+                      for (final r in list) {
+                        tiles.add(SearchResultTile(result: r));
+                      }
+                    }
+
+                    addGroup(CustomerSearchResultType.service, l10n.customerSearchGroupServices);
+                    addGroup(CustomerSearchResultType.specialist, l10n.customerSearchGroupSpecialists);
+                    addGroup(CustomerSearchResultType.salon, l10n.customerSearchGroupPlaces);
+
+                    return ListView(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                      children: tiles,
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => _SearchMessageView(
+                    title: l10n.customerSearchErrorTitle,
+                    message: e.toString(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<CustomerSearchResultType, List<CustomerSearchResult>> _group(
+    List<CustomerSearchResult> items,
+  ) {
+    final out = <CustomerSearchResultType, List<CustomerSearchResult>>{};
+    for (final r in items) {
+      (out[r.type] ??= <CustomerSearchResult>[]).add(r);
+    }
+    return out;
+  }
+}
+
+class _SearchTopInput extends StatelessWidget {
+  const _SearchTopInput({
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
+    required this.onOpenFilters,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onOpenFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+          Expanded(
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                final hasText = value.text.trim().isNotEmpty;
+                return TextField(
+                  controller: controller,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onChanged: onChanged,
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    filled: true,
+                    fillColor: scheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasText)
+                          IconButton(
+                            tooltip:
+                                MaterialLocalizations.of(context).deleteButtonTooltip,
+                            onPressed: () {
+                              controller.clear();
+                              onChanged('');
+                            },
+                            icon: const Icon(Icons.close_rounded),
+                          ),
+                        IconButton(
+                          tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+                          onPressed: onOpenFilters,
+                          icon: const Icon(Icons.tune_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchMessageView extends StatelessWidget {
+  const _SearchMessageView({required this.title, required this.message});
+
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

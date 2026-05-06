@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../shared/navigation/zurano_swipe_shell.dart';
-import '../../../customer/presentation/screens/my_booking_lookup_screen.dart';
+import '../../../customer/presentation/screens/find_booking_screen.dart';
 import '../../../customer/presentation/screens/salon_discovery_screen.dart';
 import '../widgets/customer_bottom_nav.dart';
 import 'customer_home_screen.dart';
@@ -45,7 +45,7 @@ class CustomerMainSwipeShellScreen extends StatelessWidget {
     return ZuranoSwipeShell(
       pages: const <Widget>[
         ZuranoCustomerHomeScreen(showBottomNav: false),
-        MyBookingLookupScreen(),
+        FindBookingScreen(),
         SalonDiscoveryScreen(showBottomNavigationBar: false),
       ],
       currentIndex: _currentIndex,

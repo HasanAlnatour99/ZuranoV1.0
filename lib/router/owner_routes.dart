@@ -18,6 +18,7 @@ import '../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../features/expenses/presentation/screens/expenses_screen.dart';
 import '../features/bento/presentation/screens/bento_dashboard_screen.dart';
 import '../features/owner/presentation/screens/add_team_member_gateway_screen.dart';
+import '../features/owner/presentation/screens/owner_bookings_screen.dart';
 import '../features/owner/presentation/screens/owner_dashboard_screen.dart';
 import '../features/owner/presentation/widgets/owner_overview_section.dart';
 import '../features/owner/presentation/widgets/overview/owner_dashboard_hero_header.dart';
@@ -351,6 +352,14 @@ final List<RouteBase> ownerRoutes = [
     pageBuilder: (context, state) => appFadeThroughPage(
       key: goRouterPageKey(state),
       child: const AddTeamMemberGatewayScreen(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerBookings,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const OwnerBookingsScreen(),
     ),
   ),
   GoRoute(

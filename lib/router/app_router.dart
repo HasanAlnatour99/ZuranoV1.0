@@ -24,6 +24,7 @@ import '../features/payroll/presentation/screens/payslip_history_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_calendar_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_details_screen.dart';
 import '../features/employee_attendance/presentation/screens/employee_attendance_logs_screen.dart';
+import '../features/employee_bookings/presentation/screens/employee_bookings_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_correction_screen.dart';
 import '../features/employee_today/presentation/screens/attendance_policy_screen.dart';
 import '../features/bookings/data/models/booking.dart';
@@ -694,6 +695,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: EmployeeMainSwipeShellScreen(
             currentPath: state.matchedLocation,
           ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.employeeBookings,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const EmployeeBookingsScreen(),
         ),
       ),
       GoRoute(

@@ -24,12 +24,9 @@ import 'providers/app_settings_providers.dart';
 ///
 /// **Web release:** set `--dart-define=FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY=<reCAPTCHA Enterprise site key>`
 /// from the same console; non-release web uses [WebDebugProvider] (console token from browser logs).
-const bool _kDartVmProduct = bool.fromEnvironment('dart.vm.product');
-
 /// Runs in parallel with prefs/migration to shorten cold start before [runApp].
 Future<void> _activateAppCheckForStartup() async {
   try {
-    final useAttestationDebugProviders = !_kDartVmProduct;
     const webRecaptchaSiteKey = String.fromEnvironment(
       'FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY',
       defaultValue: '',
@@ -37,14 +34,14 @@ Future<void> _activateAppCheckForStartup() async {
 
     await FirebaseAppCheck.instance
         .activate(
-          providerAndroid: useAttestationDebugProviders
+          providerApple: kDebugMode
+              ? const AppleDebugProvider()
+              : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+          providerAndroid: kDebugMode
               ? const AndroidDebugProvider()
               : const AndroidPlayIntegrityProvider(),
-          providerApple: useAttestationDebugProviders
-              ? const AppleDebugProvider()
-              : const AppleDeviceCheckProvider(),
           providerWeb: kIsWeb
-              ? (useAttestationDebugProviders
+              ? (kDebugMode
                     ? WebDebugProvider()
                     : (webRecaptchaSiteKey.isNotEmpty
                           ? ReCaptchaEnterpriseProvider(webRecaptchaSiteKey)
@@ -52,14 +49,12 @@ Future<void> _activateAppCheckForStartup() async {
               : null,
         )
         .timeout(
-          useAttestationDebugProviders
-              ? const Duration(seconds: 8)
-              : const Duration(seconds: 12),
+          kDebugMode ? const Duration(seconds: 8) : const Duration(seconds: 12),
         );
 
     // Prime token after native bridge settles (reduces flaky "Too many attempts" on
     // Android emulators when callables run immediately after cold start).
-    if (useAttestationDebugProviders &&
+    if (kDebugMode &&
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.android) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
@@ -141,7 +136,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   await _migrateOnboardingPrefs(prefs);
   await appCheckFuture;
-  if (!_kDartVmProduct) {
+  if (kDebugMode) {
     debugPrint(
       'AppCheck: non-release build — using debug-friendly attestation providers '
       '(register debug tokens in Firebase Console → App Check). '

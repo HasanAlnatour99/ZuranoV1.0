@@ -51,8 +51,11 @@ class BookingRepository {
     return '$y-$m-$d';
   }
 
-  DocumentReference<Map<String, dynamic>> _customerDoc(String customerId) {
-    return _firestore.doc(FirestorePaths.customer(customerId));
+  DocumentReference<Map<String, dynamic>> _customerDoc(
+    String salonId,
+    String customerId,
+  ) {
+    return _firestore.doc(FirestorePaths.salonCustomer(salonId, customerId));
   }
 
   DocumentReference<Map<String, dynamic>> _barberDayLockDoc(
@@ -115,7 +118,7 @@ class BookingRepository {
       );
     }
     final docRef = _bookings(salonId).doc();
-    final customerRef = _customerDoc(booking.customerId);
+    final customerRef = _customerDoc(salonId, booking.customerId);
     final startAtUtc = booking.startAt.isUtc
         ? booking.startAt
         : booking.startAt.toUtc();
@@ -497,7 +500,7 @@ class BookingRepository {
       if (customerId.isEmpty) {
         throw StateError('Booking has no customer to update.');
       }
-      final customerRef = _customerDoc(customerId);
+      final customerRef = _customerDoc(salonId, customerId);
       final customerSnap = await tx.get(customerRef);
       final customerData = customerSnap.data() ?? <String, dynamic>{};
 
@@ -792,11 +795,15 @@ class BookingRepository {
     if (customerId.isEmpty) {
       return FirestorePage(items: const [], limit: limit, lastDocument: null);
     }
-    /// [customerId] here is the Firebase Auth uid. Booking docs store a salon-scoped
-    /// [Booking.customerId] plus optional [createdByAuthUid] for the signed-in creator.
+    /// [customerId] is Firebase Auth uid. Guest bookings use [guestUid] / [createdByAuthUid].
     Query<Map<String, dynamic>> query = _firestore
         .collectionGroup('bookings')
-        .where('createdByAuthUid', isEqualTo: customerId)
+        .where(
+          Filter.or(
+            Filter('guestUid', isEqualTo: customerId),
+            Filter('createdByAuthUid', isEqualTo: customerId),
+          ),
+        )
         .orderBy('startAt', descending: true)
         .orderBy(FieldPath.documentId, descending: true);
     if (startAfter != null) {
@@ -928,7 +935,12 @@ class BookingRepository {
     }
     return _firestore
         .collectionGroup('bookings')
-        .where('createdByAuthUid', isEqualTo: customerId)
+        .where(
+          Filter.or(
+            Filter('guestUid', isEqualTo: customerId),
+            Filter('createdByAuthUid', isEqualTo: customerId),
+          ),
+        )
         .orderBy('startAt', descending: true)
         .orderBy(FieldPath.documentId, descending: true)
         .limit(limit)

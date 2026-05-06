@@ -9,8 +9,7 @@ import '../controllers/customer_location_providers.dart';
 import '../theme/zurano_customer_colors.dart';
 import '../widgets/customer_bottom_nav.dart';
 import '../widgets/customer_category_scroller.dart';
-import '../widgets/customer_home_header.dart';
-import '../widgets/customer_search_bar.dart';
+import '../widgets/customer_home_search_header.dart';
 import '../widgets/nearby_salons_section.dart';
 import '../widgets/recommended_salons_section.dart';
 import '../widgets/rewards_banner.dart';
@@ -78,20 +77,8 @@ class _ZuranoCustomerHomeScreenState
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: CustomerHomeHeader(),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: CustomerSearchBar(),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
+                  const SliverToBoxAdapter(child: CustomerHomeSearchHeader()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 10)),
                   const SliverToBoxAdapter(child: CustomerCategoryScroller()),
                   const SliverToBoxAdapter(child: SizedBox(height: 18)),
                   const SliverToBoxAdapter(child: RecommendedSalonsSection()),

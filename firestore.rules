@@ -390,6 +390,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    /// Public, read-only search index maintained by Cloud Functions (Admin SDK).
+    match /customerSearchIndex/{docId} {
+      allow read: if resource.data.isPublic == true &&
+        resource.data.isActive == true;
+      allow write: if false;
+    }
+
     match /salons/{salonId} {
       // Single-doc reads (staff/owner onboarding, customer salon profile).
       allow get: if salonRootPublishedBrowseRow() ||
@@ -912,7 +919,7 @@ service cloud.firestore {
       }
 
       match /bookings/{bookingId} {
-        // customerId is often salon-scoped (`phone_*` / `guest_*`); signed-in reads use createdByAuthUid.
+        // customerId is often salon-scoped (`phone_*` / `guest_*`); guests also use guestUid / createdByAuthUid.
         allow read: if isOwnerOfSalon(salonId) ||
           (isStaffOfSalon(salonId) && currentRole() == 'admin') ||
           (isStaffOfSalon(salonId) &&
@@ -922,7 +929,8 @@ service cloud.firestore {
             isCustomer() &&
             (
               resource.data.customerId == request.auth.uid ||
-              resource.data.get('createdByAuthUid', '') == request.auth.uid
+              resource.data.get('createdByAuthUid', '') == request.auth.uid ||
+              resource.data.get('guestUid', '') == request.auth.uid
             )
           );
 
@@ -931,6 +939,8 @@ service cloud.firestore {
             isCustomer() &&
             request.resource.data.salonId == salonId &&
             request.resource.data.createdByAuthUid == request.auth.uid &&
+            request.resource.data.get('guestUid', request.auth.uid) == request.auth.uid &&
+            request.resource.data.get('publicLookupEnabled', true) == true &&
             request.resource.data.source == 'customer_app' &&
             request.resource.data.customerId is string &&
             request.resource.data.customerName is string &&

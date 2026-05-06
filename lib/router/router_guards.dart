@@ -102,6 +102,7 @@ bool _staffMayAccessLocation(String location, bool notificationPath) {
       AppRoutes.isEmployeePayrollPath(location) ||
       location == AppRoutes.employeeAttendanceRequest ||
       location == AppRoutes.employeeToday ||
+      location == AppRoutes.employeeBookings ||
       location == AppRoutes.employeeAttendanceCorrection ||
       location == AppRoutes.employeeAttendancePolicy ||
       location == AppRoutes.debugMaps) {
@@ -199,6 +200,7 @@ String? redirectAuthenticatedUser(
         AppRoutes.isEmployeePayrollPath(location) ||
         location == AppRoutes.employeeAttendanceRequest ||
         location == AppRoutes.employeeToday ||
+        location == AppRoutes.employeeBookings ||
         location == AppRoutes.employeeAttendanceCorrection ||
         location == AppRoutes.employeeAttendancePolicy) {
       return AppRoutes.customerHome;
@@ -236,6 +238,7 @@ String? redirectAuthenticatedUser(
         AppRoutes.isEmployeePayrollPath(location) ||
         location == AppRoutes.employeeAttendanceRequest ||
         location == AppRoutes.employeeToday ||
+        location == AppRoutes.employeeBookings ||
         location == AppRoutes.employeeAttendanceCorrection ||
         location == AppRoutes.employeeAttendancePolicy) {
       return AppRoutes.ownerOverview;

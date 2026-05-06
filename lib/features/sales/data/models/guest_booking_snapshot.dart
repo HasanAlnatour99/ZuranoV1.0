@@ -25,6 +25,7 @@ class GuestBookingSnapshot {
     this.authUid,
     this.saleCreated = false,
     this.saleId,
+    this.salonBookingId,
   });
 
   final String bookingCode;
@@ -47,6 +48,9 @@ class GuestBookingSnapshot {
   final String? authUid;
   final bool saleCreated;
   final String? saleId;
+
+  /// `salons/{salonId}/bookings/{id}` when mirrored from online booking.
+  final String? salonBookingId;
 
   /// Staff-visible label (never [authUid]).
   String get customerLabel {
@@ -113,6 +117,7 @@ class GuestBookingSnapshot {
       authUid: FirestoreSerializers.string(data['authUid']),
       saleCreated: FirestoreSerializers.boolValue(data['saleCreated']),
       saleId: FirestoreSerializers.string(data['saleId']),
+      salonBookingId: FirestoreSerializers.string(data['salonBookingId']),
     );
   }
 

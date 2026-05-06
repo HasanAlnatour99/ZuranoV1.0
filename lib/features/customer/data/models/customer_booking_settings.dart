@@ -30,7 +30,7 @@ class CustomerBookingSettings {
   final int bookingSlotIntervalMinutes;
   final int maxAdvanceBookingDays;
 
-  /// When true, [lookupCustomerBookings] requires `salonIdForPolicy` + `bookingCode` (server-side).
+  /// Salon-side toggle for future policy; HTTPS lookup always requires phone + booking code.
   final bool requireBookingCodeForLookup;
   final bool showPricesToCustomers;
   final bool allowCustomerNotes;

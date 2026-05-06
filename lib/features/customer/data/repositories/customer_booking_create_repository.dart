@@ -140,7 +140,8 @@ class FirestoreCustomerBookingCreateRepository
           'totalVisits': 0,
           'totalSpent': 0,
           'lastVisitAt': null,
-          'isActive': true,
+          'isActive': false,
+          'source': 'customer_app',
           'createdAt': now,
           'updatedAt': now,
         };
@@ -195,6 +196,8 @@ class FirestoreCustomerBookingCreateRepository
           'status': status,
           'source': 'customer_app',
           'bookingCode': bookingCode,
+          'bookingNumber': bookingCode,
+          'publicLookupEnabled': true,
           'customerNote': draft.customerNote,
           'customerGender': draft.customerGender,
           'createdAt': now,
@@ -202,6 +205,7 @@ class FirestoreCustomerBookingCreateRepository
         };
         if (authUid.isNotEmpty) {
           bookingPayload['createdByAuthUid'] = authUid;
+          bookingPayload['guestUid'] = authUid;
         }
         if (draft.hasGuestNickname) {
           bookingPayload['guestNicknameKey'] = draft.guestNicknameKey;
@@ -281,7 +285,7 @@ class FirestoreCustomerBookingCreateRepository
     }
   }
 
-  /// Six-digit numeric codes (100000–999999), globally unique via [FirestorePaths.bookingCodeLock].
+  /// Public codes `ZR-XXXXXX` (six digits), globally unique via [FirestorePaths.bookingCodeLock].
   Future<String> _pickUniquePublicBookingCode({
     required String salonId,
     required String bookingId,
@@ -289,7 +293,7 @@ class FirestoreCustomerBookingCreateRepository
     final rnd = Random.secure();
     for (var attempt = 0; attempt < 32; attempt++) {
       final n = rnd.nextInt(900000) + 100000;
-      final code = n.toString();
+      final code = 'ZR-$n';
       final lockRef =
           _firestore.doc(FirestorePaths.bookingCodeLock(code));
       final snap = await lockRef.get();

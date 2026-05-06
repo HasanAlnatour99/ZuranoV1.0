@@ -1,9 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
-import '../../../../core/constants/booking_status_machine.dart';
-import '../../../../core/constants/booking_statuses.dart';
-import '../../../../core/firestore/firestore_paths.dart';
-import '../models/customer_booking_settings.dart';
+import '../../../../core/firebase/cloud_functions_region.dart';
 
 enum CustomerBookingCancelFailure {
   notFound,
@@ -32,11 +29,13 @@ abstract class CustomerBookingCancelRepository {
   });
 }
 
-class FirestoreCustomerBookingCancelRepository
+/// Cancels via [cancelCustomerBooking] (server validates guest uid or phone + code).
+class CallableCustomerBookingCancelRepository
     implements CustomerBookingCancelRepository {
-  FirestoreCustomerBookingCancelRepository(this._firestore);
+  CallableCustomerBookingCancelRepository({FirebaseFunctions? functions})
+    : _functions = functions ?? appCloudFunctions();
 
-  final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   @override
   Future<void> cancelBooking({
@@ -46,88 +45,41 @@ class FirestoreCustomerBookingCancelRepository
     required String phoneNormalized,
     required String bookingCode,
   }) async {
-    final bookingRef = _firestore.doc(
-      FirestorePaths.salonBooking(salonId, bookingId),
-    );
-    final snap = await bookingRef.get();
-    if (!snap.exists) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.notFound,
-      );
+    try {
+      final callable = _functions.httpsCallable('cancelCustomerBooking');
+      await callable.call(<String, dynamic>{
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'phoneNormalized': phoneNormalized.trim(),
+        'bookingCode': bookingCode.trim().toUpperCase(),
+        'cancelReason': cancelReason,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      final code = e.code;
+      final msg = '${e.message}'.toLowerCase();
+      if (code == 'permission-denied') {
+        throw const CustomerBookingCancelException(
+          CustomerBookingCancelFailure.permissionDenied,
+        );
+      }
+      if (code == 'not-found') {
+        throw const CustomerBookingCancelException(
+          CustomerBookingCancelFailure.notFound,
+        );
+      }
+      if (code == 'failed-precondition') {
+        if (msg.contains('cutoff')) {
+          throw const CustomerBookingCancelException(
+            CustomerBookingCancelFailure.cutoffExpired,
+          );
+        }
+        if (msg.contains('invalid_status')) {
+          throw const CustomerBookingCancelException(
+            CustomerBookingCancelFailure.invalidStatus,
+          );
+        }
+      }
+      rethrow;
     }
-    final data = snap.data();
-    if (data == null) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.notFound,
-      );
-    }
-
-    if ('${data['customerPhoneNormalized'] ?? ''}'.trim() !=
-        phoneNormalized.trim()) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.permissionDenied,
-      );
-    }
-    if ('${data['bookingCode'] ?? ''}'.trim().toUpperCase() !=
-        bookingCode.trim().toUpperCase()) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.permissionDenied,
-      );
-    }
-
-    final statusRaw = data['status']?.toString();
-    final normalized = BookingStatusMachine.normalize(statusRaw);
-    if (normalized != BookingStatuses.pending &&
-        normalized != BookingStatuses.confirmed) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.invalidStatus,
-      );
-    }
-
-    final startAt = _readTimestamp(data['startAt']);
-    if (startAt == null) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.invalidStatus,
-      );
-    }
-
-    final cutoffMinutes = await _readCancellationCutoffMinutes(salonId);
-    final nowUtc = DateTime.now().toUtc();
-    final startUtc = startAt.toUtc();
-    final deadline = startUtc.subtract(Duration(minutes: cutoffMinutes));
-    if (!nowUtc.isBefore(deadline)) {
-      throw const CustomerBookingCancelException(
-        CustomerBookingCancelFailure.cutoffExpired,
-      );
-    }
-
-    await bookingRef.update({
-      'status': BookingStatuses.cancelled,
-      'cancelReason': cancelReason,
-      'cancelledBy': 'customer',
-      'cancelledAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  DateTime? _readTimestamp(Object? value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
-    if (value is DateTime) {
-      return value;
-    }
-    return null;
-  }
-
-  Future<int> _readCancellationCutoffMinutes(String salonId) async {
-    final publicSnap = await _firestore
-        .doc(FirestorePaths.publicSalon(salonId))
-        .get();
-    final raw = publicSnap.data()?['customerBookingSettings'];
-    if (raw is! Map<String, dynamic>) {
-      return const CustomerBookingSettings().cancellationCutoffMinutes;
-    }
-    return CustomerBookingSettings.fromMap(raw).cancellationCutoffMinutes;
   }
 }

@@ -10,6 +10,43 @@
       ]
     },
     {
+      "collectionGroup": "customerSearchIndex",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "searchKeywords", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "customerSearchIndex",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "audience", "order": "ASCENDING" },
+        { "fieldPath": "searchKeywords", "arrayConfig": "CONTAINS" }
+      ]
+    },
+    {
+      "collectionGroup": "customerSearchIndex",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "hasOffer", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "customerSearchIndex",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "isOpenNow", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "team",
       "queryScope": "COLLECTION",
       "fields": [
@@ -440,6 +477,40 @@
         { "fieldPath": "createdByAuthUid", "order": "ASCENDING" },
         { "fieldPath": "startAt", "order": "DESCENDING" },
         { "fieldPath": "__name__", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "guestUid", "order": "ASCENDING" },
+        { "fieldPath": "startAt", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "customerPhoneNormalized", "order": "ASCENDING" },
+        { "fieldPath": "bookingNumber", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "customerPhoneNormalized", "order": "ASCENDING" },
+        { "fieldPath": "bookingNumber", "order": "ASCENDING" },
+        { "fieldPath": "publicLookupEnabled", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "customerPhoneNormalized", "order": "ASCENDING" },
+        { "fieldPath": "bookingCode", "order": "ASCENDING" }
       ]
     },
     {

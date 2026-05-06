@@ -7,21 +7,20 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../application/customer_booking_lookup_providers.dart';
+import '../../application/booking_lookup_controller.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
 import '../widgets/customer_booking_lookup_card.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_text_field.dart';
 
-class MyBookingLookupScreen extends ConsumerStatefulWidget {
-  const MyBookingLookupScreen({super.key});
+class FindBookingScreen extends ConsumerStatefulWidget {
+  const FindBookingScreen({super.key});
 
   @override
-  ConsumerState<MyBookingLookupScreen> createState() =>
-      _MyBookingLookupScreenState();
+  ConsumerState<FindBookingScreen> createState() => _FindBookingScreenState();
 }
 
-class _MyBookingLookupScreenState extends ConsumerState<MyBookingLookupScreen> {
+class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _bookingCodeController;
 
@@ -42,11 +41,13 @@ class _MyBookingLookupScreenState extends ConsumerState<MyBookingLookupScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final lookupState = ref.watch(customerBookingLookupControllerProvider);
-    final invalidPhone =
-        lookupState.error is CustomerBookingLookupException &&
-        (lookupState.error! as CustomerBookingLookupException).error ==
-            CustomerBookingLookupError.invalidPhone;
+    final lookupState = ref.watch(bookingLookupControllerProvider);
+    final invalidPhone = lookupState.error is BookingLookupException &&
+        (lookupState.error! as BookingLookupException).error ==
+            BookingLookupError.invalidPhone;
+    final missingFields = lookupState.error is BookingLookupException &&
+        (lookupState.error! as BookingLookupException).error ==
+            BookingLookupError.missingPhoneOrCode;
 
     return CustomerGradientScaffold(
       child: SafeArea(
@@ -75,27 +76,25 @@ class _MyBookingLookupScreenState extends ConsumerState<MyBookingLookupScreen> {
                   bookingCodeController: _bookingCodeController,
                   phoneLabel: l10n.customerBookingLookupPhoneNumber,
                   bookingCodeLabel: l10n.customerBookingLookupBookingCode,
-                  bookingCodeHint:
-                      l10n.customerBookingLookupBookingCodeOptional,
+                  bookingCodeHint: l10n.customerBookingLookupBookingCodeHint,
                   searchLabel: l10n.customerBookingLookupSearch,
                   phoneErrorText: invalidPhone
                       ? l10n.customerBookingLookupInvalidPhone
                       : null,
+                  bookingCodeErrorText: missingFields
+                      ? l10n.customerBookingLookupBothRequired
+                      : null,
                   loading: lookupState.isLoading,
                   onChanged: () {
                     if (lookupState.hasError) {
-                      ref
-                          .read(
-                            customerBookingLookupControllerProvider.notifier,
-                          )
-                          .clear();
+                      ref.read(bookingLookupControllerProvider.notifier).clear();
                     }
                   },
                   onSearch: () => ref
-                      .read(customerBookingLookupControllerProvider.notifier)
+                      .read(bookingLookupControllerProvider.notifier)
                       .search(
                         phoneInput: _phoneController.text,
-                        bookingCode: _bookingCodeController.text,
+                        bookingCodeInput: _bookingCodeController.text,
                       ),
                 ),
               ),
@@ -177,6 +176,7 @@ class _SearchCard extends StatelessWidget {
     required this.onChanged,
     required this.onSearch,
     this.phoneErrorText,
+    this.bookingCodeErrorText,
   });
 
   final TextEditingController phoneController;
@@ -189,6 +189,7 @@ class _SearchCard extends StatelessWidget {
   final VoidCallback onChanged;
   final VoidCallback onSearch;
   final String? phoneErrorText;
+  final String? bookingCodeErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +228,7 @@ class _SearchCard extends StatelessWidget {
                 controller: bookingCodeController,
                 label: bookingCodeLabel,
                 hint: bookingCodeHint,
+                errorText: bookingCodeErrorText,
                 textInputAction: TextInputAction.search,
                 inputFormatters: [UpperCaseTextFormatter()],
                 onChanged: (_) => onChanged(),
@@ -314,7 +316,7 @@ class _ResultArea extends StatelessWidget {
     }
 
     if (state.hasError) {
-      final isValidation = state.error is CustomerBookingLookupException;
+      final isValidation = state.error is BookingLookupException;
       if (isValidation) {
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       }
@@ -334,7 +336,7 @@ class _ResultArea extends StatelessWidget {
       return SliverPadding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
         sliver: SliverToBoxAdapter(
-          child: _StateCard(message: l10n.customerBookingLookupNoBookings),
+          child: _StateCard(message: l10n.customerBookingLookupNotFound),
         ),
       );
     }

@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../providers/firebase_providers.dart';
+import '../../../../core/firebase/cloud_functions_region.dart';
 import '../data/repositories/customer_booking_cancel_repository.dart';
 import 'customer_booking_cancel_service.dart';
 
 final customerBookingCancelRepositoryProvider =
     Provider<CustomerBookingCancelRepository>((ref) {
-      return FirestoreCustomerBookingCancelRepository(
-        ref.watch(firestoreProvider),
+      return CallableCustomerBookingCancelRepository(
+        functions: appCloudFunctions(),
       );
     });
 
