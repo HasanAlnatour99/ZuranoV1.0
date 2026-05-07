@@ -80,10 +80,26 @@
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-FIRDebugEnabled"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "IDEPreferLogStreaming"
             value = "YES"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "FIRAAppCheckDebugToken"
+            value = "true"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "FIRAAppCheckDebugToken"
+            value = "D3C45EA6-F7E3-4EB7-834B-AFD0D9FCBA1C"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

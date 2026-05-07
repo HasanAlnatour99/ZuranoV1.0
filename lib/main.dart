@@ -1,79 +1,14 @@
-import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'core/firebase/firebase_bootstrap.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 import 'features/notifications/logic/fcm_registration_service.dart';
-import 'firebase_options.dart';
 import 'providers/app_settings_providers.dart';
-
-/// True for `flutter run` (debug/profile). False for `flutter run --release` / store builds.
-///
-/// **Callable enforcement:** Cloud Functions such as [salonStaffCreateWithAuth] use
-/// `enforceAppCheck: true`. Without a valid App Check token, HTTPS callables return **403**
-/// (e.g. *App attestation failed*). Firebase Storage also rejects uploads when App Check
-/// is enforced and the token is missing (e.g. receipt photos). Register platform debug
-/// tokens under Firebase Console → App Check → your app → *Manage debug tokens* when
-/// using debug providers below.
-///
-/// **Web release:** set `--dart-define=FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY=<reCAPTCHA Enterprise site key>`
-/// from the same console; non-release web uses [WebDebugProvider] (console token from browser logs).
-/// Runs in parallel with prefs/migration to shorten cold start before [runApp].
-Future<void> _activateAppCheckForStartup() async {
-  try {
-    const webRecaptchaSiteKey = String.fromEnvironment(
-      'FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY',
-      defaultValue: '',
-    );
-
-    await FirebaseAppCheck.instance
-        .activate(
-          providerApple: kDebugMode
-              ? const AppleDebugProvider()
-              : const AppleAppAttestWithDeviceCheckFallbackProvider(),
-          providerAndroid: kDebugMode
-              ? const AndroidDebugProvider()
-              : const AndroidPlayIntegrityProvider(),
-          providerWeb: kIsWeb
-              ? (kDebugMode
-                    ? WebDebugProvider()
-                    : (webRecaptchaSiteKey.isNotEmpty
-                          ? ReCaptchaEnterpriseProvider(webRecaptchaSiteKey)
-                          : WebDebugProvider()))
-              : null,
-        )
-        .timeout(
-          kDebugMode ? const Duration(seconds: 8) : const Duration(seconds: 12),
-        );
-
-    // Prime token after native bridge settles (reduces flaky "Too many attempts" on
-    // Android emulators when callables run immediately after cold start).
-    if (kDebugMode &&
-        !kIsWeb &&
-        defaultTargetPlatform == TargetPlatform.android) {
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      try {
-        await FirebaseAppCheck.instance.getToken();
-      } catch (e) {
-        debugPrint(
-          'AppCheck Android debug: first getToken failed ($e). '
-          'If callables return Unauthenticated, add this emulator’s debug token: '
-          'Firebase Console → App Check → your Android app → Manage debug tokens. '
-          'Find the token in logcat, e.g. `adb logcat | grep -i "app check"` or '
-          '`adb logcat -s FirebaseAppCheck:V`.',
-        );
-      }
-    }
-  } catch (error, stackTrace) {
-    debugPrint('AppCheck activation failed: $error\n$stackTrace');
-  }
-}
 
 Future<void> _migrateOnboardingPrefs(SharedPreferences prefs) async {
   const v1 = 'onboarding_install_migration_v1';
@@ -116,33 +51,24 @@ Future<void> _migrateOnboardingPrefs(SharedPreferences prefs) async {
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseBootstrap.initializeAppOnly();
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseBootstrap.initialize();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseBootstrap.initializeCore();
   if (!kFirebasePushMessagingEnabled) {
     await FirebaseMessaging.instance.setAutoInitEnabled(false);
   } else {
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
-  // Overlap App Check with prefs I/O; await before runApp so first callable has a token.
-  // See [_activateAppCheckForStartup] doc: enforced callables need a registered debug token in dev.
-  final appCheckFuture = _activateAppCheckForStartup();
+  final appCheckFuture = FirebaseBootstrap.activateAppCheck();
   final prefs = await SharedPreferences.getInstance();
   await _migrateOnboardingPrefs(prefs);
   await appCheckFuture;
-  if (kDebugMode) {
-    debugPrint(
-      'AppCheck: non-release build — using debug-friendly attestation providers '
-      '(register debug tokens in Firebase Console → App Check). '
-      'Callables with enforceAppCheck require a valid token.',
-    );
-  }
 
   runApp(
     ScreenUtilInit(

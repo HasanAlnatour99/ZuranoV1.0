@@ -55,12 +55,18 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string></string>
 	<key>NSCameraUsageDescription</key>
 	<string>Zurano needs camera access to take a team member profile photo.</string>
+	<key>NSContactsUsageDescription</key>
+	<string></string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Zurano uses your location only for attendance verification while using the app.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Zurano uses your location to verify attendance inside the salon zone and to show nearby salons on the map.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Zurano needs photo library access to select a team member profile photo.</string>
 	<key>UIApplicationSceneManifest</key>
