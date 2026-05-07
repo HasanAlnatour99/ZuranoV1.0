@@ -28,6 +28,17 @@ List<CustomerPlaceModel> _applyDiscoveryFilters(
   Position? user,
 ) {
   var list = salons;
+  final categoryId = filters.serviceCategoryId?.trim();
+  if (categoryId != null && categoryId.isNotEmpty && categoryId.toLowerCase() != 'all') {
+    final want = categoryId.toLowerCase();
+    list = list
+        .where(
+          (p) => p.serviceCategoryIds.any(
+            (c) => c.trim().toLowerCase() == want,
+          ),
+        )
+        .toList(growable: false);
+  }
   if (filters.openNow) {
     list = list.where((p) => p.isOpenNowEffective).toList(growable: false);
   }

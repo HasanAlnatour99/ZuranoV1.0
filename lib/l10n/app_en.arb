@@ -991,6 +991,12 @@
   "customerSalonFilterLadies": "Ladies",
   "customerSalonFilterMen": "Men",
   "customerSalonFilterUnisex": "Unisex",
+  "customerSalonFilterCategorySelected": "Category: {category}",
+  "@customerSalonFilterCategorySelected": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
   "customerProfileTabServices": "Services",
   "customerProfileTabTeam": "Team",
   "customerProfileTabReviews": "Reviews",
@@ -4152,6 +4158,17 @@
   "zuranoRewardsBannerSubtitle": "Earn points on every booking and unlock exclusive rewards.",
   "zuranoRewardsBannerCta": "View offers",
   "zuranoTrendingServicesTitle": "Services trending now",
+  "zuranoCategoriesTitle": "Categories",
+  "zuranoRecommendedSpecialistsTitle": "Recommended specialists",
+  "zuranoRecommendedSpecialistsEmpty": "No specialists to recommend yet.",
+  "zuranoTodayAvailableTitle": "Available today",
+  "zuranoTodayAvailableEmpty": "No one is available today yet.",
+  "zuranoTodayAvailableBadgeFallback": "Available today",
+  "zuranoRecentActivityTitle": "Recent activity",
+  "zuranoRecentActivityEmpty": "No recent activity yet. Start exploring salons near you.",
+  "zuranoLastBookedViewBooking": "View booking",
+  "zuranoLastBookedCodeLabel": "Booking code",
+  "zuranoSpecialistView": "View",
   "zuranoNearbyTitle": "Nearby salons",
   "zuranoNearbyViewMap": "View map",
   "zuranoNearbyMapSnack": "Map view arrives in a future update.",

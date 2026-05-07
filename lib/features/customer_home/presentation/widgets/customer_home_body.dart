@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'category_trending_section.dart';
 import 'nearby_salons_section.dart';
-import 'recommended_salons_section.dart';
+import 'recommended_specialists_section.dart';
+import 'today_available_section.dart';
+import 'recent_activity_section.dart';
 
 /// Premium discovery sections below the purple header and category scroller.
 class CustomerHomeBody extends StatelessWidget {
@@ -15,11 +17,15 @@ class CustomerHomeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          RecommendedSalonsSection(),
+          NearbySalonsSection(),
           SizedBox(height: 28),
           CategoryTrendingSection(),
           SizedBox(height: 28),
-          NearbySalonsSection(),
+          TodayAvailableSection(),
+          SizedBox(height: 28),
+          RecommendedSpecialistsSection(),
+          SizedBox(height: 28),
+          RecentActivitySection(),
         ],
       ),
     );

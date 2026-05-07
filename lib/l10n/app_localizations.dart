@@ -4928,6 +4928,12 @@ abstract class AppLocalizations {
   /// **'Unisex'**
   String get customerSalonFilterUnisex;
 
+  /// No description provided for @customerSalonFilterCategorySelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Category: {category}'**
+  String customerSalonFilterCategorySelected(String category);
+
   /// No description provided for @customerProfileTabServices.
   ///
   /// In en, this message translates to:
@@ -17985,6 +17991,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Services trending now'**
   String get zuranoTrendingServicesTitle;
+
+  /// No description provided for @zuranoCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get zuranoCategoriesTitle;
+
+  /// No description provided for @zuranoRecommendedSpecialistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended specialists'**
+  String get zuranoRecommendedSpecialistsTitle;
+
+  /// No description provided for @zuranoRecommendedSpecialistsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No specialists to recommend yet.'**
+  String get zuranoRecommendedSpecialistsEmpty;
+
+  /// No description provided for @zuranoTodayAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get zuranoTodayAvailableTitle;
+
+  /// No description provided for @zuranoTodayAvailableEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one is available today yet.'**
+  String get zuranoTodayAvailableEmpty;
+
+  /// No description provided for @zuranoTodayAvailableBadgeFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get zuranoTodayAvailableBadgeFallback;
+
+  /// No description provided for @zuranoRecentActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get zuranoRecentActivityTitle;
+
+  /// No description provided for @zuranoRecentActivityEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity yet. Start exploring salons near you.'**
+  String get zuranoRecentActivityEmpty;
+
+  /// No description provided for @zuranoLastBookedViewBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'View booking'**
+  String get zuranoLastBookedViewBooking;
+
+  /// No description provided for @zuranoLastBookedCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code'**
+  String get zuranoLastBookedCodeLabel;
+
+  /// No description provided for @zuranoSpecialistView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get zuranoSpecialistView;
 
   /// No description provided for @zuranoNearbyTitle.
   ///

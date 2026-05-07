@@ -24,6 +24,10 @@ import '../../data/models/customer_service_public_model.dart';
 import '../../data/models/customer_team_member_public_model.dart';
 import '../../data/models/salon_public_model.dart';
 import '../../domain/salon_profile_hours_text.dart';
+import '../../../customer_home/presentation/controllers/customer_home_providers.dart'
+    show
+        customerRecentActivityRepositoryProvider,
+        recentlyViewedSalonsProvider;
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_review_card.dart';
 import '../widgets/customer_team_member_card.dart';
@@ -103,6 +107,7 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
   late final TabController _tabController;
   bool _favoriteLocal = false;
   String? _selectedServiceId;
+  String? _recentLoggedSalonId;
 
   @override
   void initState() {
@@ -287,6 +292,21 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
                   ),
                 ),
               );
+            }
+            // Guest-friendly recent activity: store locally for "Recently viewed".
+            if (_recentLoggedSalonId != sid) {
+              _recentLoggedSalonId = sid;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                try {
+                  await ref.read(customerRecentActivityRepositoryProvider).addRecentlyViewed(
+                        salonId: sid,
+                        name: salon.salonName,
+                        area: salon.area,
+                        coverImageUrl: salon.coverImageUrl,
+                      );
+                  ref.invalidate(recentlyViewedSalonsProvider);
+                } catch (_) {}
+              });
             }
             return _buildBody(
               context,

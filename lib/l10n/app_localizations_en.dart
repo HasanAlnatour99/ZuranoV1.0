@@ -2717,6 +2717,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerSalonFilterUnisex => 'Unisex';
 
   @override
+  String customerSalonFilterCategorySelected(String category) {
+    return 'Category: $category';
+  }
+
+  @override
   String get customerProfileTabServices => 'Services';
 
   @override
@@ -10265,6 +10270,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zuranoTrendingServicesTitle => 'Services trending now';
+
+  @override
+  String get zuranoCategoriesTitle => 'Categories';
+
+  @override
+  String get zuranoRecommendedSpecialistsTitle => 'Recommended specialists';
+
+  @override
+  String get zuranoRecommendedSpecialistsEmpty =>
+      'No specialists to recommend yet.';
+
+  @override
+  String get zuranoTodayAvailableTitle => 'Available today';
+
+  @override
+  String get zuranoTodayAvailableEmpty => 'No one is available today yet.';
+
+  @override
+  String get zuranoTodayAvailableBadgeFallback => 'Available today';
+
+  @override
+  String get zuranoRecentActivityTitle => 'Recent activity';
+
+  @override
+  String get zuranoRecentActivityEmpty =>
+      'No recent activity yet. Start exploring salons near you.';
+
+  @override
+  String get zuranoLastBookedViewBooking => 'View booking';
+
+  @override
+  String get zuranoLastBookedCodeLabel => 'Booking code';
+
+  @override
+  String get zuranoSpecialistView => 'View';
 
   @override
   String get zuranoNearbyTitle => 'Nearby salons';

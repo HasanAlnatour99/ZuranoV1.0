@@ -29,6 +29,7 @@ class CustomerPlaceModel {
     this.genderTarget,
     this.hasOffer = false,
     this.searchKeywords = const [],
+    this.serviceCategoryIds = const [],
     this.isOpenNowCache,
     this.isClosedToday = false,
     this.isAvailableToday = false,
@@ -62,6 +63,7 @@ class CustomerPlaceModel {
   final String? genderTarget;
   final bool hasOffer;
   final List<String> searchKeywords;
+  final List<String> serviceCategoryIds;
 
   /// Denormalized cache when present (`true` = open now at last write).
   final bool? isOpenNowCache;
@@ -177,6 +179,16 @@ class CustomerPlaceModel {
       genderTarget: readSalonAudienceForCustomers(data),
       hasOffer: data['hasOffer'] == true,
       searchKeywords: keywords,
+      serviceCategoryIds: (() {
+        final raw = data['serviceCategoryIds'] ?? data['categoryIds'];
+        if (raw is List) {
+          return raw
+              .map((e) => '$e'.trim())
+              .where((s) => s.isNotEmpty)
+              .toList(growable: false);
+        }
+        return const <String>[];
+      })(),
       isOpenNowCache: data['isOpenNow'] is bool
           ? data['isOpenNow'] as bool
           : null,

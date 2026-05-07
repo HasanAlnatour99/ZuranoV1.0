@@ -11,6 +11,9 @@ import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../application/customer_salon_profile_providers.dart';
 import '../../data/models/customer_booking_create_result.dart';
+import '../../../customer_home/presentation/controllers/customer_home_providers.dart'
+    show customerRecentActivityRepositoryProvider, lastBookedProvider;
+import '../../../customer_home/data/models/last_booked_model.dart';
 import '../widgets/booking_success_action_button.dart';
 import '../widgets/booking_success_summary_card.dart';
 import '../widgets/customer_gradient_scaffold.dart';
@@ -33,9 +36,20 @@ class BookingSuccessScreen extends ConsumerStatefulWidget {
 }
 
 class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
+  bool _savedLastBooked = false;
+  String _draftPhone = '';
+  String? _draftServiceName;
+
   @override
   void initState() {
     super.initState();
+    final draft = ref.read(customerBookingDraftProvider);
+    _draftPhone = draft.customerPhoneNormalized.trim().isNotEmpty
+        ? draft.customerPhoneNormalized.trim()
+        : draft.customerPhone.trim();
+    _draftServiceName = draft.selectedServices.isNotEmpty
+        ? draft.selectedServices.first.displayTitle.trim()
+        : null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(customerBookingDraftProvider.notifier).reset();
@@ -63,6 +77,27 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     final time = result == null
         ? l10n.customerBookingSuccessFallback
         : '${timeFormatter.format(result.startAt)} - ${timeFormatter.format(result.endAt)}';
+
+    if (!_savedLastBooked && result != null) {
+      _savedLastBooked = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          await ref.read(customerRecentActivityRepositoryProvider).saveLastBooked(
+                LastBookedModel(
+                  bookingCode: result.bookingCode,
+                  customerPhone: _draftPhone,
+                  salonId: widget.salonId,
+                  salonName: salonName,
+                  serviceName: _draftServiceName,
+                  bookingDateText: '$date · $time',
+                  bookingId: widget.bookingId,
+                  savedAt: DateTime.now(),
+                ),
+              );
+          ref.invalidate(lastBookedProvider);
+        } catch (_) {}
+      });
+    }
 
     return CustomerGradientScaffold(
       child: SafeArea(

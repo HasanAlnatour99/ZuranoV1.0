@@ -11,6 +11,7 @@ import '../models/customer_category_model.dart';
 import '../models/customer_salon_model.dart';
 import '../models/customer_salon_preview_model.dart';
 import '../models/discovery_service_category_model.dart';
+import '../models/public_specialist_model.dart';
 import '../models/trending_service_model.dart';
 
 /// Customer discovery reads for Zurano home.
@@ -82,6 +83,9 @@ class CustomerHomeRepository {
       .collection(FirestorePaths.customerDiscovery)
       .doc(FirestorePaths.customerDiscoveryServiceCategoriesDoc)
       .collection(FirestorePaths.customerDiscoveryItems);
+
+  CollectionReference<Map<String, dynamic>> get _publicSpecialists =>
+      _db.collection(FirestorePaths.publicSpecialists);
 
   Stream<List<CustomerCategoryModel>> watchCategories() {
     return _categoriesItems
@@ -373,6 +377,43 @@ class CustomerHomeRepository {
         .map(
           (snapshot) => snapshot.docs
               .map(DiscoveryServiceCategoryModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  Stream<List<PublicSpecialistModel>> watchRecommendedSpecialists({
+    required String countryCode,
+  }) {
+    final cc = countryCode.trim().toUpperCase();
+    return _publicSpecialists
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .where('countryCode', isEqualTo: cc)
+        .orderBy('sortScore', descending: true)
+        .limit(10)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(PublicSpecialistModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  Stream<List<PublicSpecialistModel>> watchTodayAvailableSpecialists({
+    required String countryCode,
+  }) {
+    final cc = countryCode.trim().toUpperCase();
+    return _publicSpecialists
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .where('countryCode', isEqualTo: cc)
+        .where('isAvailableToday', isEqualTo: true)
+        .orderBy('sortScore', descending: true)
+        .limit(10)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(PublicSpecialistModel.fromFirestore)
               .toList(growable: false),
         );
   }

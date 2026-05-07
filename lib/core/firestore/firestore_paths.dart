@@ -25,6 +25,9 @@ class FirestorePaths {
   /// Public salon browse index (customer discovery). Doc id = salonId.
   static const publicSalons = 'publicSalons';
 
+  /// Customer-safe specialists index (global). Doc id = specialistId (employeeId).
+  static const publicSpecialists = 'publicSpecialists';
+
   /// Customer-safe team mirror under each public salon doc (`publicSalons/{salonId}/team/{employeeId}`).
   static const publicSalonTeam = 'team';
   static const employees = 'employees';

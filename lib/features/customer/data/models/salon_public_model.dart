@@ -33,6 +33,7 @@ class SalonPublicModel {
     this.searchKeywords = const [],
     this.areaKeywords = const [],
     this.serviceKeywords = const [],
+    this.serviceCategoryIds = const [],
     this.createdAt,
     this.updatedAt,
     this.weeklyAvailability,
@@ -89,6 +90,9 @@ class SalonPublicModel {
 
   /// Keywords from visible public services.
   final List<String> serviceKeywords;
+
+  /// Service categories for discovery filtering (`publicSalons.serviceCategoryIds`).
+  final List<String> serviceCategoryIds;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -232,6 +236,9 @@ class SalonPublicModel {
       searchKeywords: _stringList(data['searchKeywords']),
       areaKeywords: _stringList(data['areaKeywords']),
       serviceKeywords: _stringList(data['serviceKeywords']),
+      serviceCategoryIds: _stringList(
+        data['serviceCategoryIds'] ?? data['categoryIds'],
+      ),
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
       weeklyAvailability: WeeklyAvailability.maybeParse(
@@ -305,6 +312,7 @@ class SalonPublicModel {
       searchKeywords: _stringList(data['searchKeywords']),
       areaKeywords: const [],
       serviceKeywords: const [],
+      serviceCategoryIds: _stringList(data['serviceCategoryIds'] ?? data['categoryIds']),
       createdAt: _ts(data['createdAt'] as Timestamp?),
       updatedAt: _ts(data['updatedAt'] as Timestamp?),
       weeklyAvailability: WeeklyAvailability.maybeParse(

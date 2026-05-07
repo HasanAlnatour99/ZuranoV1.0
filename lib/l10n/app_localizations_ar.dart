@@ -2719,6 +2719,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerSalonFilterUnisex => 'للكل';
 
   @override
+  String customerSalonFilterCategorySelected(String category) {
+    return 'الفئة: $category';
+  }
+
+  @override
   String get customerProfileTabServices => 'الخدمات';
 
   @override
@@ -10240,6 +10245,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get zuranoTrendingServicesTitle => 'خدمات رائجة الآن';
+
+  @override
+  String get zuranoCategoriesTitle => 'الفئات';
+
+  @override
+  String get zuranoRecommendedSpecialistsTitle => 'مختصون موصى بهم';
+
+  @override
+  String get zuranoRecommendedSpecialistsEmpty =>
+      'لا يوجد مختصون موصى بهم بعد.';
+
+  @override
+  String get zuranoTodayAvailableTitle => 'متاح اليوم';
+
+  @override
+  String get zuranoTodayAvailableEmpty => 'لا يوجد متاحون اليوم بعد.';
+
+  @override
+  String get zuranoTodayAvailableBadgeFallback => 'متاح اليوم';
+
+  @override
+  String get zuranoRecentActivityTitle => 'النشاط الأخير';
+
+  @override
+  String get zuranoRecentActivityEmpty =>
+      'لا يوجد نشاط حديث بعد. ابدأ باستكشاف الصالونات القريبة منك.';
+
+  @override
+  String get zuranoLastBookedViewBooking => 'عرض الحجز';
+
+  @override
+  String get zuranoLastBookedCodeLabel => 'رمز الحجز';
+
+  @override
+  String get zuranoSpecialistView => 'عرض';
 
   @override
   String get zuranoNearbyTitle => 'صالونات قريبة';

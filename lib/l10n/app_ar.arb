@@ -975,6 +975,12 @@
   "customerSalonFilterLadies": "سيدات",
   "customerSalonFilterMen": "رجال",
   "customerSalonFilterUnisex": "للكل",
+  "customerSalonFilterCategorySelected": "الفئة: {category}",
+  "@customerSalonFilterCategorySelected": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
   "customerProfileTabServices": "الخدمات",
   "customerProfileTabTeam": "الفريق",
   "customerProfileTabReviews": "التقييمات",
@@ -4075,6 +4081,17 @@
   "zuranoRewardsBannerSubtitle": "اكسب نقاطًا مع كل حجز وافتح مكافآت حصرية.",
   "zuranoRewardsBannerCta": "عرض العروض",
   "zuranoTrendingServicesTitle": "خدمات رائجة الآن",
+  "zuranoCategoriesTitle": "الفئات",
+  "zuranoRecommendedSpecialistsTitle": "مختصون موصى بهم",
+  "zuranoRecommendedSpecialistsEmpty": "لا يوجد مختصون موصى بهم بعد.",
+  "zuranoTodayAvailableTitle": "متاح اليوم",
+  "zuranoTodayAvailableEmpty": "لا يوجد متاحون اليوم بعد.",
+  "zuranoTodayAvailableBadgeFallback": "متاح اليوم",
+  "zuranoRecentActivityTitle": "النشاط الأخير",
+  "zuranoRecentActivityEmpty": "لا يوجد نشاط حديث بعد. ابدأ باستكشاف الصالونات القريبة منك.",
+  "zuranoLastBookedViewBooking": "عرض الحجز",
+  "zuranoLastBookedCodeLabel": "رمز الحجز",
+  "zuranoSpecialistView": "عرض",
   "zuranoNearbyTitle": "صالونات قريبة",
   "zuranoNearbyViewMap": "عرض الخريطة",
   "zuranoNearbyMapSnack": "عرض الخريطة سيُضاف لاحقًا.",

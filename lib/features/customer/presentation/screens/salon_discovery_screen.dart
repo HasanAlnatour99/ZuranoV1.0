@@ -163,6 +163,16 @@ class _SalonDiscoveryScreenState extends ConsumerState<SalonDiscoveryScreen> {
                     horizontal: AppSpacing.large,
                   ),
                   children: [
+                    if (filters.serviceCategoryId?.trim().isNotEmpty == true)
+                      _FilterChip(
+                        label: l10n.customerSalonFilterCategorySelected(
+                          filters.serviceCategoryId!,
+                        ),
+                        selected: true,
+                        onTap: () => _toggleFilter(
+                          (f) => f.copyWith(serviceCategoryId: null),
+                        ),
+                      ),
                     _FilterChip(
                       label: l10n.customerSalonFilterNearby,
                       selected: filters.nearby,

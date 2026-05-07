@@ -44,6 +44,7 @@ class CustomerSalonDiscoveryFilters {
     this.ladies = false,
     this.men = false,
     this.unisex = false,
+    this.serviceCategoryId,
   });
 
   final bool nearby;
@@ -54,6 +55,7 @@ class CustomerSalonDiscoveryFilters {
   final bool ladies;
   final bool men;
   final bool unisex;
+  final String? serviceCategoryId;
 
   CustomerSalonDiscoveryFilters copyWith({
     bool? nearby,
@@ -64,6 +66,7 @@ class CustomerSalonDiscoveryFilters {
     bool? ladies,
     bool? men,
     bool? unisex,
+    String? serviceCategoryId,
   }) {
     return CustomerSalonDiscoveryFilters(
       nearby: nearby ?? this.nearby,
@@ -74,6 +77,7 @@ class CustomerSalonDiscoveryFilters {
       ladies: ladies ?? this.ladies,
       men: men ?? this.men,
       unisex: unisex ?? this.unisex,
+      serviceCategoryId: serviceCategoryId ?? this.serviceCategoryId,
     );
   }
 }
@@ -100,6 +104,14 @@ List<SalonPublicModel> _applyDiscoveryFilters(
   CustomerSalonDiscoveryFilters filters,
 ) {
   var list = salons;
+  final categoryId = filters.serviceCategoryId?.trim();
+  if (categoryId != null && categoryId.isNotEmpty && categoryId.toLowerCase() != 'all') {
+    list = list
+        .where((s) => s.serviceCategoryIds.any(
+              (c) => c.trim().toLowerCase() == categoryId.toLowerCase(),
+            ))
+        .toList(growable: false);
+  }
   if (filters.openNow) {
     list = list.where((s) => s.isOpen).toList(growable: false);
   }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/firebase/firestore_index_building.dart';
+import '../../../../core/constants/app_routes.dart';
+import '../../../customer/application/customer_salon_providers.dart';
 import '../controllers/customer_home_providers.dart';
 import '../theme/zurano_customer_colors.dart';
 import 'customer_empty_state.dart';
@@ -22,10 +25,10 @@ class CategoryTrendingSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ZuranoSectionHeaderL10n(
-          title: l10n.zuranoTrendingServicesTitle,
+          title: l10n.zuranoCategoriesTitle,
           actionLabel: l10n.zuranoDiscoverExploreAll,
           leading: Icons.trending_up_rounded,
-          onAction: () {},
+          onAction: () => context.go(AppRoutes.customerSalonDiscovery),
         ),
         const SizedBox(height: 14),
         categoriesAsync.when(
@@ -43,9 +46,20 @@ class CategoryTrendingSection extends ConsumerWidget {
                 itemCount: categories.length,
                 separatorBuilder: (context, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
+                  final c = categories[index];
                   return DiscoveryServiceCategoryTile(
-                    category: categories[index],
-                    onTap: () {},
+                    category: c,
+                    onTap: () {
+                      final current = ref.read(customerSalonDiscoveryFiltersProvider);
+                      ref
+                          .read(customerSalonDiscoveryFiltersProvider.notifier)
+                          .setFilters(
+                            current.copyWith(
+                              serviceCategoryId: c.id,
+                            ),
+                          );
+                      context.go(AppRoutes.customerSalonDiscovery);
+                    },
                   );
                 },
               ),

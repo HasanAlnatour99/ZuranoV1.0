@@ -14,8 +14,13 @@ import '../../data/models/customer_category_model.dart';
 import '../../data/models/customer_salon_model.dart';
 import '../../data/models/customer_salon_preview_model.dart';
 import '../../data/models/discovery_service_category_model.dart';
+import '../../data/models/public_specialist_model.dart';
 import '../../data/models/trending_service_model.dart';
 import '../../data/repositories/customer_home_repository.dart';
+import '../../data/repositories/customer_recent_activity_repository.dart';
+import '../../data/models/recently_viewed_salon_model.dart';
+import '../../data/models/last_booked_model.dart';
+import '../../../../providers/app_settings_providers.dart' show sharedPreferencesProvider;
 
 final customerHomeRepositoryProvider = Provider<CustomerHomeRepository>((ref) {
   return CustomerHomeRepository(ref.watch(firestoreProvider));
@@ -201,3 +206,33 @@ final activeBannersProvider =
       final repo = ref.watch(customerHomeRepositoryProvider);
       return repo.watchActiveBanners();
     });
+
+final recommendedSpecialistsProvider =
+    StreamProvider.autoDispose<List<PublicSpecialistModel>>((ref) {
+      final repo = ref.watch(customerHomeRepositoryProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
+      return repo.watchRecommendedSpecialists(countryCode: countryCode);
+    });
+
+final todayAvailableSpecialistsProvider =
+    StreamProvider.autoDispose<List<PublicSpecialistModel>>((ref) {
+      final repo = ref.watch(customerHomeRepositoryProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
+      return repo.watchTodayAvailableSpecialists(countryCode: countryCode);
+    });
+
+final customerRecentActivityRepositoryProvider =
+    Provider<CustomerRecentActivityRepository>((ref) {
+      return CustomerRecentActivityRepository(ref.watch(sharedPreferencesProvider));
+    });
+
+final recentlyViewedSalonsProvider =
+    FutureProvider.autoDispose<List<RecentlyViewedSalonModel>>((ref) async {
+      final repo = ref.watch(customerRecentActivityRepositoryProvider);
+      return repo.getRecentlyViewed();
+    });
+
+final lastBookedProvider = FutureProvider.autoDispose<LastBookedModel?>((ref) async {
+  final repo = ref.watch(customerRecentActivityRepositoryProvider);
+  return repo.getLastBooked();
+});
