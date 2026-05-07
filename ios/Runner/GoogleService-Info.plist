@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>842751979779-i20le06ev7cngjmrifhkoio0jc4jbp50.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.842751979779-i20le06ev7cngjmrifhkoio0jc4jbp50</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>842751979779-qgmcn6mmrv5p8vq5ebgtiupsvoasqtri.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAvm6KHosyy_vFCo8AfB3S7Nv958g8rqHw</string>
 	<key>GCM_SENDER_ID</key>
@@ -26,9 +32,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:842751979779:ios:92e0acb870a5ecacdcf936</string>
-	<key>CLIENT_ID</key>
-	<string>842751979779-i20le06ev7cngjmrifhkoio0jc4jbp50.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.842751979779-i20le06ev7cngjmrifhkoio0jc4jbp50</string>
+	<key>DATABASE_URL</key>
+	<string>https://barber-shop-app-13aa7-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>
