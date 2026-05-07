@@ -1,6 +1,27 @@
 {
   "indexes": [
     {
+      "collectionGroup": "publicSpecialists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
+        { "fieldPath": "sortScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicSpecialists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
+        { "fieldPath": "isAvailableToday", "order": "ASCENDING" },
+        { "fieldPath": "sortScore", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "publicSalons",
       "queryScope": "COLLECTION",
       "fields": [

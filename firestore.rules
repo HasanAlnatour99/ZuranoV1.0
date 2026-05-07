@@ -318,6 +318,14 @@ service cloud.firestore {
       }
     }
 
+    /// Customer-safe specialist browse index for home sections.
+    /// Doc id = specialistId (usually employeeId). Written by Cloud Functions / Admin tools.
+    match /publicSpecialists/{specialistId} {
+      allow read: if resource.data.get('isPublic', false) == true &&
+        resource.data.get('isActive', false) == true;
+      allow write: if false;
+    }
+
     match /users/{userId} {
       allow read: if isSelf(userId);
 

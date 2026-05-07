@@ -44,9 +44,9 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
   void initState() {
     super.initState();
     final draft = ref.read(customerBookingDraftProvider);
-    _draftPhone = draft.customerPhoneNormalized.trim().isNotEmpty
-        ? draft.customerPhoneNormalized.trim()
-        : draft.customerPhone.trim();
+    final normalizedPhone = draft.customerPhoneNormalized?.trim() ?? '';
+    final rawPhone = draft.customerPhone?.trim() ?? '';
+    _draftPhone = normalizedPhone.isNotEmpty ? normalizedPhone : rawPhone;
     _draftServiceName = draft.selectedServices.isNotEmpty
         ? draft.selectedServices.first.displayTitle.trim()
         : null;
