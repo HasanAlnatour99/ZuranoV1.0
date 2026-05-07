@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/booking_status_machine.dart';
 import '../../../../core/constants/booking_statuses.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/models/customer_booking_details_model.dart';
+import '../../data/models/customer_booking_settings.dart';
+import '../../domain/customer_online_cancel_eligibility.dart';
 import 'customer_gradient_scaffold.dart';
 
 class CustomerBookingActionPanel extends StatelessWidget {
@@ -24,6 +26,17 @@ class CustomerBookingActionPanel extends StatelessWidget {
   final VoidCallback onBookAgain;
   final VoidCallback? onCancelBooking;
   final VoidCallback? onLeaveFeedback;
+
+  static int _policyDisplayHours(CustomerBookingSettings s) {
+    if (s.cancellationNoticeHours > 0) {
+      return s.cancellationNoticeHours;
+    }
+    final m = s.cancellationCutoffMinutes;
+    if (m <= 0) {
+      return 0;
+    }
+    return (m / 60).ceil();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +58,22 @@ class CustomerBookingActionPanel extends StatelessWidget {
         status == 'noShow' ||
         status == BookingStatuses.rescheduled;
 
+    final cancelEligibility = resolveCustomerOnlineCancelEligibility(
+      details: details,
+      settings: details.customerBookingSettings,
+    );
+
     if (!showsUpcomingActions && !isCompleted && !isCancelledLike) {
       return const SizedBox.shrink();
     }
 
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(AppRadius.xlarge),
+    return Container(
+      decoration: BoxDecoration(
+        color: ZuranoTokens.surface,
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+        border: Border.all(color: ZuranoTokens.sectionBorder),
+        boxShadow: ZuranoTokens.softCardShadow,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.large),
         child: Column(
@@ -61,7 +83,7 @@ class CustomerBookingActionPanel extends StatelessWidget {
               l10n.customerBookingDetailsActionsTitle,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: AppColorsLight.textPrimary,
+                color: ZuranoTokens.textDark,
               ),
             ),
             const SizedBox(height: AppSpacing.medium),
@@ -69,33 +91,75 @@ class CustomerBookingActionPanel extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ZuranoTokens.primary,
+                    side: const BorderSide(color: ZuranoTokens.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        ZuranoTokens.radiusButton,
+                      ),
+                    ),
+                  ),
                   onPressed: onRescheduleComingSoon,
                   child: Text(l10n.customerBookingDetailsReschedule),
                 ),
               ),
-              if (isPendingOrConfirmed && onCancelBooking != null) ...[
+              if (isPendingOrConfirmed) ...[
                 const SizedBox(height: AppSpacing.small),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    style: CustomerPrimaryButtonStyle.filled(context),
-                    onPressed: onCancelBooking,
-                    child: Text(l10n.customerBookingDetailsCancelBooking),
+                if (cancelEligibility ==
+                        CustomerOnlineCancelEligibility.eligible &&
+                    onCancelBooking != null) ...[
+                  Builder(
+                    builder: (context) {
+                      final h = _policyDisplayHours(
+                        details.customerBookingSettings,
+                      );
+                      if (h <= 0) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.small),
+                        child: Text(
+                          l10n.customerBookingDetailsCancelPolicyNotice(h),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: ZuranoTokens.textGray,
+                            fontWeight: FontWeight.w600,
+                            height: 1.35,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      style: CustomerPrimaryButtonStyle.filled(context),
+                      onPressed: onCancelBooking,
+                      child: Text(l10n.customerBookingDetailsCancelBooking),
+                    ),
+                  ),
+                ] else if (cancelEligibility ==
+                        CustomerOnlineCancelEligibility.ineligibleNotAllowed ||
+                    cancelEligibility ==
+                        CustomerOnlineCancelEligibility
+                            .ineligibleTooClose) ...[
+                  _CustomerCancelPolicyBanner(
+                    message: cancelEligibility ==
+                            CustomerOnlineCancelEligibility.ineligibleNotAllowed
+                        ? l10n.customerCancelBookingCannotCancelOnline
+                        : l10n.customerCancelBookingTooCloseToStart,
+                  ),
+                ],
               ],
             ] else if (isCompleted) ...[
               if (details.feedbackSubmitted) ...[
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(
-                      alpha: 0.35,
-                    ),
+                    color: ZuranoTokens.lightPurple.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(AppRadius.large),
                     border: Border.all(
-                      color: theme.colorScheme.outlineVariant.withValues(
-                        alpha: 0.5,
-                      ),
+                      color: ZuranoTokens.primary.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Padding(
@@ -104,7 +168,7 @@ class CustomerBookingActionPanel extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.mark_chat_read_outlined,
-                          color: AppBrandColors.primary,
+                          color: ZuranoTokens.primary,
                           size: 22,
                         ),
                         const SizedBox(width: AppSpacing.small),
@@ -113,7 +177,7 @@ class CustomerBookingActionPanel extends StatelessWidget {
                             l10n.customerFeedbackSubmittedBadge,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColorsLight.textPrimary,
+                              color: ZuranoTokens.textDark,
                             ),
                           ),
                         ),
@@ -141,6 +205,50 @@ class CustomerBookingActionPanel extends StatelessWidget {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CustomerCancelPolicyBanner extends StatelessWidget {
+  const _CustomerCancelPolicyBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ZuranoTokens.lightPurple,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(
+          color: ZuranoTokens.primary.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.medium),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline_rounded,
+              color: ZuranoTokens.primary,
+              size: 22,
+            ),
+            const SizedBox(width: AppSpacing.small),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: ZuranoTokens.textDark,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -10,6 +10,15 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    /// Used by `collectionGroup('bookings')` customer queries (`guestUid` / `createdByAuthUid`).
+    function isOwnGuestBooking() {
+      return signedIn() &&
+        (
+          resource.data.get('guestUid', '') == request.auth.uid ||
+          resource.data.get('createdByAuthUid', '') == request.auth.uid
+        );
+    }
+
     function userDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
@@ -338,6 +347,11 @@ service cloud.firestore {
       }
 
       match /devices/{deviceId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      /// Customer saved salons for discovery (`salonId` doc id).
+      match /favorites/{salonId} {
         allow read, write: if isSelf(userId);
       }
     }
@@ -1075,6 +1089,12 @@ service cloud.firestore {
         request.resource.data.bookingCode == bookingCode &&
         request.resource.data.salonId == resource.data.salonId;
       allow delete: if false;
+    }
+
+    // Required for `collectionGroup('bookings')` (My Bookings); salon-scoped rules do not apply.
+    match /{path=**}/bookings/{bookingId} {
+      allow get, list: if isOwnGuestBooking();
+      allow create, update, delete: if false;
     }
 
     match /{document=**} {

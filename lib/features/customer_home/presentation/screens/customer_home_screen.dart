@@ -9,11 +9,8 @@ import '../controllers/customer_location_providers.dart';
 import '../theme/zurano_customer_colors.dart';
 import '../widgets/customer_bottom_nav.dart';
 import '../widgets/customer_category_scroller.dart';
+import '../widgets/customer_home_body.dart';
 import '../widgets/customer_home_search_header.dart';
-import '../widgets/nearby_salons_section.dart';
-import '../widgets/recommended_salons_section.dart';
-import '../widgets/rewards_banner.dart';
-import '../widgets/trending_services_section.dart';
 
 /// Guest-friendly discovery hub backed by Firestore streams ([CustomerHomeRepository]).
 class ZuranoCustomerHomeScreen extends ConsumerStatefulWidget {
@@ -86,18 +83,7 @@ class _ZuranoCustomerHomeScreenState
                   const SliverToBoxAdapter(child: SizedBox(height: 10)),
                   const SliverToBoxAdapter(child: CustomerCategoryScroller()),
                   const SliverToBoxAdapter(child: SizedBox(height: 18)),
-                  const SliverToBoxAdapter(child: RecommendedSalonsSection()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 14)),
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: RewardsBanner(),
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  const SliverToBoxAdapter(child: TrendingServicesSection()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  const SliverToBoxAdapter(child: NearbySalonsSection()),
+                  const SliverToBoxAdapter(child: CustomerHomeBody()),
                   const SliverToBoxAdapter(child: SizedBox(height: 140)),
                 ],
               ),

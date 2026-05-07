@@ -11,6 +11,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../../../shared/widgets/edge_swipe_back.dart';
 import '../../../../shared/widgets/slide_to_book_button.dart';
 import '../../../../shared/widgets/zurano_service_category_icon.dart';
@@ -1083,21 +1084,11 @@ class _PremiumServiceCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: visualStyle.background,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: visualStyle.foreground.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Icon(
-                    visualStyle.icon,
-                    color: visualStyle.foreground,
-                    size: 28,
-                  ),
+                ServiceCategoryIconTile(
+                  style: visualStyle,
+                  size: 58,
+                  borderRadius: 18,
+                  iconSize: 27,
                 ),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(

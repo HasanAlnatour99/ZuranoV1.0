@@ -3242,6 +3242,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingDetailsSubtitle => 'اعرض معلومات موعدك';
 
   @override
+  String get customerBookingDetailsOverflowTooltip => 'المزيد من الخيارات';
+
+  @override
   String get customerBookingDetailsCopied => 'تم النسخ';
 
   @override
@@ -3285,6 +3288,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerBookingDetailsCancelBooking => 'إلغاء الحجز';
+
+  @override
+  String customerBookingDetailsCancelPolicyNotice(int hours) {
+    return 'سياسة الصالون: يمكن الإلغاء عبر الإنترنت قبل موعدك بـ $hours ساعات على الأقل.';
+  }
 
   @override
   String get customerBookingDetailsLeaveFeedback => 'ترك ملاحظة';
@@ -10352,6 +10360,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get zuranoDiscoverTrendingServicesEmpty => 'لا توجد خدمات رائجة بعد';
+
+  @override
+  String get zuranoDiscoverServiceCategoriesEmpty => 'لا توجد فئات خدمات بعد';
 
   @override
   String zuranoDiscoverNearbyEmptyInCountry(String countryName) {

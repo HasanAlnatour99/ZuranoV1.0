@@ -1228,6 +1228,7 @@
   "customerBookingLookupRateBooking": "قيّم الزيارة",
   "customerBookingDetailsTitle": "تفاصيل الحجز",
   "customerBookingDetailsSubtitle": "اعرض معلومات موعدك",
+  "customerBookingDetailsOverflowTooltip": "المزيد من الخيارات",
   "customerBookingDetailsCopied": "تم النسخ",
   "customerBookingDetailsDurationPrice": "{minutes} د · {price}",
   "@customerBookingDetailsDurationPrice": {
@@ -1248,6 +1249,14 @@
   "customerBookingDetailsPhoneUnavailable": "رقم الهاتف غير متوفر",
   "customerBookingDetailsReschedule": "إعادة الجدولة",
   "customerBookingDetailsCancelBooking": "إلغاء الحجز",
+  "customerBookingDetailsCancelPolicyNotice": "سياسة الصالون: يمكن الإلغاء عبر الإنترنت قبل موعدك بـ {hours} ساعات على الأقل.",
+  "@customerBookingDetailsCancelPolicyNotice": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "customerBookingDetailsLeaveFeedback": "ترك ملاحظة",
   "customerBookingDetailsBookAgain": "احجز مجددًا",
   "customerBookingDetailsComingSoon": "قريبًا",
@@ -4138,6 +4147,7 @@
   "zuranoDiscoverSectionLoadFailed": "تعذّر تحميل هذا القسم. يرجى المحاولة لاحقًا.",
   "zuranoDiscoverRecommendedEmpty": "لا توجد صالونات موصى بها بعد",
   "zuranoDiscoverTrendingServicesEmpty": "لا توجد خدمات رائجة بعد",
+  "zuranoDiscoverServiceCategoriesEmpty": "لا توجد فئات خدمات بعد",
   "zuranoDiscoverNearbyEmptyInCountry": "لا توجد صالونات في {countryName} بعد",
   "@zuranoDiscoverNearbyEmptyInCountry": {
     "placeholders": {

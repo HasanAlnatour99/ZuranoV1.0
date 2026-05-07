@@ -4,25 +4,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_routes.dart' show AppRouteNames;
+import '../../../../core/constants/app_routes.dart'
+    show AppRouteNames, AppRoutes;
 import '../../../../core/constants/booking_status_machine.dart';
 import '../../../../core/constants/booking_statuses.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/text/team_member_name.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../core/utils/contact_launcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_details_providers.dart';
 import '../../application/customer_phone_normalizer.dart';
 import '../../data/models/customer_booking_details_model.dart';
+import '../../domain/customer_online_cancel_eligibility.dart';
 import '../widgets/customer_booking_action_panel.dart';
 import '../widgets/customer_cancel_booking_sheet.dart';
 import '../widgets/customer_booking_details_section_card.dart';
 import '../widgets/customer_booking_status_badge.dart';
 import '../widgets/customer_booking_timeline_card.dart';
 import '../widgets/customer_gradient_scaffold.dart';
+
+void _exitCustomerBookingDetails(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.go(AppRoutes.customerHome);
+  }
+}
 
 class CustomerBookingDetailsScreen extends ConsumerWidget {
   const CustomerBookingDetailsScreen({
@@ -46,13 +56,13 @@ class CustomerBookingDetailsScreen extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, _) => _ErrorBody(
             message: l10n.customerBookingLookupGenericError,
-            onBack: () => context.pop(),
+            onBack: () => _exitCustomerBookingDetails(context),
           ),
           data: (details) {
             if (details == null) {
               return _ErrorBody(
                 message: l10n.bookingNotFound,
-                onBack: () => context.pop(),
+                onBack: () => _exitCustomerBookingDetails(context),
               );
             }
             return _CustomerBookingDetailsBody(
@@ -142,6 +152,39 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
         ? details.id
         : details.bookingCode;
 
+    final normalizedForMenu =
+        BookingStatusMachine.normalize(details.status.trim());
+    final menuRescheduleEnabled =
+        normalizedForMenu == BookingStatuses.pending ||
+        normalizedForMenu == BookingStatuses.confirmed;
+    final cancelEligibility = resolveCustomerOnlineCancelEligibility(
+      details: details,
+      settings: details.customerBookingSettings,
+    );
+    final menuCancelEnabled =
+        cancelEligibility == CustomerOnlineCancelEligibility.eligible;
+
+    void handleOverflowReschedule() {
+      context.pushNamed(
+        AppRouteNames.customerBookingReschedule,
+        pathParameters: {
+          'salonId': details.salonId,
+          'bookingId': details.id,
+        },
+        extra: details,
+      );
+    }
+
+    Future<void> handleOverflowCancel() async {
+      final messenger = ScaffoldMessenger.of(context);
+      await showCustomerCancelBookingSheet(
+        context: context,
+        ref: ref,
+        detailsArgs: detailsArgs,
+        scaffoldMessenger: messenger,
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: () async => onRetry(),
       child: CustomScrollView(
@@ -156,37 +199,55 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
               AppSpacing.small,
             ),
             sliver: SliverToBoxAdapter(
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(
-                    onPressed: () => context.pop(),
+                    onPressed: () => _exitCustomerBookingDetails(context),
                     icon: const Icon(Icons.arrow_back_rounded),
+                    color: ZuranoTokens.textDark,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.small,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.customerBookingDetailsTitle,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: AppColorsLight.textPrimary,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.4,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        top: 4,
+                        end: AppSpacing.small,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  l10n.customerBookingDetailsTitle,
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    color: ZuranoTokens.textDark,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.4,
+                                  ),
+                                ),
+                              ),
+                              _BookingDetailsOverflowMenu(
+                                l10n: l10n,
+                                rescheduleEnabled: menuRescheduleEnabled,
+                                cancelEnabled: menuCancelEnabled,
+                                onReschedule: handleOverflowReschedule,
+                                onCancel: handleOverflowCancel,
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.small),
-                        Text(
-                          l10n.customerBookingDetailsSubtitle,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: AppColorsLight.textSecondary,
-                            height: 1.35,
+                          const SizedBox(height: AppSpacing.small),
+                          Text(
+                            l10n.customerBookingDetailsSubtitle,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: ZuranoTokens.textGray,
+                              height: 1.35,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -565,9 +626,13 @@ class _StatusHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(AppRadius.xlarge),
+    return Container(
+      decoration: BoxDecoration(
+        color: ZuranoTokens.surface,
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+        border: Border.all(color: ZuranoTokens.sectionBorder),
+        boxShadow: ZuranoTokens.softCardShadow,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.large),
         child: Column(
@@ -585,7 +650,7 @@ class _StatusHeroCard extends StatelessWidget {
                       Text(
                         codeLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColorsLight.textSecondary,
+                          color: ZuranoTokens.textGray,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -593,7 +658,7 @@ class _StatusHeroCard extends StatelessWidget {
                       SelectableText(
                         bookingCode,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: AppBrandColors.primary,
+                          color: ZuranoTokens.primary,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.4,
                         ),
@@ -601,7 +666,11 @@ class _StatusHeroCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton.filledTonal(
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: ZuranoTokens.lightPurple,
+                    foregroundColor: ZuranoTokens.primary,
+                  ),
                   onPressed: () async {
                     await Clipboard.setData(ClipboardData(text: bookingCode));
                     if (context.mounted) {
@@ -614,17 +683,130 @@ class _StatusHeroCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Divider(height: AppSpacing.xlarge),
+            Divider(height: AppSpacing.xlarge, color: ZuranoTokens.sectionBorder),
             Text(
               dateTimeLine,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColorsLight.textPrimary,
+                color: ZuranoTokens.textDark,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+enum _BookingOverflowAction { reschedule, cancel }
+
+class _BookingDetailsOverflowMenu extends StatelessWidget {
+  const _BookingDetailsOverflowMenu({
+    required this.l10n,
+    required this.rescheduleEnabled,
+    required this.cancelEnabled,
+    required this.onReschedule,
+    required this.onCancel,
+  });
+
+  final AppLocalizations l10n;
+  final bool rescheduleEnabled;
+  final bool cancelEnabled;
+  final VoidCallback onReschedule;
+  final Future<void> Function() onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_BookingOverflowAction>(
+      tooltip: l10n.customerBookingDetailsOverflowTooltip,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+      offset: const Offset(0, 40),
+      color: ZuranoTokens.surface,
+      elevation: 8,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ZuranoTokens.radiusCard),
+        side: const BorderSide(color: ZuranoTokens.sectionBorder),
+      ),
+      onSelected: (action) {
+        switch (action) {
+          case _BookingOverflowAction.reschedule:
+            onReschedule();
+            break;
+          case _BookingOverflowAction.cancel:
+            onCancel();
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem<_BookingOverflowAction>(
+          value: _BookingOverflowAction.reschedule,
+          enabled: rescheduleEnabled,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.medium,
+            vertical: AppSpacing.small,
+          ),
+          child: _OverflowMenuRow(
+            icon: Icons.event_repeat_rounded,
+            label: l10n.customerBookingDetailsReschedule,
+            enabled: rescheduleEnabled,
+          ),
+        ),
+        PopupMenuItem<_BookingOverflowAction>(
+          value: _BookingOverflowAction.cancel,
+          enabled: cancelEnabled,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.medium,
+            vertical: AppSpacing.small,
+          ),
+          child: _OverflowMenuRow(
+            icon: Icons.event_busy_rounded,
+            label: l10n.customerBookingDetailsCancelBooking,
+            enabled: cancelEnabled,
+          ),
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.small),
+        child: Icon(
+          Icons.more_vert_rounded,
+          color: ZuranoTokens.textDark,
+        ),
+      ),
+    );
+  }
+}
+
+class _OverflowMenuRow extends StatelessWidget {
+  const _OverflowMenuRow({
+    required this.icon,
+    required this.label,
+    required this.enabled,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = enabled ? ZuranoTokens.primary : ZuranoTokens.textGray;
+    final textColor = enabled ? ZuranoTokens.textDark : ZuranoTokens.textGray;
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: accent),
+        const SizedBox(width: AppSpacing.medium),
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

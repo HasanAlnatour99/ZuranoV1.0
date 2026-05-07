@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 
 import '../data/models/customer_salon_model.dart';
+import '../data/models/customer_salon_preview_model.dart';
 
 /// English country label used on `salons/*` for discovery when onboarding has
 /// no country yet (matches legacy seed data).
@@ -65,6 +66,39 @@ List<CustomerSalonModel> sortNearbySalonsByDistance(
       return c;
     }
     return b.ratingAverage.compareTo(a.ratingAverage);
+  });
+  return copy;
+}
+
+List<CustomerSalonPreviewModel> sortNearbySalonPreviewsByDistance(
+  List<CustomerSalonPreviewModel> salons,
+  Position? user,
+) {
+  final copy = [...salons];
+  if (user == null) {
+    copy.sort((a, b) => b.ratingAvg.compareTo(a.ratingAvg));
+    return copy;
+  }
+  copy.sort((a, b) {
+    final da = calculateDistanceKm(
+      userLat: user.latitude,
+      userLng: user.longitude,
+      salonLat: a.latitude,
+      salonLng: a.longitude,
+    );
+    final db = calculateDistanceKm(
+      userLat: user.latitude,
+      userLng: user.longitude,
+      salonLat: b.latitude,
+      salonLng: b.longitude,
+    );
+    final aa = da ?? _kUnknownDistanceSortKm;
+    final bb = db ?? _kUnknownDistanceSortKm;
+    final c = aa.compareTo(bb);
+    if (c != 0) {
+      return c;
+    }
+    return b.ratingAvg.compareTo(a.ratingAvg);
   });
   return copy;
 }

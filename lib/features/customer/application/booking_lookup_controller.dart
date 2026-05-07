@@ -19,7 +19,7 @@ final bookingLookupRepositoryProvider = Provider<BookingLookupRepository>((ref) 
   return CallableBookingLookupRepository(functions: appCloudFunctions());
 });
 
-/// Find Booking tab: first five account bookings + whether to show **View all**.
+/// Find Booking tab: first three account bookings + whether to show **View all**.
 final customerAccountBookingsForFindProvider =
     FutureProvider.autoDispose<CustomerAccountBookingsPreview>((ref) async {
       final uid =
@@ -32,12 +32,12 @@ final customerAccountBookingsForFindProvider =
       }
       final page = await ref
           .read(bookingRepositoryProvider)
-          .getCustomerBookingDocumentsPage(uid, limit: 6);
+          .getCustomerBookingDocumentsPage(uid, limit: 4);
       final mapped = page.items
           .map(CustomerBookingLookupModel.fromFirestore)
           .toList(growable: false);
-      final showViewAll = page.hasMore || mapped.length > 5;
-      final visible = mapped.take(5).toList(growable: false);
+      final showViewAll = page.hasMore || mapped.length > 3;
+      final visible = mapped.take(3).toList(growable: false);
       return CustomerAccountBookingsPreview(
         items: visible,
         showViewAll: showViewAll,

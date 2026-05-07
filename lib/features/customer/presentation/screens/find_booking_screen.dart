@@ -423,24 +423,27 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppBrandColors.primary.withValues(alpha: 0.07),
+        color: ZuranoTokens.lightPurple,
         borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(
+          color: ZuranoTokens.primary.withValues(alpha: 0.18),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.medium),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
+            Icon(
               Icons.info_outline_rounded,
-              color: AppBrandColors.primary,
+              color: ZuranoTokens.primary,
             ),
             const SizedBox(width: AppSpacing.small),
             Expanded(
               child: Text(
                 message,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColorsLight.textPrimary,
+                  color: ZuranoTokens.textDark,
                   fontWeight: FontWeight.w600,
                 ),
               ),

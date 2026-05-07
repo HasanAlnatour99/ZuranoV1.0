@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/utils/currency_for_country.dart';
+import 'customer_booking_settings.dart';
 
 /// Customer-safe booking details (no internal staff notes or HR fields).
 class CustomerBookingDetailsServiceItem {
@@ -50,6 +51,7 @@ class CustomerBookingDetailsModel {
     this.customerId,
     this.feedbackSubmitted = false,
     this.feedbackSubmittedAt,
+    this.customerBookingSettings = const CustomerBookingSettings(),
   });
 
   final String id;
@@ -81,6 +83,9 @@ class CustomerBookingDetailsModel {
   final String? customerId;
   final bool feedbackSubmitted;
   final DateTime? feedbackSubmittedAt;
+
+  /// From `publicSalons/{salonId}.customerBookingSettings` when present.
+  final CustomerBookingSettings customerBookingSettings;
 
   static String _string(Object? value) {
     return value is String ? value.trim() : '';
@@ -242,6 +247,7 @@ class CustomerBookingDetailsModel {
       }(),
       feedbackSubmitted: _bool(bookingData['feedbackSubmitted'], false),
       feedbackSubmittedAt: _date(bookingData['feedbackSubmittedAt']),
+      customerBookingSettings: publicSalon.customerBookingSettings,
     );
   }
 
@@ -275,6 +281,7 @@ class SalonPublicSlice {
     required this.currencyCode,
     this.phone,
     this.whatsapp,
+    this.customerBookingSettings = const CustomerBookingSettings(),
   });
 
   final String id;
@@ -283,6 +290,9 @@ class SalonPublicSlice {
   final String currencyCode;
   final String? phone;
   final String? whatsapp;
+
+  /// Parsed from `customerBookingSettings` on `publicSalons/{salonId}`.
+  final CustomerBookingSettings customerBookingSettings;
 
   factory SalonPublicSlice.empty(String salonId) {
     return SalonPublicSlice(
@@ -308,6 +318,7 @@ class SalonPublicSlice {
       salonCountryIso:
           (countryIso != null && countryIso.isNotEmpty) ? countryIso : null,
     );
+    final rawSettings = data['customerBookingSettings'];
     return SalonPublicSlice(
       id: id,
       salonName: (name != null && name.isNotEmpty) ? name : '',
@@ -315,6 +326,9 @@ class SalonPublicSlice {
       currencyCode: currencyCode,
       phone: (data['phone'] as String?)?.trim(),
       whatsapp: (data['whatsapp'] as String?)?.trim(),
+      customerBookingSettings: CustomerBookingSettings.fromMap(
+        rawSettings is Map<String, dynamic> ? rawSettings : null,
+      ),
     );
   }
 }

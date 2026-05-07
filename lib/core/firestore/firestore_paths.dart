@@ -77,6 +77,8 @@ class FirestorePaths {
   /// Example: `customerDiscovery/categories/items/{categoryId}`.
   static const customerDiscovery = 'customerDiscovery';
   static const customerDiscoveryCategoriesDoc = 'categories';
+  /// Global service category tiles for customer home (`customerDiscovery/serviceCategories/items/{id}`).
+  static const customerDiscoveryServiceCategoriesDoc = 'serviceCategories';
   static const customerDiscoveryTrendingServicesDoc = 'trendingServices';
   static const customerDiscoveryBannersDoc = 'banners';
   static const customerDiscoveryPopularSearchesDoc = 'popularSearches';
@@ -89,6 +91,12 @@ class FirestorePaths {
       '$customerSearchIndex/$docId';
 
   static String user(String uid) => '$users/$uid';
+
+  /// Saved salons for discovery (`users/{uid}/favorites/{salonId}`).
+  static const favorites = 'favorites';
+
+  static String userFavorite(String uid, String salonId) =>
+      '${user(uid)}/$favorites/$salonId';
 
   static const userDevices = 'devices';
   static const userNotifications = 'notifications';

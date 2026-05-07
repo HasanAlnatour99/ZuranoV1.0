@@ -87,8 +87,8 @@
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "FIRAAppCheckDebugToken"
-            value = "0F72C40A-BDDD-47C3-BAE6-A3918C44834B"
+            key = ""
+            value = ""
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

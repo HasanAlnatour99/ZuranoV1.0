@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/legacy.dart' show StateProvider;
 
+import '../../../../core/firestore/firestore_paths.dart';
 import '../../../../providers/firebase_providers.dart';
 import '../../../../providers/onboarding_providers.dart';
 import '../../../onboarding/application/device_country_iso.dart';
@@ -11,6 +12,8 @@ import 'customer_location_providers.dart';
 import '../../data/models/customer_banner_model.dart';
 import '../../data/models/customer_category_model.dart';
 import '../../data/models/customer_salon_model.dart';
+import '../../data/models/customer_salon_preview_model.dart';
+import '../../data/models/discovery_service_category_model.dart';
 import '../../data/models/trending_service_model.dart';
 import '../../data/repositories/customer_home_repository.dart';
 
@@ -112,6 +115,79 @@ final nearbySalonsProvider =
         loading: () => const AsyncValue.loading(),
         error: (e, st) => AsyncValue.error(e, st),
       );
+    });
+
+/// Premium home — recommended carousel (`publicSalons` preview rows).
+final recommendedSalonPreviewsProvider =
+    StreamProvider.autoDispose<List<CustomerSalonPreviewModel>>((ref) {
+      final repo = ref.watch(customerHomeRepositoryProvider);
+      final categoryId = ref.watch(selectedCustomerCategoryProvider);
+      final country = ref.watch(customerDiscoveryCountryNameProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
+      return repo.watchRecommendedSalonPreviews(
+        discoveryCountryName: country,
+        customerCountryCode: countryCode,
+        categoryId: categoryId == 'all' ? null : categoryId,
+      );
+    });
+
+/// Premium home — `customerDiscovery/serviceCategories/items`.
+final discoveryServiceCategoriesProvider =
+    StreamProvider.autoDispose<List<DiscoveryServiceCategoryModel>>((ref) {
+      return ref
+          .watch(customerHomeRepositoryProvider)
+          .watchDiscoveryServiceCategories();
+    });
+
+final _nearbySalonPreviewsFirestoreProvider =
+    StreamProvider.autoDispose<List<CustomerSalonPreviewModel>>((ref) {
+      final repo = ref.watch(customerHomeRepositoryProvider);
+      final categoryId = ref.watch(selectedCustomerCategoryProvider);
+      final country = ref.watch(customerDiscoveryCountryNameProvider);
+      final countryCode = ref.watch(customerDiscoveryCountryCodeProvider);
+      return repo.watchNearbySalonPreviews(
+        discoveryCountryName: country,
+        customerCountryCode: countryCode,
+        categoryId: categoryId == 'all' ? null : categoryId,
+      );
+    });
+
+/// Nearby list with GPS distance ordering when available.
+final nearbySalonPreviewsProvider =
+    Provider.autoDispose<AsyncValue<List<CustomerSalonPreviewModel>>>((ref) {
+      final salonsAsync = ref.watch(_nearbySalonPreviewsFirestoreProvider);
+      final positionAsync = ref.watch(customerCurrentPositionProvider);
+      return salonsAsync.when(
+        data: (list) {
+          return positionAsync.when(
+            data: (pos) => AsyncValue.data(
+              sortNearbySalonPreviewsByDistance(list, pos),
+            ),
+            loading: () => AsyncValue.data(list),
+            error: (e, st) => AsyncValue.data(
+              sortNearbySalonPreviewsByDistance(list, null),
+            ),
+          );
+        },
+        loading: () => const AsyncValue.loading(),
+        error: (e, st) => AsyncValue.error(e, st),
+      );
+    });
+
+/// Doc ids in `users/{uid}/favorites/*` (empty when signed out).
+final favoriteSalonIdsProvider =
+    StreamProvider.autoDispose<Set<String>>((ref) {
+      final uid = ref.watch(firebaseAuthProvider).currentUser?.uid;
+      if (uid == null || uid.isEmpty) {
+        return Stream.value(<String>{});
+      }
+      final db = ref.watch(firestoreProvider);
+      return db
+          .collection(FirestorePaths.users)
+          .doc(uid)
+          .collection(FirestorePaths.favorites)
+          .snapshots()
+          .map((s) => s.docs.map((d) => d.id).toSet());
     });
 
 final trendingServicesProvider =

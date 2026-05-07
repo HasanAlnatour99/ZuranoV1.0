@@ -143,6 +143,66 @@ Future<void> seedCustomerHomeDemoData(FirebaseFirestore db) async {
     sortOrder: 5,
   );
 
+  /// Home “Services trending now” tiles (`customerDiscovery/serviceCategories/items`).
+  void setDiscoveryServiceCategory(
+    String id, {
+    required String name,
+    required String nameAr,
+    required String iconKey,
+    required int sortOrder,
+  }) {
+    final ref = db
+        .collection(FirestorePaths.customerDiscovery)
+        .doc(FirestorePaths.customerDiscoveryServiceCategoriesDoc)
+        .collection(FirestorePaths.customerDiscoveryItems)
+        .doc(id);
+    batch.set(ref, {
+      'name': name,
+      'nameAr': nameAr,
+      'iconKey': iconKey,
+      'sortOrder': sortOrder,
+      'isActive': true,
+      'debugSeed': true,
+      ...ts,
+    }, SetOptions(merge: true));
+  }
+
+  setDiscoveryServiceCategory(
+    'beard_trim',
+    name: 'Beard Trim',
+    nameAr: 'تهذيب اللحية',
+    iconKey: 'beard',
+    sortOrder: 10,
+  );
+  setDiscoveryServiceCategory(
+    'haircut',
+    name: 'Haircut',
+    nameAr: 'قص الشعر',
+    iconKey: 'scissors',
+    sortOrder: 20,
+  );
+  setDiscoveryServiceCategory(
+    'fade',
+    name: 'Fade',
+    nameAr: 'فيد',
+    iconKey: 'fade',
+    sortOrder: 30,
+  );
+  setDiscoveryServiceCategory(
+    'facial',
+    name: 'Facial',
+    nameAr: 'عناية بالوجه',
+    iconKey: 'facial',
+    sortOrder: 40,
+  );
+  setDiscoveryServiceCategory(
+    'hair_spa',
+    name: 'Hair Spa',
+    nameAr: 'سبا للشعر',
+    iconKey: 'spa',
+    sortOrder: 50,
+  );
+
   setTrend(
     'haircut',
     label: 'Haircut',

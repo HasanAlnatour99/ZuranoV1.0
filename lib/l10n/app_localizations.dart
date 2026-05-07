@@ -5864,6 +5864,12 @@ abstract class AppLocalizations {
   /// **'View your appointment information'**
   String get customerBookingDetailsSubtitle;
 
+  /// No description provided for @customerBookingDetailsOverflowTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get customerBookingDetailsOverflowTooltip;
+
   /// No description provided for @customerBookingDetailsCopied.
   ///
   /// In en, this message translates to:
@@ -5947,6 +5953,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel booking'**
   String get customerBookingDetailsCancelBooking;
+
+  /// No description provided for @customerBookingDetailsCancelPolicyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon policy: cancel online at least {hours} hours before your appointment starts.'**
+  String customerBookingDetailsCancelPolicyNotice(int hours);
 
   /// No description provided for @customerBookingDetailsLeaveFeedback.
   ///
@@ -18177,6 +18189,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No trending services yet'**
   String get zuranoDiscoverTrendingServicesEmpty;
+
+  /// No description provided for @zuranoDiscoverServiceCategoriesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No service categories yet'**
+  String get zuranoDiscoverServiceCategoriesEmpty;
 
   /// No description provided for @zuranoDiscoverNearbyEmptyInCountry.
   ///

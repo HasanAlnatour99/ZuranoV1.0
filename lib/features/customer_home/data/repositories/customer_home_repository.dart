@@ -9,14 +9,42 @@ import '../../domain/salon_coordinates.dart';
 import '../models/customer_banner_model.dart';
 import '../models/customer_category_model.dart';
 import '../models/customer_salon_model.dart';
+import '../models/customer_salon_preview_model.dart';
+import '../models/discovery_service_category_model.dart';
 import '../models/trending_service_model.dart';
 
+/// Customer discovery reads for Zurano home.
+///
+/// Suggested security rules (align with client queries):
+/// - `publicSalons/{id}`: `allow read` when `isActive == true && isPublic == true`.
+/// - `customerDiscovery/serviceCategories/items/{id}`: `allow read` when `isActive == true`
+///   (and list queries stay within your `limit` cap, as in [customerHomeQueryLimitBounded]).
+/// - `users/{uid}/favorites/{salonId}`: `allow read, write` when `request.auth.uid == uid`
+///   (anonymous Auth still has a uid).
 class CustomerHomeRepository {
   CustomerHomeRepository(this._db);
 
   final FirebaseFirestore _db;
 
   /// Case-insensitive match against `CustomerSalonModel.categoryIds`.
+  static List<CustomerSalonPreviewModel> _filterPreviewsByCategoryId(
+    List<CustomerSalonPreviewModel> parsed,
+    String? categoryId,
+  ) {
+    final id = categoryId?.trim() ?? '';
+    if (id.isEmpty || id.toLowerCase() == 'all') {
+      return parsed;
+    }
+    final want = id.toLowerCase();
+    return parsed
+        .where(
+          (s) => s.categoryIds.any(
+            (c) => c.trim().toLowerCase() == want,
+          ),
+        )
+        .toList(growable: false);
+  }
+
   static List<CustomerSalonModel> _filterSalonsByCategoryId(
     List<CustomerSalonModel> parsed,
     String? categoryId,
@@ -48,6 +76,11 @@ class CustomerHomeRepository {
   CollectionReference<Map<String, dynamic>> get _bannerItems => _db
       .collection(FirestorePaths.customerDiscovery)
       .doc(FirestorePaths.customerDiscoveryBannersDoc)
+      .collection(FirestorePaths.customerDiscoveryItems);
+
+  CollectionReference<Map<String, dynamic>> get _serviceCategoriesItems => _db
+      .collection(FirestorePaths.customerDiscovery)
+      .doc(FirestorePaths.customerDiscoveryServiceCategoriesDoc)
       .collection(FirestorePaths.customerDiscoveryItems);
 
   Stream<List<CustomerCategoryModel>> watchCategories() {
@@ -183,6 +216,182 @@ class CustomerHomeRepository {
         );
       }
     })();
+  }
+
+  /// Same sources as [_watchPublishedSalonsForDiscovery], mapped to [CustomerSalonPreviewModel]
+  /// for the premium home sections (visibility + defensive fields).
+  Stream<List<CustomerSalonPreviewModel>> _watchSalonPreviewsForDiscovery({
+    required String discoveryCountryName,
+    required String customerCountryCode,
+    String? categoryId,
+  }) {
+    final limit = 100;
+    final cc = customerCountryCode.trim().toUpperCase();
+    final publicQuery = _db
+        .collection(FirestorePaths.publicSalons)
+        .where('countryCode', isEqualTo: cc)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .limit(limit);
+
+    final fallbackSalonRootQuery = _db
+        .collection(FirestorePaths.salons)
+        .where('isPublic', isEqualTo: true)
+        .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('countryCode', isEqualTo: cc)
+        .limit(limit);
+
+    return (() async* {
+      await for (final snapshot in publicQuery.snapshots()) {
+        if (kDebugMode) {
+          debugPrint(
+            '[CustomerHome] preview publicSalons country=$cc raw=${snapshot.docs.length}',
+          );
+        }
+
+        var parsed = snapshot.docs
+            .map(CustomerSalonPreviewModel.fromPublicSalonDoc)
+            .toList(growable: false);
+
+        if (parsed.isEmpty) {
+          try {
+            final fallback = await fallbackSalonRootQuery.get();
+            if (kDebugMode) {
+              debugPrint(
+                '[CustomerHome] preview fallback salons/* raw=${fallback.docs.length}',
+              );
+            }
+            parsed = fallback.docs
+                .map((doc) {
+                  final salon = CustomerSalonModel.fromFirestore(doc);
+                  final ts = doc.data()['createdAt'] as Timestamp?;
+                  return CustomerSalonPreviewModel.fromSalonModel(
+                    salon,
+                    createdAt: ts,
+                  );
+                })
+                .where((s) => s.isVisibleForRecommended)
+                .toList(growable: false);
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint('[CustomerHome] preview fallback salons/* failed: $e');
+            }
+          }
+        }
+
+        var categoryFiltered = _filterPreviewsByCategoryId(parsed, categoryId);
+
+        if (categoryFiltered.isEmpty &&
+            parsed.isNotEmpty &&
+            categoryId != null &&
+            categoryId.trim().isNotEmpty &&
+            categoryId != 'all') {
+          final noCategoryData = parsed.every((s) => s.categoryIds.isEmpty);
+          if (noCategoryData) {
+            if (kDebugMode) {
+              debugPrint(
+                '[CustomerHome] preview category=$categoryId: no categoryIds; '
+                'showing all salons for country',
+              );
+            }
+            categoryFiltered = parsed;
+          }
+        }
+
+        yield preferCountryFilteredElseAllPreview(
+          categoryFiltered,
+          discoveryCountryName,
+          customerCountryCode: cc,
+        );
+      }
+    })();
+  }
+
+  List<CustomerSalonPreviewModel> _sortRecommendedPreviews(
+    List<CustomerSalonPreviewModel> list,
+  ) {
+    final visible = list.where((p) => p.isVisibleForRecommended).toList();
+    final out = [...visible];
+    out.sort((a, b) {
+      final r = b.ratingAvg.compareTo(a.ratingAvg);
+      if (r != 0) {
+        return r;
+      }
+      final c = b.ratingCount.compareTo(a.ratingCount);
+      if (c != 0) {
+        return c;
+      }
+      final ta = a.createdAt;
+      final tb = b.createdAt;
+      if (ta != null && tb != null) {
+        return tb.compareTo(ta);
+      }
+      return a.salonName.toLowerCase().compareTo(b.salonName.toLowerCase());
+    });
+    return out.take(5).toList(growable: false);
+  }
+
+  /// Recommended carousel: top ratings from `publicSalons` with visibility rules.
+  Stream<List<CustomerSalonPreviewModel>> watchRecommendedSalonPreviews({
+    required String discoveryCountryName,
+    required String customerCountryCode,
+    String? categoryId,
+  }) {
+    return _watchSalonPreviewsForDiscovery(
+      discoveryCountryName: discoveryCountryName,
+      customerCountryCode: customerCountryCode,
+      categoryId: categoryId,
+    ).map(_sortRecommendedPreviews);
+  }
+
+  /// Nearby list source (distance sort applied in UI when GPS resolves).
+  Stream<List<CustomerSalonPreviewModel>> watchNearbySalonPreviews({
+    required String discoveryCountryName,
+    required String customerCountryCode,
+    String? categoryId,
+  }) {
+    return _watchSalonPreviewsForDiscovery(
+      discoveryCountryName: discoveryCountryName,
+      customerCountryCode: customerCountryCode,
+      categoryId: categoryId,
+    ).map(
+      (list) => list
+          .where((p) => p.isVisibleForRecommended)
+          .take(20)
+          .toList(growable: false),
+    );
+  }
+
+  /// `customerDiscovery/serviceCategories/items` — horizontal “trending categories” tiles.
+  Stream<List<DiscoveryServiceCategoryModel>> watchDiscoveryServiceCategories() {
+    return _serviceCategoriesItems
+        .where('isActive', isEqualTo: true)
+        .orderBy('sortOrder')
+        .limit(10)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(DiscoveryServiceCategoryModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  /// See Firestore rules: `users/{uid}/favorites/{salonId}` (anonymous Auth UIDs ok).
+  Future<void> toggleFavorite({
+    required String uid,
+    required String salonId,
+    required bool currentlyFavorite,
+  }) async {
+    final docRef = _db.doc(FirestorePaths.userFavorite(uid, salonId));
+    if (currentlyFavorite) {
+      await docRef.delete();
+    } else {
+      await docRef.set({
+        'salonId': salonId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
   }
 
   List<CustomerSalonModel> _sortRecommended(
@@ -334,6 +543,14 @@ class CustomerHomeRepository {
     await countQuery(
       'categories',
       _categoriesItems
+          .where('isActive', isEqualTo: true)
+          .orderBy('sortOrder')
+          .limit(20),
+    );
+
+    await countQuery(
+      'serviceCategories items',
+      _serviceCategoriesItems
           .where('isActive', isEqualTo: true)
           .orderBy('sortOrder')
           .limit(20),

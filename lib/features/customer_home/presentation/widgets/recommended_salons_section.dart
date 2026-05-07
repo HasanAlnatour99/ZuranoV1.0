@@ -5,14 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/firebase/firestore_index_building.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../shared/ui/zurano_responsive.dart';
 import '../controllers/customer_home_providers.dart';
 import '../utils/customer_salon_query.dart';
 import 'customer_empty_state.dart';
-import 'customer_loading_state.dart';
 import 'customer_error_state.dart';
+import 'customer_loading_state.dart';
 import 'customer_section_header.dart';
-import 'recommended_salon_card.dart';
+import '../../data/models/customer_salon_preview_model.dart';
+import 'premium_recommended_salon_card.dart';
 
 class RecommendedSalonsSection extends ConsumerWidget {
   const RecommendedSalonsSection({super.key});
@@ -20,7 +20,7 @@ class RecommendedSalonsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final salonsAsync = ref.watch(recommendedSalonsProvider);
+    final salonsAsync = ref.watch(recommendedSalonPreviewsProvider);
     final query = ref.watch(customerSearchTextProvider);
 
     return Column(
@@ -32,42 +32,28 @@ class RecommendedSalonsSection extends ConsumerWidget {
           leading: Icons.star_rounded,
           onAction: () => context.go(AppRoutes.customerSalonDiscovery),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 14),
         salonsAsync.when(
           data: (raw) {
-            final salons = filterSalonsForQuery(raw, query);
+            final salons = filterSalonPreviewsForQuery(raw, query);
             if (salons.isEmpty) {
               return CustomerDiscoverEmpty(
                 icon: Icons.storefront_rounded,
                 message: l10n.zuranoDiscoverRecommendedEmpty,
               );
             }
-            return SizedBox(
-              height: ZuranoResponsive.v(context, 204),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                itemCount: salons.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (_, i) {
-                  final s = salons[i];
-                  return RecommendedSalonCard(
-                    salon: s,
-                    onOpen: () {
-                      context.pushNamed(
-                        AppRouteNames.customerSalonProfile,
-                        pathParameters: {'salonId': s.id},
-                      );
-                    },
-                  );
-                },
-              ),
-            );
+            return _RecommendedSalonsPager(salons: salons);
           },
-          loading: () => const CustomerHorizontalCardSkeleton(),
+          loading: () => const SizedBox(
+            height: 240,
+            child: CustomerHorizontalCardSkeleton(),
+          ),
           error: (e, st) {
             if (isFirestoreIndexBuilding(e)) {
-              return const CustomerHorizontalCardSkeleton();
+              return const SizedBox(
+                height: 240,
+                child: CustomerHorizontalCardSkeleton(),
+              );
             }
             return CustomerDiscoverError(
               message: l10n.zuranoDiscoverSectionLoadFailed,
@@ -75,6 +61,58 @@ class RecommendedSalonsSection extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+class _RecommendedSalonsPager extends StatefulWidget {
+  const _RecommendedSalonsPager({required this.salons});
+
+  final List<CustomerSalonPreviewModel> salons;
+
+  @override
+  State<_RecommendedSalonsPager> createState() =>
+      _RecommendedSalonsPagerState();
+}
+
+class _RecommendedSalonsPagerState extends State<_RecommendedSalonsPager> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.96);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 280,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.salons.length,
+        itemBuilder: (context, index) {
+          final s = widget.salons[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: PremiumRecommendedSalonCard(
+              salon: s,
+              onOpen: () {
+                context.pushNamed(
+                  AppRouteNames.customerSalonProfile,
+                  pathParameters: {'salonId': s.salonId},
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

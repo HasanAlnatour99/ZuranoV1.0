@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 
 class ServiceQuickCard extends StatelessWidget {
   const ServiceQuickCard({
@@ -70,17 +71,11 @@ class ServiceQuickCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: style.background,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: style.foreground.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Icon(style.icon, color: style.foreground, size: 26),
+                ServiceCategoryIconTile(
+                  style: style,
+                  size: 54,
+                  borderRadius: 16,
+                  iconSize: 26,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -165,21 +160,11 @@ class ServiceQuickCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: style.background,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: style.foreground.withValues(alpha: 0.12),
-                          ),
-                        ),
-                        child: Icon(
-                          style.icon,
-                          color: style.foreground,
-                          size: 28,
-                        ),
+                      ServiceCategoryIconTile(
+                        style: style,
+                        size: 58,
+                        borderRadius: 18,
+                        iconSize: 27,
                       ),
                       const Spacer(),
                       if (isSelected)

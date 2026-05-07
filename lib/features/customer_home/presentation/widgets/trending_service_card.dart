@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../data/models/trending_service_model.dart';
 import '../theme/zurano_customer_colors.dart';
 
@@ -37,17 +38,11 @@ class TrendingServiceCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: style.background,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: style.foreground.withValues(alpha: 0.12),
-                  ),
-                ),
-                child: Icon(style.icon, size: 24, color: style.foreground),
+              ServiceCategoryIconTile(
+                style: style,
+                size: 44,
+                borderRadius: 14,
+                iconSize: 24,
               ),
               const SizedBox(height: 4),
               Text(

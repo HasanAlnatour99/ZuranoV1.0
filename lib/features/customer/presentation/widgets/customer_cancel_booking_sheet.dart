@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_cancel_providers.dart';
 import '../../application/customer_booking_cancel_service.dart';
@@ -83,7 +82,6 @@ class _CustomerCancelBookingSheetState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final asyncCancel = ref.watch(customerBookingCancelControllerProvider);
 
     ref.listen(customerBookingCancelControllerProvider, (prev, next) {
@@ -122,9 +120,9 @@ class _CustomerCancelBookingSheetState
     });
 
     return Material(
-      color: scheme.surface,
-      borderRadius: const BorderRadius.vertical(
-        top: Radius.circular(AppRadius.xlarge),
+      color: ZuranoTokens.surface,
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(ZuranoTokens.radiusSection),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -142,7 +140,7 @@ class _CustomerCancelBookingSheetState
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: scheme.outlineVariant.withValues(alpha: 0.5),
+                  color: ZuranoTokens.border,
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
@@ -152,14 +150,14 @@ class _CustomerCancelBookingSheetState
               l10n.customerCancelBookingTitle,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
-                color: AppColorsLight.textPrimary,
+                color: ZuranoTokens.textDark,
               ),
             ),
             const SizedBox(height: AppSpacing.small),
             Text(
               l10n.customerCancelBookingConfirmMessage,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColorsLight.textSecondary,
+                color: ZuranoTokens.textGray,
                 height: 1.35,
               ),
             ),
@@ -177,6 +175,16 @@ class _CustomerCancelBookingSheetState
               children: [
                 Expanded(
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ZuranoTokens.primary,
+                      side: const BorderSide(color: ZuranoTokens.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          ZuranoTokens.radiusButton,
+                        ),
+                      ),
+                    ),
                     onPressed: asyncCancel.isLoading
                         ? null
                         : () => Navigator.of(context).pop(),
@@ -243,7 +251,7 @@ class _CustomerCancelBookingSheetState
                             width: 22,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppBrandColors.onPrimary,
+                              color: Colors.white,
                             ),
                           )
                         : Text(l10n.customerCancelBookingConfirm),

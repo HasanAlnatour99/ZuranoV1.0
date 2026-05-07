@@ -6,6 +6,7 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../data/models/customer_service_public_model.dart';
 
 class SelectableCustomerServiceCard extends StatelessWidget {
@@ -188,17 +189,11 @@ class _ServiceIconFallback extends StatelessWidget {
       categoryLabel: categoryLabelForResolve,
       serviceName: service.displayTitle,
     );
-    return Container(
-      width: 58,
-      height: 58,
-      decoration: BoxDecoration(
-        color: visualStyle.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: visualStyle.foreground.withValues(alpha: 0.12),
-        ),
-      ),
-      child: Icon(visualStyle.icon, color: visualStyle.foreground, size: 28),
+    return ServiceCategoryIconTile(
+      style: visualStyle,
+      size: 58,
+      borderRadius: 18,
+      iconSize: 27,
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../../services/data/models/service.dart';
 import '../../../services/data/service_category_catalog.dart';
 import '../providers/add_sale_controller.dart';
@@ -123,21 +124,11 @@ class _ServiceSelectionCardState extends State<ServiceSelectionCard> {
         children: [
           Row(
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: headerStyle.background,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: headerStyle.foreground.withValues(alpha: 0.12),
-                  ),
-                ),
-                child: Icon(
-                  headerStyle.icon,
-                  color: headerStyle.foreground,
-                  size: 26,
-                ),
+              ServiceCategoryIconTile(
+                style: headerStyle,
+                size: 54,
+                borderRadius: 16,
+                iconSize: 26,
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../../services/data/service_category_catalog.dart';
 import '../../data/models/customer_category_model.dart';
 import '../controllers/customer_home_providers.dart';
@@ -158,15 +159,11 @@ class CategoryFallback extends StatelessWidget {
     final style = ServiceCategoryVisualStyleResolver.resolve(
       categoryKey: catalogKey,
     );
-    return Container(
-      width: diameter,
-      height: diameter,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: style.background,
-        border: Border.all(color: style.foreground.withValues(alpha: 0.12)),
-      ),
-      child: Icon(style.icon, color: style.foreground, size: iconSize),
+    return ServiceCategoryIconTile(
+      style: style,
+      size: diameter,
+      borderRadius: diameter / 2,
+      iconSize: iconSize,
     );
   }
 }

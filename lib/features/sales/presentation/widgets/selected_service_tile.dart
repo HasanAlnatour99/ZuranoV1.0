@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
+import '../../../../shared/widgets/service_category_icon_tile.dart';
 
 class SelectedServiceTile extends StatelessWidget {
   const SelectedServiceTile({
@@ -61,17 +62,11 @@ class SelectedServiceTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: tileSide,
-              height: tileSide,
-              decoration: BoxDecoration(
-                color: style.background,
-                borderRadius: BorderRadius.circular(radius),
-                border: Border.all(
-                  color: style.foreground.withValues(alpha: 0.12),
-                ),
-              ),
-              child: Icon(style.icon, color: style.foreground, size: iconSz),
+            ServiceCategoryIconTile(
+              style: style,
+              size: tileSide,
+              borderRadius: radius,
+              iconSize: iconSz,
             ),
             SizedBox(width: dense ? 10 : 12),
             Expanded(

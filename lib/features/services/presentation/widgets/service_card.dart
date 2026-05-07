@@ -10,6 +10,7 @@ import '../../data/models/service.dart';
 import '../../data/service_category_helpers.dart';
 import 'package:barber_shop_app/core/ui/app_icons.dart';
 import 'package:barber_shop_app/shared/services/service_category_visual_style.dart';
+import 'package:barber_shop_app/shared/widgets/service_category_icon_tile.dart';
 
 class ServiceCard extends StatelessWidget {
   const ServiceCard({
@@ -327,21 +328,11 @@ class _ServiceThumbnail extends StatelessWidget {
     return ColoredBox(
       color: scheme.surfaceContainerHighest.withValues(alpha: 0.9),
       child: Center(
-        child: Container(
-          width: tileSize,
-          height: tileSize,
-          decoration: BoxDecoration(
-            color: visualStyle.background,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: visualStyle.foreground.withValues(alpha: 0.12),
-            ),
-          ),
-          child: Icon(
-            visualStyle.icon,
-            color: visualStyle.foreground,
-            size: 26,
-          ),
+        child: ServiceCategoryIconTile(
+          style: visualStyle,
+          size: tileSize,
+          borderRadius: 16,
+          iconSize: 26,
         ),
       ),
     );

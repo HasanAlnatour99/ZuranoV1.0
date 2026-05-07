@@ -1244,6 +1244,7 @@
   "customerBookingLookupRateBooking": "Rate visit",
   "customerBookingDetailsTitle": "Booking details",
   "customerBookingDetailsSubtitle": "View your appointment information",
+  "customerBookingDetailsOverflowTooltip": "More options",
   "customerBookingDetailsCopied": "Copied",
   "customerBookingDetailsDurationPrice": "{minutes} min · {price}",
   "@customerBookingDetailsDurationPrice": {
@@ -1264,6 +1265,14 @@
   "customerBookingDetailsPhoneUnavailable": "Phone number is not available",
   "customerBookingDetailsReschedule": "Reschedule",
   "customerBookingDetailsCancelBooking": "Cancel booking",
+  "customerBookingDetailsCancelPolicyNotice": "Salon policy: cancel online at least {hours} hours before your appointment starts.",
+  "@customerBookingDetailsCancelPolicyNotice": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "customerBookingDetailsLeaveFeedback": "Leave feedback",
   "customerBookingDetailsBookAgain": "Book again",
   "customerBookingDetailsComingSoon": "Coming soon",
@@ -4215,6 +4224,7 @@
   "zuranoDiscoverSectionLoadFailed": "Unable to load this section. Please try again.",
   "zuranoDiscoverRecommendedEmpty": "No recommended salons yet",
   "zuranoDiscoverTrendingServicesEmpty": "No trending services yet",
+  "zuranoDiscoverServiceCategoriesEmpty": "No service categories yet",
   "zuranoDiscoverNearbyEmptyInCountry": "No salons available in {countryName} yet",
   "@zuranoDiscoverNearbyEmptyInCountry": {
     "placeholders": {

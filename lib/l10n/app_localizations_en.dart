@@ -3250,6 +3250,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'View your appointment information';
 
   @override
+  String get customerBookingDetailsOverflowTooltip => 'More options';
+
+  @override
   String get customerBookingDetailsCopied => 'Copied';
 
   @override
@@ -3295,6 +3298,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerBookingDetailsCancelBooking => 'Cancel booking';
+
+  @override
+  String customerBookingDetailsCancelPolicyNotice(int hours) {
+    return 'Salon policy: cancel online at least $hours hours before your appointment starts.';
+  }
 
   @override
   String get customerBookingDetailsLeaveFeedback => 'Leave feedback';
@@ -10376,6 +10384,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zuranoDiscoverTrendingServicesEmpty => 'No trending services yet';
+
+  @override
+  String get zuranoDiscoverServiceCategoriesEmpty =>
+      'No service categories yet';
 
   @override
   String zuranoDiscoverNearbyEmptyInCountry(String countryName) {
