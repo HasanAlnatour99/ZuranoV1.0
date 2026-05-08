@@ -313,6 +313,16 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     request.auth?.uid != null && `${request.auth.uid}`.trim().length > 0
       ? `${request.auth.uid}`.trim()
       : "";
+  const signInProvider =
+    (request.auth?.token as any)?.firebase?.sign_in_provider != null
+      ? `${(request.auth?.token as any).firebase.sign_in_provider}`.trim()
+      : "";
+  const isAnonymous = signInProvider === "anonymous";
+  const guestProfileIdRaw = `${data.guestProfileId ?? ""}`.trim();
+  const guestProfileId =
+    isAnonymous && guestProfileIdRaw.length > 0 && guestProfileIdRaw.length <= 140
+      ? guestProfileIdRaw
+      : "";
   const draft = data.draft as Record<string, unknown> | undefined;
   if (!draft || typeof draft !== "object") {
     throw new HttpsError("invalid-argument", "draft is required.");
@@ -471,6 +481,7 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       customerName,
       customerPhone: displayPhone,
       customerPhoneNormalized: phoneNorm,
+      ...(guestProfileId.length > 0 ? { guestProfileId, customerType: "guest" } : {}),
       employeeId,
       employeeName: employeeName,
       barberId: employeeId,
