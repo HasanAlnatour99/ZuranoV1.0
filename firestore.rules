@@ -284,9 +284,15 @@ service cloud.firestore {
     }
 
     /// Public salon mirror for customer discovery; owner/admin may upsert safe fields.
+    ///
+    /// Customer reads MUST match the home query: `isActive && isPublished && isPublic`.
+    /// Owner/admin keep full read access for management surfaces.
     match /publicSalons/{salonId} {
-      allow read: if (resource.data.isPublic == true &&
-          resource.data.isActive == true) ||
+      allow read: if (
+          resource.data.get('isActive', false) == true &&
+          resource.data.get('isPublished', false) == true &&
+          resource.data.get('isPublic', false) == true
+        ) ||
         (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId));
       // TODO DEV ONLY: remove debug-seed branch before production.
       allow create, update: if (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId)) ||
@@ -399,12 +405,40 @@ service cloud.firestore {
         request.resource.data.debugSeed == true;
     }
 
-    // Curated banners / categories / trending rows for Zurano discovery.
+    /// Customer discovery items live under `customerDiscovery/{segment}/items/{id}`.
+    /// Examples:
+    ///   - `categories`         — service category tiles
+    ///   - `serviceCategories`  — trending category tiles (legacy alias)
+    ///   - `trendingServices`   — trending service pills
+    ///   - `banners`            — promo banners
+    ///   - `popularSearches`    — search suggestions
+    ///   - `specialists`        — customer-safe barber discovery rows
+    ///
+    /// Specialists need extra flags (`visibleToCustomers`, `acceptsBookings`)
+    /// so they cannot leak via discovery if a barber is hidden by the salon.
     match /customerDiscovery/{docId}/items/{itemId} {
-      allow get: if customerDiscoveryItemIsActiveBrowse();
-      allow list: if customerDiscoveryItemIsActiveBrowse() &&
-        customerHomeQueryLimitBounded();
+      allow get: if docId == 'specialists'
+        ? (
+            resource.data.get('isActive', false) == true &&
+            resource.data.get('visibleToCustomers', false) == true &&
+            resource.data.get('acceptsBookings', false) == true
+          )
+        : customerDiscoveryItemIsActiveBrowse();
+      allow list: if docId == 'specialists'
+        ? (
+            resource.data.get('isActive', false) == true &&
+            resource.data.get('visibleToCustomers', false) == true &&
+            resource.data.get('acceptsBookings', false) == true &&
+            customerHomeQueryLimitBounded()
+          )
+        : (
+            customerDiscoveryItemIsActiveBrowse() &&
+            customerHomeQueryLimitBounded()
+          );
 
+      /// Customer-safe specialist rows are written by Cloud Functions in
+      /// production (Admin SDK bypasses these rules). Client writes are gated
+      /// by the dev-only `debugSeed` flag — REMOVE these branches for prod.
       // TODO DEV ONLY: remove before production — client demo seed only (`debugSeed: true`).
       allow create: if request.auth != null &&
         request.resource.data.debugSeed == true;

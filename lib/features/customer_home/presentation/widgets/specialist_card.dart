@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../data/models/public_specialist_model.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../data/models/public_specialist_discovery_model.dart';
 import '../theme/zurano_customer_colors.dart';
 
 class SpecialistCard extends StatelessWidget {
@@ -13,14 +14,16 @@ class SpecialistCard extends StatelessWidget {
     required this.viewLabel,
   });
 
-  final PublicSpecialistModel specialist;
+  final PublicSpecialistDiscoveryModel specialist;
   final String viewLabel;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final photo = specialist.photoUrl?.trim();
-    final hasPhoto = photo != null && photo.isNotEmpty;
+    final photo = specialist.photoUrl.trim();
+    final hasPhoto = photo.isNotEmpty;
+    final l10n = AppLocalizations.of(context)!;
+    final isNew = specialist.ratingCount == 0;
 
     return SizedBox(
       width: 270,
@@ -93,42 +96,67 @@ class SpecialistCard extends StatelessWidget {
                       const Spacer(),
                       Row(
                         children: [
-                          Icon(
-                            Icons.star_rounded,
-                            size: 18,
-                            color: Colors.amber.shade700,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            specialist.ratingAvg > 0
-                                ? specialist.ratingAvg.toStringAsFixed(1)
-                                : '0.0',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: ZuranoCustomerColors.textStrong,
-                                ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '(${specialist.ratingCount})',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: AppColorsLight.textSecondary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const Spacer(),
+                          if (isNew)
+                            Expanded(
+                              child: Text(
+                                l10n.customerHomeNewSalonBadge,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: ZuranoCustomerColors.primary,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          else ...[
+                            Icon(
+                              Icons.star_rounded,
+                              size: 18,
+                              color: Colors.amber.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              specialist.ratingAvg.toStringAsFixed(1),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: ZuranoCustomerColors.textStrong,
+                                  ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '(${specialist.ratingCount})',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
+                                    color: AppColorsLight.textSecondary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            const Spacer(),
+                          ],
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: ZuranoCustomerColors.primary.withValues(alpha: 0.12),
+                              color: ZuranoCustomerColors.primary.withValues(
+                                alpha: 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               viewLabel,
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w900,
                                     color: ZuranoCustomerColors.primary,
                                   ),

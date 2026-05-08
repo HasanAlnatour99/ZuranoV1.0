@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_network_image.dart';
-import '../../data/models/public_specialist_model.dart';
+import '../../data/models/public_specialist_discovery_model.dart';
 import '../theme/zurano_customer_colors.dart';
 
 class TodayAvailableCard extends StatelessWidget {
@@ -13,7 +13,7 @@ class TodayAvailableCard extends StatelessWidget {
     required this.fallbackBadge,
   });
 
-  final PublicSpecialistModel specialist;
+  final PublicSpecialistDiscoveryModel specialist;
   final String fallbackBadge;
 
   @override
@@ -21,8 +21,8 @@ class TodayAvailableCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final badge = specialist.nextAvailableSlotText?.trim();
     final badgeText = (badge != null && badge.isNotEmpty) ? badge : fallbackBadge;
-    final photo = specialist.photoUrl?.trim();
-    final hasPhoto = photo != null && photo.isNotEmpty;
+    final photo = specialist.photoUrl.trim();
+    final hasPhoto = photo.isNotEmpty;
 
     return SizedBox(
       width: 250,

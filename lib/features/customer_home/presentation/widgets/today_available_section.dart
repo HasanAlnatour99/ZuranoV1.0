@@ -3,20 +3,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/firebase/firestore_index_building.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../controllers/customer_home_providers.dart';
+import '../controllers/customer_home_canonical_providers.dart';
 import 'customer_empty_state.dart';
 import 'customer_error_state.dart';
 import 'customer_loading_state.dart';
 import 'customer_section_header.dart';
 import 'today_available_card.dart';
 
+/// Customer home "Available today" section.
+///
+/// Reads from the canonical [availableTodayProvider]
+/// (`customerDiscovery/specialists/items` filtered by `isActive`,
+/// `visibleToCustomers`, `acceptsBookings`, `availableToday`).
+///
+/// Loading state is a skeleton; the empty state only renders after the stream
+/// emits an empty list (no flicker between loading and empty).
 class TodayAvailableSection extends ConsumerWidget {
   const TodayAvailableSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final specialistsAsync = ref.watch(todayAvailableSpecialistsProvider);
+    final specialistsAsync = ref.watch(availableTodayProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,11 +70,12 @@ class TodayAvailableSection extends ConsumerWidget {
                 child: CustomerHorizontalCardSkeleton(),
               );
             }
-            return CustomerDiscoverError(message: l10n.zuranoDiscoverSectionLoadFailed);
+            return CustomerDiscoverError(
+              message: l10n.zuranoDiscoverSectionLoadFailed,
+            );
           },
         ),
       ],
     );
   }
 }
-

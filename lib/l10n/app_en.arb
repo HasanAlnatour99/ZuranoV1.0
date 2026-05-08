@@ -4418,6 +4418,9 @@
   "customerHomeSearchHintSalonsNearby": "Search salons near you…",
   "customerHomeSearchHintSpecialists": "Search specialists…",
   "customerHomeSearchHintSpaNails": "Search spa or nails…",
+  "customerHomeSearchPlaceholder": "Search barber, salon, service...",
+  "customerHomeNewSalonBadge": "New salon",
+  "customerHomeMapNoValidLocations": "No salons with map location available yet.",
 
   "customerSearchRecentTitle": "Recent searches",
   "customerSearchClearAll": "Clear all",

@@ -27,14 +27,19 @@ class CustomerMapRepository {
   ///
   /// Listing raw **`salons`** is denied for customers (`permission-denied`). Coordinates
   /// must exist on the public doc (or nested shapes parsed by [SalonMapItem]).
+  ///
+  /// Query MUST match the rules: `isActive && isPublished && isPublic` (and the
+  /// optional country filter). Skipping `isPublished` would fail the security
+  /// rule and return zero rows in production.
   Stream<List<SalonMapItem>> watchMapSalons({required String countryCode}) {
     const limit = 100;
     final cc = countryCode.trim().toUpperCase();
     return _firestore
         .collection(FirestorePaths.publicSalons)
         .where('countryCode', isEqualTo: cc)
-        .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
         .limit(limit)
         .snapshots()
         .map((snapshot) {

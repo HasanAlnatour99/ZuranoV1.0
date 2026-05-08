@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,21 +20,13 @@ class _CustomerDiscoverySearchBarState
     extends ConsumerState<CustomerDiscoverySearchBar> {
   static const _placeholderGray = Color(0xFF6B7280);
 
-  int _index = 0;
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 2600), (_) {
-      if (!mounted) return;
-      setState(() => _index = (_index + 1) % 5);
-    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     super.dispose();
   }
 
@@ -58,7 +48,7 @@ class _CustomerDiscoverySearchBarState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final hint = _hintForIndex(l10n, _index);
+    final hint = l10n.customerHomeSearchPlaceholder;
 
     return Material(
       color: Colors.white,
@@ -80,57 +70,16 @@ class _CustomerDiscoverySearchBarState
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: SizedBox(
-                    height: 22,
-                    child: ClipRect(
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 280),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        layoutBuilder: (currentChild, previousChildren) {
-                          return Stack(
-                            alignment: AlignmentDirectional.centerStart,
-                            clipBehavior: Clip.hardEdge,
-                            children: <Widget>[
-                              ...previousChildren,
-                              ?currentChild,
-                            ],
-                          );
-                        },
-                        transitionBuilder: (child, animation) {
-                          final offsetAnimation = Tween<Offset>(
-                            begin: const Offset(0, 0.35),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutCubic,
-                          ));
-
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: offsetAnimation,
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Text(
-                          hint,
-                          key: ValueKey<String>(hint),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.start,
-                          style: const TextStyle(
-                            color: _placeholderGray,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w600,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
+                  child: Text(
+                    hint,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.start,
+                    style: const TextStyle(
+                      color: _placeholderGray,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                   ),
                 ),
@@ -163,19 +112,6 @@ class _CustomerDiscoverySearchBarState
         ),
       ),
     );
-  }
-
-  String _hintForIndex(AppLocalizations l10n, int index) {
-    // Localized hints (no hardcoded UI strings).
-    final localized = <String>[
-      l10n.customerHomeSearchHintHaircut,
-      l10n.customerHomeSearchHintBeard,
-      l10n.customerHomeSearchHintSalonsNearby,
-      l10n.customerHomeSearchHintSpecialists,
-      l10n.customerHomeSearchHintSpaNails,
-    ];
-    if (localized.isEmpty) return l10n.customerSearchHint;
-    return localized[index % localized.length];
   }
 }
 

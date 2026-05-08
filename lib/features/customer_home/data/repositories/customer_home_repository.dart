@@ -11,7 +11,10 @@ import '../models/customer_category_model.dart';
 import '../models/customer_salon_model.dart';
 import '../models/customer_salon_preview_model.dart';
 import '../models/discovery_service_category_model.dart';
+import '../models/public_salon_model.dart';
+import '../models/public_specialist_discovery_model.dart';
 import '../models/public_specialist_model.dart';
+import '../models/service_category_model.dart';
 import '../models/trending_service_model.dart';
 
 /// Customer discovery reads for Zurano home.
@@ -87,6 +90,99 @@ class CustomerHomeRepository {
   CollectionReference<Map<String, dynamic>> get _publicSpecialists =>
       _db.collection(FirestorePaths.publicSpecialists);
 
+  /// Canonical customer discovery sources (production paths).
+  ///
+  /// Customer app reads these and ONLY these for the home screen:
+  ///  - `publicSalons/{salonId}`
+  ///  - `customerDiscovery/categories/items/{categoryId}`
+  ///  - `customerDiscovery/specialists/items/{specialistId}`
+  CollectionReference<Map<String, dynamic>> get _publicSalons =>
+      _db.collection(FirestorePaths.publicSalons);
+
+  CollectionReference<Map<String, dynamic>> get _discoveryCategories => _db
+      .collection(FirestorePaths.customerDiscovery)
+      .doc(FirestorePaths.customerDiscoveryCategoriesDoc)
+      .collection(FirestorePaths.customerDiscoveryItems);
+
+  CollectionReference<Map<String, dynamic>> get _discoverySpecialists => _db
+      .collection(FirestorePaths.customerDiscovery)
+      .doc(FirestorePaths.customerDiscoverySpecialistsDoc)
+      .collection(FirestorePaths.customerDiscoveryItems);
+
+  /// Production: nearby salons for the home screen, scoped by visibility flags.
+  ///
+  /// Reads `publicSalons` where `isActive == true`, `isPublished == true`,
+  /// `isPublic == true`, capped at `limit`. Geo / category filtering and
+  /// distance ordering happen in the provider/UI layer.
+  Stream<List<PublicSalonModel>> watchNearbyPublicSalons({int limit = 100}) {
+    return _publicSalons
+        .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(PublicSalonModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  /// Production: customer-safe service categories for the home scroller.
+  Stream<List<ServiceCategoryModel>> watchServiceCategories({int limit = 32}) {
+    return _discoveryCategories
+        .where('isActive', isEqualTo: true)
+        .orderBy('sortOrder')
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(ServiceCategoryModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  /// Production: specialists with at least one open slot for the salon's
+  /// current business day (server-computed `availableToday == true`).
+  Stream<List<PublicSpecialistDiscoveryModel>> watchAvailableTodaySpecialists({
+    int limit = 20,
+  }) {
+    return _discoverySpecialists
+        .where('isActive', isEqualTo: true)
+        .where('visibleToCustomers', isEqualTo: true)
+        .where('acceptsBookings', isEqualTo: true)
+        .where('availableToday', isEqualTo: true)
+        .orderBy('sortOrder')
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(PublicSpecialistDiscoveryModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  /// Production: recommended specialists (customer-safe read model only).
+  ///
+  /// Excludes the `availableToday` filter so the carousel still has rows
+  /// outside business hours. UI may further refine by rating/sortOrder.
+  Stream<List<PublicSpecialistDiscoveryModel>> watchRecommendedDiscoverySpecialists({
+    int limit = 10,
+  }) {
+    return _discoverySpecialists
+        .where('isActive', isEqualTo: true)
+        .where('visibleToCustomers', isEqualTo: true)
+        .where('acceptsBookings', isEqualTo: true)
+        .orderBy('sortOrder')
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(PublicSpecialistDiscoveryModel.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
   Stream<List<CustomerCategoryModel>> watchCategories() {
     return _categoriesItems
         .where('isActive', isEqualTo: true)
@@ -112,8 +208,9 @@ class CustomerHomeRepository {
     final publicQuery = _db
         .collection(FirestorePaths.publicSalons)
         .where('countryCode', isEqualTo: cc)
-        .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
         .limit(limit);
 
     final fallbackSalonRootQuery = _db
@@ -234,8 +331,9 @@ class CustomerHomeRepository {
     final publicQuery = _db
         .collection(FirestorePaths.publicSalons)
         .where('countryCode', isEqualTo: cc)
-        .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
         .limit(limit);
 
     final fallbackSalonRootQuery = _db
@@ -552,12 +650,13 @@ class CustomerHomeRepository {
 
     final cc = customerCountryCode.trim().toUpperCase();
     await countQuery(
-      'publicSalons country+isPublic+isActive',
+      'publicSalons country+isActive+isPublished+isPublic',
       _db
           .collection(FirestorePaths.publicSalons)
           .where('countryCode', isEqualTo: cc)
-          .where('isPublic', isEqualTo: true)
           .where('isActive', isEqualTo: true)
+          .where('isPublished', isEqualTo: true)
+          .where('isPublic', isEqualTo: true)
           .limit(20),
     );
 

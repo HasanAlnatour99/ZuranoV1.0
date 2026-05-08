@@ -10870,6 +10870,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerHomeSearchHintSpaNails => 'ابحث عن سبا أو أظافر…';
 
   @override
+  String get customerHomeSearchPlaceholder =>
+      'ابحث عن حلاق أو صالون أو خدمة...';
+
+  @override
+  String get customerHomeNewSalonBadge => 'صالون جديد';
+
+  @override
+  String get customerHomeMapNoValidLocations =>
+      'لا توجد صالونات لها موقع على الخريطة بعد.';
+
+  @override
   String get customerSearchRecentTitle => 'عمليات البحث الأخيرة';
 
   @override

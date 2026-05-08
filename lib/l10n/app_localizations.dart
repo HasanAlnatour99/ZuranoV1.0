@@ -19120,6 +19120,24 @@ abstract class AppLocalizations {
   /// **'Search spa or nails…'**
   String get customerHomeSearchHintSpaNails;
 
+  /// No description provided for @customerHomeSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search barber, salon, service...'**
+  String get customerHomeSearchPlaceholder;
+
+  /// No description provided for @customerHomeNewSalonBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New salon'**
+  String get customerHomeNewSalonBadge;
+
+  /// No description provided for @customerHomeMapNoValidLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'No salons with map location available yet.'**
+  String get customerHomeMapNoValidLocations;
+
   /// No description provided for @customerSearchRecentTitle.
   ///
   /// In en, this message translates to:

@@ -22,6 +22,27 @@
       ]
     },
     {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "visibleToCustomers", "order": "ASCENDING" },
+        { "fieldPath": "acceptsBookings", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "visibleToCustomers", "order": "ASCENDING" },
+        { "fieldPath": "acceptsBookings", "order": "ASCENDING" },
+        { "fieldPath": "availableToday", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "publicSalons",
       "queryScope": "COLLECTION",
       "fields": [
@@ -38,6 +59,25 @@
         { "fieldPath": "countryCode", "order": "ASCENDING" },
         { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicSalons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "publicSalons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "countryCode", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "isPublished", "order": "ASCENDING" },
+        { "fieldPath": "isPublic", "order": "ASCENDING" }
       ]
     },
     {

@@ -10900,6 +10900,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerHomeSearchHintSpaNails => 'Search spa or nails…';
 
   @override
+  String get customerHomeSearchPlaceholder =>
+      'Search barber, salon, service...';
+
+  @override
+  String get customerHomeNewSalonBadge => 'New salon';
+
+  @override
+  String get customerHomeMapNoValidLocations =>
+      'No salons with map location available yet.';
+
+  @override
   String get customerSearchRecentTitle => 'Recent searches';
 
   @override

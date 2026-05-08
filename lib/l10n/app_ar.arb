@@ -4341,6 +4341,9 @@
   "customerHomeSearchHintSalonsNearby": "ابحث عن صالونات قريبة…",
   "customerHomeSearchHintSpecialists": "ابحث عن مختصين…",
   "customerHomeSearchHintSpaNails": "ابحث عن سبا أو أظافر…",
+  "customerHomeSearchPlaceholder": "ابحث عن حلاق أو صالون أو خدمة...",
+  "customerHomeNewSalonBadge": "صالون جديد",
+  "customerHomeMapNoValidLocations": "لا توجد صالونات لها موقع على الخريطة بعد.",
 
   "customerSearchRecentTitle": "عمليات البحث الأخيرة",
   "customerSearchClearAll": "مسح الكل",

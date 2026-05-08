@@ -3,13 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/firebase/firestore_index_building.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../controllers/customer_home_providers.dart';
+import '../controllers/customer_home_canonical_providers.dart';
 import 'customer_empty_state.dart';
 import 'customer_error_state.dart';
 import 'customer_loading_state.dart';
 import 'customer_section_header.dart';
 import 'specialist_card.dart';
 
+/// Customer home "Recommended specialists" section.
+///
+/// Reads from the canonical [recommendedSpecialistsProvider] which is a
+/// customer-safe view (`customerDiscovery/specialists/items`). Never joins
+/// payroll, attendance, commission, or other private employee data.
 class RecommendedSpecialistsSection extends ConsumerWidget {
   const RecommendedSpecialistsSection({super.key});
 
@@ -62,11 +67,12 @@ class RecommendedSpecialistsSection extends ConsumerWidget {
                 child: CustomerHorizontalCardSkeleton(),
               );
             }
-            return CustomerDiscoverError(message: l10n.zuranoDiscoverSectionLoadFailed);
+            return CustomerDiscoverError(
+              message: l10n.zuranoDiscoverSectionLoadFailed,
+            );
           },
         ),
       ],
     );
   }
 }
-

@@ -5,32 +5,42 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/service_category_visual_style.dart';
 import '../../../../shared/widgets/service_category_icon_tile.dart';
 import '../../../services/data/service_category_catalog.dart';
-import '../../data/models/customer_category_model.dart';
-import '../controllers/customer_home_providers.dart';
+import '../../data/models/service_category_model.dart';
+import '../controllers/customer_home_canonical_providers.dart';
+import '../controllers/customer_home_providers.dart'
+    show selectedCustomerCategoryProvider;
 import '../theme/zurano_customer_colors.dart';
 import 'customer_category_skeleton.dart';
-import 'zurano_fallback_categories.dart';
+import 'customer_empty_state.dart';
 
+/// Customer home category scroller.
+///
+/// Reads `customerDiscovery/categories/items` via [serviceCategoriesProvider].
+/// Shows a skeleton while the stream is loading; the empty state only appears
+/// after the stream has actually resolved with zero rows (no flicker).
 class CustomerCategoryScroller extends ConsumerWidget {
   const CustomerCategoryScroller({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final cats = ref.watch(customerCategoriesProvider);
+    final cats = ref.watch(serviceCategoriesProvider);
 
     return cats.when(
       data: (list) {
         if (list.isEmpty) {
-          return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: CustomerCompactEmptyState(
+              icon: Icons.category_outlined,
+              message: l10n.zuranoDiscoverServiceCategoriesEmpty,
+            ),
+          );
         }
         return _CategoryScrollerRow(categories: list);
       },
       loading: () => const CustomerCategorySkeleton(),
-      error: (e, _) {
-        final fallback = zuranoFallbackCustomerCategories(l10n);
-        return _CategoryScrollerRow(categories: fallback);
-      },
+      error: (_, _) => const CustomerCategorySkeleton(),
     );
   }
 }
@@ -38,7 +48,7 @@ class CustomerCategoryScroller extends ConsumerWidget {
 class _CategoryScrollerRow extends ConsumerWidget {
   const _CategoryScrollerRow({required this.categories});
 
-  final List<CustomerCategoryModel> categories;
+  final List<ServiceCategoryModel> categories;
 
   static const double _rowHeight = 72;
   static const double _circle = 44;
@@ -48,6 +58,7 @@ class _CategoryScrollerRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedCustomerCategoryProvider);
+    final locale = Localizations.localeOf(context);
 
     return SizedBox(
       height: _rowHeight,
@@ -59,6 +70,7 @@ class _CategoryScrollerRow extends ConsumerWidget {
         itemBuilder: (context, i) {
           final c = categories[i];
           final isSel = c.id == selected;
+          final label = c.labelForLocale(locale);
           return InkWell(
             borderRadius: BorderRadius.circular(22),
             onTap: () {
@@ -82,9 +94,10 @@ class _CategoryScrollerRow extends ConsumerWidget {
                             )
                           : null,
                     ),
-                    child: c.imageUrl.trim().isEmpty
+                    child: c.imageUrl.isEmpty
                         ? CategoryFallback(
                             categoryId: c.id,
+                            iconKey: c.iconKey,
                             iconSize: _iconSize,
                           )
                         : CircleAvatar(
@@ -95,7 +108,7 @@ class _CategoryScrollerRow extends ConsumerWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    c.label,
+                    label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -115,22 +128,29 @@ class _CategoryScrollerRow extends ConsumerWidget {
   }
 }
 
+/// Resolves a category to a Material icon, preferring `iconKey` when present
+/// and falling back to a stable id-based mapping.
 class CategoryFallback extends StatelessWidget {
   const CategoryFallback({
     super.key,
     required this.categoryId,
+    this.iconKey = '',
     this.iconSize = 28,
   });
 
   /// Stable catalogue id (`all`, `hair`, …), not localized label.
   final String categoryId;
+
+  /// Optional `iconKey` from the discovery doc (preferred when set).
+  final String iconKey;
   final double iconSize;
 
   @override
   Widget build(BuildContext context) {
     const diameter = 44.0;
     final id = categoryId.trim().toLowerCase();
-    if (id == 'all') {
+    final key = iconKey.trim().toLowerCase();
+    if (id == 'all' || key == 'category_all') {
       return SizedBox(
         width: diameter,
         height: diameter,
@@ -147,13 +167,16 @@ class CategoryFallback extends StatelessWidget {
         ),
       );
     }
-    final catalogKey = switch (id) {
-      'hair' => ServiceCategoryKeys.hair,
-      'nails' => ServiceCategoryKeys.nails,
-      'barbers' => ServiceCategoryKeys.barberBeard,
-      'spa' => ServiceCategoryKeys.massageSpa,
+
+    // Resolve via icon key first (CMS-controlled), then fall back to id.
+    final lookupKey = key.isNotEmpty ? key : id;
+    final catalogKey = switch (lookupKey) {
+      'hair' || 'haircut' || 'scissors' => ServiceCategoryKeys.hair,
+      'nails' || 'gel_nails' => ServiceCategoryKeys.nails,
+      'barbers' || 'beard' || 'fade' => ServiceCategoryKeys.barberBeard,
+      'spa' || 'hair_spa' || 'massage' => ServiceCategoryKeys.massageSpa,
       'makeup' => ServiceCategoryKeys.makeup,
-      'beauty' => ServiceCategoryKeys.facialSkincare,
+      'beauty' || 'facial' => ServiceCategoryKeys.facialSkincare,
       _ => ServiceCategoryKeys.other,
     };
     final style = ServiceCategoryVisualStyleResolver.resolve(

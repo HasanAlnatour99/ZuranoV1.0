@@ -334,18 +334,32 @@ Future<void> seedCustomerHomeDemoData(FirebaseFirestore db) async {
 
     final pubRef = db.collection(FirestorePaths.publicSalons).doc(id);
     batch.set(pubRef, {
+      'salonId': id,
       'salonName': name,
+      'city': city,
       'area': area,
+      'country': country,
+      'countryCode': 'QA',
+      'addressText': '$area, $city',
       'phone': '+97400000000',
       'coverImageUrl': coverImageUrl,
+      'logoUrl': logoUrl,
       'latitude': latitude,
       'longitude': longitude,
-      'isPublic': true,
+      // Canonical production location format.
+      // Always write Firestore GeoPoint. Legacy map/top-level formats are
+      // read-only fallbacks.
+      'location': GeoPoint(latitude, longitude),
       'isActive': true,
+      'isPublished': true,
+      'isPublic': true,
       'isOpen': true,
+      'ratingAvg': ratingAverage,
       'ratingAverage': ratingAverage,
       'ratingCount': ratingCount,
       'startingPrice': 50,
+      'tags': tags,
+      'categoryIds': categoryIds,
       'searchKeywords': [
         ...searchKeywords.map((k) => k.toLowerCase()),
         name.toLowerCase(),
@@ -505,6 +519,99 @@ Future<void> seedCustomerHomeDemoData(FirebaseFirestore db) async {
     logoUrl: 'https://picsum.photos/seed/gents/logo/96',
     isPromoted: false,
     discountText: '15% off',
+  );
+
+  /// Customer-safe specialist seed (`customerDiscovery/specialists/items`).
+  /// Cloud Functions own this collection in production — these entries exist
+  /// only to power the Available today / Recommended carousels in dev.
+  void seedDiscoverySpecialist({
+    required String id,
+    required String salonId,
+    required String salonName,
+    required String displayName,
+    required String roleTitle,
+    required String photoUrl,
+    required double ratingAvg,
+    required int ratingCount,
+    required List<String> serviceCategoryIds,
+    required bool availableToday,
+    required int sortOrder,
+    String? city,
+    String? nextAvailableSlotText,
+  }) {
+    final ref = db
+        .collection(FirestorePaths.customerDiscovery)
+        .doc(FirestorePaths.customerDiscoverySpecialistsDoc)
+        .collection(FirestorePaths.customerDiscoveryItems)
+        .doc(id);
+    batch.set(ref, {
+      'specialistId': id,
+      'salonId': salonId,
+      'salonName': salonName,
+      'displayName': displayName,
+      'roleTitle': roleTitle,
+      'photoUrl': photoUrl,
+      'ratingAvg': ratingAvg,
+      'ratingCount': ratingCount,
+      'serviceCategoryIds': serviceCategoryIds,
+      'isActive': true,
+      'visibleToCustomers': true,
+      'acceptsBookings': true,
+      'availableToday': availableToday,
+      'countryCode': 'QA',
+      'city': ?city,
+      'sortOrder': sortOrder,
+      'nextAvailableSlotText': ?nextAvailableSlotText,
+      'debugSeed': true,
+      ...ts,
+    }, SetOptions(merge: true));
+  }
+
+  seedDiscoverySpecialist(
+    id: 'spec_glow_anita',
+    salonId: 'zurano_demo_glow_house',
+    salonName: 'Glow House Salon',
+    displayName: 'Anita',
+    roleTitle: 'Senior Stylist',
+    photoUrl: 'https://picsum.photos/seed/anita/200',
+    ratingAvg: 4.9,
+    ratingCount: 142,
+    serviceCategoryIds: ['hair', 'beauty'],
+    availableToday: true,
+    sortOrder: 1,
+    city: 'Al Wakrah',
+    nextAvailableSlotText: 'Today 14:30',
+  );
+
+  seedDiscoverySpecialist(
+    id: 'spec_luxe_ramy',
+    salonId: 'zurano_demo_luxe',
+    salonName: 'The Luxe Studio',
+    displayName: 'Ramy',
+    roleTitle: 'Master Barber',
+    photoUrl: 'https://picsum.photos/seed/ramy/200',
+    ratingAvg: 4.8,
+    ratingCount: 211,
+    serviceCategoryIds: ['hair', 'barbers'],
+    availableToday: true,
+    sortOrder: 2,
+    city: 'Doha',
+    nextAvailableSlotText: 'Today 16:00',
+  );
+
+  seedDiscoverySpecialist(
+    id: 'spec_silk_lina',
+    salonId: 'zurano_demo_silk',
+    salonName: 'Silk & Shine',
+    displayName: 'Lina',
+    roleTitle: 'Nail Artist',
+    photoUrl: 'https://picsum.photos/seed/lina/200',
+    ratingAvg: 4.7,
+    ratingCount: 0,
+    serviceCategoryIds: ['nails'],
+    availableToday: false,
+    sortOrder: 3,
+    city: 'Al Wakrah',
   );
 
   await batch.commit();

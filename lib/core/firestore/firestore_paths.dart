@@ -85,7 +85,16 @@ class FirestorePaths {
   static const customerDiscoveryTrendingServicesDoc = 'trendingServices';
   static const customerDiscoveryBannersDoc = 'banners';
   static const customerDiscoveryPopularSearchesDoc = 'popularSearches';
+  /// Customer-safe specialist read model (`customerDiscovery/specialists/items/{specialistId}`).
+  /// Maintained by Cloud Functions from private `salons/.../employees`. Customer-only fields.
+  static const customerDiscoverySpecialistsDoc = 'specialists';
   static const customerDiscoveryItems = 'items';
+
+  static String customerDiscoveryCategoriesItems() =>
+      '$customerDiscovery/$customerDiscoveryCategoriesDoc/$customerDiscoveryItems';
+
+  static String customerDiscoverySpecialistsItems() =>
+      '$customerDiscovery/$customerDiscoverySpecialistsDoc/$customerDiscoveryItems';
 
   /// Public customer search index (Cloud Functions maintained).
   static const customerSearchIndex = 'customerSearchIndex';

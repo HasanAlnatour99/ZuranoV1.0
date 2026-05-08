@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/firebase_providers.dart';
+import '../../../../shared/navigation/zurano_floating_bottom_nav.dart';
 import '../../data/dev_seed/customer_home_seed.dart';
 import '../controllers/customer_home_providers.dart';
 import '../controllers/customer_location_providers.dart';
@@ -63,6 +64,9 @@ class _ZuranoCustomerHomeScreenState
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
     final textFactor = mq.textScaler.scale(14) / 14;
+    final bottomReserve = widget.showBottomNav
+        ? ZuranoFloatingBottomNav.scrollBottomPadding(context) + 24
+        : mq.padding.bottom + 24;
     return MediaQuery(
       data: mq.copyWith(
         textScaler: TextScaler.linear(textFactor.clamp(0.92, 1.08)),
@@ -84,7 +88,7 @@ class _ZuranoCustomerHomeScreenState
                   const SliverToBoxAdapter(child: CustomerCategoryScroller()),
                   const SliverToBoxAdapter(child: SizedBox(height: 18)),
                   const SliverToBoxAdapter(child: CustomerHomeBody()),
-                  const SliverToBoxAdapter(child: SizedBox(height: 140)),
+                  SliverToBoxAdapter(child: SizedBox(height: bottomReserve)),
                 ],
               ),
               if (widget.showBottomNav)
