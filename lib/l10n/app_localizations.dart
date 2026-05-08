@@ -5756,6 +5756,24 @@ abstract class AppLocalizations {
   /// **'Use the same phone number and booking code you received when you booked.'**
   String get customerBookingLookupPhoneHint;
 
+  /// No description provided for @guestRecentBookingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent bookings on this device'**
+  String get guestRecentBookingsTitle;
+
+  /// No description provided for @guestRecentBookingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent bookings on this device yet.'**
+  String get guestRecentBookingsEmpty;
+
+  /// No description provided for @guestRecentBookingsHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Can’t see your booking? You can also find any booking using booking code + phone number.'**
+  String get guestRecentBookingsHelper;
+
   /// No description provided for @customerBookingLookupYourBookingsSection.
   ///
   /// In en, this message translates to:

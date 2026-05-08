@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -10,12 +12,47 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/zurano_tokens.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../providers/firebase_providers.dart';
+import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
 import '../../application/booking_lookup_controller.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
 import '../widgets/customer_booking_lookup_card.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_text_field.dart';
+
+final recentGuestBookingsOnDeviceProvider =
+    StreamProvider.autoDispose<List<_RecentGuestBookingRow>>((ref) {
+  final isAnonymous = ref.watch(firebaseAuthProvider).currentUser?.isAnonymous ==
+      true;
+  if (!isAnonymous) {
+    return Stream.value(const <_RecentGuestBookingRow>[]);
+  }
+
+  final guestIdentity = ref.watch(guestIdentityRepositoryProvider);
+  final firestore = ref.watch(firestoreProvider);
+  return Stream.fromFuture(guestIdentity.getGuestProfileId()).asyncExpand((
+    guestProfileId,
+  ) {
+    final id = guestProfileId?.trim() ?? '';
+    if (id.isEmpty) {
+      return Stream.value(const <_RecentGuestBookingRow>[]);
+    }
+
+    final q = firestore
+        .collectionGroup('bookings')
+        .where('guestProfileId', isEqualTo: id)
+        .orderBy('startAt', descending: true)
+        .orderBy(FieldPath.documentId, descending: true)
+        .limit(5);
+
+    return q.snapshots().map((snap) {
+      return snap.docs
+          .map((d) => _RecentGuestBookingRow.fromFirestore(d.data()))
+          .toList(growable: false);
+    });
+  });
+});
 
 class FindBookingScreen extends ConsumerStatefulWidget {
   const FindBookingScreen({super.key});
@@ -61,6 +98,7 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
         child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(customerAccountBookingsForFindProvider);
+            ref.invalidate(recentGuestBookingsOnDeviceProvider);
           },
           child: CustomScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -125,6 +163,7 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
                   child: _InfoCard(message: l10n.customerBookingLookupPhoneHint),
                 ),
               ),
+              ..._recentGuestBookingsSlivers(context, ref, l10n),
               if (signedInUid.isNotEmpty)
                 ..._signedInAccountBookingSlivers(context, ref, l10n),
               _ResultArea(state: lookupState),
@@ -135,6 +174,147 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
       ),
     );
   }
+}
+
+List<Widget> _recentGuestBookingsSlivers(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+) {
+  final isAnonymous =
+      ref.watch(firebaseAuthProvider).currentUser?.isAnonymous == true;
+  if (!isAnonymous) {
+    return const <Widget>[];
+  }
+
+  final theme = Theme.of(context);
+  final async = ref.watch(recentGuestBookingsOnDeviceProvider);
+  return async.when(
+    loading: () => [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.guestRecentBookingsTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: ZuranoTokens.textDark,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+        sliver: SliverList.list(
+          children: const [
+            AppSkeletonBlock(height: 102),
+            SizedBox(height: AppSpacing.medium),
+            AppSkeletonBlock(height: 102),
+          ],
+        ),
+      ),
+    ],
+    error: (_, _) => [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.guestRecentBookingsTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: ZuranoTokens.textDark,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+        sliver: SliverToBoxAdapter(
+          child: _StateCard(message: l10n.customerBookingLookupGenericError),
+        ),
+      ),
+    ],
+    data: (rows) {
+      final titleSliver = SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.large,
+          AppSpacing.small,
+          AppSpacing.large,
+          AppSpacing.small,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Text(
+            l10n.guestRecentBookingsTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: ZuranoTokens.textDark,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+      );
+
+      if (rows.isEmpty) {
+        return [
+          titleSliver,
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+            sliver: SliverToBoxAdapter(
+              child: _StateCard(message: l10n.guestRecentBookingsEmpty),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.large,
+              AppSpacing.medium,
+              AppSpacing.large,
+              AppSpacing.medium,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: _InfoCard(message: l10n.guestRecentBookingsHelper),
+            ),
+          ),
+        ];
+      }
+
+      return [
+        titleSliver,
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+          sliver: SliverList.separated(
+            itemCount: rows.length,
+            separatorBuilder: (_, _) =>
+                const SizedBox(height: AppSpacing.medium),
+            itemBuilder: (context, index) =>
+                _GuestRecentBookingCard(row: rows[index]),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.large,
+            AppSpacing.medium,
+            AppSpacing.large,
+            AppSpacing.medium,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: _InfoCard(message: l10n.guestRecentBookingsHelper),
+          ),
+        ),
+      ];
+    },
+  );
 }
 
 List<Widget> _signedInAccountBookingSlivers(
@@ -551,5 +731,190 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     return newValue.copyWith(text: newValue.text.toUpperCase());
+  }
+}
+
+class _RecentGuestBookingRow {
+  const _RecentGuestBookingRow({
+    required this.salonId,
+    required this.bookingId,
+    required this.bookingCode,
+    required this.startAt,
+    required this.status,
+  });
+
+  final String salonId;
+  final String bookingId;
+  final String bookingCode;
+  final DateTime startAt;
+  final String status;
+
+  factory _RecentGuestBookingRow.fromFirestore(Map<String, dynamic> json) {
+    final sid = (json['salonId'] as String?)?.trim() ?? '';
+    final bid = (json['id'] as String?)?.trim() ?? '';
+    final code = (json['bookingCode'] as String?)?.trim() ?? '';
+    final startAt = (json['startAt'] is DateTime)
+        ? (json['startAt'] as DateTime)
+        : DateTime.fromMillisecondsSinceEpoch(0);
+    final st = (json['status'] as String?)?.trim() ?? '';
+    return _RecentGuestBookingRow(
+      salonId: sid,
+      bookingId: bid,
+      bookingCode: code,
+      startAt: startAt,
+      status: st,
+    );
+  }
+}
+
+class _GuestRecentBookingCard extends ConsumerWidget {
+  const _GuestRecentBookingCard({required this.row});
+
+  final _RecentGuestBookingRow row;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final locale = Localizations.localeOf(context);
+    final dateFmt = DateFormat.yMMMd(locale.toString());
+    final timeFmt = DateFormat.jm(locale.toString());
+
+    final publicSalonRef = ref
+        .watch(firestoreProvider)
+        .doc('publicSalons/${row.salonId}');
+
+    return Material(
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(AppRadius.xlarge),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.xlarge),
+        onTap: () {
+          if (row.salonId.isEmpty || row.bookingId.isEmpty) {
+            return;
+          }
+          context.pushNamed(
+            AppRouteNames.customerBookingDetails,
+            pathParameters: {'salonId': row.salonId, 'bookingId': row.bookingId},
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.xlarge),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppBrandColors.primary.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(AppSpacing.large),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: FutureBuilder<String>(
+                      future: publicSalonRef.get().then((snap) {
+                        final raw = snap.data()?['name'];
+                        final name = raw is String ? raw.trim() : '';
+                        return name.isEmpty ? row.salonId : name;
+                      }),
+                      builder: (context, snap) {
+                        final salonName =
+                            (snap.data ?? row.salonId).trim().isEmpty
+                                ? l10n.customerBookingReviewSalon
+                                : (snap.data ?? row.salonId);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              salonName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: AppColorsLight.textPrimary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              row.bookingCode.isEmpty
+                                  ? row.bookingId
+                                  : row.bookingCode,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppBrandColors.primary,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  _CompactStatusPill(status: row.status),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              Row(
+                children: [
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 18,
+                    color: AppBrandColors.primary,
+                  ),
+                  const SizedBox(width: AppSpacing.small),
+                  Expanded(
+                    child: Text(
+                      '${dateFmt.format(row.startAt.toLocal())} · ${timeFmt.format(row.startAt.toLocal())}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColorsLight.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactStatusPill extends StatelessWidget {
+  const _CompactStatusPill({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = status.trim();
+    final scheme = Theme.of(context).colorScheme;
+    final label = s.isEmpty ? '—' : s;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.55)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: ZuranoTokens.textGray,
+            ),
+      ),
+    );
   }
 }

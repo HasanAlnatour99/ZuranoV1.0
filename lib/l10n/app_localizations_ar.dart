@@ -3186,6 +3186,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'استخدم نفس رقم الهاتف ورمز الحجز اللذين وصلاك بعد الحجز.';
 
   @override
+  String get guestRecentBookingsTitle => 'أحدث الحجوزات على هذا الجهاز';
+
+  @override
+  String get guestRecentBookingsEmpty =>
+      'لا توجد حجوزات حديثة على هذا الجهاز بعد.';
+
+  @override
+  String get guestRecentBookingsHelper =>
+      'لا ترى حجزك؟ يمكنك أيضًا العثور على أي حجز باستخدام رمز الحجز + رقم الهاتف.';
+
+  @override
   String get customerBookingLookupYourBookingsSection => 'حجوزاتك';
 
   @override

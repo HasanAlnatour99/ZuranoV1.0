@@ -3193,6 +3193,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use the same phone number and booking code you received when you booked.';
 
   @override
+  String get guestRecentBookingsTitle => 'Recent bookings on this device';
+
+  @override
+  String get guestRecentBookingsEmpty =>
+      'No recent bookings on this device yet.';
+
+  @override
+  String get guestRecentBookingsHelper =>
+      'Can’t see your booking? You can also find any booking using booking code + phone number.';
+
+  @override
   String get customerBookingLookupYourBookingsSection => 'Your bookings';
 
   @override

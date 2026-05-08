@@ -305,7 +305,14 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                       title: l10n.customerBookingReviewSpecialist,
                       icon: Icons.person_outline,
                       child: _KeyValueLines(
-                        lines: [(draft.selectedEmployeeName ?? '', '')],
+                        lines: [
+                          (
+                            draft.anyAvailableEmployee
+                                ? l10n.customerBookingLookupAnySpecialist
+                                : (draft.selectedEmployeeName ?? ''),
+                            '',
+                          ),
+                        ],
                       ),
                     ),
                     BookingReviewSectionCard(
