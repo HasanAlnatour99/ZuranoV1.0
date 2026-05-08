@@ -43,12 +43,11 @@ final recentGuestBookingsOnDeviceProvider =
         .collectionGroup('bookings')
         .where('guestProfileId', isEqualTo: id)
         .orderBy('startAt', descending: true)
-        .orderBy(FieldPath.documentId, descending: true)
         .limit(5);
 
     return q.snapshots().map((snap) {
       return snap.docs
-          .map((d) => _RecentGuestBookingRow.fromFirestore(d.data()))
+          .map((d) => _RecentGuestBookingRow.fromFirestore(d.data(), d.id))
           .toList(growable: false);
     });
   });
@@ -749,13 +748,20 @@ class _RecentGuestBookingRow {
   final DateTime startAt;
   final String status;
 
-  factory _RecentGuestBookingRow.fromFirestore(Map<String, dynamic> json) {
+  factory _RecentGuestBookingRow.fromFirestore(
+    Map<String, dynamic> json,
+    String documentId,
+  ) {
     final sid = (json['salonId'] as String?)?.trim() ?? '';
-    final bid = (json['id'] as String?)?.trim() ?? '';
+    final storedId = (json['id'] as String?)?.trim() ?? '';
+    final bid = storedId.isNotEmpty ? storedId : documentId;
     final code = (json['bookingCode'] as String?)?.trim() ?? '';
-    final startAt = (json['startAt'] is DateTime)
-        ? (json['startAt'] as DateTime)
-        : DateTime.fromMillisecondsSinceEpoch(0);
+    final rawStartAt = json['startAt'];
+    final startAt = rawStartAt is Timestamp
+        ? rawStartAt.toDate()
+        : rawStartAt is DateTime
+            ? rawStartAt
+            : DateTime.fromMillisecondsSinceEpoch(0);
     final st = (json['status'] as String?)?.trim() ?? '';
     return _RecentGuestBookingRow(
       salonId: sid,
