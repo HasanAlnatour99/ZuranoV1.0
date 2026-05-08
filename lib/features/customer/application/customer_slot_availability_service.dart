@@ -61,6 +61,14 @@ class CustomerSlotAvailabilityService {
     );
     final buffer = settings.bufferMinutes.clamp(0, 240);
     final slots = <CustomerBookingSlot>[];
+    final eligible = teamMembers
+        .where((m) => m.isActive && m.isBookable && m.allowCustomerBooking)
+        .toList(growable: false);
+    final originalIndex = <String, int>{};
+    for (var i = 0; i < eligible.length; i++) {
+      originalIndex[eligible[i].id] = i;
+    }
+    final bookingsCount = _bookingsCountByEmployeeId(bookings);
 
     for (
       var start = openAt;
@@ -74,9 +82,11 @@ class CustomerSlotAvailabilityService {
       }
 
       if (draft.anyAvailableEmployee) {
-        final member = _firstAvailableTeamMember(
-          teamMembers,
+        final member = _rankedAvailableTeamMember(
+          eligible,
           bookings,
+          bookingsCount,
+          originalIndex,
           buffer,
           start,
           end,
@@ -115,19 +125,33 @@ class CustomerSlotAvailabilityService {
     return slots;
   }
 
-  CustomerTeamMemberPublicModel? _firstAvailableTeamMember(
+  CustomerTeamMemberPublicModel? _rankedAvailableTeamMember(
     List<CustomerTeamMemberPublicModel> teamMembers,
     List<Map<String, dynamic>> bookings,
+    Map<String, int> bookingsCount,
+    Map<String, int> originalIndex,
     int bufferMinutes,
     DateTime start,
     DateTime end,
   ) {
+    CustomerTeamMemberPublicModel? best;
+    var bestCount = 1 << 30;
+    var bestIndex = 1 << 30;
+
     for (final member in teamMembers) {
-      if (!_hasOverlap(bookings, bufferMinutes, member.id, start, end)) {
-        return member;
+      if (_hasOverlap(bookings, bufferMinutes, member.id, start, end)) {
+        continue;
+      }
+      final c = bookingsCount[member.id] ?? 0;
+      final idx = originalIndex[member.id] ?? 999999;
+      if (best == null || c < bestCount || (c == bestCount && idx < bestIndex)) {
+        best = member;
+        bestCount = c;
+        bestIndex = idx;
       }
     }
-    return null;
+
+    return best;
   }
 
   bool _hasOverlap(
@@ -153,6 +177,20 @@ class CustomerSlotAvailabilityService {
       }
     }
     return false;
+  }
+
+  static Map<String, int> _bookingsCountByEmployeeId(
+    List<Map<String, dynamic>> bookings,
+  ) {
+    final counts = <String, int>{};
+    for (final b in bookings) {
+      final idRaw = b['employeeId'];
+      if (idRaw is! String) continue;
+      final id = idRaw.trim();
+      if (id.isEmpty) continue;
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
   }
 
   static DateTime? _timeOnDate(DateTime day, String raw) {

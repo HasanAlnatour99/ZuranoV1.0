@@ -85,8 +85,15 @@ class FirestoreCustomerBookingCreateRepository
     final publicSalonSnap = await _firestore
         .doc(FirestorePaths.publicSalon(salonId))
         .get();
-    final salonName =
-        (publicSalonSnap.data()?['name'] as String?)?.trim() ?? salonId;
+    final publicSalonData = publicSalonSnap.data() ?? const <String, dynamic>{};
+    final salonName = (publicSalonData['salonName'] as String?)?.trim() ??
+        (publicSalonData['name'] as String?)?.trim() ??
+        salonId;
+    final salonArea = (publicSalonData['area'] as String?)?.trim() ?? '';
+    final salonPhone = (publicSalonData['phone'] as String?)?.trim() ?? '';
+    final salonWhatsapp = (publicSalonData['whatsapp'] as String?)?.trim() ?? '';
+    final salonLatitude = publicSalonData['latitude'] as num?;
+    final salonLongitude = publicSalonData['longitude'] as num?;
 
     final bookingRef = _firestore
         .collection(FirestorePaths.salonBookings(salonId))
@@ -129,6 +136,9 @@ class FirestoreCustomerBookingCreateRepository
 
         final now = FieldValue.serverTimestamp();
         final phoneNorm = draft.customerPhoneNormalized?.trim() ?? '';
+        final phoneIso = draft.customerCountryIsoCode?.trim() ?? '';
+        final phoneDial = draft.customerDialCode?.trim() ?? '';
+        final phoneNational = draft.customerPhoneNational?.trim() ?? '';
         final displayName = draft.customerName?.trim().isNotEmpty == true
             ? draft.customerName!.trim()
             : 'Guest';
@@ -142,6 +152,9 @@ class FirestoreCustomerBookingCreateRepository
           'phoneNormalized': phoneNorm.isNotEmpty
               ? phoneNorm
               : 'guest_$bookingRef.id',
+          'countryIsoCode': phoneIso,
+          'dialCode': phoneDial,
+          'phoneNational': phoneNational,
           'gender': draft.customerGender,
           'notes': draft.customerNote,
           'type': 'new',
@@ -183,12 +196,23 @@ class FirestoreCustomerBookingCreateRepository
 
         final bookingPayload = <String, dynamic>{
           'salonId': salonId,
+          'salonName': salonName,
+          'salonArea': salonArea,
+          'salonPhone': salonPhone,
+          'salonWhatsapp': salonWhatsapp,
+          'salonLatitude': salonLatitude,
+          'salonLongitude': salonLongitude,
+          'createdActorType': 'customer',
           'customerId': stableCustomerRef.id,
           'customerName': displayName,
           'customerPhone': displayPhone,
           'customerPhoneNormalized': phoneNorm.isNotEmpty
               ? phoneNorm
               : 'guest_${bookingRef.id}',
+          'customerCountryIsoCode': phoneIso,
+          'customerDialCode': phoneDial,
+          'customerPhoneNational': phoneNational,
+          'clientRequestId': draft.clientRequestId?.trim(),
           ...?(
             guestProfileId == null
                 ? null
@@ -208,10 +232,24 @@ class FirestoreCustomerBookingCreateRepository
           'subtotal': draft.subtotal,
           'discountAmount': draft.discountAmount,
           'totalAmount': draft.totalAmount,
+          'paymentStatus': 'unpaid',
+          'paymentMethod': 'not_selected',
+          'depositRequired': false,
+          'depositAmount': 0,
+          'paidAmount': 0,
+          'balanceAmount': draft.totalAmount,
           'durationMinutes': draft.durationMinutes,
           'startAt': Timestamp.fromDate(startAt),
           'endAt': Timestamp.fromDate(endAt),
           'status': status,
+          ...?(
+            status == 'confirmed'
+                ? <String, dynamic>{
+                    'confirmedAt': now,
+                    'confirmedActorType': 'system',
+                  }
+                : null
+          ),
           'source': 'customer_app',
           'bookingCode': bookingCode,
           'bookingNumber': bookingCode,
@@ -255,6 +293,11 @@ class FirestoreCustomerBookingCreateRepository
             'bookingStatus': status,
             'saleCreated': false,
             'saleId': null,
+            'customerCountryIsoCode': phoneIso,
+            'customerDialCode': phoneDial,
+            'customerPhoneNational': phoneNational,
+            'customerPhoneNormalized': phoneNorm,
+            'customerPhone': displayPhone,
             'appointmentStartAt': Timestamp.fromDate(startAt),
             'appointmentEndAt': Timestamp.fromDate(endAt),
             'createdAt': now,

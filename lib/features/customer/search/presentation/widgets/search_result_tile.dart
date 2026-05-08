@@ -129,6 +129,38 @@ class _SearchCompactResultCard extends StatelessWidget {
     return s.startsWith('https://') || s.startsWith('http://');
   }
 
+  /// Service / specialist taps deep-link into the customer salon profile so
+  /// users always land in the same context as a salon tap. The `targetId` is
+  /// passed as a query parameter so the salon profile can preselect the
+  /// service or specialist (and forward into booking when the user continues).
+  void _handleTap(BuildContext context) {
+    final salonId = result.salonId.trim();
+    if (salonId.isEmpty) {
+      return;
+    }
+    final extras = <String, String>{};
+    switch (result.type) {
+      case CustomerSearchResultType.service:
+        if (result.targetId.trim().isNotEmpty) {
+          extras['serviceId'] = result.targetId.trim();
+        }
+        break;
+      case CustomerSearchResultType.specialist:
+        if (result.targetId.trim().isNotEmpty) {
+          extras['employeeId'] = result.targetId.trim();
+        }
+        break;
+      case CustomerSearchResultType.salon:
+        break;
+    }
+
+    context.pushNamed(
+      AppRouteNames.customerSalonProfile,
+      pathParameters: {'salonId': salonId},
+      queryParameters: extras,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -146,7 +178,7 @@ class _SearchCompactResultCard extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          onTap: () {},
+          onTap: () => _handleTap(context),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(

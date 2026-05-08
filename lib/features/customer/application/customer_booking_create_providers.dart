@@ -44,9 +44,18 @@ class CustomerBookingCreateController
     required CustomerBookingSettings bookingSettings,
     required String customerUiLanguageCode,
   }) async {
+    if (state is AsyncLoading) {
+      return null;
+    }
     state = const AsyncValue.loading();
-    final anonymousGuest =
-        ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
+    bool anonymousGuest = false;
+    try {
+      anonymousGuest =
+          ref.read(firebaseAuthProvider).currentUser?.isAnonymous == true;
+    } catch (_) {
+      // In unit tests, Firebase may not be initialized; treat as non-anonymous.
+      anonymousGuest = false;
+    }
     final result = await AsyncValue.guard(
       () => ref
           .read(customerBookingCreateServiceProvider)

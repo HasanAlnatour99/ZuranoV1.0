@@ -3039,6 +3039,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerDetailsInvalidPhone => 'Enter a valid phone number';
 
   @override
+  String get customerPhoneCountryPickerTitle => 'Choose country';
+
+  @override
+  String get customerPhoneCountryPickerSearchHint =>
+      'Search by country, code, or dial code';
+
+  @override
   String get customerDetailsNameTooShort =>
       'Name must be at least 2 characters';
 
@@ -3094,6 +3101,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerBookingReviewPaymentSummary => 'Payment summary';
+
+  @override
+  String get customerBookingPaymentStatusLabel => 'Payment status';
+
+  @override
+  String get customerBookingPaymentStatusUnpaid => 'Unpaid';
+
+  @override
+  String get customerBookingPaymentStatusPaid => 'Paid';
+
+  @override
+  String get customerBookingPaymentStatusPartial => 'Partially paid';
 
   @override
   String get customerBookingReviewSubtotal => 'Subtotal';
@@ -3155,6 +3174,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerBookingSuccessViewBooking => 'View booking';
+
+  @override
+  String get customerBookingSuccessCopyCode => 'Copy booking code';
+
+  @override
+  String get customerBookingSuccessShareBooking => 'Share booking';
+
+  @override
+  String get customerBookingSuccessAddToCalendar => 'Add to calendar';
+
+  @override
+  String get customerBookingSuccessCalendarFailed =>
+      'Couldn’t add to calendar. Please try again.';
 
   @override
   String get customerBookingSuccessBookAnother => 'Book another appointment';
@@ -3289,6 +3321,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerBookingDetailsTimelineConfirmed => 'Confirmed';
 
   @override
+  String get customerTimelineActorCustomer => 'Customer';
+
+  @override
+  String get customerTimelineActorSystem => 'System';
+
+  @override
+  String get customerTimelineActorOwner => 'Owner';
+
+  @override
+  String get customerTimelineActorAdmin => 'Admin';
+
+  @override
   String get customerBookingDetailsPendingConfirmation =>
       'Pending confirmation';
 
@@ -3318,6 +3362,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String customerBookingDetailsCancelPolicyNotice(int hours) {
     return 'Salon policy: cancel online at least $hours hours before your appointment starts.';
+  }
+
+  @override
+  String get customerBookingDetailsPolicyTitle => 'Policy';
+
+  @override
+  String customerBookingDetailsPolicyBody(
+    int cancelHours,
+    int rescheduleHours,
+  ) {
+    return 'Cancel up to ${cancelHours}h before your appointment. Reschedule up to ${rescheduleHours}h before.';
   }
 
   @override
@@ -10346,7 +10401,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zuranoSpecialistView => 'View';
 
   @override
-  String get zuranoNearbyTitle => 'Nearby salons';
+  String get zuranoNearbyTitle => 'Nearby places';
 
   @override
   String get zuranoNearbyViewMap => 'View map';
@@ -10376,14 +10431,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerMapFindingLocation => 'Finding your location…';
 
   @override
-  String get customerMapCouldNotLoadSalons => 'Couldn’t load map salons.';
+  String get customerMapCouldNotLoadSalons =>
+      'Couldn’t load places for the map.';
 
   @override
-  String get customerMapNoSalonsOnMap => 'No salons available on map yet.';
+  String get customerMapNoSalonsOnMap =>
+      'No barbers, salons, or spas found in this area.';
+
+  @override
+  String get customerMapSubtitleTagline =>
+      'Find barbers and salons around you.';
 
   @override
   String customerMapSalonsOnMapCount(String count) {
-    return '$count salons on map';
+    return '$count places nearby';
   }
 
   @override
@@ -10412,10 +10473,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerMapDetailsCta => 'Details';
 
   @override
+  String get customerMapNearbySheetTitle => 'Nearby places';
+
+  @override
+  String customerMapRadiusLabelKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get customerMapNoPlacesSheetTitle => 'No places found nearby';
+
+  @override
+  String get customerMapNoPlacesSheetBody =>
+      'Try another area or expand the search radius.';
+
+  @override
+  String get customerMapUseMyLocation => 'Use my location';
+
+  @override
+  String get customerMapExpandRadius => 'Expand radius';
+
+  @override
+  String get customerMapSelectRadiusTitle => 'Search radius';
+
+  @override
+  String get customerMapSearchThisArea => 'Search this area';
+
+  @override
+  String get customerMapFilterAll => 'All';
+
+  @override
+  String get customerMapFilterBarber => 'Barber';
+
+  @override
+  String get customerMapFilterSalon => 'Salon';
+
+  @override
+  String get customerMapFilterSpa => 'Spa';
+
+  @override
+  String get customerMapFilterOpenNow => 'Open now';
+
+  @override
+  String get customerMapFilterTopRated => 'Top rated';
+
+  @override
   String get customerMapStatusOpen => 'Open';
 
   @override
+  String get customerMapStatusClosed => 'Closed';
+
+  @override
   String get customerMapStatusSoon => 'Soon';
+
+  @override
+  String get customerMapViewProfile => 'View profile';
+
+  @override
+  String customerMapNextAvailableToday(String time) {
+    return 'Next available today: $time';
+  }
 
   @override
   String get zuranoBottomNavHome => 'Home';

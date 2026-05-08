@@ -1164,6 +1164,8 @@
   "customerDetailsPhoneInfo": "We will use your phone number only to confirm and find your booking.",
   "customerDetailsRequiredField": "Required field",
   "customerDetailsInvalidPhone": "Enter a valid phone number",
+  "customerPhoneCountryPickerTitle": "Choose country",
+  "customerPhoneCountryPickerSearchHint": "Search by country, code, or dial code",
   "customerDetailsNameTooShort": "Name must be at least 2 characters",
   "customerDetailsNotesTooLong": "Notes cannot exceed 300 characters",
   "customerDetailsSummaryTitle": "{count} services · {specialist}",
@@ -1197,6 +1199,10 @@
   "customerBookingReviewDateTimeNotSet": "Not selected",
   "customerBookingReviewCustomer": "Customer",
   "customerBookingReviewPaymentSummary": "Payment summary",
+  "customerBookingPaymentStatusLabel": "Payment status",
+  "customerBookingPaymentStatusUnpaid": "Unpaid",
+  "customerBookingPaymentStatusPaid": "Paid",
+  "customerBookingPaymentStatusPartial": "Partially paid",
   "customerBookingReviewSubtotal": "Subtotal",
   "customerBookingReviewDiscount": "Discount",
   "customerBookingReviewTotal": "Total",
@@ -1220,6 +1226,10 @@
   "customerBookingSuccessFallback": "Available in booking details",
   "customerBookingSuccessSaveCodeInfo": "Save your booking code. You can use it later to find your appointment.",
   "customerBookingSuccessViewBooking": "View booking",
+  "customerBookingSuccessCopyCode": "Copy booking code",
+  "customerBookingSuccessShareBooking": "Share booking",
+  "customerBookingSuccessAddToCalendar": "Add to calendar",
+  "customerBookingSuccessCalendarFailed": "Couldn’t add to calendar. Please try again.",
   "customerBookingSuccessBookAnother": "Book another appointment",
   "customerBookingSuccessBackToSalon": "Back to salon",
   "customerBookingSuccessCodeCopied": "Booking code copied.",
@@ -1266,6 +1276,10 @@
   "customerBookingDetailsTimelineCreated": "Created",
   "customerBookingDetailsTimelineUpcoming": "Upcoming",
   "customerBookingDetailsTimelineConfirmed": "Confirmed",
+  "customerTimelineActorCustomer": "Customer",
+  "customerTimelineActorSystem": "System",
+  "customerTimelineActorOwner": "Owner",
+  "customerTimelineActorAdmin": "Admin",
   "customerBookingDetailsPendingConfirmation": "Pending confirmation",
   "customerBookingDetailsSpecialist": "Specialist",
   "customerBookingDetailsCall": "Call",
@@ -1278,6 +1292,18 @@
   "@customerBookingDetailsCancelPolicyNotice": {
     "placeholders": {
       "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "customerBookingDetailsPolicyTitle": "Policy",
+  "customerBookingDetailsPolicyBody": "Cancel up to {cancelHours}h before your appointment. Reschedule up to {rescheduleHours}h before.",
+  "@customerBookingDetailsPolicyBody": {
+    "placeholders": {
+      "cancelHours": {
+        "type": "int"
+      },
+      "rescheduleHours": {
         "type": "int"
       }
     }
@@ -4180,7 +4206,7 @@
   "zuranoLastBookedViewBooking": "View booking",
   "zuranoLastBookedCodeLabel": "Booking code",
   "zuranoSpecialistView": "View",
-  "zuranoNearbyTitle": "Nearby salons",
+  "zuranoNearbyTitle": "Nearby places",
   "zuranoNearbyViewMap": "View map",
   "zuranoNearbyMapSnack": "Map view arrives in a future update.",
   "zuranoNearbyBookNow": "Book now",
@@ -4205,9 +4231,10 @@
     }
   },
   "customerMapFindingLocation": "Finding your location…",
-  "customerMapCouldNotLoadSalons": "Couldn’t load map salons.",
-  "customerMapNoSalonsOnMap": "No salons available on map yet.",
-  "customerMapSalonsOnMapCount": "{count} salons on map",
+  "customerMapCouldNotLoadSalons": "Couldn’t load places for the map.",
+  "customerMapNoSalonsOnMap": "No barbers, salons, or spas found in this area.",
+  "customerMapSubtitleTagline": "Barbers, salons & spas around you",
+  "customerMapSalonsOnMapCount": "{count} places nearby",
   "@customerMapSalonsOnMapCount": {
     "placeholders": {
       "count": {"type": "String"}
@@ -4235,8 +4262,36 @@
     }
   },
   "customerMapDetailsCta": "Details",
+  "customerMapNearbySheetTitle": "Nearby places",
+  "customerMapRadiusLabelKm": "{km} km",
+  "customerMapNoPlacesSheetTitle": "No places found nearby",
+  "customerMapNoPlacesSheetBody": "Try another area or expand the search radius.",
+  "customerMapSubtitleTagline": "Find barbers and salons around you.",
+  "customerMapUseMyLocation": "Use my location",
+  "customerMapExpandRadius": "Expand radius",
+  "customerMapSelectRadiusTitle": "Search radius",
+  "@customerMapRadiusLabelKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "customerMapSearchThisArea": "Search this area",
+  "customerMapFilterAll": "All",
+  "customerMapFilterBarber": "Barber",
+  "customerMapFilterSalon": "Salon",
+  "customerMapFilterSpa": "Spa",
+  "customerMapFilterOpenNow": "Open now",
+  "customerMapFilterTopRated": "Top rated",
   "customerMapStatusOpen": "Open",
+  "customerMapStatusClosed": "Closed",
   "customerMapStatusSoon": "Soon",
+  "customerMapViewProfile": "View profile",
+  "customerMapNextAvailableToday": "Next available today: {time}",
+  "@customerMapNextAvailableToday": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
   "zuranoBottomNavHome": "Home",
   "zuranoBottomNavBookings": "Bookings",
   "zuranoBottomNavRewards": "Rewards",

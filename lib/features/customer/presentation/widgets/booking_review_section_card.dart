@@ -10,18 +10,23 @@ class BookingReviewSectionCard extends StatelessWidget {
     required this.title,
     required this.child,
     this.icon,
+    this.onEdit,
+    this.editLabel,
   });
 
   final String title;
   final Widget child;
   final IconData? icon;
+  final VoidCallback? onEdit;
+  final String? editLabel;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.medium),
       child: Material(
-        color: Theme.of(context).colorScheme.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xlarge),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.large),
@@ -34,13 +39,33 @@ class BookingReviewSectionCard extends StatelessWidget {
                     Icon(icon, size: 20, color: AppBrandColors.primary),
                     const SizedBox(width: AppSpacing.small),
                   ],
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColorsLight.textPrimary,
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColorsLight.textPrimary,
+                          ),
                     ),
                   ),
+                  if (onEdit != null)
+                    TextButton.icon(
+                      onPressed: onEdit,
+                      style: TextButton.styleFrom(
+                        foregroundColor: scheme.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle:
+                            const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: Text(editLabel ?? 'Edit'),
+                    ),
                 ],
               ),
               const SizedBox(height: AppSpacing.medium),

@@ -19,9 +19,18 @@ class SalonMapItem {
     required this.ratingCount,
     required this.openStatus,
     this.distanceMeters,
+    this.businessType = 'mixed',
+    this.openNow = false,
+    this.nextAvailableAt,
+    this.geohash,
+    this.bookingEnabled = true,
   });
 
   final String id;
+
+  /// Same as Firestore document id / `salonId` on `publicSalons`.
+  String get salonId => id;
+
   final String name;
   final String area;
   final String city;
@@ -34,6 +43,28 @@ class SalonMapItem {
   final String openStatus;
   final double? distanceMeters;
 
+  /// Lowercase: `barber` | `salon` | `spa` | `mixed`.
+  ///
+  /// Missing / unknown / non-string values default to `mixed` so the customer
+  /// still sees the place under every type chip while backend pipelines catch up.
+  final String businessType;
+
+  /// Denormalized flag when present on [publicSalons]; otherwise inferred from status.
+  final bool openNow;
+
+  /// Next bookable slot when backend provides it.
+  final DateTime? nextAvailableAt;
+
+  /// Denormalized geohash on `publicSalons` (required for geo queries).
+  final String? geohash;
+
+  /// When `false`, map discovery skips this row client-side (rules do not filter it).
+  final bool bookingEnabled;
+
+  /// Distance from the active search center in kilometers when computed.
+  double? get distanceKm =>
+      distanceMeters != null ? distanceMeters! / 1000.0 : null;
+
   /// Returns `null` if the document has no usable coordinates for a map pin.
   static SalonMapItem? maybeFromDiscoveryDoc(
     DocumentSnapshot<Map<String, dynamic>> doc,
@@ -43,6 +74,8 @@ class SalonMapItem {
     if (latLng == null) return null;
 
     final nameRaw = data['salonName'] ?? data['name'];
+    final openStatus = _openStatus(data);
+    final inferredOpenNow = _openNow(data, openStatus);
 
     return SalonMapItem(
       id: doc.id,
@@ -58,7 +91,12 @@ class SalonMapItem {
       imageUrl: _imageUrl(data),
       ratingAvg: _ratingAvg(data),
       ratingCount: _ratingCount(data),
-      openStatus: _openStatus(data),
+      openStatus: openStatus,
+      businessType: _businessType(data),
+      openNow: inferredOpenNow,
+      nextAvailableAt: _nextAvailableAt(data),
+      geohash: _trimmedString(data['geohash']),
+      bookingEnabled: _bookingEnabledFlag(data),
     );
   }
 
@@ -86,6 +124,11 @@ class SalonMapItem {
 
   SalonMapItem copyWith({
     double? distanceMeters,
+    String? businessType,
+    bool? openNow,
+    DateTime? nextAvailableAt,
+    String? geohash,
+    bool? bookingEnabled,
   }) {
     return SalonMapItem(
       id: id,
@@ -100,6 +143,11 @@ class SalonMapItem {
       ratingCount: ratingCount,
       openStatus: openStatus,
       distanceMeters: distanceMeters ?? this.distanceMeters,
+      businessType: businessType ?? this.businessType,
+      openNow: openNow ?? this.openNow,
+      nextAvailableAt: nextAvailableAt ?? this.nextAvailableAt,
+      geohash: geohash ?? this.geohash,
+      bookingEnabled: bookingEnabled ?? this.bookingEnabled,
     );
   }
 
@@ -110,6 +158,12 @@ class SalonMapItem {
   }
 
   static LatLng? _parsePosition(Map<String, dynamic> data) {
+    final latRoot = data['latitude'] ?? data['lat'];
+    final lngRoot = data['longitude'] ?? data['lng'];
+    if (latRoot is num && lngRoot is num) {
+      return LatLng(latRoot.toDouble(), lngRoot.toDouble());
+    }
+
     LatLng? fromNums(dynamic lat, dynamic lng) {
       if (lat is num && lng is num) {
         return LatLng(lat.toDouble(), lng.toDouble());
@@ -225,11 +279,53 @@ class SalonMapItem {
     return 0;
   }
 
+  static bool _bookingEnabledFlag(Map<String, dynamic> data) {
+    final v = data['bookingEnabled'];
+    if (v == false) {
+      return false;
+    }
+    return true;
+  }
+
+  static String _businessType(Map<String, dynamic> data) {
+    final raw = data['businessType'];
+    if (raw is String && raw.trim().isNotEmpty) {
+      final normalized = raw.trim().toLowerCase();
+      const allowed = {'barber', 'salon', 'spa', 'mixed'};
+      if (allowed.contains(normalized)) {
+        return normalized;
+      }
+    }
+    return 'mixed';
+  }
+
+  static DateTime? _nextAvailableAt(Map<String, dynamic> data) {
+    final v = data['nextAvailableAt'];
+    if (v is Timestamp) {
+      return v.toDate();
+    }
+    return null;
+  }
+
+  static bool _openNow(Map<String, dynamic> data, String openStatus) {
+    final direct = data['openNow'];
+    if (direct == true) {
+      return true;
+    }
+    if (direct == false) {
+      return false;
+    }
+    final s = openStatus.toLowerCase().trim();
+    return s == 'open';
+  }
+
   static String _openStatus(Map<String, dynamic> data) {
     final raw = data['openStatus'];
     if (raw is String && raw.trim().isNotEmpty) return raw.trim();
     if (data['isOpen'] == true) return 'open';
     if (data['isOpen'] == false) return 'closed';
+    if (data['openNow'] == true) return 'open';
+    if (data['openNow'] == false) return 'closed';
     return 'unknown';
   }
 

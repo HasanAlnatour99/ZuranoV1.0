@@ -40,6 +40,12 @@ class CustomerBookingDetailsModel {
     required this.subtotal,
     required this.discountAmount,
     required this.totalAmount,
+    required this.paymentStatus,
+    required this.paymentMethod,
+    required this.depositRequired,
+    required this.depositAmount,
+    required this.paidAmount,
+    required this.balanceAmount,
     required this.durationMinutes,
     required this.startAt,
     required this.endAt,
@@ -52,6 +58,14 @@ class CustomerBookingDetailsModel {
     this.feedbackSubmitted = false,
     this.feedbackSubmittedAt,
     this.customerBookingSettings = const CustomerBookingSettings(),
+    this.createdActorType,
+    this.confirmedAt,
+    this.confirmedActorType,
+    this.cancelledAt,
+    this.cancelledActorType,
+    this.cancelReason,
+    this.rescheduledAt,
+    this.rescheduledActorType,
   });
 
   final String id;
@@ -72,6 +86,12 @@ class CustomerBookingDetailsModel {
   final double subtotal;
   final double discountAmount;
   final double totalAmount;
+  final String paymentStatus;
+  final String paymentMethod;
+  final bool depositRequired;
+  final double depositAmount;
+  final double paidAmount;
+  final double balanceAmount;
   final int durationMinutes;
   final DateTime startAt;
   final DateTime endAt;
@@ -83,6 +103,16 @@ class CustomerBookingDetailsModel {
   final String? customerId;
   final bool feedbackSubmitted;
   final DateTime? feedbackSubmittedAt;
+
+  /// Timeline metadata (best-effort; older bookings may be missing these).
+  final String? createdActorType; // customer/system/owner/admin
+  final DateTime? confirmedAt;
+  final String? confirmedActorType;
+  final DateTime? cancelledAt;
+  final String? cancelledActorType;
+  final String? cancelReason;
+  final DateTime? rescheduledAt;
+  final String? rescheduledActorType;
 
   /// From `publicSalons/{salonId}.customerBookingSettings` when present.
   final CustomerBookingSettings customerBookingSettings;
@@ -210,35 +240,31 @@ class CustomerBookingDetailsModel {
         ? _string(bookingData['salonId'])
         : publicSalon.id;
 
-    final salonName = publicSalon.salonName.isNotEmpty
-        ? publicSalon.salonName
-        : _string(bookingData['salonName']);
+    final salonNameFromBooking = _string(bookingData['salonName']);
+    final salonName = salonNameFromBooking.isNotEmpty
+        ? salonNameFromBooking
+        : publicSalon.salonName;
 
     String? fallbackPhone(Object? v) {
       final s = _string(v);
       return s.isEmpty ? null : s;
     }
 
-    final mergedPhone = (publicSalon.phone?.trim().isNotEmpty == true)
-        ? publicSalon.phone?.trim()
-        : fallbackPhone(
-          bookingData['salonPhone'] ??
-              bookingData['phone'] ??
-              bookingData['phoneNumber'],
-        );
+    final mergedPhone = fallbackPhone(
+      bookingData['salonPhone'] ?? bookingData['phone'] ?? bookingData['phoneNumber'],
+    ) ??
+        (publicSalon.phone?.trim().isNotEmpty == true ? publicSalon.phone?.trim() : null);
 
-    final mergedWhatsapp = (publicSalon.whatsapp?.trim().isNotEmpty == true)
-        ? publicSalon.whatsapp?.trim()
-        : fallbackPhone(
-          bookingData['salonWhatsapp'] ??
-              bookingData['whatsapp'] ??
-              bookingData['whatsApp'] ??
-              bookingData['whatsappNumber'],
-        );
+    final mergedWhatsapp = fallbackPhone(
+      bookingData['salonWhatsapp'] ??
+          bookingData['whatsapp'] ??
+          bookingData['whatsApp'] ??
+          bookingData['whatsappNumber'],
+    ) ??
+        (publicSalon.whatsapp?.trim().isNotEmpty == true ? publicSalon.whatsapp?.trim() : null);
 
-    final mergedArea = publicSalon.area.isNotEmpty
-        ? publicSalon.area
-        : _string(bookingData['salonArea'] ?? bookingData['area']);
+    final areaFromBooking = _string(bookingData['salonArea'] ?? bookingData['area']);
+    final mergedArea = areaFromBooking.isNotEmpty ? areaFromBooking : publicSalon.area;
 
     return CustomerBookingDetailsModel(
       id: bookingId,
@@ -259,6 +285,18 @@ class CustomerBookingDetailsModel {
       subtotal: _double(bookingData['subtotal']),
       discountAmount: _double(bookingData['discountAmount']),
       totalAmount: _double(bookingData['totalAmount']),
+      paymentStatus: _string(bookingData['paymentStatus']).isNotEmpty
+          ? _string(bookingData['paymentStatus'])
+          : 'unpaid',
+      paymentMethod: _string(bookingData['paymentMethod']).isNotEmpty
+          ? _string(bookingData['paymentMethod'])
+          : 'not_selected',
+      depositRequired: _bool(bookingData['depositRequired'], false),
+      depositAmount: _double(bookingData['depositAmount']),
+      paidAmount: _double(bookingData['paidAmount']),
+      balanceAmount: bookingData['balanceAmount'] is num
+          ? (bookingData['balanceAmount'] as num).toDouble()
+          : _double(bookingData['totalAmount']),
       durationMinutes: _int(bookingData['durationMinutes']),
       startAt: _requiredDate(bookingData['startAt']),
       endAt: _requiredDate(bookingData['endAt']),
@@ -274,6 +312,18 @@ class CustomerBookingDetailsModel {
       feedbackSubmitted: _bool(bookingData['feedbackSubmitted'], false),
       feedbackSubmittedAt: _date(bookingData['feedbackSubmittedAt']),
       customerBookingSettings: publicSalon.customerBookingSettings,
+      createdActorType: _string(bookingData['createdActorType']),
+      confirmedAt: _date(bookingData['confirmedAt']),
+      confirmedActorType: _string(bookingData['confirmedActorType']),
+      cancelledAt: _date(bookingData['cancelledAt']),
+      cancelledActorType: _string(
+        bookingData['cancelledActorType'] ?? bookingData['cancelledBy'],
+      ),
+      cancelReason: _string(
+        bookingData['cancelReason'] ?? bookingData['cancellationReason'],
+      ),
+      rescheduledAt: _date(bookingData['rescheduledAt']),
+      rescheduledActorType: _string(bookingData['rescheduledActorType']),
     );
   }
 

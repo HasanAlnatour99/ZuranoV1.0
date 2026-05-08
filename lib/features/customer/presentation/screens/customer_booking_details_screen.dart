@@ -135,6 +135,11 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
     );
   }
 
+  static int _policyHoursFromMinutes(int minutes, {int fallback = 0}) {
+    if (minutes <= 0) return fallback;
+    return (minutes / 60).ceil();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -165,6 +170,11 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
     );
     final menuCancelEnabled =
         cancelEligibility == CustomerOnlineCancelEligibility.eligible;
+
+    final rescheduleCutoff = details.customerBookingSettings.rescheduleCutoffMinutes;
+    final minsUntilStart = details.startAt.difference(DateTime.now()).inMinutes;
+    final policyRescheduleAllowed = menuRescheduleEnabled &&
+        (rescheduleCutoff <= 0 || minsUntilStart > rescheduleCutoff);
 
     void handleOverflowReschedule() {
       context.pushNamed(
@@ -233,7 +243,7 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                               ),
                               _BookingDetailsOverflowMenu(
                                 l10n: l10n,
-                                rescheduleEnabled: menuRescheduleEnabled,
+                                rescheduleEnabled: policyRescheduleAllowed,
                                 cancelEnabled: menuCancelEnabled,
                                 onReschedule: handleOverflowReschedule,
                                 onCancel: handleOverflowCancel,
@@ -384,11 +394,11 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                         if (details.customerPhone.trim().isNotEmpty) ...[
                           const SizedBox(height: AppSpacing.small),
                           Text(
-                            CustomerPhoneNormalizer.displayPhone(
-                              CustomerPhoneNormalizer.normalizePhone(
-                                details.customerPhone,
-                              ),
-                            ),
+                            details.customerPhoneNormalized.trim().isNotEmpty
+                                ? details.customerPhoneNormalized.trim()
+                                : CustomerPhoneNormalizer.normalizePhone(
+                                  details.customerPhone,
+                                ),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColorsLight.textSecondary,
                               fontWeight: FontWeight.w600,
@@ -413,6 +423,15 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                     icon: Icons.payments_outlined,
                     child: Column(
                       children: [
+                        _PaymentRow(
+                          label: l10n.customerBookingPaymentStatusLabel,
+                          value: switch (details.paymentStatus.trim().toLowerCase()) {
+                            'paid' => l10n.customerBookingPaymentStatusPaid,
+                            'partial' || 'partially_paid' =>
+                              l10n.customerBookingPaymentStatusPartial,
+                            _ => l10n.customerBookingPaymentStatusUnpaid,
+                          },
+                        ),
                         _PaymentRow(
                           label: l10n.customerBookingReviewSubtotal,
                           value: formatMoney(
@@ -443,6 +462,39 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.small),
+                  Builder(
+                    builder: (context) {
+                      final s = details.customerBookingSettings;
+                      final cancelHours =
+                          s.allowCustomerCancellation ? (s.cancellationNoticeHours > 0 ? s.cancellationNoticeHours : _policyHoursFromMinutes(s.cancellationCutoffMinutes)) : 0;
+                      final rescheduleHours = _policyHoursFromMinutes(
+                        s.rescheduleCutoffMinutes,
+                        fallback: 0,
+                      );
+                      if (cancelHours <= 0 && rescheduleHours <= 0) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: AppSpacing.small),
+                        child: CustomerBookingDetailsSectionCard(
+                          title: l10n.customerBookingDetailsPolicyTitle,
+                          icon: Icons.policy_outlined,
+                          child: Text(
+                            l10n.customerBookingDetailsPolicyBody(
+                              cancelHours,
+                              rescheduleHours,
+                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColorsLight.textSecondary,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   CustomerBookingActionPanel(
                     details: details,
                     onRescheduleComingSoon: () {
@@ -452,7 +504,14 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                       final canReschedule =
                           normalized == BookingStatuses.pending ||
                           normalized == BookingStatuses.confirmed;
-                      if (!canReschedule) {
+                      final cutoff =
+                          details.customerBookingSettings.rescheduleCutoffMinutes;
+                      final mins = details.startAt
+                          .difference(DateTime.now())
+                          .inMinutes;
+                      final allowed = canReschedule &&
+                          (cutoff <= 0 || mins > cutoff);
+                      if (!allowed) {
                         _comingSoon(context);
                         return;
                       }

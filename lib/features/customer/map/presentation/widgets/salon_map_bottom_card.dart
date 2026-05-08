@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../l10n/app_localizations.dart';
@@ -23,6 +24,12 @@ class SalonMapBottomCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final imageUrl = salon.imageUrl;
     final distanceText = customerMapDistanceLabel(l10n, salon);
+    final nextAt = salon.nextAvailableAt;
+    String? nextSlot;
+    if (nextAt != null) {
+      final locale = Localizations.localeOf(context).toString();
+      nextSlot = DateFormat.jm(locale).format(nextAt);
+    }
 
     return Material(
       color: scheme.surfaceContainerHighest,
@@ -92,7 +99,8 @@ class SalonMapBottomCard extends StatelessWidget {
                           ),
                         ),
                         _OpenStatusPill(
-                          status: salon.openStatus,
+                          openNow: salon.openNow,
+                          openStatus: salon.openStatus,
                           l10n: l10n,
                         ),
                       ],
@@ -164,6 +172,18 @@ class SalonMapBottomCard extends StatelessWidget {
                         ],
                       ],
                     ),
+                    if (nextSlot != null) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        l10n.customerMapNextAvailableToday(nextSlot),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
                     const Spacer(),
                     Row(
                       children: [
@@ -181,7 +201,7 @@ class SalonMapBottomCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                             child: Text(
-                              l10n.customerMapDetailsCta,
+                              l10n.customerMapViewProfile,
                               style: const TextStyle(fontWeight: FontWeight.w800),
                             ),
                           ),
@@ -220,34 +240,66 @@ class SalonMapBottomCard extends StatelessWidget {
 
 class _OpenStatusPill extends StatelessWidget {
   const _OpenStatusPill({
-    required this.status,
+    required this.openNow,
+    required this.openStatus,
     required this.l10n,
   });
 
-  final String status;
+  final bool openNow;
+  final String openStatus;
   final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final normalized = status.toLowerCase().trim();
+    final normalized = openStatus.toLowerCase().trim();
 
-    final isOpen = normalized == 'open';
+    if (openNow || normalized == 'open') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: scheme.tertiaryContainer.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          l10n.customerMapStatusOpen,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onTertiaryContainer,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      );
+    }
+
+    if (normalized == 'closed') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          l10n.customerMapStatusClosed,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isOpen
-            ? scheme.tertiaryContainer.withValues(alpha: 0.6)
-            : scheme.surfaceContainerHigh,
+        color: scheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        isOpen ? l10n.customerMapStatusOpen : l10n.customerMapStatusSoon,
+        l10n.customerMapStatusSoon,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: isOpen
-                  ? scheme.onTertiaryContainer
-                  : scheme.onSurfaceVariant,
+              color: scheme.onSurfaceVariant,
               fontSize: 10.5,
               fontWeight: FontWeight.w800,
             ),

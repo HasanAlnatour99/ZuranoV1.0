@@ -1,5 +1,6 @@
 import 'package:barber_shop_app/features/customer/search/data/customer_search_repository.dart';
 import 'package:barber_shop_app/features/customer/search/domain/models/customer_search_filter.dart';
+import 'package:barber_shop_app/features/customer/search/domain/models/customer_search_result.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const qa = 'QA';
 
+  /// Builds a single `customerSearchIndex` row that satisfies the production
+  /// `firestore.rules` predicate (`isActive && isPublic && countryCode`) and
+  /// the controller's mandatory token fields (`searchKeywords`, `searchPrefixes`).
   Map<String, dynamic> indexSalonDoc({
     required String salonId,
     required String countryCode,
@@ -18,13 +22,19 @@ void main() {
     required bool hasOffer,
     required num priceFrom,
     required double ratingAvg,
+    String type = 'salon',
+    String? targetId,
     GeoPoint? location,
     List<String>? keywords,
+    List<String>? prefixes,
+    bool availableToday = false,
+    DateTime? nextAvailableAt,
   }) {
+    final tokens = keywords ?? const <String>['haircut', 'beard'];
     return <String, dynamic>{
-      'type': 'salon',
+      'type': type,
       'salonId': salonId,
-      'targetId': salonId,
+      'targetId': targetId ?? salonId,
       'title': 'Salon $salonId',
       'subtitle': 'sub',
       'countryCode': countryCode,
@@ -39,7 +49,10 @@ void main() {
       'hasOffer': hasOffer,
       'isActive': true,
       'isPublic': true,
-      'searchKeywords': keywords ?? <String>['haircut', 'beard'],
+      'searchKeywords': tokens,
+      'searchPrefixes': prefixes ?? _expandPrefixes(tokens),
+      'availableToday': availableToday,
+      'nextAvailableAt': nextAvailableAt,
       'location': ?location,
     };
   }
@@ -92,7 +105,7 @@ void main() {
       expect(ids.contains('l1'), isFalse);
     });
 
-    test('filters by countryCode only', () async {
+    test('country filter blocks cross-country index rows', () async {
       final fake = FakeFirebaseFirestore();
       await fake.collection('customerSearchIndex').doc('salon_qa').set(
             indexSalonDoc(
@@ -120,6 +133,7 @@ void main() {
 
       expect(out, hasLength(1));
       expect(out.single.countryCode.toUpperCase(), qa);
+      expect(out.single.salonId, 'qa1');
     });
 
     test('openNowOnly restricts to isOpenNow rows', () async {
@@ -192,7 +206,7 @@ void main() {
       expect(out.single.hasOffer, isTrue);
     });
 
-    test('query uses searchKeywords arrayContains', () async {
+    test('exact keyword query matches via searchPrefixes arrayContains', () async {
       final fake = FakeFirebaseFirestore();
       await fake.collection('customerSearchIndex').doc('a').set(
             indexSalonDoc(
@@ -227,6 +241,83 @@ void main() {
 
       expect(out, hasLength(1));
       expect(out.single.salonId, 'a');
+    });
+
+    test('prefix query matches against searchPrefixes (typeahead)', () async {
+      final fake = FakeFirebaseFirestore();
+      await fake.collection('customerSearchIndex').doc('a').set(
+            indexSalonDoc(
+              salonId: 'a',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 10,
+              ratingAvg: 4,
+              keywords: <String>['barbershop'],
+            ),
+          );
+      await fake.collection('customerSearchIndex').doc('b').set(
+            indexSalonDoc(
+              salonId: 'b',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 10,
+              ratingAvg: 4,
+              keywords: <String>['salon'],
+            ),
+          );
+
+      final repo = CustomerSearchRepository(fake);
+      final out = await repo.search(
+        const CustomerSearchFilter(
+          countryCode: qa,
+          query: '  Bar ', // mixed case + padding to exercise normalization
+        ),
+      );
+
+      expect(out, hasLength(1));
+      expect(out.single.salonId, 'a');
+    });
+
+    test('availableTodayOnly excludes rows that are not available today', () async {
+      final fake = FakeFirebaseFirestore();
+      await fake.collection('customerSearchIndex').doc('open_today').set(
+            indexSalonDoc(
+              salonId: 'open_today',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 10,
+              ratingAvg: 4,
+              availableToday: true,
+              nextAvailableAt: DateTime.now().add(const Duration(hours: 1)),
+            ),
+          );
+      await fake.collection('customerSearchIndex').doc('full_day').set(
+            indexSalonDoc(
+              salonId: 'full_day',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 10,
+              ratingAvg: 4,
+              availableToday: false,
+              nextAvailableAt: DateTime.now().add(const Duration(days: 2)),
+            ),
+          );
+
+      final repo = CustomerSearchRepository(fake);
+      final out = await repo.search(
+        const CustomerSearchFilter(
+          countryCode: qa,
+          availableTodayOnly: true,
+        ),
+      );
+
+      expect(out, hasLength(1));
+      expect(out.single.salonId, 'open_today');
+      expect(out.single.availableToday, isTrue);
     });
 
     test('sort priceLowToHigh orders by priceFrom', () async {
@@ -339,44 +430,150 @@ void main() {
       expect(out.first.distanceKm, isNotNull);
     });
 
-    test('fallback reads publicSalons when index is empty', () async {
+    test('service result preserves salonId + targetId for navigation', () async {
       final fake = FakeFirebaseFirestore();
-      await fake.collection('publicSalons').doc('pub1').set(<String, dynamic>{
-        'salonId': 'pub1',
-        'countryCode': qa,
-        'isPublic': true,
-        'isActive': true,
-        'salonName': 'Public Salon',
-        'name': 'Public Salon',
-        'city': 'Doha',
-        'area': 'West',
-        'countryName': 'Testland',
-        'searchKeywords': <String>['haircut'],
-        'startingPrice': 25,
-        'ratingAverage': 4.2,
-        'ratingCount': 3,
-        'isOpen': true,
-        'hasOffer': false,
-        'latitude': 25.29,
-        'longitude': 51.53,
-      });
+      await fake.collection('customerSearchIndex').doc('service_1').set(
+            indexSalonDoc(
+              salonId: 'salon_1',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 25,
+              ratingAvg: 4,
+              type: 'service',
+              targetId: 'service_xyz',
+              keywords: <String>['haircut'],
+            ),
+          );
 
       final repo = CustomerSearchRepository(fake);
       final out = await repo.search(const CustomerSearchFilter(countryCode: qa));
 
-      expect(out, isNotEmpty);
-      expect(out.single.title.toLowerCase(), contains('public'));
+      expect(out, hasLength(1));
+      final r = out.single;
+      expect(r.type, CustomerSearchResultType.service);
+      expect(r.salonId, 'salon_1');
+      expect(r.targetId, 'service_xyz');
+    });
+
+    test('specialist result preserves salonId + employeeId targetId', () async {
+      final fake = FakeFirebaseFirestore();
+      await fake.collection('customerSearchIndex').doc('specialist_1').set(
+            indexSalonDoc(
+              salonId: 'salon_2',
+              countryCode: qa,
+              isOpenNow: true,
+              hasOffer: false,
+              priceFrom: 0,
+              ratingAvg: 4,
+              type: 'specialist',
+              targetId: 'employee_42',
+              keywords: <String>['barber'],
+            ),
+          );
+
+      final repo = CustomerSearchRepository(fake);
+      final out = await repo.search(const CustomerSearchFilter(countryCode: qa));
+
+      expect(out, hasLength(1));
+      final r = out.single;
+      expect(r.type, CustomerSearchResultType.specialist);
+      expect(r.salonId, 'salon_2');
+      expect(r.targetId, 'employee_42');
+    });
+
+    group('publicSalons fallback', () {
+      test('reads only when index is empty and respects published flag', () async {
+        final fake = FakeFirebaseFirestore();
+        await fake.collection('publicSalons').doc('pub1').set(<String, dynamic>{
+          'salonId': 'pub1',
+          'countryCode': qa,
+          'isPublic': true,
+          'isActive': true,
+          'isPublished': true,
+          'salonName': 'Public Salon',
+          'name': 'Public Salon',
+          'city': 'Doha',
+          'area': 'West',
+          'countryName': 'Testland',
+          'searchKeywords': <String>['haircut'],
+          'startingPrice': 25,
+          'ratingAverage': 4.2,
+          'ratingCount': 3,
+          'isOpen': true,
+          'hasOffer': false,
+          'latitude': 25.29,
+          'longitude': 51.53,
+        });
+
+        final repo = CustomerSearchRepository(fake);
+        final out = await repo.search(const CustomerSearchFilter(countryCode: qa));
+
+        expect(out, isNotEmpty);
+        expect(out.single.title.toLowerCase(), contains('public'));
+      });
+
+      test('skips unpublished public salons (matches firestore.rules)', () async {
+        final fake = FakeFirebaseFirestore();
+        // `isPublished: false` — must NOT surface even though isActive + isPublic.
+        await fake.collection('publicSalons').doc('draft').set(<String, dynamic>{
+          'salonId': 'draft',
+          'countryCode': qa,
+          'isPublic': true,
+          'isActive': true,
+          'isPublished': false,
+          'name': 'Draft Salon',
+          'city': 'Doha',
+          'area': 'West',
+        });
+
+        final repo = CustomerSearchRepository(fake);
+        final out = await repo.search(const CustomerSearchFilter(countryCode: qa));
+        expect(out, isEmpty);
+      });
+
+      test('skips cross-country public salons', () async {
+        final fake = FakeFirebaseFirestore();
+        await fake.collection('publicSalons').doc('us_pub').set(<String, dynamic>{
+          'salonId': 'us_pub',
+          'countryCode': 'US',
+          'isPublic': true,
+          'isActive': true,
+          'isPublished': true,
+          'name': 'NY Salon',
+          'city': 'New York',
+          'area': 'NoHo',
+        });
+
+        final repo = CustomerSearchRepository(fake);
+        final out = await repo.search(const CustomerSearchFilter(countryCode: qa));
+        expect(out, isEmpty);
+      });
     });
   });
 
-  group('QA notes — product gaps', () {
-    test(
-      'availableTodayOnly is not applied in repository yet (no index field)',
-      () {
-        // customerSearchIndex mirror (functions/src/customerSearchIndex.ts) has no
-        // availability flag; chip toggles UI state only until backend exposes one.
-        expect(true, isTrue);
-      },
-    );
+  group('normalizeCustomerSearchQuery', () {
+    test('lowercases, trims, and collapses whitespace', () {
+      expect(normalizeCustomerSearchQuery('  HaIr   cut '), 'hair cut');
+      expect(normalizeCustomerSearchQuery(''), '');
+      expect(normalizeCustomerSearchQuery('   '), '');
+    });
   });
+}
+
+/// Helpers ------------------------------------------------------------------
+
+/// Mirrors `buildSearchPrefixes` from `functions/src/customerSearchIndex.ts`
+/// closely enough to drive the prefix-matching test path.
+List<String> _expandPrefixes(List<String> tokens) {
+  final out = <String>{};
+  for (final raw in tokens) {
+    final t = raw.trim().toLowerCase();
+    if (t.isEmpty) continue;
+    final lim = t.length > 12 ? 12 : t.length;
+    for (var i = 1; i <= lim; i++) {
+      out.add(t.substring(0, i));
+    }
+  }
+  return out.toList(growable: false);
 }

@@ -37,6 +37,13 @@ class CustomerSearchResult {
   /// Active team / employees count when mirrored (optional).
   final int? teamCount;
 
+  /// True when the salon (or specialist) has at least one bookable slot today.
+  /// Maintained by Cloud Functions on `customerSearchIndex` rows.
+  final bool availableToday;
+
+  /// Earliest bookable slot for this row, when known.
+  final DateTime? nextAvailableAt;
+
   const CustomerSearchResult({
     required this.id,
     required this.salonId,
@@ -61,12 +68,16 @@ class CustomerSearchResult {
     this.audience = 'unisex',
     this.serviceCount,
     this.teamCount,
+    this.availableToday = false,
+    this.nextAvailableAt,
   });
 
   CustomerSearchResult copyWith({
     double? distanceKm,
     int? serviceCount,
     int? teamCount,
+    bool? availableToday,
+    DateTime? nextAvailableAt,
   }) {
     return CustomerSearchResult(
       id: id,
@@ -92,6 +103,8 @@ class CustomerSearchResult {
       audience: audience,
       serviceCount: serviceCount ?? this.serviceCount,
       teamCount: teamCount ?? this.teamCount,
+      availableToday: availableToday ?? this.availableToday,
+      nextAvailableAt: nextAvailableAt ?? this.nextAvailableAt,
     );
   }
 }

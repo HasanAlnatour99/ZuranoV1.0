@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../data/models/customer_booking_draft.dart';
 import '../data/models/customer_service_public_model.dart';
@@ -9,6 +10,8 @@ final customerBookingDraftProvider =
     );
 
 class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
+  static const Uuid _uuid = Uuid();
+
   @override
   CustomerBookingDraft build() => CustomerBookingDraft.empty();
 
@@ -64,12 +67,18 @@ class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
     required String customerName,
     required String customerPhone,
     required String customerPhoneNormalized,
+    String? customerCountryIsoCode,
+    String? customerDialCode,
+    String? customerPhoneNational,
     String? customerGender,
     String? customerNote,
   }) {
     state = state.copyWith(
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
+      customerCountryIsoCode: customerCountryIsoCode?.trim().toUpperCase(),
+      customerDialCode: customerDialCode?.trim(),
+      customerPhoneNational: customerPhoneNational?.trim(),
       customerPhoneNormalized: customerPhoneNormalized.trim(),
       customerGender: customerGender?.trim(),
       customerNote: customerNote?.trim(),
@@ -94,6 +103,14 @@ class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
     state = CustomerBookingDraft.empty();
   }
 
+  void ensureClientRequestId() {
+    final existing = state.clientRequestId?.trim() ?? '';
+    if (existing.isNotEmpty) {
+      return;
+    }
+    state = state.copyWith(clientRequestId: _uuid.v4());
+  }
+
   void _setServices(List<CustomerServicePublicModel> services) {
     final subtotal = services.fold<double>(
       0,
@@ -106,6 +123,7 @@ class CustomerBookingDraftNotifier extends Notifier<CustomerBookingDraft> {
     final discount = state.discountAmount;
     state = state.copyWith(
       selectedServices: List.unmodifiable(services),
+      clientRequestId: null,
       selectedEmployeeId: null,
       selectedEmployeeName: null,
       anyAvailableEmployee: false,

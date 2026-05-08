@@ -13,8 +13,12 @@ class CustomerBookingDraft {
     this.anyAvailableEmployee = false,
     this.selectedStartAt,
     this.selectedEndAt,
+    this.clientRequestId,
     this.customerName,
     this.customerPhone,
+    this.customerCountryIsoCode,
+    this.customerDialCode,
+    this.customerPhoneNational,
     this.customerPhoneNormalized,
     this.customerGender,
     this.customerNote,
@@ -33,8 +37,12 @@ class CustomerBookingDraft {
   final bool anyAvailableEmployee;
   final DateTime? selectedStartAt;
   final DateTime? selectedEndAt;
+  final String? clientRequestId;
   final String? customerName;
   final String? customerPhone;
+  final String? customerCountryIsoCode;
+  final String? customerDialCode;
+  final String? customerPhoneNational;
   final String? customerPhoneNormalized;
   final String? customerGender;
   final String? customerNote;
@@ -85,8 +93,12 @@ class CustomerBookingDraft {
     bool? anyAvailableEmployee,
     Object? selectedStartAt = _unset,
     Object? selectedEndAt = _unset,
+    Object? clientRequestId = _unset,
     Object? customerName = _unset,
     Object? customerPhone = _unset,
+    Object? customerCountryIsoCode = _unset,
+    Object? customerDialCode = _unset,
+    Object? customerPhoneNational = _unset,
     Object? customerPhoneNormalized = _unset,
     Object? customerGender = _unset,
     Object? customerNote = _unset,
@@ -113,12 +125,24 @@ class CustomerBookingDraft {
       selectedEndAt: identical(selectedEndAt, _unset)
           ? this.selectedEndAt
           : selectedEndAt as DateTime?,
+      clientRequestId: identical(clientRequestId, _unset)
+          ? this.clientRequestId
+          : clientRequestId as String?,
       customerName: identical(customerName, _unset)
           ? this.customerName
           : customerName as String?,
       customerPhone: identical(customerPhone, _unset)
           ? this.customerPhone
           : customerPhone as String?,
+      customerCountryIsoCode: identical(customerCountryIsoCode, _unset)
+          ? this.customerCountryIsoCode
+          : customerCountryIsoCode as String?,
+      customerDialCode: identical(customerDialCode, _unset)
+          ? this.customerDialCode
+          : customerDialCode as String?,
+      customerPhoneNational: identical(customerPhoneNational, _unset)
+          ? this.customerPhoneNational
+          : customerPhoneNational as String?,
       customerPhoneNormalized: identical(customerPhoneNormalized, _unset)
           ? this.customerPhoneNormalized
           : customerPhoneNormalized as String?,

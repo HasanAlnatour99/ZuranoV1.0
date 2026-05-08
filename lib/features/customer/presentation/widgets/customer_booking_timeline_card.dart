@@ -34,6 +34,23 @@ class CustomerBookingTimelineCard extends StatelessWidget {
       return '${dateFmt.format(local)} · ${timeFmt.format(local)}';
     }
 
+    String actorLabel(String? raw) {
+      final t = raw?.trim().toLowerCase() ?? '';
+      return switch (t) {
+        'customer' => l10n.customerTimelineActorCustomer,
+        'system' => l10n.customerTimelineActorSystem,
+        'owner' => l10n.customerTimelineActorOwner,
+        'admin' => l10n.customerTimelineActorAdmin,
+        _ => '',
+      };
+    }
+
+    String withActor(String when, String actor) {
+      if (actor.trim().isEmpty) return when;
+      if (when.trim().isEmpty || when.trim() == '—') return actor;
+      return '$when · $actor';
+    }
+
     final status = details.status.trim();
     final now = DateTime.now();
     final isActiveVisit =
@@ -66,19 +83,24 @@ class CustomerBookingTimelineCard extends StatelessWidget {
       BookingStatuses.pending => details.createdAt ?? details.startAt,
       BookingStatuses.confirmed ||
       'checkedIn' ||
-      'checked_in' => details.updatedAt ?? details.startAt,
+      'checked_in' => details.confirmedAt ?? details.updatedAt ?? details.startAt,
       _ => details.startAt,
     };
 
     final step3Time = switch (status) {
       BookingStatuses.completed => formatDt(details.endAt),
-      BookingStatuses.cancelled => formatDt(details.endAt),
+      BookingStatuses.cancelled => formatDt(details.cancelledAt ?? details.updatedAt ?? details.endAt),
       BookingStatuses.noShow || 'noShow' => formatDt(details.startAt),
       _ when isActiveVisit =>
         '${timeFmt.format(details.startAt.toLocal())} – '
             '${timeFmt.format(details.endAt.toLocal())}',
       _ => formatDt(details.endAt),
     };
+
+    final createdActor = actorLabel(details.createdActorType);
+    final confirmedActor = actorLabel(details.confirmedActorType);
+    final cancelledActor = actorLabel(details.cancelledActorType);
+    final rescheduledActor = actorLabel(details.rescheduledActorType);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -99,19 +121,47 @@ class CustomerBookingTimelineCard extends StatelessWidget {
             _TimelineRow(
               dotColor: AppBrandColors.primary,
               title: l10n.customerBookingDetailsTimelineCreated,
-              subtitle: formatDt(details.createdAt ?? details.startAt),
+              subtitle: withActor(
+                formatDt(details.createdAt ?? details.startAt),
+                createdActor,
+              ),
               isLast: false,
             ),
+            if (details.rescheduledAt != null) ...[
+              _TimelineRow(
+                dotColor: AppBrandColors.primary.withValues(alpha: 0.75),
+                title: l10n.bookingStatusRescheduled,
+                subtitle: withActor(
+                  formatDt(details.rescheduledAt),
+                  rescheduledActor,
+                ),
+                isLast: false,
+              ),
+            ],
             _TimelineRow(
               dotColor: AppBrandColors.primary.withValues(alpha: 0.65),
               title: step2Label,
-              subtitle: formatDt(step2Time),
+              subtitle: withActor(
+                formatDt(step2Time),
+                step2Label == l10n.customerBookingDetailsTimelineConfirmed
+                    ? confirmedActor
+                    : '',
+              ),
               isLast: false,
             ),
             _TimelineRow(
               dotColor: theme.colorScheme.outline,
               title: step3Label,
-              subtitle: step3Time,
+              subtitle: withActor(
+                step3Time,
+                step3Label == l10n.customerBookingStatusCancelled
+                    ? cancelledActor
+                    : '',
+              ),
+              extra: (step3Label == l10n.customerBookingStatusCancelled &&
+                      (details.cancelReason?.trim().isNotEmpty == true))
+                  ? '${l10n.customerCancelBookingReasonLabel}: ${details.cancelReason!.trim()}'
+                  : null,
               isLast: true,
             ),
           ],
@@ -127,12 +177,14 @@ class _TimelineRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.isLast,
+    this.extra,
   });
 
   final Color dotColor;
   final String title;
   final String subtitle;
   final bool isLast;
+  final String? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +238,16 @@ class _TimelineRow extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  if (extra != null && extra!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      extra!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColorsLight.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

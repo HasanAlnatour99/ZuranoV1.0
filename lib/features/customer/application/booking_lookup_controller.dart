@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/firebase/cloud_functions_region.dart';
 import '../../../providers/repository_providers.dart';
 import '../../../providers/session_provider.dart';
+import '../../../core/phone/zurano_phone_country.dart';
+import '../../../core/phone/zurano_phone_normalizer.dart';
 import '../data/models/customer_booking_lookup_model.dart';
 import '../data/repositories/booking_lookup_repository.dart';
-import 'customer_phone_normalizer.dart';
 
 enum BookingLookupError { invalidPhone, missingPhoneOrCode }
 
@@ -67,6 +68,7 @@ class BookingLookupController extends AsyncNotifier<List<CustomerBookingLookupMo
   Future<List<CustomerBookingLookupModel>?> search({
     required String phoneInput,
     required String bookingCodeInput,
+    required ZuranoPhoneCountry country,
   }) async {
     final phoneTrim = phoneInput.trim();
     final codeTrim = bookingCodeInput.trim();
@@ -79,8 +81,11 @@ class BookingLookupController extends AsyncNotifier<List<CustomerBookingLookupMo
       return null;
     }
 
-    final phoneNormalized = CustomerPhoneNormalizer.normalizePhone(phoneInput);
-    if (!CustomerPhoneNormalizer.isValidPhone(phoneNormalized)) {
+    final phoneResult = ZuranoPhoneNormalizer.normalize(
+      input: phoneInput,
+      country: country,
+    );
+    if (!phoneResult.isValid) {
       state = AsyncValue.error(
         const BookingLookupException(BookingLookupError.invalidPhone),
         StackTrace.current,
@@ -91,7 +96,7 @@ class BookingLookupController extends AsyncNotifier<List<CustomerBookingLookupMo
     state = const AsyncValue.loading();
     final result = await AsyncValue.guard(
       () => ref.read(bookingLookupRepositoryProvider).findBooking(
-            phoneNormalized: phoneNormalized,
+            phoneNormalized: phoneResult.e164,
             bookingCode: codeTrim.toUpperCase(),
           ),
     );

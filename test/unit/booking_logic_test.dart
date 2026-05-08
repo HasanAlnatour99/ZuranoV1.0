@@ -1,5 +1,6 @@
 import 'package:barber_shop_app/core/constants/booking_status_machine.dart';
 import 'package:barber_shop_app/core/constants/booking_statuses.dart';
+import 'package:barber_shop_app/core/firestore/firestore_paths.dart';
 import 'package:barber_shop_app/features/bookings/data/booking_repository.dart';
 import 'package:barber_shop_app/features/bookings/data/booking_time_overlap_exception.dart';
 import 'package:barber_shop_app/features/bookings/data/models/booking.dart';
@@ -105,7 +106,9 @@ void main() {
     test('booking creation updates customer lastBookingAt', () async {
       final firestore = FakeFirebaseFirestore();
       final repository = BookingRepository(firestore: firestore);
-      await firestore.collection('customers').doc('customer-1').set({
+      await firestore
+          .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
+          .set({
         'id': 'customer-1',
         'salonId': 'salon-1',
       });
@@ -127,8 +130,7 @@ void main() {
       );
 
       final customerDoc = await firestore
-          .collection('customers')
-          .doc('customer-1')
+          .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
           .get();
       expect(customerDoc.data()?['lastBookingAt'], isNotNull);
     }, tags: ['critical']);
@@ -138,7 +140,9 @@ void main() {
       () async {
         final firestore = FakeFirebaseFirestore();
         final repository = BookingRepository(firestore: firestore);
-        await firestore.collection('customers').doc('customer-1').set({
+        await firestore
+            .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
+            .set({
           'id': 'customer-1',
           'salonId': 'salon-1',
           'visitCount': 0,
@@ -165,8 +169,7 @@ void main() {
         );
 
         final customerDoc = await firestore
-            .collection('customers')
-            .doc('customer-1')
+            .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
             .get();
         expect(customerDoc.data()?['visitCount'], 1);
         expect((customerDoc.data()?['totalSpent'] as num).toDouble(), 80);
@@ -177,7 +180,9 @@ void main() {
     test('customer totalSpent equals sum of completed bookings', () async {
       final firestore = FakeFirebaseFirestore();
       final repository = BookingRepository(firestore: firestore);
-      await firestore.collection('customers').doc('customer-1').set({
+      await firestore
+          .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
+          .set({
         'id': 'customer-1',
         'salonId': 'salon-1',
         'visitCount': 0,
@@ -209,8 +214,7 @@ void main() {
       await seedAndComplete('b-3', 30);
 
       final customerDoc = await firestore
-          .collection('customers')
-          .doc('customer-1')
+          .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
           .get();
       expect((customerDoc.data()?['totalSpent'] as num).toDouble(), 150);
       expect(customerDoc.data()?['visitCount'], 3);
@@ -221,7 +225,9 @@ void main() {
       () async {
         final firestore = FakeFirebaseFirestore();
         final repository = BookingRepository(firestore: firestore);
-        await firestore.collection('customers').doc('customer-1').set({
+        await firestore
+            .doc(FirestorePaths.salonCustomer('salon-1', 'customer-1'))
+            .set({
           'id': 'customer-1',
           'salonId': 'salon-1',
         });

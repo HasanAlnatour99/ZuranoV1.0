@@ -91,6 +91,9 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       );
       return;
     }
+
+    // Idempotency key: generate once when the customer reaches Review.
+    ref.read(customerBookingDraftProvider.notifier).ensureClientRequestId();
   }
 
   Future<void> _confirm(AppLocalizations l10n) async {
@@ -291,6 +294,11 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                     BookingReviewSectionCard(
                       title: l10n.customerBookingReviewServices,
                       icon: Icons.spa_outlined,
+                      editLabel: l10n.customerDetailsEdit,
+                      onEdit: () => context.pushNamed(
+                        AppRouteNames.customerServiceSelection,
+                        pathParameters: {'salonId': widget.salonId},
+                      ),
                       child: Column(
                         children: [
                           for (final service in draft.selectedServices)
@@ -304,6 +312,11 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                     BookingReviewSectionCard(
                       title: l10n.customerBookingReviewSpecialist,
                       icon: Icons.person_outline,
+                      editLabel: l10n.customerDetailsEdit,
+                      onEdit: () => context.pushNamed(
+                        AppRouteNames.customerTeamSelection,
+                        pathParameters: {'salonId': widget.salonId},
+                      ),
                       child: _KeyValueLines(
                         lines: [
                           (
@@ -318,6 +331,11 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                     BookingReviewSectionCard(
                       title: l10n.customerBookingReviewDateTime,
                       icon: Icons.event_available_outlined,
+                      editLabel: l10n.customerDetailsEdit,
+                      onEdit: () => context.pushNamed(
+                        AppRouteNames.customerDateTimeSelection,
+                        pathParameters: {'salonId': widget.salonId},
+                      ),
                       child: _KeyValueLines(
                         lines: [
                           switch ((draft.selectedStartAt, draft.selectedEndAt)) {
@@ -336,6 +354,11 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
                     BookingReviewSectionCard(
                       title: l10n.customerBookingReviewCustomer,
                       icon: Icons.badge_outlined,
+                      editLabel: l10n.customerDetailsEdit,
+                      onEdit: () => context.pushNamed(
+                        AppRouteNames.customerDetails,
+                        pathParameters: {'salonId': widget.salonId},
+                      ),
                       child: _KeyValueLines(
                         lines: [
                           (draft.customerName ?? '', draft.customerPhone ?? ''),

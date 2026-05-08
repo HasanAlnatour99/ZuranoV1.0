@@ -5486,6 +5486,18 @@ abstract class AppLocalizations {
   /// **'Enter a valid phone number'**
   String get customerDetailsInvalidPhone;
 
+  /// No description provided for @customerPhoneCountryPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose country'**
+  String get customerPhoneCountryPickerTitle;
+
+  /// No description provided for @customerPhoneCountryPickerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by country, code, or dial code'**
+  String get customerPhoneCountryPickerSearchHint;
+
   /// No description provided for @customerDetailsNameTooShort.
   ///
   /// In en, this message translates to:
@@ -5581,6 +5593,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment summary'**
   String get customerBookingReviewPaymentSummary;
+
+  /// No description provided for @customerBookingPaymentStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment status'**
+  String get customerBookingPaymentStatusLabel;
+
+  /// No description provided for @customerBookingPaymentStatusUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid'**
+  String get customerBookingPaymentStatusUnpaid;
+
+  /// No description provided for @customerBookingPaymentStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get customerBookingPaymentStatusPaid;
+
+  /// No description provided for @customerBookingPaymentStatusPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partially paid'**
+  String get customerBookingPaymentStatusPartial;
 
   /// No description provided for @customerBookingReviewSubtotal.
   ///
@@ -5689,6 +5725,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View booking'**
   String get customerBookingSuccessViewBooking;
+
+  /// No description provided for @customerBookingSuccessCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy booking code'**
+  String get customerBookingSuccessCopyCode;
+
+  /// No description provided for @customerBookingSuccessShareBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Share booking'**
+  String get customerBookingSuccessShareBooking;
+
+  /// No description provided for @customerBookingSuccessAddToCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to calendar'**
+  String get customerBookingSuccessAddToCalendar;
+
+  /// No description provided for @customerBookingSuccessCalendarFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t add to calendar. Please try again.'**
+  String get customerBookingSuccessCalendarFailed;
 
   /// No description provided for @customerBookingSuccessBookAnother.
   ///
@@ -5930,6 +5990,30 @@ abstract class AppLocalizations {
   /// **'Confirmed'**
   String get customerBookingDetailsTimelineConfirmed;
 
+  /// No description provided for @customerTimelineActorCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerTimelineActorCustomer;
+
+  /// No description provided for @customerTimelineActorSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get customerTimelineActorSystem;
+
+  /// No description provided for @customerTimelineActorOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get customerTimelineActorOwner;
+
+  /// No description provided for @customerTimelineActorAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get customerTimelineActorAdmin;
+
   /// No description provided for @customerBookingDetailsPendingConfirmation.
   ///
   /// In en, this message translates to:
@@ -5983,6 +6067,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Salon policy: cancel online at least {hours} hours before your appointment starts.'**
   String customerBookingDetailsCancelPolicyNotice(int hours);
+
+  /// No description provided for @customerBookingDetailsPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy'**
+  String get customerBookingDetailsPolicyTitle;
+
+  /// No description provided for @customerBookingDetailsPolicyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel up to {cancelHours}h before your appointment. Reschedule up to {rescheduleHours}h before.'**
+  String customerBookingDetailsPolicyBody(int cancelHours, int rescheduleHours);
 
   /// No description provided for @customerBookingDetailsLeaveFeedback.
   ///
@@ -18127,7 +18223,7 @@ abstract class AppLocalizations {
   /// No description provided for @zuranoNearbyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nearby salons'**
+  /// **'Nearby places'**
   String get zuranoNearbyTitle;
 
   /// No description provided for @zuranoNearbyViewMap.
@@ -18175,19 +18271,25 @@ abstract class AppLocalizations {
   /// No description provided for @customerMapCouldNotLoadSalons.
   ///
   /// In en, this message translates to:
-  /// **'Couldn’t load map salons.'**
+  /// **'Couldn’t load places for the map.'**
   String get customerMapCouldNotLoadSalons;
 
   /// No description provided for @customerMapNoSalonsOnMap.
   ///
   /// In en, this message translates to:
-  /// **'No salons available on map yet.'**
+  /// **'No barbers, salons, or spas found in this area.'**
   String get customerMapNoSalonsOnMap;
+
+  /// No description provided for @customerMapSubtitleTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Find barbers and salons around you.'**
+  String get customerMapSubtitleTagline;
 
   /// No description provided for @customerMapSalonsOnMapCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} salons on map'**
+  /// **'{count} places nearby'**
   String customerMapSalonsOnMapCount(String count);
 
   /// No description provided for @customerMapPermissionBanner.
@@ -18226,17 +18328,119 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get customerMapDetailsCta;
 
+  /// No description provided for @customerMapNearbySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby places'**
+  String get customerMapNearbySheetTitle;
+
+  /// No description provided for @customerMapRadiusLabelKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String customerMapRadiusLabelKm(String km);
+
+  /// No description provided for @customerMapNoPlacesSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No places found nearby'**
+  String get customerMapNoPlacesSheetTitle;
+
+  /// No description provided for @customerMapNoPlacesSheetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another area or expand the search radius.'**
+  String get customerMapNoPlacesSheetBody;
+
+  /// No description provided for @customerMapUseMyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my location'**
+  String get customerMapUseMyLocation;
+
+  /// No description provided for @customerMapExpandRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand radius'**
+  String get customerMapExpandRadius;
+
+  /// No description provided for @customerMapSelectRadiusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search radius'**
+  String get customerMapSelectRadiusTitle;
+
+  /// No description provided for @customerMapSearchThisArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Search this area'**
+  String get customerMapSearchThisArea;
+
+  /// No description provided for @customerMapFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get customerMapFilterAll;
+
+  /// No description provided for @customerMapFilterBarber.
+  ///
+  /// In en, this message translates to:
+  /// **'Barber'**
+  String get customerMapFilterBarber;
+
+  /// No description provided for @customerMapFilterSalon.
+  ///
+  /// In en, this message translates to:
+  /// **'Salon'**
+  String get customerMapFilterSalon;
+
+  /// No description provided for @customerMapFilterSpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Spa'**
+  String get customerMapFilterSpa;
+
+  /// No description provided for @customerMapFilterOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get customerMapFilterOpenNow;
+
+  /// No description provided for @customerMapFilterTopRated.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rated'**
+  String get customerMapFilterTopRated;
+
   /// No description provided for @customerMapStatusOpen.
   ///
   /// In en, this message translates to:
   /// **'Open'**
   String get customerMapStatusOpen;
 
+  /// No description provided for @customerMapStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get customerMapStatusClosed;
+
   /// No description provided for @customerMapStatusSoon.
   ///
   /// In en, this message translates to:
   /// **'Soon'**
   String get customerMapStatusSoon;
+
+  /// No description provided for @customerMapViewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get customerMapViewProfile;
+
+  /// No description provided for @customerMapNextAvailableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Next available today: {time}'**
+  String customerMapNextAvailableToday(String time);
 
   /// No description provided for @zuranoBottomNavHome.
   ///

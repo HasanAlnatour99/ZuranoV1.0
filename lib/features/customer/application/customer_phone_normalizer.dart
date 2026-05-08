@@ -1,19 +1,18 @@
+import '../../../core/phone/zurano_phone_country_repository.dart';
+import '../../../core/phone/zurano_phone_normalizer.dart';
+
 class CustomerPhoneNormalizer {
   const CustomerPhoneNormalizer._();
 
+  /// Legacy wrapper kept for backward compatibility.
+  /// New flows should use [ZuranoPhoneNormalizer.normalize] with a selected country.
   static String normalizePhone(String input) {
-    var value = input.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    if (value.startsWith('00')) {
-      value = '+${value.substring(2)}';
-    }
-    final digitsOnly = value.replaceAll(RegExp(r'\D'), '');
-    if (isValidQatarLocalMobile(digitsOnly)) {
-      return '+974$digitsOnly';
-    }
-    if (value.startsWith('+')) {
-      return '+${digitsOnly.replaceFirst(RegExp(r'^0+'), '')}';
-    }
-    return digitsOnly.isEmpty ? '' : '+$digitsOnly';
+    final repo = ZuranoPhoneCountryRepository();
+    final defaultCountry = repo.defaultCountry(salonIsoCode: 'QA');
+    return ZuranoPhoneNormalizer.normalize(
+      input: input,
+      country: defaultCountry,
+    ).e164;
   }
 
   static bool isValidPhone(String normalizedPhone) {
@@ -31,11 +30,6 @@ class CustomerPhoneNormalizer {
   }
 
   static String displayPhone(String normalizedPhone) {
-    final value = normalizedPhone.trim();
-    if (value.startsWith('+974') && value.length == 12) {
-      final local = value.substring(4);
-      return '+974 ${local.substring(0, 4)} ${local.substring(4)}';
-    }
-    return value;
+    return normalizedPhone.trim();
   }
 }

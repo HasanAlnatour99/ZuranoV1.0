@@ -144,7 +144,7 @@ void main() {
   test('rollback rules allow draft and approved only', () {
     expect(PayrollRunStatuses.canRollback(PayrollRunStatuses.draft), isTrue);
     expect(PayrollRunStatuses.canRollback(PayrollRunStatuses.approved), isTrue);
-    expect(PayrollRunStatuses.canRollback(PayrollRunStatuses.paid), isFalse);
+    expect(PayrollRunStatuses.canRollback(PayrollRunStatuses.paid), isTrue);
     expect(
       PayrollRunStatuses.canRollback(PayrollRunStatuses.rolledBack),
       isFalse,

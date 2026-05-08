@@ -1,4 +1,4 @@
-import { FieldValue, GeoPoint, type DocumentData } from "firebase-admin/firestore";
+import { FieldValue, GeoPoint, Timestamp, type DocumentData } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 import { db } from "./bookingShared";
@@ -41,6 +41,90 @@ export function buildKeywords(values: Array<string | undefined | null>): string[
   }
 
   return Array.from(set).slice(0, 80);
+}
+
+/**
+ * Generate prefix tokens (length >= 1) for every keyword + the joined
+ * normalized form, so the customer typeahead can match `arrayContains` after
+ * just one or two characters. Matches `normalizeCustomerSearchQuery` on the
+ * Flutter side (`customer_search_repository.dart`).
+ *
+ * Output is capped to keep the Firestore document under the 1MiB / 20k array
+ * element limits.
+ */
+export function buildSearchPrefixes(keywords: string[]): string[] {
+  const PREFIX_MIN = 1;
+  const PREFIX_MAX = 12;
+  const MAX_PREFIXES = 400;
+
+  const out = new Set<string>();
+  for (const raw of keywords) {
+    const token = raw.trim().toLowerCase();
+    if (!token) continue;
+    const limit = Math.min(token.length, PREFIX_MAX);
+    for (let i = PREFIX_MIN; i <= limit; i++) {
+      out.add(token.slice(0, i));
+      if (out.size >= MAX_PREFIXES) {
+        return Array.from(out);
+      }
+    }
+  }
+  return Array.from(out);
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Resolve `availableToday` / `nextAvailableAt` from whatever the salon doc
+ * exposes (manual override → bookings cursor → opening-hours fallback).
+ *
+ * Defaults to `availableToday: false` so a misconfigured salon never falsely
+ * advertises itself as bookable.
+ */
+export function resolveAvailability(salon: DocumentData, now: Date = new Date()): {
+  availableToday: boolean;
+  nextAvailableAt: FirebaseFirestore.Timestamp | null;
+} {
+  const explicit = salon.availableToday;
+  if (typeof explicit === "boolean") {
+    const next = parseTimestampLike(salon.nextAvailableAt) ?? null;
+    return { availableToday: explicit, nextAvailableAt: next };
+  }
+
+  const next = parseTimestampLike(salon.nextAvailableAt);
+  if (next) {
+    const sameDay = next.toDate().toDateString() === now.toDateString();
+    if (sameDay) {
+      return { availableToday: true, nextAvailableAt: next };
+    }
+  }
+
+  // Cheap fallback: if the salon publishes "open today" we infer availability.
+  const isOpenNow = truthyBool(salon.isOpen, false);
+  if (isOpenNow) {
+    return { availableToday: true, nextAvailableAt: next };
+  }
+
+  // Final fallback so we never index `availableToday: undefined`.
+  if (next && next.toDate().getTime() <= now.getTime() + 7 * DAY_MS) {
+    return { availableToday: false, nextAvailableAt: next };
+  }
+  return { availableToday: false, nextAvailableAt: null };
+}
+
+function parseTimestampLike(v: unknown): FirebaseFirestore.Timestamp | null {
+  if (!v) return null;
+  if (v instanceof Timestamp) return v;
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    return Timestamp.fromDate(v);
+  }
+  if (typeof v === "string" && v) {
+    const d = new Date(v);
+    if (!Number.isNaN(d.getTime())) {
+      return Timestamp.fromDate(d);
+    }
+  }
+  return null;
 }
 
 function geoFromDoc(d: DocumentData): GeoPoint | null {
@@ -131,6 +215,8 @@ export async function upsertSalonSearchIndexFromFirestore(salonId: string): Prom
     console.warn(`[customerSearchIndex] subcollection counts failed salon=${salonId}`, e);
   }
 
+  const availability = resolveAvailability(s);
+
   const payload: Record<string, unknown> = {
     type: "salon",
     salonId,
@@ -151,6 +237,9 @@ export async function upsertSalonSearchIndexFromFirestore(salonId: string): Prom
     isActive,
     isPublic,
     searchKeywords: derivedKeywords,
+    searchPrefixes: buildSearchPrefixes(derivedKeywords),
+    availableToday: availability.availableToday,
+    nextAvailableAt: availability.nextAvailableAt,
     location: geoFromDoc(s),
     serviceCount,
     teamCount,
@@ -197,6 +286,8 @@ export async function upsertServiceSearchIndexFromFirestore(
     ...keywords,
   ]);
 
+  const availability = resolveAvailability(salon);
+
   const payload: Record<string, unknown> = {
     type: "service",
     salonId,
@@ -217,6 +308,9 @@ export async function upsertServiceSearchIndexFromFirestore(
     isActive: truthyBool(svc.isActive, true),
     isPublic: isSalonPublic,
     searchKeywords: derivedKeywords,
+    searchPrefixes: buildSearchPrefixes(derivedKeywords),
+    availableToday: availability.availableToday,
+    nextAvailableAt: availability.nextAvailableAt,
     location: geoFromDoc(salon),
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),
@@ -272,6 +366,16 @@ export async function upsertEmployeeSearchIndexFromFirestore(
     ...keywords,
   ]);
 
+  // Specialists prefer their own availability hint, then fall back to the
+  // salon's resolved availability so a bookable specialist still shows even
+  // when the salon doc has no per-day data.
+  const employeeAvailability = resolveAvailability(e);
+  const salonAvailability = resolveAvailability(salon);
+  const availability =
+    employeeAvailability.availableToday || employeeAvailability.nextAvailableAt
+      ? employeeAvailability
+      : salonAvailability;
+
   const payload: Record<string, unknown> = {
     type: "specialist",
     salonId,
@@ -291,6 +395,9 @@ export async function upsertEmployeeSearchIndexFromFirestore(
     isActive,
     isPublic: isSalonPublic,
     searchKeywords: derivedKeywords,
+    searchPrefixes: buildSearchPrefixes(derivedKeywords),
+    availableToday: availability.availableToday,
+    nextAvailableAt: availability.nextAvailableAt,
     location: geoFromDoc(salon),
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),

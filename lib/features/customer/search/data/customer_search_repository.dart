@@ -21,6 +21,20 @@ int? _optionalNonNegativeInt(Map<String, dynamic> data, List<String> keys) {
   return null;
 }
 
+/// Lowercases, trims, and collapses runs of whitespace to a single space.
+///
+/// Used to keep the customer search query in lock-step with the
+/// `searchPrefixes` / `searchKeywords` tokens written by Cloud Functions —
+/// see [`functions/src/customerSearchIndex.ts`].
+@visibleForTesting
+String normalizeCustomerSearchQuery(String raw) {
+  final lowered = raw.toLowerCase().trim();
+  if (lowered.isEmpty) {
+    return '';
+  }
+  return lowered.replaceAll(RegExp(r'\s+'), ' ');
+}
+
 class CustomerSearchRepository {
   CustomerSearchRepository(this.firestore);
 
@@ -32,7 +46,7 @@ class CustomerSearchRepository {
       throw ArgumentError.value(filter.countryCode, 'countryCode', 'Country code is required.');
     }
 
-    final queryText = filter.query.trim().toLowerCase();
+    final queryText = normalizeCustomerSearchQuery(filter.query);
 
     Query<Map<String, dynamic>> query = firestore
         .collection(FirestorePaths.customerSearchIndex)
@@ -41,8 +55,13 @@ class CustomerSearchRepository {
         .where('isPublic', isEqualTo: true)
         .limit(30);
 
+    // Prefix-friendly matching: Cloud Functions write `searchPrefixes` (an array
+    // of progressively longer prefixes per token) so a single-letter typeahead
+    // still hits Firestore's `arrayContains` index. Falls back gracefully when
+    // older rows only carry `searchKeywords` because the controller widens the
+    // visible list locally.
     if (queryText.isNotEmpty) {
-      query = query.where('searchKeywords', arrayContains: queryText);
+      query = query.where('searchPrefixes', arrayContains: queryText);
     }
 
     if (filter.audience != null) {
@@ -55,6 +74,10 @@ class CustomerSearchRepository {
 
     if (filter.offersOnly) {
       query = query.where('hasOffer', isEqualTo: true);
+    }
+
+    if (filter.availableTodayOnly) {
+      query = query.where('availableToday', isEqualTo: true);
     }
 
     final snapshot = await query.get();
@@ -137,6 +160,11 @@ class CustomerSearchRepository {
   }
 
   /// When `customerSearchIndex` has no rows yet (Functions/backfill), surface real salons.
+  ///
+  /// `firestore.rules` requires public salon reads to satisfy
+  /// `isActive && isPublished && isPublic`, so all three flags must be on the
+  /// query — otherwise customers get `permission-denied` instead of an empty
+  /// list. See `firestore.rules` (publicSalons match).
   Future<List<CustomerSearchResult>> _searchPublicSalonsFallback(
     CustomerSearchFilter filter,
   ) async {
@@ -144,8 +172,9 @@ class CustomerSearchRepository {
     final snap = await firestore
         .collection(FirestorePaths.publicSalons)
         .where('countryCode', isEqualTo: cc)
-        .where('isPublic', isEqualTo: true)
         .where('isActive', isEqualTo: true)
+        .where('isPublished', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
         .limit(50)
         .get();
 
@@ -161,7 +190,7 @@ class CustomerSearchRepository {
         )
         .toList();
 
-    final q = filter.query.trim().toLowerCase();
+    final q = normalizeCustomerSearchQuery(filter.query);
     if (q.isNotEmpty) {
       mapped = mapped.where((r) {
         if (r.title.toLowerCase().contains(q)) {
@@ -190,6 +219,12 @@ class CustomerSearchRepository {
     }
     if (filter.offersOnly) {
       mapped = mapped.where((r) => r.hasOffer).toList();
+    }
+    if (filter.availableTodayOnly) {
+      // `publicSalons` rows do not yet expose availability — the salon-level
+      // mirror only knows opening hours. Fall back to "open now" so an empty
+      // index does not mask the chip entirely.
+      mapped = mapped.where((r) => r.isOpenNow).toList();
     }
 
     if (kDebugMode) {
@@ -221,6 +256,7 @@ class _CustomerSearchResultDto {
     required this.audience,
     required this.isActive,
     required this.isPublic,
+    required this.availableToday,
     this.imageUrl,
     this.ratingAvg,
     this.ratingCount,
@@ -230,6 +266,7 @@ class _CustomerSearchResultDto {
     this.salonLongitude,
     this.serviceCount,
     this.teamCount,
+    this.nextAvailableAt,
   });
 
   final String id;
@@ -260,6 +297,13 @@ class _CustomerSearchResultDto {
 
   final int? serviceCount;
   final int? teamCount;
+
+  /// Cloud-Functions-derived availability flag (`availableToday == true` means
+  /// the salon/specialist has at least one bookable slot in the customer's day).
+  final bool availableToday;
+
+  /// Earliest bookable slot timestamp, when known.
+  final DateTime? nextAvailableAt;
 
   CustomerSearchResult toDomain({
     double? userLatitude,
@@ -302,6 +346,8 @@ class _CustomerSearchResultDto {
       isPublic: isPublic,
       serviceCount: serviceCount,
       teamCount: teamCount,
+      availableToday: availableToday,
+      nextAvailableAt: nextAvailableAt,
     );
   }
 
@@ -378,6 +424,8 @@ class _CustomerSearchResultDto {
       searchKeywords: keywords,
       isActive: data['isActive'] != false,
       isPublic: data['isPublic'] == true,
+      availableToday: data['availableToday'] == true,
+      nextAvailableAt: _readTimestamp(data['nextAvailableAt']),
       salonLatitude: geo?.latitude,
       salonLongitude: geo?.longitude,
       serviceCount: _optionalNonNegativeInt(
@@ -439,6 +487,8 @@ class _CustomerSearchResultDto {
               .where((e) => e.isNotEmpty)
               .toList(growable: false)
           : const <String>[],
+      availableToday: data['availableToday'] == true,
+      nextAvailableAt: _readTimestamp(data['nextAvailableAt']),
       salonLatitude: geo?.latitude,
       salonLongitude: geo?.longitude,
       serviceCount: _optionalNonNegativeInt(
@@ -451,4 +501,17 @@ class _CustomerSearchResultDto {
       ),
     );
   }
+}
+
+DateTime? _readTimestamp(Object? raw) {
+  if (raw is Timestamp) {
+    return raw.toDate();
+  }
+  if (raw is DateTime) {
+    return raw;
+  }
+  if (raw is String && raw.isNotEmpty) {
+    return DateTime.tryParse(raw);
+  }
+  return null;
 }

@@ -15,11 +15,14 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/firebase_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../../core/phone/zurano_phone_country.dart';
+import '../../../../core/phone/zurano_phone_country_repository.dart';
 import '../../application/booking_lookup_controller.dart';
 import '../../data/models/customer_booking_lookup_model.dart';
 import '../widgets/customer_booking_lookup_card.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_text_field.dart';
+import '../../../../shared/widgets/zurano_phone_field.dart';
 
 final recentGuestBookingsOnDeviceProvider =
     StreamProvider.autoDispose<List<_RecentGuestBookingRow>>((ref) {
@@ -63,12 +66,19 @@ class FindBookingScreen extends ConsumerStatefulWidget {
 class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _bookingCodeController;
+  late final ZuranoPhoneCountryRepository _countryRepo;
+  late ZuranoPhoneCountry _selectedCountry;
 
   @override
   void initState() {
     super.initState();
     _phoneController = TextEditingController();
     _bookingCodeController = TextEditingController();
+    _countryRepo = const ZuranoPhoneCountryRepository();
+    _selectedCountry = _countryRepo.defaultCountry(
+      salonIsoCode: null,
+      locale: Localizations.maybeLocaleOf(context),
+    );
   }
 
   @override
@@ -128,6 +138,12 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
                     bookingCodeLabel: l10n.customerBookingLookupBookingCode,
                     bookingCodeHint: l10n.customerBookingLookupBookingCodeHint,
                     searchLabel: l10n.customerBookingLookupSearch,
+                    countryRepo: _countryRepo,
+                    selectedCountry: _selectedCountry,
+                    onCountryChanged: (c) => setState(() => _selectedCountry = c),
+                    countryPickerTitle: l10n.customerPhoneCountryPickerTitle,
+                    countryPickerSearchHint:
+                        l10n.customerPhoneCountryPickerSearchHint,
                     phoneErrorText: invalidPhone
                         ? l10n.customerBookingLookupInvalidPhone
                         : null,
@@ -147,6 +163,7 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
                         .search(
                           phoneInput: _phoneController.text,
                           bookingCodeInput: _bookingCodeController.text,
+                          country: _selectedCountry,
                         ),
                   ),
                 ),
@@ -513,6 +530,11 @@ class _SearchCard extends StatelessWidget {
     required this.loading,
     required this.onChanged,
     required this.onSearch,
+    required this.countryRepo,
+    required this.selectedCountry,
+    required this.onCountryChanged,
+    required this.countryPickerTitle,
+    required this.countryPickerSearchHint,
     this.phoneErrorText,
     this.bookingCodeErrorText,
   });
@@ -526,6 +548,11 @@ class _SearchCard extends StatelessWidget {
   final bool loading;
   final VoidCallback onChanged;
   final VoidCallback onSearch;
+  final ZuranoPhoneCountryRepository countryRepo;
+  final ZuranoPhoneCountry selectedCountry;
+  final ValueChanged<ZuranoPhoneCountry> onCountryChanged;
+  final String countryPickerTitle;
+  final String countryPickerSearchHint;
   final String? phoneErrorText;
   final String? bookingCodeErrorText;
 
@@ -553,12 +580,16 @@ class _SearchCard extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.large),
           child: Column(
             children: [
-              CustomerTextField(
+              ZuranoPhoneField(
                 controller: phoneController,
+                country: selectedCountry,
+                repository: countryRepo,
                 label: phoneLabel,
                 errorText: phoneErrorText,
-                keyboardType: TextInputType.phone,
+                countryPickerTitle: countryPickerTitle,
+                countryPickerSearchHint: countryPickerSearchHint,
                 textInputAction: TextInputAction.next,
+                onCountryChanged: onCountryChanged,
                 onChanged: (_) => onChanged(),
               ),
               const SizedBox(height: AppSpacing.medium),

@@ -194,6 +194,14 @@
       ]
     },
     {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdByAuthUid", "order": "ASCENDING" },
+        { "fieldPath": "clientRequestId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "employees",
       "queryScope": "COLLECTION_GROUP",
       "fields": [

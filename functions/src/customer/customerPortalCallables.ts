@@ -249,6 +249,16 @@ export const getCustomerAvailability = onCall(CALL, async (request) => {
   if (!settings.enabled) {
     throw new HttpsError("failed-precondition", "Online booking is disabled.");
   }
+
+  const salonNamePublic =
+    `${(pub as any)?.salonName ?? (pub as any)?.name ?? ""}`.trim() || salonId;
+  const salonAreaPublic = `${(pub as any)?.area ?? ""}`.trim();
+  const salonPhonePublic = `${(pub as any)?.phone ?? ""}`.trim();
+  const salonWhatsappPublic = `${(pub as any)?.whatsapp ?? ""}`.trim();
+  const salonLatitudePublic =
+    typeof (pub as any)?.latitude === "number" ? (pub as any).latitude : null;
+  const salonLongitudePublic =
+    typeof (pub as any)?.longitude === "number" ? (pub as any).longitude : null;
   const dayStart = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
   const dayEnd = new Date(dayStart.getTime() + 86400000);
   const startTs = Timestamp.fromDate(dayStart);
@@ -347,13 +357,50 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     throw new HttpsError("invalid-argument", "Invalid time range.");
   }
 
+  const clientRequestIdRaw = `${draft.clientRequestId ?? ""}`.trim();
+  const clientRequestId =
+    clientRequestIdRaw.length > 0 && clientRequestIdRaw.length <= 120
+      ? clientRequestIdRaw
+      : "";
+
   const customerName = `${draft.customerName ?? ""}`.trim();
   const phoneNorm = `${draft.customerPhoneNormalized ?? ""}`.trim();
+  const customerCountryIsoCode = `${draft.customerCountryIsoCode ?? ""}`.trim().toUpperCase();
+  const customerDialCode = `${draft.customerDialCode ?? ""}`.trim();
+  const customerPhoneNational = `${draft.customerPhoneNational ?? ""}`.trim();
   if (customerName.length === 0) {
     throw new HttpsError("invalid-argument", "Customer name is required.");
   }
   if (phoneNorm.length === 0) {
     throw new HttpsError("invalid-argument", "Customer phone is required.");
+  }
+
+  // Idempotency: if the client retries/double-taps, return existing booking.
+  if (callerAuthUid.length > 0 && clientRequestId.length > 0) {
+    const existing = await db
+      .collection(`salons/${salonId}/bookings`)
+      .where("createdByAuthUid", "==", callerAuthUid)
+      .where("clientRequestId", "==", clientRequestId)
+      .limit(1)
+      .get();
+    const first = existing.docs[0];
+    if (first != null) {
+      const d = first.data() as Record<string, any>;
+      const startAtExisting: Date =
+        d.startAt instanceof Timestamp ? d.startAt.toDate() : new Date(d.startAt);
+      const endAtExisting: Date =
+        d.endAt instanceof Timestamp ? d.endAt.toDate() : new Date(d.endAt);
+      return {
+        bookingId: first.id,
+        salonId,
+        customerId: `${d.customerId ?? ""}`,
+        bookingCode: `${d.bookingCode ?? d.bookingNumber ?? ""}`,
+        status: `${d.status ?? ""}`,
+        startAtMs: startAtExisting.getTime(),
+        endAtMs: endAtExisting.getTime(),
+        idempotent: true,
+      };
+    }
   }
 
   const dayStart = new Date(
@@ -457,6 +504,9 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       fullName: customerName,
       phone: displayPhone,
       phoneNormalized: phoneNorm,
+      countryIsoCode: customerCountryIsoCode,
+      dialCode: customerDialCode,
+      phoneNational: customerPhoneNational,
       gender: draft.customerGender ?? null,
       notes: draft.customerNote ?? null,
       type: "new",
@@ -477,10 +527,21 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
 
     const bookingWrite: Record<string, unknown> = {
       salonId,
+      salonName: salonNamePublic,
+      salonArea: salonAreaPublic,
+      salonPhone: salonPhonePublic,
+      salonWhatsapp: salonWhatsappPublic,
+      salonLatitude: salonLatitudePublic,
+      salonLongitude: salonLongitudePublic,
+      createdActorType: "customer",
       customerId: customerDocId,
       customerName,
       customerPhone: displayPhone,
       customerPhoneNormalized: phoneNorm,
+      customerCountryIsoCode,
+      customerDialCode,
+      customerPhoneNational,
+      ...(clientRequestId.length > 0 ? { clientRequestId } : {}),
       ...(guestProfileId.length > 0 ? { guestProfileId, customerType: "guest" } : {}),
       employeeId,
       employeeName: employeeName,
@@ -491,10 +552,19 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       subtotal,
       discountAmount,
       totalAmount,
+      paymentStatus: "unpaid",
+      paymentMethod: "not_selected",
+      depositRequired: false,
+      depositAmount: 0,
+      paidAmount: 0,
+      balanceAmount: totalAmount,
       durationMinutes,
       startAt: Timestamp.fromDate(startAt),
       endAt: Timestamp.fromDate(endAt),
       status,
+      ...(status === BookingStatuses.confirmed
+        ? { confirmedAt: now, confirmedActorType: "system" }
+        : {}),
       source: "customer_app",
       bookingCode,
       bookingNumber: bookingCode,
@@ -514,6 +584,30 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     }
     tx.set(bookingRef, bookingWrite);
   });
+
+  // Non-critical: notification docs for in-app inbox (best-effort).
+  try {
+    const notificationBase = {
+      type: "booking_created",
+      salonId,
+      bookingId: bookingRef.id,
+      bookingCode,
+      customerName,
+      startAt: Timestamp.fromDate(startAt),
+      status,
+      isRead: false,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    } as Record<string, unknown>;
+
+    const notifId = db.collection("_").doc().id;
+    await db.doc(`salons/${salonId}/notifications/${notifId}`).set(notificationBase);
+
+    const ownerUid = `${(pub as any)?.ownerUid ?? ""}`.trim();
+    if (ownerUid.length > 0) {
+      await db.doc(`users/${ownerUid}/notifications/${notifId}`).set(notificationBase);
+    }
+  } catch (_) {}
 
   return {
     bookingId: bookingRef.id,
@@ -697,6 +791,7 @@ export const cancelCustomerBooking = onCall(CALL, async (request) => {
     cancelReason: cancelReason || null,
     cancelledAt: FieldValue.serverTimestamp(),
     cancelledBy: "customer",
+    cancelledActorType: "customer",
     updatedAt: FieldValue.serverTimestamp(),
   });
 
@@ -768,6 +863,9 @@ export const rescheduleCustomerBooking = onCall(CALL, async (request) => {
     if (!cur.exists) {
       throw new HttpsError("not-found", "Booking not found.");
     }
+    const current = cur.data() ?? {};
+    const prevStart = tsToDate((current as any).startAt);
+    const prevEnd = tsToDate((current as any).endAt);
     for (const doc of candidateSnap.docs) {
       if (doc.id === bookingId) {
         continue;
@@ -786,6 +884,10 @@ export const rescheduleCustomerBooking = onCall(CALL, async (request) => {
       reportYear,
       reportMonth,
       reportPeriodKey,
+      rescheduledAt: FieldValue.serverTimestamp(),
+      rescheduledActorType: "customer",
+      ...(prevStart ? { rescheduledFromStartAt: Timestamp.fromDate(prevStart) } : {}),
+      ...(prevEnd ? { rescheduledFromEndAt: Timestamp.fromDate(prevEnd) } : {}),
       updatedAt: FieldValue.serverTimestamp(),
     });
   });

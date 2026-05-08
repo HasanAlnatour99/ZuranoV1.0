@@ -63,6 +63,11 @@ class CustomerBookingActionPanel extends StatelessWidget {
       settings: details.customerBookingSettings,
     );
 
+    final rescheduleCutoff = details.customerBookingSettings.rescheduleCutoffMinutes;
+    final minsUntilStart = details.startAt.difference(DateTime.now()).inMinutes;
+    final rescheduleAllowed = isPendingOrConfirmed &&
+        (rescheduleCutoff <= 0 || minsUntilStart > rescheduleCutoff);
+
     if (!showsUpcomingActions && !isCompleted && !isCancelledLike) {
       return const SizedBox.shrink();
     }
@@ -101,10 +106,16 @@ class CustomerBookingActionPanel extends StatelessWidget {
                       ),
                     ),
                   ),
-                  onPressed: onRescheduleComingSoon,
+                  onPressed: rescheduleAllowed ? onRescheduleComingSoon : null,
                   child: Text(l10n.customerBookingDetailsReschedule),
                 ),
               ),
+              if (isPendingOrConfirmed && !rescheduleAllowed) ...[
+                const SizedBox(height: AppSpacing.small),
+                _CustomerCancelPolicyBanner(
+                  message: l10n.customerRescheduleTooCloseToStart,
+                ),
+              ],
               if (isPendingOrConfirmed) ...[
                 const SizedBox(height: AppSpacing.small),
                 if (cancelEligibility ==

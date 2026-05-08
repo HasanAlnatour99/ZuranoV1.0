@@ -6,22 +6,37 @@ import 'package:barber_shop_app/features/customers/presentation/screens/customer
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
 import 'package:barber_shop_app/providers/notification_providers.dart';
+import 'package:barber_shop_app/providers/app_settings_providers.dart';
+import 'package:barber_shop_app/providers/money_currency_providers.dart';
 import 'package:barber_shop_app/providers/session_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
-MaterialApp _customersTestApp(Widget home) => MaterialApp(
-  supportedLocales: AppLocalizations.supportedLocales,
-  localizationsDelegates: const [
-    AppLocalizations.delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-  ],
-  home: home,
-);
+MaterialApp _customersTestApp(Widget home) {
+  final router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => home,
+      ),
+    ],
+  );
+  return MaterialApp.router(
+    routerConfig: router,
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+  );
+}
 
 AppUser _user(String role) => AppUser(
   uid: 'u-1',
@@ -42,9 +57,14 @@ Customer _customer() => const Customer(
 
 void main() {
   testWidgets('Customers tab rendering shows list item', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
           unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
@@ -66,9 +86,14 @@ void main() {
   });
 
   testWidgets('empty-state add CTA is visible for owner', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
           unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),
@@ -88,9 +113,14 @@ void main() {
   });
 
   testWidgets('empty-state add CTA is hidden for barber', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
           unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('barber')),
@@ -189,9 +219,14 @@ void main() {
   }, skip: true);
 
   testWidgets('empty state renders correctly', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
           unreadNotificationCountProvider.overrideWith((ref) => 0),
           sessionUserProvider.overrideWith(
             (ref) => Stream.value(_user('owner')),

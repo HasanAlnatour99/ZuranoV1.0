@@ -3035,6 +3035,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerDetailsInvalidPhone => 'أدخل رقم هاتف صحيح';
 
   @override
+  String get customerPhoneCountryPickerTitle => 'اختر الدولة';
+
+  @override
+  String get customerPhoneCountryPickerSearchHint =>
+      'ابحث باسم الدولة أو الرمز أو مفتاح الاتصال';
+
+  @override
   String get customerDetailsNameTooShort => 'يجب ألا يقل الاسم عن حرفين';
 
   @override
@@ -3089,6 +3096,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerBookingReviewPaymentSummary => 'ملخص الدفع';
+
+  @override
+  String get customerBookingPaymentStatusLabel => 'حالة الدفع';
+
+  @override
+  String get customerBookingPaymentStatusUnpaid => 'غير مدفوع';
+
+  @override
+  String get customerBookingPaymentStatusPaid => 'مدفوع';
+
+  @override
+  String get customerBookingPaymentStatusPartial => 'مدفوع جزئيًا';
 
   @override
   String get customerBookingReviewSubtotal => 'المجموع الفرعي';
@@ -3149,6 +3168,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerBookingSuccessViewBooking => 'عرض الحجز';
+
+  @override
+  String get customerBookingSuccessCopyCode => 'نسخ رمز الحجز';
+
+  @override
+  String get customerBookingSuccessShareBooking => 'مشاركة الحجز';
+
+  @override
+  String get customerBookingSuccessAddToCalendar => 'إضافة إلى التقويم';
+
+  @override
+  String get customerBookingSuccessCalendarFailed =>
+      'تعذّرت الإضافة إلى التقويم. يرجى المحاولة مرة أخرى.';
 
   @override
   String get customerBookingSuccessBookAnother => 'حجز موعد آخر';
@@ -3281,6 +3313,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingDetailsTimelineConfirmed => 'مؤكد';
 
   @override
+  String get customerTimelineActorCustomer => 'العميل';
+
+  @override
+  String get customerTimelineActorSystem => 'النظام';
+
+  @override
+  String get customerTimelineActorOwner => 'المالك';
+
+  @override
+  String get customerTimelineActorAdmin => 'مشرف';
+
+  @override
   String get customerBookingDetailsPendingConfirmation => 'بانتظار التأكيد';
 
   @override
@@ -3308,6 +3352,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String customerBookingDetailsCancelPolicyNotice(int hours) {
     return 'سياسة الصالون: يمكن الإلغاء عبر الإنترنت قبل موعدك بـ $hours ساعات على الأقل.';
+  }
+
+  @override
+  String get customerBookingDetailsPolicyTitle => 'السياسة';
+
+  @override
+  String customerBookingDetailsPolicyBody(
+    int cancelHours,
+    int rescheduleHours,
+  ) {
+    return 'يمكنك الإلغاء قبل الموعد بـ $cancelHours ساعة، وإعادة الجدولة قبل الموعد بـ $rescheduleHours ساعة.';
   }
 
   @override
@@ -10321,7 +10376,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get zuranoSpecialistView => 'عرض';
 
   @override
-  String get zuranoNearbyTitle => 'صالونات قريبة';
+  String get zuranoNearbyTitle => 'أماكن قريبة';
 
   @override
   String get zuranoNearbyViewMap => 'عرض الخريطة';
@@ -10352,14 +10407,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerMapCouldNotLoadSalons =>
-      'تعذّر تحميل الصالونات على الخريطة.';
+      'تعذّر تحميل الأماكن على الخريطة.';
 
   @override
-  String get customerMapNoSalonsOnMap => 'لا توجد صالونات على الخريطة بعد.';
+  String get customerMapNoSalonsOnMap =>
+      'لم يُعثر على حلاقين أو صالونات أو سبا في هذه المنطقة.';
+
+  @override
+  String get customerMapSubtitleTagline =>
+      'اعثر على الحلاقين والصالونات من حولك.';
 
   @override
   String customerMapSalonsOnMapCount(String count) {
-    return '$count صالونًا على الخريطة';
+    return '$count أماكن قريبة';
   }
 
   @override
@@ -10388,10 +10448,66 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerMapDetailsCta => 'التفاصيل';
 
   @override
+  String get customerMapNearbySheetTitle => 'الأماكن القريبة';
+
+  @override
+  String customerMapRadiusLabelKm(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get customerMapNoPlacesSheetTitle => 'لا توجد أماكن قريبة';
+
+  @override
+  String get customerMapNoPlacesSheetBody =>
+      'جرّب منطقة أخرى أو وسّع نطاق البحث.';
+
+  @override
+  String get customerMapUseMyLocation => 'استخدم موقعي';
+
+  @override
+  String get customerMapExpandRadius => 'وسّع النطاق';
+
+  @override
+  String get customerMapSelectRadiusTitle => 'نطاق البحث';
+
+  @override
+  String get customerMapSearchThisArea => 'ابحث في هذه المنطقة';
+
+  @override
+  String get customerMapFilterAll => 'الكل';
+
+  @override
+  String get customerMapFilterBarber => 'حلاق';
+
+  @override
+  String get customerMapFilterSalon => 'صالون';
+
+  @override
+  String get customerMapFilterSpa => 'سبا';
+
+  @override
+  String get customerMapFilterOpenNow => 'مفتوح الآن';
+
+  @override
+  String get customerMapFilterTopRated => 'الأعلى تقييمًا';
+
+  @override
   String get customerMapStatusOpen => 'مفتوح';
 
   @override
+  String get customerMapStatusClosed => 'مغلق';
+
+  @override
   String get customerMapStatusSoon => 'قريبًا';
+
+  @override
+  String get customerMapViewProfile => 'عرض الملف';
+
+  @override
+  String customerMapNextAvailableToday(String time) {
+    return 'أقرب موعد متاح اليوم: $time';
+  }
 
   @override
   String get zuranoBottomNavHome => 'الرئيسية';

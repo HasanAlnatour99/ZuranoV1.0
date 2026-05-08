@@ -14,7 +14,9 @@ import '../../../../providers/firebase_providers.dart';
 import '../../application/customer_booking_availability_providers.dart';
 import '../../application/customer_booking_currency.dart';
 import '../../application/customer_booking_draft_provider.dart';
-import '../../application/customer_phone_normalizer.dart';
+import '../../../../core/phone/zurano_phone_country_repository.dart';
+import '../../../../core/phone/zurano_phone_country.dart';
+import '../../../../core/phone/zurano_phone_normalizer.dart';
 import '../../data/models/customer_booking_settings.dart';
 import '../widgets/booking_summary_bar.dart';
 import '../widgets/customer_action_button.dart';
@@ -22,6 +24,7 @@ import '../widgets/customer_booking_progress_header.dart';
 import '../widgets/customer_gender_selector.dart';
 import '../widgets/customer_gradient_scaffold.dart';
 import '../widgets/customer_text_field.dart';
+import '../../../../shared/widgets/zurano_phone_field.dart';
 
 class CustomerDetailsScreen extends ConsumerStatefulWidget {
   const CustomerDetailsScreen({super.key, required this.salonId});
@@ -42,13 +45,22 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
   String? _selectedGender;
   bool _touchedName = false;
   bool _touchedPhone = false;
+  late final ZuranoPhoneCountryRepository _countryRepo;
+  late ZuranoPhoneCountry _selectedCountry;
 
   @override
   void initState() {
     super.initState();
     final draft = ref.read(customerBookingDraftProvider);
+    _countryRepo = const ZuranoPhoneCountryRepository();
+    _selectedCountry = _countryRepo.defaultCountry(
+      salonIsoCode: draft.customerCountryIsoCode,
+      locale: null,
+    );
     _nameController = TextEditingController(text: draft.customerName ?? '');
-    _phoneController = TextEditingController(text: draft.customerPhone ?? '');
+    _phoneController = TextEditingController(
+      text: draft.customerPhoneNational ?? draft.customerPhone ?? '',
+    );
     _notesController = TextEditingController(text: draft.customerNote ?? '');
     _selectedGender = draft.customerGender;
     WidgetsBinding.instance.addPostFrameCallback((_) => _guardDraft());
@@ -115,8 +127,11 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
       if (value.isEmpty) {
         return null;
       }
-      final normalized = CustomerPhoneNormalizer.normalizePhone(value);
-      if (!CustomerPhoneNormalizer.isValidPhone(normalized)) {
+      final result = ZuranoPhoneNormalizer.normalize(
+        input: value,
+        country: _selectedCountry,
+      );
+      if (!result.isValid) {
         return l10n.customerDetailsInvalidPhone;
       }
       return null;
@@ -124,8 +139,11 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
     if (value.isEmpty) {
       return _touchedPhone ? l10n.customerDetailsRequiredField : null;
     }
-    final normalized = CustomerPhoneNormalizer.normalizePhone(value);
-    if (!CustomerPhoneNormalizer.isValidPhone(normalized)) {
+    final result = ZuranoPhoneNormalizer.normalize(
+      input: value,
+      country: _selectedCountry,
+    );
+    if (!result.isValid) {
       return l10n.customerDetailsInvalidPhone;
     }
     return null;
@@ -135,7 +153,10 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
     final name = _nameController.text.trim();
     final phoneNorm = _phoneController.text.trim().isEmpty
         ? ''
-        : CustomerPhoneNormalizer.normalizePhone(_phoneController.text);
+        : ZuranoPhoneNormalizer.normalize(
+            input: _phoneController.text,
+            country: _selectedCountry,
+          ).e164;
     return policy.customerDetailsSatisfied(
           customerName: name.isEmpty ? null : name,
           customerPhoneNormalized: phoneNorm.isEmpty ? null : phoneNorm,
@@ -155,15 +176,21 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
     }
     final name = _nameController.text.trim();
     final phoneRaw = _phoneController.text.trim();
-    final normalized = phoneRaw.isEmpty
-        ? ''
-        : CustomerPhoneNormalizer.normalizePhone(_phoneController.text);
+    final normalizedResult = phoneRaw.isEmpty
+        ? null
+        : ZuranoPhoneNormalizer.normalize(
+            input: _phoneController.text,
+            country: _selectedCountry,
+          );
     ref
         .read(customerBookingDraftProvider.notifier)
         .setCustomerDetails(
           customerName: name.isEmpty ? '' : name,
           customerPhone: phoneRaw.isEmpty ? '' : phoneRaw,
-          customerPhoneNormalized: normalized.isEmpty ? '' : normalized,
+          customerCountryIsoCode: _selectedCountry.isoCode,
+          customerDialCode: _selectedCountry.dialCode,
+          customerPhoneNational: normalizedResult?.national ?? '',
+          customerPhoneNormalized: normalizedResult?.e164 ?? '',
           customerGender: _selectedGender,
           customerNote: _notesController.text.trim(),
         );
@@ -313,12 +340,20 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
                             }),
                           ),
                           const SizedBox(height: AppSpacing.medium),
-                          CustomerTextField(
+                          ZuranoPhoneField(
                             controller: _phoneController,
+                            country: _selectedCountry,
+                            repository: _countryRepo,
                             label: l10n.customerDetailsPhoneNumber,
                             errorText: _phoneError(l10n, policy),
-                            keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
+                            countryPickerTitle:
+                                l10n.customerPhoneCountryPickerTitle,
+                            countryPickerSearchHint:
+                                l10n.customerPhoneCountryPickerSearchHint,
+                            onCountryChanged: (c) => setState(() {
+                              _selectedCountry = c;
+                              _touchedPhone = true;
+                            }),
                             onChanged: (_) => setState(() {
                               _touchedPhone = true;
                             }),

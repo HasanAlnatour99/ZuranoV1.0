@@ -1148,6 +1148,8 @@
   "customerDetailsPhoneInfo": "سنستخدم رقم هاتفك فقط لتأكيد الحجز والعثور عليه.",
   "customerDetailsRequiredField": "حقل مطلوب",
   "customerDetailsInvalidPhone": "أدخل رقم هاتف صحيح",
+  "customerPhoneCountryPickerTitle": "اختر الدولة",
+  "customerPhoneCountryPickerSearchHint": "ابحث باسم الدولة أو الرمز أو مفتاح الاتصال",
   "customerDetailsNameTooShort": "يجب ألا يقل الاسم عن حرفين",
   "customerDetailsNotesTooLong": "لا يمكن أن تتجاوز الملاحظات 300 حرف",
   "customerDetailsSummaryTitle": "{count} خدمات · {specialist}",
@@ -1181,6 +1183,10 @@
   "customerBookingReviewDateTimeNotSet": "غير محدد",
   "customerBookingReviewCustomer": "العميل",
   "customerBookingReviewPaymentSummary": "ملخص الدفع",
+  "customerBookingPaymentStatusLabel": "حالة الدفع",
+  "customerBookingPaymentStatusUnpaid": "غير مدفوع",
+  "customerBookingPaymentStatusPaid": "مدفوع",
+  "customerBookingPaymentStatusPartial": "مدفوع جزئيًا",
   "customerBookingReviewSubtotal": "المجموع الفرعي",
   "customerBookingReviewDiscount": "الخصم",
   "customerBookingReviewTotal": "الإجمالي",
@@ -1204,6 +1210,10 @@
   "customerBookingSuccessFallback": "متاح في تفاصيل الحجز",
   "customerBookingSuccessSaveCodeInfo": "احفظ رمز الحجز. يمكنك استخدامه لاحقاً للعثور على موعدك.",
   "customerBookingSuccessViewBooking": "عرض الحجز",
+  "customerBookingSuccessCopyCode": "نسخ رمز الحجز",
+  "customerBookingSuccessShareBooking": "مشاركة الحجز",
+  "customerBookingSuccessAddToCalendar": "إضافة إلى التقويم",
+  "customerBookingSuccessCalendarFailed": "تعذّرت الإضافة إلى التقويم. يرجى المحاولة مرة أخرى.",
   "customerBookingSuccessBookAnother": "حجز موعد آخر",
   "customerBookingSuccessBackToSalon": "العودة إلى الصالون",
   "customerBookingSuccessCodeCopied": "تم نسخ رمز الحجز.",
@@ -1250,6 +1260,10 @@
   "customerBookingDetailsTimelineCreated": "تم الإنشاء",
   "customerBookingDetailsTimelineUpcoming": "قادم",
   "customerBookingDetailsTimelineConfirmed": "مؤكد",
+  "customerTimelineActorCustomer": "العميل",
+  "customerTimelineActorSystem": "النظام",
+  "customerTimelineActorOwner": "المالك",
+  "customerTimelineActorAdmin": "مشرف",
   "customerBookingDetailsPendingConfirmation": "بانتظار التأكيد",
   "customerBookingDetailsSpecialist": "المختص",
   "customerBookingDetailsCall": "اتصال",
@@ -1262,6 +1276,18 @@
   "@customerBookingDetailsCancelPolicyNotice": {
     "placeholders": {
       "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "customerBookingDetailsPolicyTitle": "السياسة",
+  "customerBookingDetailsPolicyBody": "يمكنك الإلغاء قبل الموعد بـ {cancelHours} ساعة، وإعادة الجدولة قبل الموعد بـ {rescheduleHours} ساعة.",
+  "@customerBookingDetailsPolicyBody": {
+    "placeholders": {
+      "cancelHours": {
+        "type": "int"
+      },
+      "rescheduleHours": {
         "type": "int"
       }
     }
@@ -4103,7 +4129,7 @@
   "zuranoLastBookedViewBooking": "عرض الحجز",
   "zuranoLastBookedCodeLabel": "رمز الحجز",
   "zuranoSpecialistView": "عرض",
-  "zuranoNearbyTitle": "صالونات قريبة",
+  "zuranoNearbyTitle": "أماكن قريبة",
   "zuranoNearbyViewMap": "عرض الخريطة",
   "zuranoNearbyMapSnack": "عرض الخريطة سيُضاف لاحقًا.",
   "zuranoNearbyBookNow": "احجز الآن",
@@ -4128,9 +4154,10 @@
     }
   },
   "customerMapFindingLocation": "جارٍ تحديد موقعك…",
-  "customerMapCouldNotLoadSalons": "تعذّر تحميل الصالونات على الخريطة.",
-  "customerMapNoSalonsOnMap": "لا توجد صالونات على الخريطة بعد.",
-  "customerMapSalonsOnMapCount": "{count} صالونًا على الخريطة",
+  "customerMapCouldNotLoadSalons": "تعذّر تحميل الأماكن على الخريطة.",
+  "customerMapNoSalonsOnMap": "لم يُعثر على حلاقين أو صالونات أو سبا في هذه المنطقة.",
+  "customerMapSubtitleTagline": "حلاقون وصالونات وسبا من حولك",
+  "customerMapSalonsOnMapCount": "{count} أماكن قريبة",
   "@customerMapSalonsOnMapCount": {
     "placeholders": {
       "count": {"type": "String"}
@@ -4158,8 +4185,36 @@
     }
   },
   "customerMapDetailsCta": "التفاصيل",
+  "customerMapNearbySheetTitle": "الأماكن القريبة",
+  "customerMapRadiusLabelKm": "{km} كم",
+  "customerMapNoPlacesSheetTitle": "لا توجد أماكن قريبة",
+  "customerMapNoPlacesSheetBody": "جرّب منطقة أخرى أو وسّع نطاق البحث.",
+  "customerMapSubtitleTagline": "اعثر على الحلاقين والصالونات من حولك.",
+  "customerMapUseMyLocation": "استخدم موقعي",
+  "customerMapExpandRadius": "وسّع النطاق",
+  "customerMapSelectRadiusTitle": "نطاق البحث",
+  "@customerMapRadiusLabelKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "customerMapSearchThisArea": "ابحث في هذه المنطقة",
+  "customerMapFilterAll": "الكل",
+  "customerMapFilterBarber": "حلاق",
+  "customerMapFilterSalon": "صالون",
+  "customerMapFilterSpa": "سبا",
+  "customerMapFilterOpenNow": "مفتوح الآن",
+  "customerMapFilterTopRated": "الأعلى تقييمًا",
   "customerMapStatusOpen": "مفتوح",
+  "customerMapStatusClosed": "مغلق",
   "customerMapStatusSoon": "قريبًا",
+  "customerMapViewProfile": "عرض الملف",
+  "customerMapNextAvailableToday": "أقرب موعد متاح اليوم: {time}",
+  "@customerMapNextAvailableToday": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
   "zuranoBottomNavHome": "الرئيسية",
   "zuranoBottomNavBookings": "الحجوزات",
   "zuranoBottomNavRewards": "المكافآت",
