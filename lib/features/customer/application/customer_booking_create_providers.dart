@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../providers/firebase_providers.dart';
+import '../../../../providers/repository_providers.dart'
+    show guestIdentityRepositoryProvider;
 import '../data/models/customer_booking_create_result.dart';
 import '../data/models/customer_booking_draft.dart';
 import '../data/models/customer_booking_settings.dart';
@@ -14,6 +16,7 @@ final customerBookingCreateRepositoryProvider =
         functions: ref.watch(firebaseFunctionsProvider),
         firestore: ref.watch(firestoreProvider),
         auth: ref.watch(firebaseAuthProvider),
+        guestIdentityRepository: ref.watch(guestIdentityRepositoryProvider),
       );
     });
 

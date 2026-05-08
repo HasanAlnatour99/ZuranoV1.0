@@ -20,6 +20,7 @@ import '../../../../providers/onboarding_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
+import '../../../../providers/firebase_providers.dart';
 import '../widgets/zurano/app_settings_actions_card.dart';
 import '../widgets/zurano/country_dropdown_card.dart';
 import '../widgets/zurano/language_option_tile.dart';
@@ -55,6 +56,30 @@ import 'package:barber_shop_app/core/ui/app_icons.dart';
     return b.startAt.toUtc().isAfter(now);
   }).length;
   return (total: total, salons: salons, upcoming: upcoming);
+}
+
+({int total, int upcoming, int completed}) _guestBookingStatCounts(
+  List<Booking> bookings,
+) {
+  final now = DateTime.now().toUtc();
+  final kept = bookings
+      .where((b) => b.status != BookingStatuses.cancelled)
+      .toList(growable: false);
+  final total = kept.length;
+  final upcoming = kept.where((b) {
+    if (b.status == BookingStatuses.cancelled) {
+      return false;
+    }
+    if (!(b.status == BookingStatuses.pending ||
+        b.status == BookingStatuses.confirmed ||
+        b.status == BookingStatuses.rescheduled)) {
+      return false;
+    }
+    return b.startAt.toUtc().isAfter(now);
+  }).length;
+  final completed =
+      kept.where((b) => b.status == BookingStatuses.completed).length;
+  return (total: total, upcoming: upcoming, completed: completed);
 }
 
 /// Language + country (local prefs). Works signed in or out.
@@ -359,11 +384,104 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
   ) {
     final sessionAsync = ref.watch(sessionUserProvider);
     final bookingsAsync = ref.watch(customerBookingsForProfileStreamProvider);
+    final isAnonymous =
+        ref.watch(firebaseAuthProvider).currentUser?.isAnonymous == true;
     return sessionAsync.maybeWhen(
       data: (u) {
         if (u == null || u.role != UserRoles.customer) {
           return null;
         }
+        if (isAnonymous) {
+          final stats = bookingsAsync.when(
+            data: _guestBookingStatCounts,
+            loading: () => (total: 0, upcoming: 0, completed: 0),
+            error: (_, _) => (total: 0, upcoming: 0, completed: 0),
+          );
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.guestProfileTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.3,
+                  color: ZuranoPremiumUiColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.guestProfileSubtitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: ZuranoPremiumUiColors.textSecondary,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16),
+              CustomerProfileHeaderCard(
+                displayName: l10n.zuranoDiscoverGuestName,
+                email: '',
+              ),
+              const SizedBox(height: 16),
+              CustomerStatsStripCard(
+                items: [
+                  CustomerStatStripItem(
+                    value: '${stats.total}',
+                    label: l10n.customerStatBookings,
+                  ),
+                  CustomerStatStripItem(
+                    value: '${stats.upcoming}',
+                    label: l10n.customerStatUpcoming,
+                  ),
+                  CustomerStatStripItem(
+                    value: '${stats.completed}',
+                    label: l10n.guestStatCompleted,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              ZuranoInfoBanner(
+                text: l10n.guestBookingsSavedOnDeviceBody,
+                onClose: () {},
+              ),
+              const SizedBox(height: 16),
+              CustomerSettingsGroupCard(
+                children: [
+                  CustomerSettingsTile(
+                    icon: AppIcons.event_note_outlined,
+                    title: l10n.customerMyBookings,
+                    subtitle: l10n.customerSettingsTileBookingsSubtitle,
+                    onTap: () => context.push(AppRoutes.customerMyBookings),
+                  ),
+                  CustomerSettingsTile(
+                    icon: AppIcons.person_search_outlined,
+                    title: l10n.guestQuickActionFindBooking,
+                    subtitle: l10n.guestQuickActionFindBookingSubtitle,
+                    onTap: () => context.go(AppRoutes.customerMyBooking),
+                  ),
+                  CustomerSettingsTile(
+                    icon: AppIcons.notifications_outlined,
+                    title: l10n.customerNotificationsTooltip,
+                    subtitle: l10n.customerSettingsTileNotificationsSubtitle,
+                    onTap: () => context.push(AppRoutes.notifications),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              CustomerSettingsGroupCard(
+                children: [
+                  CustomerSettingsTile(
+                    icon: AppIcons.verified_user_outlined,
+                    title: l10n.guestAccountCreateOrSignIn,
+                    subtitle: l10n.guestAccountCreateOrSignInSubtitle,
+                    onTap: () => context.go(AppRoutes.customerAuth),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+
         final stats = bookingsAsync.when(
           data: _customerBookingStatCounts,
           loading: () => (total: 0, salons: 0, upcoming: 0),

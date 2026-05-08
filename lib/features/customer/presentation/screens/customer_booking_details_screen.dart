@@ -140,6 +140,8 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context);
+    final hasPhone = details.salonPhone?.trim().isNotEmpty == true;
+    final hasWhatsApp = details.salonWhatsapp?.trim().isNotEmpty == true;
     final tag = locale.toString();
     final dateFmt = DateFormat.yMMMMEEEEd(tag);
     final timeFmt = DateFormat.jm(tag);
@@ -300,7 +302,8 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
+                                onPressed: hasPhone
+                                    ? () {
                                   final p = details.salonPhone?.trim();
                                   ContactLauncher.callPhone(
                                     context,
@@ -308,7 +311,8 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                                     unavailableMessage: l10n
                                         .customerBookingDetailsPhoneUnavailable,
                                   );
-                                },
+                                }
+                                    : null,
                                 icon: const Icon(Icons.call_rounded, size: 18),
                                 label: Text(l10n.customerBookingDetailsCall),
                               ),
@@ -316,7 +320,8 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                             const SizedBox(width: AppSpacing.small),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
+                                onPressed: hasWhatsApp
+                                    ? () {
                                   final w = details.salonWhatsapp?.trim();
                                   ContactLauncher.openWhatsApp(
                                     context,
@@ -326,7 +331,8 @@ class _CustomerBookingDetailsBody extends ConsumerWidget {
                                     unavailableMessage: l10n
                                         .customerBookingDetailsPhoneUnavailable,
                                   );
-                                },
+                                }
+                                    : null,
                                 icon: const Icon(Icons.chat_rounded, size: 18),
                                 label: Text(
                                   l10n.customerBookingDetailsWhatsApp,

@@ -10214,6 +10214,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zuranoDiscoverGuestName => 'Guest';
 
   @override
+  String get guestProfileTitle => 'Guest profile';
+
+  @override
+  String get guestProfileSubtitle =>
+      'Manage your bookings, preferences, and Zurano app settings.';
+
+  @override
+  String get guestBookingsSavedOnDeviceBody =>
+      'Bookings saved on this device. You can also find any booking using booking code + phone number.';
+
+  @override
+  String get guestQuickActionFindBooking => 'Find booking by code';
+
+  @override
+  String get guestQuickActionFindBookingSubtitle =>
+      'Use booking code + phone number to recover a booking.';
+
+  @override
+  String get guestStatCompleted => 'Completed';
+
+  @override
+  String get guestAccountCreateOrSignIn => 'Create account / Sign in';
+
+  @override
+  String get guestAccountCreateOrSignInSubtitle =>
+      'Save your bookings across devices and get updates.';
+
+  @override
   String get zuranoHomeHeadlineLine1 => 'Where self-care';
 
   @override

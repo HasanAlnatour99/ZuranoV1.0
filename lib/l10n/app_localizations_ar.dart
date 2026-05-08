@@ -10188,6 +10188,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get zuranoDiscoverGuestName => 'زائر';
 
   @override
+  String get guestProfileTitle => 'ملف الضيف';
+
+  @override
+  String get guestProfileSubtitle =>
+      'أدر حجوزاتك وتفضيلاتك وإعدادات تطبيق زورانو.';
+
+  @override
+  String get guestBookingsSavedOnDeviceBody =>
+      'الحجوزات محفوظة على هذا الجهاز. يمكنك أيضًا العثور على أي حجز باستخدام رمز الحجز + رقم الهاتف.';
+
+  @override
+  String get guestQuickActionFindBooking => 'ابحث عن حجز بالرمز';
+
+  @override
+  String get guestQuickActionFindBookingSubtitle =>
+      'استخدم رمز الحجز + رقم الهاتف لاسترجاع الحجز.';
+
+  @override
+  String get guestStatCompleted => 'مكتملة';
+
+  @override
+  String get guestAccountCreateOrSignIn => 'إنشاء حساب / تسجيل الدخول';
+
+  @override
+  String get guestAccountCreateOrSignInSubtitle =>
+      'احفظ حجوزاتك عبر الأجهزة وتلقَّ التحديثات.';
+
+  @override
   String get zuranoHomeHeadlineLine1 => 'حيث العناية الذاتية';
 
   @override

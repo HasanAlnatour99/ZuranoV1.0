@@ -17884,6 +17884,54 @@ abstract class AppLocalizations {
   /// **'Guest'**
   String get zuranoDiscoverGuestName;
 
+  /// No description provided for @guestProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest profile'**
+  String get guestProfileTitle;
+
+  /// No description provided for @guestProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your bookings, preferences, and Zurano app settings.'**
+  String get guestProfileSubtitle;
+
+  /// No description provided for @guestBookingsSavedOnDeviceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings saved on this device. You can also find any booking using booking code + phone number.'**
+  String get guestBookingsSavedOnDeviceBody;
+
+  /// No description provided for @guestQuickActionFindBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Find booking by code'**
+  String get guestQuickActionFindBooking;
+
+  /// No description provided for @guestQuickActionFindBookingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use booking code + phone number to recover a booking.'**
+  String get guestQuickActionFindBookingSubtitle;
+
+  /// No description provided for @guestStatCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get guestStatCompleted;
+
+  /// No description provided for @guestAccountCreateOrSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account / Sign in'**
+  String get guestAccountCreateOrSignIn;
+
+  /// No description provided for @guestAccountCreateOrSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your bookings across devices and get updates.'**
+  String get guestAccountCreateOrSignInSubtitle;
+
   /// No description provided for @zuranoHomeHeadlineLine1.
   ///
   /// In en, this message translates to:

@@ -2,6 +2,8 @@ import 'customer_service_public_model.dart';
 
 const _unset = Object();
 
+enum CustomerBookingAssignmentMode { specific, auto }
+
 class CustomerBookingDraft {
   const CustomerBookingDraft({
     required this.salonId,
@@ -46,6 +48,11 @@ class CustomerBookingDraft {
   final double discountAmount;
   final double totalAmount;
   final int durationMinutes;
+
+  CustomerBookingAssignmentMode get assignmentMode =>
+      anyAvailableEmployee
+          ? CustomerBookingAssignmentMode.auto
+          : CustomerBookingAssignmentMode.specific;
 
   bool get hasServices => selectedServices.isNotEmpty;
   bool get hasTeamSelection =>

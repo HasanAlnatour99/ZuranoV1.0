@@ -1044,6 +1044,33 @@ class BookingRepository {
     });
   }
 
+  /// Guest bookings across all salons, keyed by a device-stable guestProfileId.
+  ///
+  /// Requires Firestore rules support:
+  /// - `users/{uid}.guestProfileId` populated for anonymous guests
+  /// - booking doc `guestProfileId` equals user doc `guestProfileId`
+  Stream<List<Booking>> watchBookingsForGuestProfileId(
+    String guestProfileId, {
+    int limit = 80,
+  }) {
+    final id = guestProfileId.trim();
+    if (id.isEmpty) {
+      return Stream.value(const <Booking>[]);
+    }
+
+    final q = _firestore
+        .collectionGroup('bookings')
+        .where('guestProfileId', isEqualTo: id)
+        .orderBy('startAt', descending: true)
+        .orderBy(FieldPath.documentId, descending: true)
+        .limit(limit);
+
+    return q.snapshots().map(
+          (snap) =>
+              snap.docs.map((d) => Booking.fromJson(d.data())).toList(growable: false),
+        );
+  }
+
   /// Returns true when no overlapping booking exists for the barber.
   Future<bool> checkBarberAvailability({
     required String salonId,

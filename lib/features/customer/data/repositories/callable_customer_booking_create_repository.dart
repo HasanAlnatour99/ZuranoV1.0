@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/firebase/cloud_functions_region.dart';
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../../customer_profile/data/guest_identity_repository.dart';
 import '../models/customer_booking_create_result.dart';
 import '../models/customer_booking_draft.dart';
 import '../models/customer_booking_settings.dart';
@@ -19,13 +20,16 @@ class CallableCustomerBookingCreateRepository
     FirebaseFunctions? functions,
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
+    GuestIdentityRepository? guestIdentityRepository,
   }) : _functions = functions ?? appCloudFunctions(),
        _firestore = firestore ?? FirebaseFirestore.instance,
-       _auth = auth ?? FirebaseAuth.instance;
+       _auth = auth ?? FirebaseAuth.instance,
+       _guestIdentityRepository = guestIdentityRepository;
 
   final FirebaseFunctions _functions;
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final GuestIdentityRepository? _guestIdentityRepository;
 
   @override
   Future<CustomerBookingCreateResult> createBookingFromDraft({
@@ -48,9 +52,18 @@ class CallableCustomerBookingCreateRepository
 
     try {
       final callable = _functions.httpsCallable('createCustomerBooking');
+      final guestProfileId =
+          _auth.currentUser?.isAnonymous == true && _guestIdentityRepository != null
+              ? await _guestIdentityRepository.getOrCreateGuestProfileId()
+              : null;
       final response = await callable.call(<String, dynamic>{
         'salonId': salonId,
         'draft': draftPayload,
+        ...?(
+          guestProfileId == null
+              ? null
+              : <String, dynamic>{'guestProfileId': guestProfileId}
+        ),
       });
 
       final raw = response.data;

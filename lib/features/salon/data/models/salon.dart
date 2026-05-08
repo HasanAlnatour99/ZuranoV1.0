@@ -239,6 +239,9 @@ class Salon {
         'businessType': businessType,
       if (contactPhone != null && contactPhone!.isNotEmpty)
         'contactPhone': contactPhone,
+      // Canonical production location format.
+      // Always write Firestore GeoPoint. Legacy map/top-level formats are
+      // read-only fallbacks.
       if (location != null) 'location': location,
       if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty)
         'coverImageUrl': coverImageUrl!.trim(),

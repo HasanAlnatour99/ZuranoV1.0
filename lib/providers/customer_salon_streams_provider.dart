@@ -12,6 +12,7 @@ import '../features/customer/application/customer_salon_profile_providers.dart';
 import '../features/employees/data/models/employee.dart';
 import '../features/salon/data/models/salon.dart';
 import '../features/services/data/models/service.dart';
+import 'firebase_providers.dart';
 import 'repository_providers.dart';
 import 'session_provider.dart';
 
@@ -174,6 +175,8 @@ final customerBookingsForProfileStreamProvider =
       if (!_canReadCustomerStreams(ref)) {
         return Stream.value(const <Booking>[]);
       }
+      final isAnonymous =
+          ref.watch(firebaseAuthProvider).currentUser?.isAnonymous == true;
       return ref
           .watch(sessionUserProvider)
           .when(
@@ -182,6 +185,16 @@ final customerBookingsForProfileStreamProvider =
                   user.role != UserRoles.customer ||
                   user.uid.isEmpty) {
                 return Stream.value(const <Booking>[]);
+              }
+              if (isAnonymous) {
+                final guestIdentity = ref.read(guestIdentityRepositoryProvider);
+                return Stream.fromFuture(
+                  guestIdentity.getOrCreateGuestProfileId(),
+                ).asyncExpand(
+                  (id) => ref
+                      .read(bookingRepositoryProvider)
+                      .watchBookingsForGuestProfileId(id, limit: 80),
+                );
               }
               return ref
                   .read(bookingRepositoryProvider)

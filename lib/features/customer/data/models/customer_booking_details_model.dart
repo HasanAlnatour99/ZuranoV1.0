@@ -214,13 +214,39 @@ class CustomerBookingDetailsModel {
         ? publicSalon.salonName
         : _string(bookingData['salonName']);
 
+    String? fallbackPhone(Object? v) {
+      final s = _string(v);
+      return s.isEmpty ? null : s;
+    }
+
+    final mergedPhone = (publicSalon.phone?.trim().isNotEmpty == true)
+        ? publicSalon.phone?.trim()
+        : fallbackPhone(
+          bookingData['salonPhone'] ??
+              bookingData['phone'] ??
+              bookingData['phoneNumber'],
+        );
+
+    final mergedWhatsapp = (publicSalon.whatsapp?.trim().isNotEmpty == true)
+        ? publicSalon.whatsapp?.trim()
+        : fallbackPhone(
+          bookingData['salonWhatsapp'] ??
+              bookingData['whatsapp'] ??
+              bookingData['whatsApp'] ??
+              bookingData['whatsappNumber'],
+        );
+
+    final mergedArea = publicSalon.area.isNotEmpty
+        ? publicSalon.area
+        : _string(bookingData['salonArea'] ?? bookingData['area']);
+
     return CustomerBookingDetailsModel(
       id: bookingId,
       salonId: salonId,
       salonName: salonName,
-      salonArea: publicSalon.area,
-      salonPhone: publicSalon.phone,
-      salonWhatsapp: publicSalon.whatsapp,
+      salonArea: mergedArea,
+      salonPhone: mergedPhone,
+      salonWhatsapp: mergedWhatsapp,
       bookingCode: _publicBookingCode(bookingData),
       status: _string(bookingData['status']),
       customerName: _string(bookingData['customerName']),
@@ -324,8 +350,15 @@ class SalonPublicSlice {
       salonName: (name != null && name.isNotEmpty) ? name : '',
       area: (area != null && area.isNotEmpty) ? area : '',
       currencyCode: currencyCode,
-      phone: (data['phone'] as String?)?.trim(),
-      whatsapp: (data['whatsapp'] as String?)?.trim(),
+      phone: ((data['phone'] as String?) ??
+              (data['salonPhone'] as String?) ??
+              (data['phoneNumber'] as String?))
+          ?.trim(),
+      whatsapp: ((data['whatsapp'] as String?) ??
+              (data['salonWhatsapp'] as String?) ??
+              (data['whatsApp'] as String?) ??
+              (data['whatsappNumber'] as String?))
+          ?.trim(),
       customerBookingSettings: CustomerBookingSettings.fromMap(
         rawSettings is Map<String, dynamic> ? rawSettings : null,
       ),

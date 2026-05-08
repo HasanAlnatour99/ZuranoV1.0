@@ -11,11 +11,19 @@ service cloud.firestore {
     }
 
     /// Used by `collectionGroup('bookings')` customer queries (`guestUid` / `createdByAuthUid`).
+    /// Also supports stable device-based guestProfileId stored on `users/{uid}`.
     function isOwnGuestBooking() {
       return signedIn() &&
         (
           resource.data.get('guestUid', '') == request.auth.uid ||
-          resource.data.get('createdByAuthUid', '') == request.auth.uid
+          resource.data.get('createdByAuthUid', '') == request.auth.uid ||
+          (
+            userDocExists() &&
+            userDoc().data.get('guestProfileId', '') is string &&
+            userDoc().data.get('guestProfileId', '').size() > 0 &&
+            resource.data.get('guestProfileId', '') ==
+              userDoc().data.get('guestProfileId', '')
+          )
         );
     }
 
@@ -247,7 +255,7 @@ service cloud.firestore {
           'fcmTokens',
           'updatedAt', 'profileCompletedAt', 'onboardingCompleted',
           'authProvider', 'photoUrl', 'isActive',
-          'accountType', 'isAnonymous', 'guestStatus'
+          'accountType', 'isAnonymous', 'guestStatus', 'guestProfileId'
         ]);
     }
 
@@ -993,7 +1001,14 @@ service cloud.firestore {
             (
               resource.data.customerId == request.auth.uid ||
               resource.data.get('createdByAuthUid', '') == request.auth.uid ||
-              resource.data.get('guestUid', '') == request.auth.uid
+              resource.data.get('guestUid', '') == request.auth.uid ||
+              (
+                userDocExists() &&
+                userDoc().data.get('guestProfileId', '') is string &&
+                userDoc().data.get('guestProfileId', '').size() > 0 &&
+                resource.data.get('guestProfileId', '') ==
+                  userDoc().data.get('guestProfileId', '')
+              )
             )
           );
 

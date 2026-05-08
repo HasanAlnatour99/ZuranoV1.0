@@ -37,6 +37,7 @@ import '../features/salon/data/salon_repository.dart';
 import '../features/services/data/service_image_storage.dart';
 import '../features/services/data/service_repository.dart';
 import '../features/notifications/data/notification_repository.dart';
+import '../features/customer_profile/data/guest_identity_repository.dart';
 import '../features/users/data/user_repository.dart';
 import '../features/violations/data/violation_repository.dart';
 import 'firebase_providers.dart';
@@ -57,6 +58,10 @@ final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
 });
 
+final guestIdentityRepositoryProvider = Provider<GuestIdentityRepository>((ref) {
+  return GuestIdentityRepository(ref.read(secureStorageServiceProvider));
+});
+
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository(firestore: ref.read(firestoreProvider));
 });
@@ -65,6 +70,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
     auth: ref.read(firebaseAuthProvider),
     userRepository: ref.read(userRepositoryProvider),
+    guestIdentityRepository: ref.read(guestIdentityRepositoryProvider),
   );
 });
 

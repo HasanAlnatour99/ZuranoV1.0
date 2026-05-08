@@ -9,6 +9,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/boot/app_boot_log.dart';
 import '../../../core/constants/user_roles.dart';
 import '../../../core/debug/agent_session_log.dart';
+import '../../customer_profile/data/guest_identity_repository.dart';
 import '../../onboarding/domain/value_objects/user_address.dart';
 import '../../onboarding/domain/value_objects/user_phone.dart';
 import '../../users/data/models/app_user.dart';
@@ -18,11 +19,14 @@ class AuthRepository {
   AuthRepository({
     required FirebaseAuth auth,
     required UserRepository userRepository,
+    required GuestIdentityRepository guestIdentityRepository,
   }) : _auth = auth,
-       _userRepository = userRepository;
+       _userRepository = userRepository,
+       _guestIdentityRepository = guestIdentityRepository;
 
   final FirebaseAuth _auth;
   final UserRepository _userRepository;
+  final GuestIdentityRepository _guestIdentityRepository;
   String? _lastCredentialUid;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -720,10 +724,13 @@ class AuthRepository {
     }
 
     await _userRepository.createOrUpdateUser(guestUser, merge: true);
+    final guestProfileId =
+        await _guestIdentityRepository.getOrCreateGuestProfileId();
     await _userRepository.mergeProfileFields({
       'accountType': 'guest',
       'isAnonymous': true,
       'guestStatus': 'active',
+      'guestProfileId': guestProfileId,
     });
 
     if (kDebugMode) {

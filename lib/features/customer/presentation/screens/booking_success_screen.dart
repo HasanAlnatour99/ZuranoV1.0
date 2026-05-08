@@ -73,10 +73,10 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     final status = result?.status ?? l10n.customerBookingSuccessStatusFallback;
     final date = result == null
         ? l10n.customerBookingSuccessFallback
-        : dateFormatter.format(result.startAt);
+        : dateFormatter.format(result.startAt.toLocal());
     final time = result == null
         ? l10n.customerBookingSuccessFallback
-        : '${timeFormatter.format(result.startAt)} - ${timeFormatter.format(result.endAt)}';
+        : '${timeFormatter.format(result.startAt.toLocal())} - ${timeFormatter.format(result.endAt.toLocal())}';
 
     if (!_savedLastBooked && result != null) {
       _savedLastBooked = true;

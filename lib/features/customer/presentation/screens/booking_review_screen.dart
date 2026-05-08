@@ -52,7 +52,7 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
       );
       return;
     }
-    if (!draft.hasTeamSelection || draft.selectedEmployeeId == null) {
+    if (!draft.hasTeamSelection) {
       context.goNamed(
         AppRouteNames.customerTeamSelection,
         pathParameters: {'salonId': widget.salonId},
@@ -95,8 +95,16 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
 
   Future<void> _confirm(AppLocalizations l10n) async {
     final draft = ref.read(customerBookingDraftProvider);
+    if (!draft.hasTeamSelection) {
+      _showError(l10n.customerBookingReviewChooseSpecialistAgain);
+      return;
+    }
     if (draft.selectedEmployeeId == null) {
       _showError(l10n.customerBookingReviewChooseSpecialistAgain);
+      context.pushNamed(
+        AppRouteNames.customerDateTimeSelection,
+        pathParameters: {'salonId': widget.salonId},
+      );
       return;
     }
     final customerUiLanguageCode = Localizations.localeOf(context).languageCode;

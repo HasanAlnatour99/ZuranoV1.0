@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/firestore/firestore_paths.dart';
+import '../../../customer_profile/data/guest_identity_repository.dart';
 import '../models/customer_booking_create_result.dart';
 import '../models/customer_booking_draft.dart';
 import '../models/customer_booking_settings.dart';
@@ -32,9 +33,13 @@ abstract class CustomerBookingCreateRepository {
 /// TODO: Remove after Cloud Functions deployment is verified end-to-end.
 class FirestoreCustomerBookingCreateRepository
     implements CustomerBookingCreateRepository {
-  FirestoreCustomerBookingCreateRepository(this._firestore);
+  FirestoreCustomerBookingCreateRepository(
+    this._firestore, {
+    GuestIdentityRepository? guestIdentityRepository,
+  }) : _guestIdentityRepository = guestIdentityRepository;
 
   final FirebaseFirestore _firestore;
+  final GuestIdentityRepository? _guestIdentityRepository;
 
   static const _blockingStatuses = {
     'pending',
@@ -72,6 +77,11 @@ class FirestoreCustomerBookingCreateRepository
         .then((snap) => snap.docs.map((doc) => doc.reference).toList());
 
     final authUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final guestProfileId =
+        FirebaseAuth.instance.currentUser?.isAnonymous == true &&
+                _guestIdentityRepository != null
+            ? await _guestIdentityRepository.getOrCreateGuestProfileId()
+            : null;
     final publicSalonSnap = await _firestore
         .doc(FirestorePaths.publicSalon(salonId))
         .get();
@@ -179,6 +189,14 @@ class FirestoreCustomerBookingCreateRepository
           'customerPhoneNormalized': phoneNorm.isNotEmpty
               ? phoneNorm
               : 'guest_${bookingRef.id}',
+          ...?(
+            guestProfileId == null
+                ? null
+                : <String, dynamic>{
+                    'guestProfileId': guestProfileId,
+                    'customerType': 'guest',
+                  }
+          ),
           'employeeId': employeeId,
           'employeeName': employeeName,
           'barberId': employeeId,
