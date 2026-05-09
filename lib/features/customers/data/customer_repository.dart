@@ -152,7 +152,10 @@ class CustomerRepository {
       query = query.where('searchKeywords', arrayContains: keyword);
     }
 
-    query = query.orderBy('fullNameLower');
+    // Order by created date so legacy rows without [fullNameLower] still appear.
+    // Firestore omits documents missing the [orderBy] field — listing by
+    // [fullNameLower] hid customers imported or created without that field.
+    query = query.orderBy('createdAt', descending: true);
 
     if (startAfterDocument != null) {
       query = query.startAfterDocument(startAfterDocument);

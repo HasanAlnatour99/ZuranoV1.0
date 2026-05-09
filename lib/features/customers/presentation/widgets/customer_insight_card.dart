@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
 import '../../logic/customer_insights_providers.dart';
@@ -23,15 +24,15 @@ class CustomerInsightCard extends ConsumerWidget {
 
     return async.when(
       loading: () => _InsightShell(
-        child: const Center(
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: FinanceDashboardColors.primaryPurple,
-            ),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AppSkeletonBlock(height: 18, width: 140),
+            const SizedBox(height: 14),
+            AppSkeletonBlock(height: 14, width: MediaQuery.sizeOf(context).width),
+            const SizedBox(height: 10),
+            AppSkeletonBlock(height: 14, width: MediaQuery.sizeOf(context).width * 0.72),
+          ],
         ),
       ),
       error: (err, _) => _InsightShell(

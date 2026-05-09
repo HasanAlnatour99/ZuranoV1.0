@@ -521,10 +521,13 @@ final barberDetailsProvider = Provider.autoDispose
       );
       final payrollAsync = ref.watch(payrollStreamProvider);
 
+      // Do not gate [barberDetailsProvider] loading on [servicesStreamProvider].
+      // That stream reconnects often; bundling it into [_combineAsyncValues]
+      // forced the entire [BarberDetailsScreen] (all tabs) back to the loading
+      // scaffold — felt like the route “closed” when opening the Services tab.
       return _combineAsyncValues<BarberDetailsData>(
         [
           employeesAsync,
-          servicesAsync,
           salesAsync,
           attendanceAsync,
           payrollAsync,
@@ -535,7 +538,8 @@ final barberDetailsProvider = Provider.autoDispose
             (item) => item.id == employeeId,
             orElse: () => throw StateError('Employee not found.'),
           );
-          final services = servicesAsync.requireValue;
+          final services =
+              servicesAsync.asData?.value ?? const <SalonService>[];
           final sales = salesAsync.requireValue;
           final attendance = attendanceAsync.requireValue;
           final payroll = payrollAsync.requireValue
