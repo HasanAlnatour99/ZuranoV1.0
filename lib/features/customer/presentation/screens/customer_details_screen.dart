@@ -47,16 +47,13 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
   bool _touchedPhone = false;
   late final ZuranoPhoneCountryRepository _countryRepo;
   late ZuranoPhoneCountry _selectedCountry;
+  bool _resolvedDefaultCountry = false;
 
   @override
   void initState() {
     super.initState();
     final draft = ref.read(customerBookingDraftProvider);
     _countryRepo = const ZuranoPhoneCountryRepository();
-    _selectedCountry = _countryRepo.defaultCountry(
-      salonIsoCode: draft.customerCountryIsoCode,
-      locale: null,
-    );
     _nameController = TextEditingController(text: draft.customerName ?? '');
     _phoneController = TextEditingController(
       text: draft.customerPhoneNational ?? draft.customerPhone ?? '',
@@ -64,6 +61,18 @@ class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
     _notesController = TextEditingController(text: draft.customerNote ?? '');
     _selectedGender = draft.customerGender;
     WidgetsBinding.instance.addPostFrameCallback((_) => _guardDraft());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resolvedDefaultCountry) return;
+    _resolvedDefaultCountry = true;
+    final draft = ref.read(customerBookingDraftProvider);
+    _selectedCountry = _countryRepo.defaultCountry(
+      salonIsoCode: draft.customerCountryIsoCode,
+      locale: Localizations.maybeLocaleOf(context),
+    );
   }
 
   @override

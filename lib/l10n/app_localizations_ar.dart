@@ -475,6 +475,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerServiceCategoryHaircutStyling => 'قص وتصفيف الشعر';
 
   @override
+  String get ownerDiscoveryCategoryHaircut => 'Haircut';
+
+  @override
+  String get ownerDiscoveryCategoryHaircutAr => 'قص الشعر';
+
+  @override
+  String get ownerDiscoveryCategoryBeard => 'Beard';
+
+  @override
+  String get ownerDiscoveryCategoryBeardAr => 'اللحية';
+
+  @override
+  String get ownerDiscoveryCategoryCombo => 'Combo';
+
+  @override
+  String get ownerDiscoveryCategoryComboAr => 'كومبو';
+
+  @override
+  String get ownerDiscoveryCategoryKids => 'Kids';
+
+  @override
+  String get ownerDiscoveryCategoryKidsAr => 'أطفال';
+
+  @override
+  String get ownerDiscoveryCategoryPremium => 'Premium';
+
+  @override
+  String get ownerDiscoveryCategoryPremiumAr => 'بريميوم';
+
+  @override
+  String get ownerDiscoveryCategorySpa => 'Spa';
+
+  @override
+  String get ownerDiscoveryCategorySpaAr => 'سبا';
+
+  @override
   String get ownerServiceCategoryHairTreatments => 'علاجات الشعر';
 
   @override
@@ -685,6 +721,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ownerServiceActiveSubtitle => 'إظهار هذه الخدمة للعملاء';
+
+  @override
+  String get ownerServicePublicToCustomersLabel => 'Customer discovery';
+
+  @override
+  String get ownerServicePublicToCustomersSubtitle =>
+      'When on, this service can appear in customer search and home categories.';
 
   @override
   String get ownerServiceNamePlaceholder => 'مثال: Classic Haircut';
@@ -3068,6 +3111,61 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customerSectionNearbySalons => 'صالونات لك';
+
+  @override
+  String get customerCategoryPopularServicesTitle => 'Popular services';
+
+  @override
+  String customerCategoryStatsFromPrice(String price) {
+    return 'From $price';
+  }
+
+  @override
+  String customerCategoryStatsSalonCount(int count) {
+    return '$count salons';
+  }
+
+  @override
+  String customerCategoryStatsAvailableToday(int count) {
+    return '$count available today';
+  }
+
+  @override
+  String get customerCategoryResultsSubtitle => 'Services near you';
+
+  @override
+  String get customerCategoryFilterNearby => 'Nearby';
+
+  @override
+  String get customerCategoryFilterOpenNow => 'Open now';
+
+  @override
+  String get customerCategoryFilterAvailableToday => 'Available today';
+
+  @override
+  String get customerCategoryBookNow => 'Book now';
+
+  @override
+  String get customerCategoryResultsEmpty =>
+      'No matching services yet. Try adjusting filters.';
+
+  @override
+  String get customerCategoryNearbyAllowLocation =>
+      'Allow location to show nearby services.';
+
+  @override
+  String customerCategoryNearbyWithinKm(int radiusKm) {
+    return 'Within $radiusKm km';
+  }
+
+  @override
+  String get customerCategoryNearbyNoResults =>
+      'No nearby services found. Try increasing distance or removing Nearby filter.';
+
+  @override
+  String customerCategoryDistanceKmAway(String km) {
+    return '$km km away';
+  }
 
   @override
   String get customerSeeAll => 'عرض الكل';

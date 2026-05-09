@@ -968,6 +968,78 @@ abstract class AppLocalizations {
   /// **'Haircut & Styling'**
   String get ownerServiceCategoryHaircutStyling;
 
+  /// No description provided for @ownerDiscoveryCategoryHaircut.
+  ///
+  /// In en, this message translates to:
+  /// **'Haircut'**
+  String get ownerDiscoveryCategoryHaircut;
+
+  /// No description provided for @ownerDiscoveryCategoryHaircutAr.
+  ///
+  /// In en, this message translates to:
+  /// **'قص الشعر'**
+  String get ownerDiscoveryCategoryHaircutAr;
+
+  /// No description provided for @ownerDiscoveryCategoryBeard.
+  ///
+  /// In en, this message translates to:
+  /// **'Beard'**
+  String get ownerDiscoveryCategoryBeard;
+
+  /// No description provided for @ownerDiscoveryCategoryBeardAr.
+  ///
+  /// In en, this message translates to:
+  /// **'اللحية'**
+  String get ownerDiscoveryCategoryBeardAr;
+
+  /// No description provided for @ownerDiscoveryCategoryCombo.
+  ///
+  /// In en, this message translates to:
+  /// **'Combo'**
+  String get ownerDiscoveryCategoryCombo;
+
+  /// No description provided for @ownerDiscoveryCategoryComboAr.
+  ///
+  /// In en, this message translates to:
+  /// **'كومبو'**
+  String get ownerDiscoveryCategoryComboAr;
+
+  /// No description provided for @ownerDiscoveryCategoryKids.
+  ///
+  /// In en, this message translates to:
+  /// **'Kids'**
+  String get ownerDiscoveryCategoryKids;
+
+  /// No description provided for @ownerDiscoveryCategoryKidsAr.
+  ///
+  /// In en, this message translates to:
+  /// **'أطفال'**
+  String get ownerDiscoveryCategoryKidsAr;
+
+  /// No description provided for @ownerDiscoveryCategoryPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get ownerDiscoveryCategoryPremium;
+
+  /// No description provided for @ownerDiscoveryCategoryPremiumAr.
+  ///
+  /// In en, this message translates to:
+  /// **'بريميوم'**
+  String get ownerDiscoveryCategoryPremiumAr;
+
+  /// No description provided for @ownerDiscoveryCategorySpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Spa'**
+  String get ownerDiscoveryCategorySpa;
+
+  /// No description provided for @ownerDiscoveryCategorySpaAr.
+  ///
+  /// In en, this message translates to:
+  /// **'سبا'**
+  String get ownerDiscoveryCategorySpaAr;
+
   /// No description provided for @ownerServiceCategoryHairTreatments.
   ///
   /// In en, this message translates to:
@@ -1343,8 +1415,20 @@ abstract class AppLocalizations {
   /// No description provided for @ownerServiceActiveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Show this service to customers'**
+  /// **'Include this service in your salon catalog.'**
   String get ownerServiceActiveSubtitle;
+
+  /// No description provided for @ownerServicePublicToCustomersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer discovery'**
+  String get ownerServicePublicToCustomersLabel;
+
+  /// No description provided for @ownerServicePublicToCustomersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, this service can appear in customer search and home categories.'**
+  String get ownerServicePublicToCustomersSubtitle;
 
   /// No description provided for @ownerServiceNamePlaceholder.
   ///
@@ -5623,6 +5707,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Salons for you'**
   String get customerSectionNearbySalons;
+
+  /// No description provided for @customerCategoryPopularServicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular services'**
+  String get customerCategoryPopularServicesTitle;
+
+  /// No description provided for @customerCategoryStatsFromPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'From {price}'**
+  String customerCategoryStatsFromPrice(String price);
+
+  /// No description provided for @customerCategoryStatsSalonCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} salons'**
+  String customerCategoryStatsSalonCount(int count);
+
+  /// No description provided for @customerCategoryStatsAvailableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} available today'**
+  String customerCategoryStatsAvailableToday(int count);
+
+  /// No description provided for @customerCategoryResultsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Services near you'**
+  String get customerCategoryResultsSubtitle;
+
+  /// No description provided for @customerCategoryFilterNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get customerCategoryFilterNearby;
+
+  /// No description provided for @customerCategoryFilterOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get customerCategoryFilterOpenNow;
+
+  /// No description provided for @customerCategoryFilterAvailableToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get customerCategoryFilterAvailableToday;
+
+  /// No description provided for @customerCategoryBookNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Book now'**
+  String get customerCategoryBookNow;
+
+  /// No description provided for @customerCategoryResultsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching services yet. Try adjusting filters.'**
+  String get customerCategoryResultsEmpty;
+
+  /// No description provided for @customerCategoryNearbyAllowLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location to show nearby services.'**
+  String get customerCategoryNearbyAllowLocation;
+
+  /// No description provided for @customerCategoryNearbyWithinKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Within {radiusKm} km'**
+  String customerCategoryNearbyWithinKm(int radiusKm);
+
+  /// No description provided for @customerCategoryNearbyNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No nearby services found. Try increasing distance or removing Nearby filter.'**
+  String get customerCategoryNearbyNoResults;
+
+  /// No description provided for @customerCategoryDistanceKmAway.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km away'**
+  String customerCategoryDistanceKmAway(String km);
 
   /// No description provided for @customerSeeAll.
   ///

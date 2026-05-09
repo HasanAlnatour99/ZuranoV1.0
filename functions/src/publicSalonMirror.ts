@@ -1,10 +1,15 @@
 import { FieldValue, GeoPoint, type DocumentData } from "firebase-admin/firestore";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import * as ngeohash from "ngeohash";
 
-import { db } from "./bookingShared";
+import { db, loadUserProfile } from "./bookingShared";
 import { refreshPublicSalonStartingPrice } from "./publicStartingPrice";
 
 const REGION = "us-central1" as const;
+
+/** Matches `GeoFireCommon.geoHashPrecision` on the Flutter map client. */
+const PUBLIC_SALON_GEOHASH_PRECISION = 10;
 
 function str(data: DocumentData, key: string): string {
   const v = data[key];
@@ -30,7 +35,8 @@ function numOrNull(v: unknown): number | null {
   return null;
 }
 
-function geoFromSalonDoc(d: DocumentData): { latitude?: number; longitude?: number } {
+/** Exported for customerSearchIndex geo mirroring and tests. */
+export function geoFromSalonDoc(d: DocumentData): { latitude?: number; longitude?: number } {
   const lat = numOrNull(d.latitude);
   const lng = numOrNull(d.longitude);
   if (lat != null && lng != null) {
@@ -56,10 +62,56 @@ function geoFromSalonDoc(d: DocumentData): { latitude?: number; longitude?: numb
   return {};
 }
 
+/** Attendance punch zone — fallback only when root salon has no geo. */
+export function geoFromAttendanceDoc(a: DocumentData): { latitude: number; longitude: number } | null {
+  const zone = a.zone;
+  const zoneObj =
+    zone && typeof zone === "object" && !Array.isArray(zone)
+      ? (zone as Record<string, unknown>)
+      : null;
+  const lat =
+    numOrNull(a.salonLatitude) ??
+    numOrNull(a.latitude) ??
+    (zoneObj ? numOrNull(zoneObj.latitude) : null);
+  const lng =
+    numOrNull(a.salonLongitude) ??
+    numOrNull(a.longitude) ??
+    (zoneObj ? numOrNull(zoneObj.longitude) : null);
+  if (lat != null && lng != null) {
+    return { latitude: lat, longitude: lng };
+  }
+  return null;
+}
+
+/**
+ * Prefer coordinates on `salons/{salonId}`; if missing, use punch zone under
+ * `salons/{salonId}/settings/attendance`.
+ */
+export async function resolveGeoForPublicMirror(
+  salonId: string,
+  s: DocumentData,
+): Promise<{ latitude: number; longitude: number } | null> {
+  const root = geoFromSalonDoc(s);
+  if (
+    typeof root.latitude === "number" &&
+    Number.isFinite(root.latitude) &&
+    typeof root.longitude === "number" &&
+    Number.isFinite(root.longitude)
+  ) {
+    return { latitude: root.latitude, longitude: root.longitude };
+  }
+  const attSnap = await db.doc(`salons/${salonId}/settings/attendance`).get();
+  if (!attSnap.exists) {
+    return null;
+  }
+  return geoFromAttendanceDoc(attSnap.data()!);
+}
+
 /** Maps private `salons/{salonId}` → customer-safe `publicSalons/{salonId}`. */
 export function salonToPublicSalonPayload(
   salonId: string,
   s: DocumentData,
+  resolvedGeo: { latitude: number; longitude: number } | null,
 ): Record<string, unknown> {
   const name = str(s, "name") || "Salon";
   const city = str(s, "city");
@@ -72,9 +124,26 @@ export function salonToPublicSalonPayload(
   }
 
   const isActive = s.isActive !== false;
-  const isPublic = s.isPublished === true && isActive;
+  const isPublic = s.isPublic === true && isActive;
 
-  const { latitude, longitude } = geoFromSalonDoc(s);
+  const rootGeo = geoFromSalonDoc(s);
+  const latitude = resolvedGeo?.latitude ?? rootGeo.latitude;
+  const longitude = resolvedGeo?.longitude ?? rootGeo.longitude;
+
+  const hasValidGeo =
+    typeof latitude === "number" &&
+    Number.isFinite(latitude) &&
+    typeof longitude === "number" &&
+    Number.isFinite(longitude);
+
+  let geoHashValue: string | null = null;
+  if (hasValidGeo) {
+    try {
+      geoHashValue = ngeohash.encode(latitude, longitude, PUBLIC_SALON_GEOHASH_PRECISION);
+    } catch (e) {
+      console.warn(`[publicSalonMirror] geohash encode failed salon=${salonId}`, e);
+    }
+  }
 
   const ratingAverageRaw = numOrNull(s.ratingAverage);
   const ratingCountRaw = numOrNull(s.ratingCount);
@@ -112,10 +181,18 @@ export function salonToPublicSalonPayload(
     coverImageUrl: str(s, "coverImageUrl") || null,
     photoUrls: strList(s, "photoUrls"),
     logoUrl: str(s, "logoUrl") || null,
-    ...(latitude != null ? { latitude } : {}),
-    ...(longitude != null ? { longitude } : {}),
+    ...(hasValidGeo
+      ? {
+          latitude,
+          longitude,
+          location: new GeoPoint(latitude, longitude),
+          ...(geoHashValue != null && geoHashValue.length > 0 ? { geohash: geoHashValue } : {}),
+        }
+      : {}),
     isPublic,
     isActive,
+    // Legacy mirror — do not use for rules/queries; visibility is `isActive && isPublic`.
+    ...(typeof s.isPublished === "boolean" ? { isPublished: s.isPublished } : {}),
     isOpen: s.isOpen === true,
     isPromoted: s.isPromoted === true,
     ratingAverage: ratingAverageRaw != null ? Math.min(5, Math.max(0, ratingAverageRaw)) : 0,
@@ -168,9 +245,98 @@ export const onSalonWriteSyncPublicSalon = onDocumentWritten(
       return;
     }
 
-    const payload = salonToPublicSalonPayload(salonId, after.data()!);
+    const afterData = after.data()!;
+    const resolvedGeo = await resolveGeoForPublicMirror(salonId, afterData);
+    const payload = salonToPublicSalonPayload(salonId, afterData, resolvedGeo);
     await publicRef.set(payload, { merge: true });
     await refreshPublicSalonStartingPrice(salonId);
   },
 );
 
+/** When only attendance zone changes, refresh public mirror geo without requiring a salon doc edit. */
+export const onAttendanceSettingsWriteSyncPublicSalon = onDocumentWritten(
+  {
+    document: "salons/{salonId}/settings/attendance",
+    region: REGION,
+  },
+  async (event) => {
+    const salonId = event.params.salonId as string;
+    const salonSnap = await db.doc(`salons/${salonId}`).get();
+    if (!salonSnap.exists) {
+      return;
+    }
+    const s = salonSnap.data()!;
+    const resolvedGeo = await resolveGeoForPublicMirror(salonId, s);
+    const payload = salonToPublicSalonPayload(salonId, s, resolvedGeo);
+    await db.doc(`publicSalons/${salonId}`).set(payload, { merge: true });
+    await refreshPublicSalonStartingPrice(salonId);
+  },
+);
+
+/**
+ * Backfill root salon geo from attendance settings and refresh `publicSalons` geo fields.
+ * Callable: owner or admin of the salon.
+ */
+export const repairPublicSalonGeoForSalon = onCall(
+  { region: REGION },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Login required.");
+    }
+    const raw = request.data as Record<string, unknown> | undefined;
+    const salonId = typeof raw?.salonId === "string" ? raw.salonId.trim() : "";
+    if (!salonId) {
+      throw new HttpsError("invalid-argument", "salonId required.");
+    }
+
+    const salonRef = db.doc(`salons/${salonId}`);
+    const salonSnap = await salonRef.get();
+    if (!salonSnap.exists) {
+      throw new HttpsError("not-found", "Salon not found.");
+    }
+
+    const salonData = salonSnap.data()!;
+    const ownerUid = (salonData.ownerUid as string | undefined) ?? "";
+    const profile = await loadUserProfile(uid);
+    const isOwner = ownerUid === uid;
+    const isStaffAdmin =
+      profile.salonId === salonId && (profile.role === "owner" || profile.role === "admin");
+    if (!isOwner && !isStaffAdmin) {
+      throw new HttpsError("permission-denied", "Not authorized for this salon.");
+    }
+
+    let repairedRoot = false;
+    const rootGeo = geoFromSalonDoc(salonData);
+    if (rootGeo.latitude == null || rootGeo.longitude == null) {
+      const attSnap = await db.doc(`salons/${salonId}/settings/attendance`).get();
+      const attGeo = attSnap.exists ? geoFromAttendanceDoc(attSnap.data()!) : null;
+      if (attGeo != null) {
+        await salonRef.set(
+          {
+            latitude: attGeo.latitude,
+            longitude: attGeo.longitude,
+            location: new GeoPoint(attGeo.latitude, attGeo.longitude),
+            businessLocationUpdatedAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+        repairedRoot = true;
+      }
+    }
+
+    const freshSnap = await salonRef.get();
+    const freshData = freshSnap.data()!;
+    const resolvedGeo = await resolveGeoForPublicMirror(salonId, freshData);
+    const payload = salonToPublicSalonPayload(salonId, freshData, resolvedGeo);
+    await db.doc(`publicSalons/${salonId}`).set(payload, { merge: true });
+    await refreshPublicSalonStartingPrice(salonId);
+
+    return {
+      success: true,
+      repairedRoot,
+      hasGeo: resolvedGeo != null,
+    };
+  },
+);
