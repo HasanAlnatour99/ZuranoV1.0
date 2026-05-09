@@ -178,6 +178,18 @@
   "ownerServiceCategoryMedSpa": "Med Spa",
   "ownerServiceCategoryMenGrooming": "Men Grooming",
   "ownerServiceCategoryHaircutStyling": "Haircut & Styling",
+  "ownerDiscoveryCategoryHaircut": "Haircut",
+  "ownerDiscoveryCategoryHaircutAr": "قص الشعر",
+  "ownerDiscoveryCategoryBeard": "Beard",
+  "ownerDiscoveryCategoryBeardAr": "اللحية",
+  "ownerDiscoveryCategoryCombo": "Combo",
+  "ownerDiscoveryCategoryComboAr": "كومبو",
+  "ownerDiscoveryCategoryKids": "Kids",
+  "ownerDiscoveryCategoryKidsAr": "أطفال",
+  "ownerDiscoveryCategoryPremium": "Premium",
+  "ownerDiscoveryCategoryPremiumAr": "بريميوم",
+  "ownerDiscoveryCategorySpa": "Spa",
+  "ownerDiscoveryCategorySpaAr": "سبا",
   "ownerServiceCategoryHairTreatments": "Hair Treatments",
   "ownerServiceCategoryScalpTreatments": "Scalp Treatments",
   "ownerServiceCategoryKeratinSmoothing": "Keratin / Smoothing",
@@ -250,7 +262,9 @@
   "ownerServiceSectionDurationSubtitle": "Set how long it takes and how much it costs",
   "ownerServiceSectionPhotoSubtitle": "Add a photo to showcase your service",
   "ownerServiceSectionDescriptionSubtitle": "Add more details about this service",
-  "ownerServiceActiveSubtitle": "Show this service to customers",
+  "ownerServiceActiveSubtitle": "Include this service in your salon catalog.",
+  "ownerServicePublicToCustomersLabel": "Customer discovery",
+  "ownerServicePublicToCustomersSubtitle": "When on, this service can appear in customer search and home categories.",
   "ownerServiceNamePlaceholder": "e.g. Classic Haircut",
   "ownerServiceNameArabicPlaceholder": "e.g. قصة شعر كلاسيكية",
   "ownerServiceDescriptionPlaceholderLong": "Describe your service, what's included, benefits, etc.",
@@ -1105,6 +1119,49 @@
   "customerPromoCta": "Browse salons",
   "customerSectionQuickServices": "Services from salons",
   "customerSectionNearbySalons": "Salons for you",
+  "customerCategoryPopularServicesTitle": "Popular services",
+  "customerCategoryStatsFromPrice": "From {price}",
+  "@customerCategoryStatsFromPrice": {
+    "placeholders": {
+      "price": { "type": "String" }
+    }
+  },
+  "customerCategoryStatsSalonCount": "{count} salons",
+  "@customerCategoryStatsSalonCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "customerCategoryStatsAvailableToday": "{count} available today",
+  "@customerCategoryStatsAvailableToday": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "customerCategoryResultsSubtitle": "Services near you",
+  "customerCategoryFilterNearby": "Nearby",
+  "customerCategoryFilterOpenNow": "Open now",
+  "customerCategoryFilterAvailableToday": "Available today",
+  "customerCategoryBookNow": "Book now",
+  "customerCategoryResultsEmpty": "No matching services yet. Try adjusting filters.",
+  "customerCategoryNearbyAllowLocation": "Allow location to show nearby services.",
+  "customerCategoryNearbyWithinKm": "Within {radiusKm} km",
+  "@customerCategoryNearbyWithinKm": {
+    "placeholders": {
+      "radiusKm": {
+        "type": "int"
+      }
+    }
+  },
+  "customerCategoryNearbyNoResults": "No nearby services found. Try increasing distance or removing Nearby filter.",
+  "customerCategoryDistanceKmAway": "{km} km away",
+  "@customerCategoryDistanceKmAway": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
   "customerSeeAll": "See all",
   "customerSalonDiscoveryTitle": "Find your salon",
   "customerSalonDiscoverySubtitle": "Book your next appointment",

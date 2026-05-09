@@ -68,6 +68,7 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
   late final TextEditingController _bookingCodeController;
   late final ZuranoPhoneCountryRepository _countryRepo;
   late ZuranoPhoneCountry _selectedCountry;
+  bool _resolvedDefaultCountry = false;
 
   @override
   void initState() {
@@ -75,6 +76,13 @@ class _FindBookingScreenState extends ConsumerState<FindBookingScreen> {
     _phoneController = TextEditingController();
     _bookingCodeController = TextEditingController();
     _countryRepo = const ZuranoPhoneCountryRepository();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resolvedDefaultCountry) return;
+    _resolvedDefaultCountry = true;
     _selectedCountry = _countryRepo.defaultCountry(
       salonIsoCode: null,
       locale: Localizations.maybeLocaleOf(context),
