@@ -59,6 +59,21 @@ export function maySalonPermissionKey(
   return staff.permissions[key] === true;
 }
 
+export function assertSalonPermissionKey(
+  user: FireUser,
+  salonId: string,
+  key: string,
+  staff: { exists: boolean; permissions: Record<string, boolean> },
+): void {
+  assertActiveSalonMember(user, salonId);
+  if (String(user.role ?? "").trim() === "customer") {
+    throw new HttpsError("permission-denied", "Not allowed.");
+  }
+  if (!maySalonPermissionKey(user, salonId, key, staff)) {
+    throw new HttpsError("permission-denied", `${key} required.`);
+  }
+}
+
 export function assertExportTypeAllowed(
   user: FireUser,
   salonId: string,

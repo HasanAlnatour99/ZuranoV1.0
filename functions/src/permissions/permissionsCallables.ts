@@ -12,9 +12,9 @@ import { dataOrEmpty } from "../payrollShared";
 import {
   allPermissionsTrue,
   assertCanGrantPermissions,
-  PERMISSION_KEYS,
   sanitizePermissionsInput,
 } from "./permissionKeys";
+import { assertValidStaffClaimsTarget } from "./permissionsAuthz";
 
 const db = getFirestore();
 const auth = getAuth();
@@ -33,6 +33,27 @@ async function salonDoc(salonId: string): Promise<Record<string, unknown>> {
 async function staffDoc(salonId: string, uid: string): Promise<Record<string, unknown>> {
   const snap = await db.doc(`salons/${salonId}/staff/${uid}`).get();
   return dataOrEmpty(snap);
+}
+
+async function loadStaffClaimsTarget(
+  salonId: string,
+  targetUid: string,
+): Promise<{ targetUser: Record<string, unknown>; targetStaff: Record<string, unknown>; role: string }> {
+  const [userSnap, staffSnap] = await Promise.all([
+    db.doc(`users/${targetUid}`).get(),
+    db.doc(`salons/${salonId}/staff/${targetUid}`).get(),
+  ]);
+  const targetUser = dataOrEmpty(userSnap);
+  const targetStaff = dataOrEmpty(staffSnap);
+  const role = assertValidStaffClaimsTarget({
+    salonId,
+    targetUid,
+    targetUserExists: userSnap.exists,
+    targetUser,
+    targetStaffExists: staffSnap.exists,
+    targetStaff,
+  });
+  return { targetUser, targetStaff, role };
 }
 
 function callerActive(staff: Record<string, unknown>): boolean {
@@ -160,11 +181,7 @@ export const updateStaffPermissions = onCall(
     }
 
     const targetStaffPath = `salons/${salonId}/staff/${targetUid}`;
-    const existing = await db.doc(targetStaffPath).get();
-    if (!existing.exists) {
-      throw new HttpsError("failed-precondition", "target_staff_missing");
-    }
-    const ts = existing.data() as Record<string, unknown>;
+    const { targetStaff: ts, role } = await loadStaffClaimsTarget(salonId, targetUid);
     if (ts.isActive === false) {
       throw new HttpsError("failed-precondition", "target_frozen");
     }
@@ -204,7 +221,7 @@ export const updateStaffPermissions = onCall(
     await auth.setCustomUserClaims(targetUid, {
       salonIds: [salonId],
       activeSalonId: salonId,
-      role: String((await userDoc(targetUid)).role ?? "admin"),
+      role,
     });
 
     return { ok: true };
@@ -252,8 +269,7 @@ export const assignRolePresetToStaff = onCall(
       throw new HttpsError("permission-denied", e instanceof Error ? e.message : "cannot_grant");
     }
 
-    const staffSnap = await db.doc(`salons/${salonId}/staff/${targetUid}`).get();
-    const st = staffSnap.exists ? (staffSnap.data() as Record<string, unknown>) : {};
+    const { targetStaff: st, role } = await loadStaffClaimsTarget(salonId, targetUid);
     const beforeRoleId = String(st.roleId ?? "").trim();
     const beforePerm = sanitizePermissionsInput(st.permissions);
 
@@ -289,7 +305,7 @@ export const assignRolePresetToStaff = onCall(
     await auth.setCustomUserClaims(targetUid, {
       salonIds: [salonId],
       activeSalonId: salonId,
-      role: String((await userDoc(targetUid)).role ?? "admin"),
+      role,
     });
 
     return { ok: true };
@@ -422,9 +438,7 @@ export const setStaffActiveStatus = onCall(
       throw new HttpsError("permission-denied", "Cannot freeze salon owner");
     }
 
-    const staffSnap = await db.doc(`salons/${salonId}/staff/${targetUid}`).get();
-    if (!staffSnap.exists) throw new HttpsError("not-found", "Staff doc missing");
-    const ts = staffSnap.data() as Record<string, unknown>;
+    const { targetStaff: ts, role } = await loadStaffClaimsTarget(salonId, targetUid);
     if (String(ts.role ?? "").trim() === "owner" && !isSalonOwnerFromUsersDoc(callerUser, salonId)) {
       throw new HttpsError("permission-denied", "Cannot change owner staff status");
     }
@@ -460,7 +474,7 @@ export const setStaffActiveStatus = onCall(
     await auth.setCustomUserClaims(targetUid, {
       salonIds: [salonId],
       activeSalonId: salonId,
-      role: String((await userDoc(targetUid)).role ?? "admin"),
+      role,
     });
 
     return { ok: true };
@@ -570,11 +584,11 @@ export const syncUserClaimsForStaff = onCall(
 
     await assertCallerCanManagePermissions(request.auth.uid, salonId);
 
-    const u = await userDoc(targetUid);
+    const { targetUser: u, role } = await loadStaffClaimsTarget(salonId, targetUid);
     await auth.setCustomUserClaims(targetUid, {
       salonIds: [salonId],
       activeSalonId: salonId,
-      role: String(u.role ?? "admin"),
+      role,
     });
 
     const actor = await auditActorProfile(db, request.auth.uid);

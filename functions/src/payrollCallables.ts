@@ -9,13 +9,17 @@ import { DateTime } from "luxon";
 
 import { auditActorProfile, writeAuditLog } from "./audit/auditLogger";
 import {
-  assertSalonOwnerOrAdmin,
   asNumber,
   dataOrEmpty,
   parseFirestoreTimestamp,
   payslipIdFor,
   prorateMonthlySalaryUtc,
 } from "./payrollShared";
+import {
+  assertSalonPermissionKey,
+  loadStaffPermissionsRow,
+  type FireUser,
+} from "./reports/exportPermissions";
 
 const db = getFirestore();
 
@@ -38,6 +42,11 @@ const PAYROLL_PAID = "paid";
 async function loadUser(uid: string): Promise<Record<string, unknown>> {
   const snap = await db.doc(`users/${uid}`).get();
   return dataOrEmpty(snap);
+}
+
+async function assertPayrollPermission(uid: string, caller: Record<string, unknown>, salonId: string): Promise<void> {
+  const staff = await loadStaffPermissionsRow(db, salonId, uid);
+  assertSalonPermissionKey(caller as FireUser, salonId, "payroll.manage", staff);
 }
 
 async function fetchViolationRules(salonId: string): Promise<Map<string, Record<string, unknown>>> {
@@ -69,7 +78,7 @@ export const generateMonthlyPayroll = onCall(
     const salonId = String(request.data?.salonId ?? "").trim();
     const year = Number(request.data?.year);
     const month = Number(request.data?.month);
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertPayrollPermission(request.auth.uid, caller, salonId);
     if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
       throw new HttpsError("invalid-argument", "year and month required");
     }
@@ -449,7 +458,7 @@ export const approvePayslip = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const payslipId = String(request.data?.payslipId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertPayrollPermission(request.auth.uid, caller, salonId);
     if (!payslipId) {
       throw new HttpsError("invalid-argument", "payslipId required");
     }
@@ -503,7 +512,7 @@ export const markPayslipPaid = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const payslipId = String(request.data?.payslipId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertPayrollPermission(request.auth.uid, caller, salonId);
     if (!payslipId) {
       throw new HttpsError("invalid-argument", "payslipId required");
     }
@@ -556,7 +565,7 @@ export const generatePayslipSummary = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const payslipId = String(request.data?.payslipId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertPayrollPermission(request.auth.uid, caller, salonId);
     if (!payslipId) {
       throw new HttpsError("invalid-argument", "payslipId required");
     }

@@ -2,7 +2,12 @@ import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DateTime } from "luxon";
 
-import { assertSalonOwnerOrAdmin, dataOrEmpty } from "../payrollShared";
+import { dataOrEmpty } from "../payrollShared";
+import {
+  assertSalonPermissionKey,
+  loadStaffPermissionsRow,
+  type FireUser,
+} from "../reports/exportPermissions";
 
 const db = getFirestore();
 const REGION = "us-central1" as const;
@@ -10,6 +15,11 @@ const REGION = "us-central1" as const;
 async function loadUser(uid: string): Promise<Record<string, unknown>> {
   const snap = await db.doc(`users/${uid}`).get();
   return dataOrEmpty(snap);
+}
+
+async function assertAnalyticsPermission(uid: string, caller: Record<string, unknown>, salonId: string): Promise<void> {
+  const staff = await loadStaffPermissionsRow(db, salonId, uid);
+  assertSalonPermissionKey(caller as FireUser, salonId, "analytics.view", staff);
 }
 
 function pad2(n: number): string {
@@ -60,7 +70,7 @@ export const generateMonthlyAnalytics = onCall(
     if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
       throw new HttpsError("invalid-argument", "year and month required");
     }
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertAnalyticsPermission(request.auth.uid, caller, salonId);
 
     const pid = periodIdFor(year, month);
     const start = DateTime.fromObject({ year, month, day: 1 }, { zone: "utc" }).startOf("day");
