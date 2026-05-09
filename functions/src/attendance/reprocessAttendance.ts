@@ -8,11 +8,15 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DateTime } from "luxon";
 
 import {
-  assertSalonOwnerOrAdmin,
   asNumber,
   dataOrEmpty,
   type FireUser,
 } from "../payrollShared";
+import {
+  assertSalonPermissionKey,
+  loadStaffPermissionsRow,
+  type FireUser as PermissionFireUser,
+} from "../reports/exportPermissions";
 
 const db = getFirestore();
 
@@ -250,7 +254,8 @@ export const reprocessAttendanceForEmployeeDate = onCall(
 
     const callerSnap = await db.doc(`users/${authUid}`).get();
     const caller = dataOrEmpty(callerSnap) as FireUser;
-    assertSalonOwnerOrAdmin(caller, salonId);
+    const staff = await loadStaffPermissionsRow(db, salonId, authUid);
+    assertSalonPermissionKey(caller as PermissionFireUser, salonId, "attendance.manage", staff);
 
     const punchInAt = parseOptionalIsoTs(body.punchInAt ?? null);
     const punchOutAt = parseOptionalIsoTs(body.punchOutAt ?? null);

@@ -3,7 +3,12 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DateTime } from "luxon";
 
 import { auditActorProfile, writeAuditLog, writeAuditLogInTransaction } from "../audit/auditLogger";
-import { assertSalonOwnerOrAdmin, dataOrEmpty } from "../payrollShared";
+import { dataOrEmpty } from "../payrollShared";
+import {
+  assertSalonPermissionKey,
+  loadStaffPermissionsRow,
+  type FireUser,
+} from "../reports/exportPermissions";
 
 const db = getFirestore();
 
@@ -73,6 +78,20 @@ function roundMoney(value: number): number {
 async function loadUser(uid: string): Promise<Record<string, unknown>> {
   const snap = await db.doc(`users/${uid}`).get();
   return dataOrEmpty(snap);
+}
+
+async function assertAttendancePermission(
+  uid: string,
+  caller: Record<string, unknown>,
+  salonId: string,
+): Promise<void> {
+  const staff = await loadStaffPermissionsRow(db, salonId, uid);
+  assertSalonPermissionKey(caller as FireUser, salonId, "attendance.manage", staff);
+}
+
+async function assertPayrollPermission(uid: string, caller: Record<string, unknown>, salonId: string): Promise<void> {
+  const staff = await loadStaffPermissionsRow(db, salonId, uid);
+  assertSalonPermissionKey(caller as FireUser, salonId, "payroll.manage", staff);
 }
 
 function violationIdFor(employeeId: string, compactDate: string, violationType: string): string {
@@ -150,7 +169,7 @@ export const calculateAttendanceViolationsForPeriod = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const periodId = String(request.data?.periodId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertAttendancePermission(request.auth.uid, caller, salonId);
 
     const { year, month, monthKey } = monthKeyFromPeriodId(periodId);
     const start = DateTime.fromObject({ year, month, day: 1 }, { zone: "utc" }).startOf("day");
@@ -246,7 +265,7 @@ export const approveAttendanceViolation = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const violationId = String(request.data?.violationId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertAttendancePermission(request.auth.uid, caller, salonId);
     if (!violationId) throw new HttpsError("invalid-argument", "violationId required");
 
     const ref = db.doc(`salons/${salonId}/violations/${violationId}`);
@@ -300,7 +319,7 @@ export const waiveAttendanceViolation = onCall(
     const salonId = String(request.data?.salonId ?? "").trim();
     const violationId = String(request.data?.violationId ?? "").trim();
     const reason = String(request.data?.reason ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertAttendancePermission(request.auth.uid, caller, salonId);
     if (!violationId) throw new HttpsError("invalid-argument", "violationId required");
 
     const ref = db.doc(`salons/${salonId}/violations/${violationId}`);
@@ -349,7 +368,7 @@ export const postAttendanceViolationsToPayroll = onCall(
     const caller = await loadUser(request.auth.uid);
     const salonId = String(request.data?.salonId ?? "").trim();
     const periodId = String(request.data?.periodId ?? "").trim();
-    assertSalonOwnerOrAdmin(caller as never, salonId);
+    await assertPayrollPermission(request.auth.uid, caller, salonId);
 
     const { year, month } = monthKeyFromPeriodId(periodId);
 

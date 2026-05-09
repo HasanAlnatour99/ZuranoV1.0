@@ -2,7 +2,12 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DateTime } from "luxon";
 
-import { assertSalonOwnerOrAdmin, asNumber, dataOrEmpty } from "../payrollShared";
+import { asNumber, dataOrEmpty } from "../payrollShared";
+import {
+  assertSalonPermissionKey,
+  loadStaffPermissionsRow,
+  type FireUser,
+} from "../reports/exportPermissions";
 
 const db = getFirestore();
 const REGION = "us-central1" as const;
@@ -10,6 +15,11 @@ const REGION = "us-central1" as const;
 async function loadUser(uid: string): Promise<Record<string, unknown>> {
   const snap = await db.doc(`users/${uid}`).get();
   return dataOrEmpty(snap);
+}
+
+async function assertDashboardPermission(uid: string, caller: Record<string, unknown>, salonId: string): Promise<void> {
+  const staff = await loadStaffPermissionsRow(db, salonId, uid);
+  assertSalonPermissionKey(caller as FireUser, salonId, "analytics.view", staff);
 }
 
 function pad2(n: number): string {
@@ -38,7 +48,7 @@ export const generateOwnerDashboardSnapshot = onCall(
       const caller = await loadUser(request.auth.uid);
       const salonId = String(request.data?.salonId ?? "").trim();
       if (!salonId) throw new HttpsError("invalid-argument", "salonId required");
-      assertSalonOwnerOrAdmin(caller as never, salonId);
+      await assertDashboardPermission(request.auth.uid, caller, salonId);
 
       const nowUtc = DateTime.utc();
       const todayStart = nowUtc.startOf("day");
