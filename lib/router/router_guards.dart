@@ -55,6 +55,12 @@ String? redirectAuthenticatedOwner(
     AppRoutes.ownerAddTeamMember,
     AppRoutes.ownerCustomers,
     AppRoutes.ownerMoney,
+    AppRoutes.ownerBookings,
+    AppRoutes.ownerAnalytics,
+    AppRoutes.ownerDashboardV2,
+    AppRoutes.ownerActivityCenter,
+    AppRoutes.ownerReportsCenter,
+    AppRoutes.ownerExportJobs,
     AppRoutes.ownerSettings,
     AppRoutes.customers,
     AppRoutes.customerNew,
@@ -78,6 +84,12 @@ String? redirectAuthenticatedOwner(
           onOwnerSettingsBranch ||
           location.startsWith('${AppRoutes.ownerCustomers}/') ||
           location.startsWith('${AppRoutes.customers}/') ||
+          location.startsWith('${AppRoutes.ownerBookings}/') ||
+          location.startsWith('${AppRoutes.ownerSales}/') ||
+          location.startsWith('${AppRoutes.ownerExpenses}/') ||
+          location.startsWith('${AppRoutes.ownerPayroll}/') ||
+          location.startsWith('${AppRoutes.ownerActivityCenter}/') ||
+          location.startsWith('${AppRoutes.ownerReportsCenter}/') ||
           location.startsWith('${AppRoutes.ownerSaleDetailsBase}/') ||
           location.startsWith('${AppRoutes.ownerTeamMemberDetailsBase}/') ||
           location.startsWith('${AppRoutes.ownerEmployeePayrollSetupBase}/') ||
@@ -212,7 +224,6 @@ String? redirectAuthenticatedUser(
 
   if (role == UserRoles.employee ||
       role == UserRoles.barber ||
-      role == UserRoles.admin ||
       role == UserRoles.readonly) {
     if (AppRoutes.isUnderCustomerHome(location)) {
       return AppRoutes.employeeToday;
@@ -226,6 +237,22 @@ String? redirectAuthenticatedUser(
     return _staffMayAccessLocation(location, false)
         ? null
         : AppRoutes.employeeToday;
+  }
+
+  /// Salon admins use the owner workspace; coarse routes are gated elsewhere.
+  if (role == UserRoles.admin) {
+    if (AppRoutes.isUnderCustomerHome(location)) {
+      return AppRoutes.ownerOverview;
+    }
+    if (AppRoutes.isOwnerWorkspacePath(location)) {
+      if (staffEmployeeAddSalePath(uri)) {
+        return null;
+      }
+      return redirectAuthenticatedOwner(session, location, notificationPath);
+    }
+    return _staffMayAccessLocation(location, false)
+        ? null
+        : AppRoutes.ownerOverview;
   }
 
   if (role == UserRoles.owner) {
@@ -351,9 +378,12 @@ String homeForReadyUser(AppUser user) {
   if (UserRoles.needsRoleSelection(user.role)) {
     return AppRoutes.firstTimeRoleSelection;
   }
+  if (user.role == UserRoles.admin) {
+    final noSalon = user.salonId == null || user.salonId!.trim().isEmpty;
+    return noSalon ? AppRoutes.accountProfileBootstrap : AppRoutes.ownerOverview;
+  }
   if (user.role == UserRoles.employee ||
       user.role == UserRoles.barber ||
-      user.role == UserRoles.admin ||
       user.role == UserRoles.readonly) {
     return AppRoutes.employeeToday;
   }

@@ -66,5 +66,10 @@ service firebase.storage {
         && request.resource.size < 6 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
+
+    /// Generated reports (CSV/PDF). Clients use callable signed URLs only; Admin SDK writes files.
+    match /exports/{salonId}/{allPaths=**} {
+      allow read, write: if false;
+    }
   }
 }

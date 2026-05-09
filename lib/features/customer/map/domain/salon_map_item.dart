@@ -194,12 +194,6 @@ class SalonMapItem {
       }
     }
 
-    final root = fromNums(
-      data['latitude'] ?? data['lat'],
-      data['longitude'] ?? data['lng'],
-    );
-    if (root != null) return root;
-
     final address = data['address'];
     if (address is Map) {
       final m = Map<String, dynamic>.from(address);

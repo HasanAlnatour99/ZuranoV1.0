@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/feature_flags/owner_dashboard_v2.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/formatting/app_money_format.dart';
 import '../../../../core/motion/app_motion_widgets.dart';
@@ -22,6 +23,7 @@ import 'package:barber_shop_app/core/ui/app_icons.dart';
 import 'package:barber_shop_app/features/owner_dashboard/presentation/widgets/overview_bottom_insights_section.dart';
 import 'package:barber_shop_app/features/owner_dashboard/presentation/widgets/team_performance_mini_bars_card.dart';
 import 'owner_zurano_bottom_nav.dart';
+import '../../dashboard_v2/presentation/screens/owner_dashboard_v2_screen.dart';
 
 Widget _buildTodayInsightCard({
   required BuildContext context,
@@ -272,6 +274,19 @@ class OwnerOverviewSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+
+    if (kOwnerDashboardV2Enabled) {
+      return Scaffold(
+        backgroundColor: kOwnerDashboardHeroCanvas,
+        body: Column(
+          children: [
+            OwnerDashboardHeroHeader(user: user),
+            const Expanded(child: OwnerDashboardV2View(embedded: true)),
+          ],
+        ),
+      );
+    }
+
     final scheme = Theme.of(context).colorScheme;
     final locale = Localizations.localeOf(context);
     final state = ref.watch(ownerOverviewControllerProvider);

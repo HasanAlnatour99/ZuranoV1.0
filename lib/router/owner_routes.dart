@@ -18,8 +18,15 @@ import '../features/expenses/presentation/screens/add_expense_screen.dart';
 import '../features/expenses/presentation/screens/expenses_screen.dart';
 import '../features/bento/presentation/screens/bento_dashboard_screen.dart';
 import '../features/owner/presentation/screens/add_team_member_gateway_screen.dart';
+import '../features/owner/presentation/screens/owner_booking_details_screen.dart';
 import '../features/owner/presentation/screens/owner_bookings_screen.dart';
 import '../features/owner/presentation/screens/owner_dashboard_screen.dart';
+import '../features/analytics/presentation/screens/owner_analytics_screen.dart';
+import '../features/audit/presentation/screens/audit_activity_screen.dart';
+import '../features/reports/presentation/screens/export_jobs_screen.dart';
+import '../features/reports/presentation/screens/reports_center_screen.dart';
+import '../features/audit/presentation/screens/audit_log_details_screen.dart';
+import '../features/owner/dashboard_v2/presentation/screens/owner_dashboard_v2_screen.dart';
 import '../features/owner/presentation/widgets/owner_overview_section.dart';
 import '../features/owner/presentation/widgets/overview/owner_dashboard_hero_header.dart';
 import '../features/owner/presentation/widgets/team_operations_module.dart';
@@ -41,6 +48,8 @@ import '../features/owner_settings/shifts/presentation/screens/create_shift_temp
 import '../features/owner_settings/shifts/presentation/screens/weekly_shifts_screen.dart';
 import '../features/owner_settings/shifts/presentation/screens/apply_schedule_screen.dart';
 import '../features/owner/settings/attendance/presentation/screens/owner_attendance_settings_screen.dart';
+import '../features/permissions/presentation/screens/admin_permissions_screen.dart';
+import '../features/permissions/presentation/screens/edit_staff_permissions_screen.dart';
 import '../features/settings/presentation/screens/app_settings_screen.dart';
 import '../features/settings/presentation/screens/owner_payroll_cadence_settings_screen.dart';
 import '../features/smart_workspace/presentation/screens/smart_workspace_page.dart';
@@ -294,6 +303,26 @@ final List<RouteBase> ownerRoutes = [
         ),
       ),
       GoRoute(
+        path: 'staff-permissions',
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const AdminPermissionsScreen(),
+        ),
+        routes: [
+          GoRoute(
+            path: ':staffUid',
+            pageBuilder: (context, state) {
+              final raw = state.pathParameters['staffUid'] ?? '';
+              final uid = Uri.decodeComponent(raw);
+              return appFadeThroughPage(
+                key: goRouterPageKey(state),
+                child: EditStaffPermissionsScreen(staffUid: uid),
+              );
+            },
+          ),
+        ],
+      ),
+      GoRoute(
         path: 'shifts',
         name: AppRouteNames.ownerShiftsSettings,
         pageBuilder: (context, state) => appFadeThroughPage(
@@ -355,11 +384,71 @@ final List<RouteBase> ownerRoutes = [
     ),
   ),
   GoRoute(
+    path: AppRoutes.ownerDashboardV2,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const OwnerDashboardV2Screen(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerActivityCenter,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const AuditActivityScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '${AppRoutes.ownerActivityCenter}/:auditId',
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: AuditLogDetailsScreen(
+        auditId: state.pathParameters['auditId'] ?? '',
+      ),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerReportsCenter,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const ReportsCenterScreen(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerExportJobs,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const ExportJobsScreen(),
+    ),
+  ),
+  GoRoute(
     path: AppRoutes.ownerBookings,
     parentNavigatorKey: appRootNavigatorKey,
     pageBuilder: (context, state) => appFadeThroughPage(
       key: goRouterPageKey(state),
       child: const OwnerBookingsScreen(),
+    ),
+  ),
+  GoRoute(
+    path: AppRoutes.ownerAnalytics,
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: const OwnerAnalyticsScreen(),
+    ),
+  ),
+  GoRoute(
+    path: '${AppRoutes.ownerBookings}/:bookingId',
+    parentNavigatorKey: appRootNavigatorKey,
+    pageBuilder: (context, state) => appFadeThroughPage(
+      key: goRouterPageKey(state),
+      child: OwnerBookingDetailsScreen(
+        bookingId: state.pathParameters['bookingId'] ?? '',
+      ),
     ),
   ),
   GoRoute(

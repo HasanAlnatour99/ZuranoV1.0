@@ -164,6 +164,7 @@ class _BookingReviewScreenState extends ConsumerState<BookingReviewScreen> {
     if (error is CustomerBookingCreateException) {
       return switch (error.code) {
         'slot_unavailable' => l10n.customerBookingReviewSlotUnavailable,
+        'booking_request_processing' => l10n.customerBookingReviewProcessing,
         'missing_specialist' => l10n.customerBookingReviewChooseSpecialistAgain,
         'missing_guest_nickname' =>
           l10n.customerBookingReviewMissingGuestNickname,

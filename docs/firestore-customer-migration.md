@@ -1,12 +1,32 @@
-# Firestore Customer Separation Migration Notes
+# Firestore Customer Separation Migration Notes (DEPRECATED)
 
 ## Overview
 
-This change performs a hard cutover for customer business data:
+This document is **deprecated** and does **not** match the current Zurano codebase.
+
+## Current source of truth (today)
+
+Customer business records are still salon-scoped:
+
+- **`salons/{salonId}/customers/{customerId}`** (canonical)
+
+The production repositories and `FirestorePaths` helpers currently use the salon-scoped
+customer collection. The app has **not** migrated to a global `customers/{customerId}`
+collection.
+
+If you plan a future migration, create a new migration doc and implement it as an explicit
+project decision (including rules, backfills, and compatibility strategy).
+
+---
+
+## Deprecated notes (historical)
+
+The rest of this file reflects an older plan that proposed a hard cutover for customer
+business data:
 
 - `users/{uid}` is treated as auth/session identity only.
-- Customer business records now live at `customers/{customerId}`.
-- Legacy salon-scoped customer records under `salons/{salonId}/customers/{customerId}` are no longer used by app repositories.
+- Customer business records would live at `customers/{customerId}`.
+- Legacy salon-scoped customer records under `salons/{salonId}/customers/{customerId}` would no longer be used by app repositories.
 
 ## Collection contract changes
 

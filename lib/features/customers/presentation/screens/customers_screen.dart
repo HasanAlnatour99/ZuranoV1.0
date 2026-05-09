@@ -11,14 +11,13 @@ import '../../../../providers/session_provider.dart';
 import '../../../bookings/presentation/widgets/bookings_preview_container.dart';
 import '../../data/models/customer.dart';
 import '../../domain/customer_model.dart';
-import '../../logic/customer_providers.dart';
+import '../../logic/customer_list_controller.dart';
 import '../widgets/customer_card.dart';
 import '../widgets/customer_empty_state.dart';
 import '../widgets/customer_filter_chips.dart';
 import '../widgets/customer_info_banner.dart';
 import '../widgets/customer_insight_card.dart';
 import '../widgets/customer_list_footer.dart';
-import '../widgets/customer_permission_error.dart';
 import '../widgets/customer_search_bar.dart';
 import '../widgets/customers_filter_empty_state.dart';
 import '../widgets/customers_header.dart';
@@ -40,7 +39,20 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   String _selectedTag = 'All';
 
   @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    ref
+        .read(customerListControllerProvider.notifier)
+        .updateSearch(_searchController.text);
+  }
+
+  @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -93,10 +105,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     final salonName = salonAsync.asData?.value?.name ?? '';
     final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
-    // Always stream the salon list; filter locally as the user types so we do
-    // not swap to [customerSearchProvider] per keystroke (that re-ran a Future
-    // and showed a full-screen loading spinner on every character).
-    final rawAsync = ref.watch(customersListProvider(salonId));
+    final listAsync = ref.watch(customerListControllerProvider);
     final bookingsAsync = ref.watch(bookingsStreamProvider);
 
     final canCreate =
@@ -108,39 +117,42 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         ? bottomInset + 16
         : bottomInset + 24;
 
-    Widget content(AsyncValue<List<Customer>> async) {
-      return async.when(
-        loading: () => const Center(
+    Widget content() {
+      final listState = listAsync.asData?.value ?? CustomerListState.initial();
+      if (listAsync.isLoading || listState.isLoadingInitial) {
+        return const Center(
           child: CircularProgressIndicator(
             color: FinanceDashboardColors.primaryPurple,
           ),
-        ),
-        error: (error, _) {
-          if (isCustomerPermissionDenied(error)) {
-            return const CustomerPermissionError();
-          }
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                l10n.customersGenericLoadError,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: FinanceDashboardColors.textSecondary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+        );
+      }
+
+      if (listAsync.hasError || listState.errorMessage != null) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              l10n.customersGenericLoadError,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: FinanceDashboardColors.textSecondary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          );
-        },
-        data: (customers) {
-          final filtered = _applyFilters(customers);
+          ),
+        );
+      }
+
+      final customers = listState.customers;
+      final filtered = _applyFilters(customers);
           final searchQuery = _searchController.text.trim();
           final filterEmpty =
               customers.isNotEmpty && filtered.isEmpty && salonId.isNotEmpty;
           final showListFooter =
               filtered.isNotEmpty && filtered.length < 5 && salonId.isNotEmpty;
+          final showLoadMore =
+              salonId.isNotEmpty && listState.hasMore && filtered.isNotEmpty;
 
           return CustomScrollView(
             slivers: [
@@ -203,7 +215,21 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       const SizedBox(height: 14),
                       CustomerFilterChips(
                         selectedKey: _selectedTag,
-                        onSelected: (v) => setState(() => _selectedTag = v),
+                        onSelected: (v) {
+                          setState(() => _selectedTag = v);
+                          ref
+                              .read(customerListControllerProvider.notifier)
+                              .updateFilter(
+                                switch (v) {
+                                  'All' => 'All',
+                                  'New' => 'new',
+                                  'Regular' => 'regular',
+                                  'VIP' => 'vip',
+                                  'Inactive' => 'Inactive',
+                                  _ => 'All',
+                                },
+                              );
+                        },
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -248,11 +274,52 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        if (index >= filtered.length + (showListFooter ? 1 : 0)) {
+                        final extraCount =
+                            (showListFooter ? 1 : 0) + (showLoadMore ? 1 : 0);
+                        if (index >= filtered.length + extraCount) {
                           return null;
                         }
                         if (showListFooter && index == filtered.length) {
                           return const CustomerListFooter();
+                        }
+                        if (showLoadMore &&
+                            index == filtered.length + (showListFooter ? 1 : 0)) {
+                          final isLoading = listState.isLoadingMore;
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 8, 0, 12),
+                            child: OutlinedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => ref
+                                      .read(
+                                        customerListControllerProvider.notifier,
+                                      )
+                                      .loadMore(),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: FinanceDashboardColors.border,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                  horizontal: 12,
+                                ),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: FinanceDashboardColors
+                                            .primaryPurple,
+                                      ),
+                                    )
+                                  : Text(l10n.customersLoadMore),
+                            ),
+                          );
                         }
                         final c = filtered[index];
                         return Padding(
@@ -277,19 +344,27 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         );
                       },
                       childCount:
-                          filtered.length + (showListFooter ? 1 : 0),
+                          filtered.length +
+                          (showListFooter ? 1 : 0) +
+                          (showLoadMore ? 1 : 0),
                     ),
                   ),
                 ),
             ],
           );
-        },
-      );
     }
 
-    final bodyChild = salonId.isEmpty
-        ? content(const AsyncData<List<Customer>>(<Customer>[]))
-        : content(rawAsync);
+    final controller = ref.read(customerListControllerProvider.notifier);
+    final listState = listAsync.asData?.value ?? CustomerListState.initial();
+    if (salonId.isNotEmpty &&
+        listState.customers.isEmpty &&
+        !listState.isLoadingInitial) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.loadInitial();
+      });
+    }
+
+    final bodyChild = salonId.isEmpty ? const SizedBox.shrink() : content();
 
     if (embedded) {
       return ColoredBox(

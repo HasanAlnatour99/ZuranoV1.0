@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../../core/constants/app_routes.dart';
-import '../../../../../../core/constants/user_roles.dart';
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../l10n/app_localizations.dart';
-import '../../../../../../providers/session_provider.dart';
 import '../../../../data/models/customer.dart';
+import '../../../../logic/customer_permissions_provider.dart';
 import '../../../providers/customer_details_providers.dart';
 
 class CustomerActionGrid extends ConsumerWidget {
@@ -25,12 +24,7 @@ class CustomerActionGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(customerDetailsControllerProvider.notifier);
-    final user = ref.watch(sessionUserProvider).asData?.value;
-    final role = user?.role.trim() ?? '';
-    final staff =
-        role == UserRoles.owner ||
-        role == UserRoles.admin ||
-        role == UserRoles.barber;
+    final perms = ref.watch(customerPermissionsProvider);
 
     return Column(
       children: [
@@ -80,7 +74,7 @@ class CustomerActionGrid extends ConsumerWidget {
               child: _ActionButton(
                 label: l10n.customerDetailsEdit,
                 icon: Icons.edit_rounded,
-                onTap: staff
+                onTap: perms.canEditCustomer
                     ? () =>
                           context.push(AppRoutes.ownerCustomerEdit(customer.id))
                     : null,
@@ -96,7 +90,7 @@ class CustomerActionGrid extends ConsumerWidget {
                 label: l10n.customerBookAppointment,
                 icon: Icons.calendar_month_rounded,
                 filled: true,
-                onTap: canManageBookings
+                onTap: canManageBookings && perms.canBookAppointment
                     ? () => context.push(
                         '${AppRoutes.bookingsNew}?customerId=${customer.id}',
                       )
@@ -109,7 +103,7 @@ class CustomerActionGrid extends ConsumerWidget {
                 label: l10n.customerDetailsAddService,
                 icon: Icons.shopping_cart_rounded,
                 filled: true,
-                onTap: staff
+                onTap: perms.canAddSaleForCustomer
                     ? () => context.push(
                         AppRoutes.addSalePrefill(customerId: customer.id),
                       )

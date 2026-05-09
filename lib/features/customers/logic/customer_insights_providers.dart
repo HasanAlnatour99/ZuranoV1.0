@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/repository_providers.dart';
+import '../data/models/customer_monthly_stats.dart';
 import '../../sales/data/models/sale.dart';
 import 'customer_providers.dart';
 import 'customer_salon_insights.dart';
@@ -44,3 +45,23 @@ final customerSalonInsightsProvider = Provider.autoDispose
         ),
       );
     });
+
+String _yyyyMm(DateTime dt) {
+  final m = dt.month.toString().padLeft(2, '0');
+  return '${dt.year}-$m';
+}
+
+final customerMonthlyStatsProvider =
+    StreamProvider.autoDispose.family<CustomerMonthlyStats?, String>((
+  ref,
+  salonId,
+) {
+  final sid = salonId.trim();
+  if (sid.isEmpty) {
+    return Stream.value(null);
+  }
+  final period = _yyyyMm(DateTime.now());
+  return ref
+      .watch(customerRepositoryProvider)
+      .watchCustomerMonthlyStats(salonId: sid, yyyyMM: period);
+});

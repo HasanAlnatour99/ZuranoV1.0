@@ -142,6 +142,83 @@ service cloud.firestore {
         (currentRole() == 'owner' || currentRole() == 'admin');
     }
 
+    /// RBAC: `salons/{salonId}/staff/{authUid}` — optional; when missing, owner/admin keep legacy access.
+    function salonStaffSelfDocPath(salonId) {
+      return /databases/$(database)/documents/salons/$(salonId)/staff/$(request.auth.uid);
+    }
+
+    function salonStaffSelfExists(salonId) {
+      return signedIn() && exists(salonStaffSelfDocPath(salonId));
+    }
+
+    function salonStaffSelfData(salonId) {
+      return get(salonStaffSelfDocPath(salonId)).data;
+    }
+
+    function salonStaffSelfActive(salonId) {
+      return salonStaffSelfExists(salonId) &&
+        salonStaffSelfData(salonId).get('isActive', true) != false;
+    }
+
+    function staffHasSalonPermissionKey(salonId, key) {
+      return salonStaffSelfExists(salonId) &&
+        salonStaffSelfActive(salonId) &&
+        salonStaffSelfData(salonId).get('permissions', {}).get(key, false) == true;
+    }
+
+    function legacyOwnerAdminNoStaffRow(salonId) {
+      return isSalonOwnerOrAdmin(salonId) && !salonStaffSelfExists(salonId);
+    }
+
+    /// Owner always allowed; legacy admin without staff row allowed; otherwise explicit permission.
+    function maySalonPermission(salonId, key) {
+      return isOwnerOfSalon(salonId) ||
+        legacyOwnerAdminNoStaffRow(salonId) ||
+        staffHasSalonPermissionKey(salonId, key);
+    }
+
+    function mayManageSalonPermissionsDocs(salonId) {
+      return isOwnerOfSalon(salonId) ||
+        legacyOwnerAdminNoStaffRow(salonId) ||
+        staffHasSalonPermissionKey(salonId, 'permissions.manage');
+    }
+
+    /// Activity Center (`auditLogs`) — read-only history written by Cloud Functions / triggers.
+    function canReadSalonActivityAuditLogs(salonId) {
+      return isOwnerOfSalon(salonId) ||
+        maySalonPermission(salonId, 'analytics.view') ||
+        maySalonPermission(salonId, 'settings.manage') ||
+        maySalonPermission(salonId, 'permissions.manage');
+    }
+
+    /// CSV/PDF export job rows (`exportJobs`) — reads aligned with export permission matrix.
+    function canReadSalonExportJobDoc(salonId) {
+      let ex = resource.data.exportType;
+      return isOwnerOfSalon(salonId) ||
+        (
+          ex == 'payslip' &&
+          (
+            maySalonPermission(salonId, 'payroll.view') ||
+            (
+              resource.data.get('employeeId', '') == currentEmployeeId() &&
+              currentEmployeeId() is string &&
+              resource.data.get('employeeId', '').size() > 0
+            )
+          )
+        ) ||
+        (ex == 'sales' && maySalonPermission(salonId, 'sales.view')) ||
+        (ex == 'payroll' && maySalonPermission(salonId, 'payroll.view')) ||
+        (ex == 'attendance' && maySalonPermission(salonId, 'attendance.view')) ||
+        (ex == 'expenses' && maySalonPermission(salonId, 'expenses.view')) ||
+        (
+          ex == 'audit' &&
+          (
+            maySalonPermission(salonId, 'permissions.manage') ||
+            maySalonPermission(salonId, 'settings.manage')
+          )
+        );
+    }
+
     /// Barber or employee in the same salon (excludes `readonly` for sale entry).
     function isBarberOrEmployeeInSalon(salonId) {
       return isActiveUser() &&
@@ -507,26 +584,26 @@ service cloud.firestore {
 
       match /employees/{employeeId} {
         // Private HR: owner/admin and each staff member’s own row only (customers use `publicSalons/.../team`).
-        allow read: if isSalonOwnerOrAdmin(salonId) ||
+        allow read: if maySalonPermission(salonId, 'team.view') ||
           (isStaffOfSalon(salonId) && employeeId == currentEmployeeId());
 
-        allow create, delete: if isSalonOwnerOrAdmin(salonId);
+        allow create, delete: if maySalonPermission(salonId, 'team.manage');
 
-        allow update: if isSalonOwnerOrAdmin(salonId) ||
+        allow update: if maySalonPermission(salonId, 'team.manage') ||
           employeeSelfClearsMustChangePasswordOnly(salonId, employeeId);
 
         match /assignedServices/{assignmentId} {
-          allow read: if isSalonOwnerOrAdmin(salonId) ||
+          allow read: if maySalonPermission(salonId, 'team.view') ||
             (isStaffOfSalon(salonId) && employeeId == currentEmployeeId());
 
-          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+          allow create, update, delete: if maySalonPermission(salonId, 'team.manage');
         }
 
         /// Optional leave hour buckets (owner/admin maintained).
         match /leaveBalances/{leaveTypeId} {
-          allow read: if isSalonOwnerOrAdmin(salonId) ||
+          allow read: if maySalonPermission(salonId, 'team.view') ||
             (isStaffOfSalon(salonId) && employeeId == currentEmployeeId());
-          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+          allow create, update, delete: if maySalonPermission(salonId, 'team.manage');
         }
       }
 
@@ -598,12 +675,12 @@ service cloud.firestore {
       }
 
       match /sales/{saleId} {
-        allow read: if isSalonOwnerOrAdmin(salonId) ||
+        allow read: if maySalonPermission(salonId, 'sales.view') ||
           (
             isStaffOfSalon(salonId) &&
             resource.data.employeeId == currentEmployeeId()
           );
-        allow create: if isSalonOwnerOrAdmin(salonId) ||
+        allow create: if maySalonPermission(salonId, 'sales.manage') ||
           (
             isBarberOrEmployeeInSalon(salonId) &&
             request.resource.data.salonId == salonId &&
@@ -618,22 +695,22 @@ service cloud.firestore {
               request.resource.data.createdBy == request.auth.uid
             )
           );
-        allow update: if isSalonOwnerOrAdmin(salonId);
-        allow delete: if isSalonOwnerOrAdmin(salonId);
+        allow update: if maySalonPermission(salonId, 'sales.manage');
+        allow delete: if maySalonPermission(salonId, 'sales.manage');
 
         match /analysis/{docId} {
-          allow read, write: if isSalonOwnerOrAdmin(salonId);
+          allow read, write: if maySalonPermission(salonId, 'sales.manage');
         }
 
         match /items/{itemId} {
-          allow read: if isSalonOwnerOrAdmin(salonId) ||
+          allow read: if maySalonPermission(salonId, 'sales.view') ||
             (
               isStaffOfSalon(salonId) &&
               get(/databases/$(database)/documents/salons/$(salonId)/sales/$(saleId))
                 .data
                 .employeeId == currentEmployeeId()
             );
-          allow create, update: if isSalonOwnerOrAdmin(salonId) ||
+          allow create, update: if maySalonPermission(salonId, 'sales.manage') ||
             (
               isStaffOfSalon(salonId) &&
               get(/databases/$(database)/documents/salons/$(salonId)/sales/$(saleId))
@@ -866,7 +943,18 @@ service cloud.firestore {
 
       // Monthly attendance rollups for payroll impact (written via Cloud Functions).
       match /payrollPeriods/{periodId}/employeeSummaries/{summaryEmployeeId} {
-        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow read: if maySalonPermission(salonId, 'payroll.view');
+        allow write: if false;
+      }
+
+      match /auditLogs/{auditLogId} {
+        allow read: if canReadSalonActivityAuditLogs(salonId);
+        allow write: if false;
+      }
+
+      /// Export jobs / signed-url downloads (written only via Cloud Functions Admin SDK).
+      match /exportJobs/{exportJobId} {
+        allow read: if canReadSalonExportJobDoc(salonId);
         allow write: if false;
       }
 
@@ -877,74 +965,74 @@ service cloud.firestore {
       }
 
       match /payroll/{payrollId} {
-        allow read: if isSalonOwnerOrAdmin(salonId) ||
+        allow read: if maySalonPermission(salonId, 'payroll.view') ||
           (
             isStaffOfSalon(salonId) &&
             resource.data.get('employeeId', '') == currentEmployeeId()
           );
-        allow create, update: if isSalonOwnerOrAdmin(salonId);
+        allow create, update: if maySalonPermission(salonId, 'payroll.manage');
         allow delete: if isOwnerOfSalon(salonId);
       }
 
       match /payroll_elements/{elementId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow write: if maySalonPermission(salonId, 'payroll.manage');
       }
 
       match /payroll_runs/{runId} {
-        allow read: if isSalonOwnerOrAdmin(salonId);
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow read: if maySalonPermission(salonId, 'payroll.view');
+        allow write: if maySalonPermission(salonId, 'payroll.manage');
 
         match /results/{resultId} {
-          allow read: if isSalonOwnerOrAdmin(salonId);
-          allow write: if isSalonOwnerOrAdmin(salonId);
+          allow read: if maySalonPermission(salonId, 'payroll.view');
+          allow write: if maySalonPermission(salonId, 'payroll.manage');
         }
       }
 
       match /employee_element_entries/{entryId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow write: if maySalonPermission(salonId, 'payroll.manage');
       }
 
       match /payslips/{payslipId} {
-        allow read: if isSalonOwnerOrAdmin(salonId) ||
+        allow read: if maySalonPermission(salonId, 'payroll.view') ||
           (
             isStaffOfSalon(salonId) &&
             resource.data.employeeId == currentEmployeeId() &&
             resource.data.employeeVisible == true
           );
-        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+        allow create, update, delete: if maySalonPermission(salonId, 'payroll.manage');
 
         match /lines/{lineId} {
-          allow read: if isSalonOwnerOrAdmin(salonId) ||
+          allow read: if maySalonPermission(salonId, 'payroll.view') ||
             (isStaffOfSalon(salonId) && payslipParentVisibleToStaff(salonId, payslipId));
-          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+          allow create, update, delete: if maySalonPermission(salonId, 'payroll.manage');
         }
 
         match /aiAnalysis/{docId} {
-          allow read: if isSalonOwnerOrAdmin(salonId) ||
+          allow read: if maySalonPermission(salonId, 'payroll.view') ||
             (isStaffOfSalon(salonId) && payslipParentVisibleToStaff(salonId, payslipId));
-          allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+          allow create, update, delete: if maySalonPermission(salonId, 'payroll.manage');
         }
       }
 
       match /payroll_settings/{docId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow write: if maySalonPermission(salonId, 'payroll.manage');
       }
 
       match /payroll_adjustments/{adjustmentId} {
-        allow read: if isSalonOwnerOrAdmin(salonId);
-        allow write: if isSalonOwnerOrAdmin(salonId);
+        allow read: if maySalonPermission(salonId, 'payroll.view');
+        allow write: if maySalonPermission(salonId, 'payroll.manage');
       }
 
       match /payrollAdjustments/{adjustmentId} {
-        allow read: if isSalonOwnerOrAdmin(salonId) ||
+        allow read: if maySalonPermission(salonId, 'payroll.view') ||
           (
             isStaffOfSalon(salonId) &&
             resource.data.employeeId == currentEmployeeId()
           );
-        allow create, update: if isSalonOwnerOrAdmin(salonId) &&
+        allow create, update: if maySalonPermission(salonId, 'payroll.manage') &&
           request.resource.data.salonId == salonId &&
           request.resource.data.employeeId is string &&
           request.resource.data.monthKey is string &&
@@ -960,8 +1048,12 @@ service cloud.firestore {
       }
 
       match /expenses/{expenseId} {
-        allow read: if isOwnerOrStaffOfSalon(salonId);
-        allow write: if isOwnerOfSalon(salonId);
+        allow read: if maySalonPermission(salonId, 'expenses.view') ||
+          (
+            isStaffOfSalon(salonId) &&
+            resource.data.get('createdByUid', '') == request.auth.uid
+          );
+        allow create, update, delete: if maySalonPermission(salonId, 'expenses.manage');
       }
 
       match /violations/{violationId} {
@@ -992,7 +1084,11 @@ service cloud.firestore {
       match /bookings/{bookingId} {
         // customerId is often salon-scoped (`phone_*` / `guest_*`); guests also use guestUid / createdByAuthUid.
         allow read: if isOwnerOfSalon(salonId) ||
-          (isStaffOfSalon(salonId) && currentRole() == 'admin') ||
+          (
+            isStaffOfSalon(salonId) &&
+            currentRole() == 'admin' &&
+            maySalonPermission(salonId, 'bookings.view')
+          ) ||
           (isStaffOfSalon(salonId) &&
             currentRole() == 'barber' &&
             resource.data.barberId == currentEmployeeId()) ||
@@ -1028,28 +1124,46 @@ service cloud.firestore {
             request.resource.data.endAt is timestamp &&
             request.resource.data.status is string
           );
-        allow update: if isOwnerOrStaffOfSalon(salonId);
-        allow delete: if isOwnerOrStaffOfSalon(salonId);
+        allow update: if isOwnerOfSalon(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            currentRole() == 'admin' &&
+            maySalonPermission(salonId, 'bookings.manage')
+          ) ||
+          (
+            isStaffOfSalon(salonId) &&
+            currentRole() == 'barber' &&
+            resource.data.barberId == currentEmployeeId()
+          );
+        allow delete: if isOwnerOfSalon(salonId) ||
+          (
+            isStaffOfSalon(salonId) &&
+            currentRole() == 'admin' &&
+            maySalonPermission(salonId, 'bookings.manage')
+          ) ||
+          (
+            isStaffOfSalon(salonId) &&
+            currentRole() == 'barber' &&
+            resource.data.barberId == currentEmployeeId()
+          );
       }
 
       match /booking_locks/{lockId} {
         allow read, write: if isOwnerOrStaffOfSalon(salonId);
       }
 
+      // Idempotency locks for customer booking requests.
+      // Only Cloud Functions / Admin SDK should read/write these.
+      match /bookingRequestLocks/{lockId} {
+        allow read, write: if false;
+      }
+
       match /customers/{customerId} {
         allow read: if isOwnerOrStaffOfSalon(salonId);
 
         allow create: if (
-            isOwnerOrStaffOfSalon(salonId) &&
+            isSalonOwnerOrAdmin(salonId) &&
             request.resource.data.salonId == salonId &&
-            request.resource.data.fullName is string &&
-            request.resource.data.phone is string &&
-            request.resource.data.isActive is bool
-          ) ||
-          (
-            isCustomer() &&
-            request.resource.data.salonId == salonId &&
-            request.resource.data.createdByAuthUid == request.auth.uid &&
             request.resource.data.fullName is string &&
             request.resource.data.phone is string &&
             request.resource.data.isActive is bool
@@ -1072,6 +1186,47 @@ service cloud.firestore {
             ]));
 
         allow delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      match /customer_phone_locks/{phoneHash} {
+        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow create, update, delete: if isSalonOwnerOrAdmin(salonId);
+      }
+
+      match /customer_monthly_stats/{periodId} {
+        allow read: if isSalonOwnerOrAdmin(salonId);
+        allow write: if false;
+      }
+
+      /// Monthly analytics summaries generated by Cloud Functions (`generateMonthlyAnalytics`).
+      match /analytics/monthly/{periodId} {
+        allow read: if maySalonPermission(salonId, 'analytics.view');
+        allow write: if false;
+      }
+
+      /// Owner dashboard snapshots generated by Cloud Functions (`generateOwnerDashboardSnapshot`).
+      match /dashboardSnapshots/{snapshotId} {
+        allow read: if maySalonPermission(salonId, 'analytics.view');
+        allow write: if false;
+      }
+
+      /// Salon RBAC rows (`staff/{authUid}`). Writes only via Cloud Functions.
+      match /staff/{staffUid} {
+        allow get: if signedIn() &&
+          sameSalon(salonId) &&
+          (request.auth.uid == staffUid || mayManageSalonPermissionsDocs(salonId));
+        allow list: if mayManageSalonPermissionsDocs(salonId);
+        allow create, update, delete: if false;
+      }
+
+      match /roles/{roleId} {
+        allow read: if mayManageSalonPermissionsDocs(salonId);
+        allow write: if false;
+      }
+
+      match /permissionAudit/{auditId} {
+        allow read: if mayManageSalonPermissionsDocs(salonId);
+        allow write: if false;
       }
 
       match /customer_notes/{noteId} {

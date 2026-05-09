@@ -8,7 +8,6 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../customer_home/presentation/controllers/customer_location_providers.dart';
-import '../data/customer_map_repository.dart';
 import '../domain/salon_map_item.dart';
 import 'providers/customer_map_providers.dart';
 import 'widgets/customer_map_marker_style.dart';
@@ -30,11 +29,24 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   GoogleMapController? _mapController;
   bool _didCenterOnUser = false;
 
+  late final ClusterManager _salonClusterManager = ClusterManager(
+    clusterManagerId: const ClusterManagerId('zurano_customer_map_salons'),
+    onClusterTap: _onSalonClusterTap,
+  );
+
+  void _onSalonClusterTap(Cluster cluster) {
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngBounds(cluster.bounds, 56),
+    );
+  }
+
   Set<Marker> _buildMarkers({
     required AppLocalizations l10n,
     required List<SalonMapItem> salons,
     required LatLng? userPosition,
     required SalonMapItem? selected,
+    required bool clusterSalons,
+    ClusterManagerId? salonClusterManagerId,
   }) {
     final markers = <Marker>{};
 
@@ -55,6 +67,8 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
         Marker(
           markerId: MarkerId('salon_${salon.id}'),
           position: salon.position,
+          clusterManagerId:
+              clusterSalons ? salonClusterManagerId : null,
           infoWindow: InfoWindow(
             title: salon.name,
             snippet: salon.locationLabel,
@@ -268,11 +282,17 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
         error: (_, _) =>
             _MapErrorView(message: l10n.customerMapCouldNotLoadSalons),
         data: (_) {
+          final clusterSalons = nearby.length >
+              CustomerMapDiscoveryEngine.kMarkerClusterThreshold;
           final markers = _buildMarkers(
             l10n: l10n,
             salons: nearby,
             userPosition: userPosition,
             selected: selectedSalon,
+            clusterSalons: clusterSalons,
+            salonClusterManagerId: clusterSalons
+                ? _salonClusterManager.clusterManagerId
+                : null,
           );
 
           final headerSubtitle = nearby.isEmpty
@@ -292,6 +312,8 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
                 zoomControlsEnabled: false,
                 mapToolbarEnabled: false,
                 markers: markers,
+                clusterManagers:
+                    clusterSalons ? {_salonClusterManager} : const <ClusterManager>{},
                 onMapCreated: (controller) async {
                   _mapController = controller;
                   final initialUser = ref

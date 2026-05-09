@@ -72,15 +72,20 @@ void main() {
           createCustomerControllerProvider.overrideWithValue(
             createCustomerController,
           ),
+          sessionUserProvider.overrideWith((ref) => Stream.value(_ownerUser())),
         ],
         child: _l10nMaterialApp(home: const AddCustomerScreen()),
       ),
     );
+    await tester.pump();
 
-    await tester.tap(find.text('Save customer'));
-    await tester.pumpAndSettle();
+    final context = tester.element(find.byType(AddCustomerScreen));
+    final l10n = AppLocalizations.of(context)!;
 
-    expect(find.text('Full name is required'), findsOneWidget);
+    await tester.tap(find.text(l10n.addCustomerSaveCustomer));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text(l10n.addCustomerFullNameRequired), findsOneWidget);
   });
 
   testWidgets('Create Booking form validation blocks incomplete submit', (

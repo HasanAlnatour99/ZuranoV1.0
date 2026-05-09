@@ -17,6 +17,7 @@ import {
   notifyBookingCompletedForCustomer,
   notifyNoShowToOwners,
 } from "./notificationOrchestrator";
+import { auditActorProfile, writeAuditLogInTransaction } from "./audit/auditLogger";
 
 const OperationalStates = {
   waiting: "waiting",
@@ -384,6 +385,343 @@ export const bookingMarkArrived = onCall({ region: "us-central1" }, async (reque
   return result.idempotent
     ? { ok: true, idempotent: true }
     : { ok: true };
+});
+
+// ---- New unified owner/admin booking operations (production) ----
+
+function assertOwnerOrAdminRole(user: Awaited<ReturnType<typeof loadUserProfile>>, salonId: string): void {
+  if (user.salonId !== salonId) {
+    throw new HttpsError("permission-denied", "Not a member of this salon.");
+  }
+  if (user.role !== "owner" && user.role !== "admin") {
+    throw new HttpsError("permission-denied", "Only owners and admins can perform this action.");
+  }
+}
+
+function isNonEmptyString(v: unknown): v is string {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+function bookingAuditActionType(nextStatusRaw: string, nextNormalized: string): string {
+  const raw = nextStatusRaw.trim().toLowerCase().replace(/[\s_]/g, "");
+  if (raw === "checkedin") return "bookings.checked_in";
+  if (nextNormalized === BookingStatuses.confirmed) return "bookings.confirmed";
+  if (nextNormalized === BookingStatuses.cancelled) return "bookings.cancelled";
+  if (nextNormalized === BookingStatuses.completed) return "bookings.completed";
+  if (nextNormalized === BookingStatuses.noShow) return "bookings.no_show";
+  return "bookings.updated";
+}
+
+function transitionAllowed(current: string, next: string): boolean {
+  // `checkedIn` is an operational step, not a Firestore status here.
+  if (next === "checkedIn") {
+    return current === BookingStatuses.confirmed;
+  }
+  if (current === BookingStatuses.pending) {
+    return next === BookingStatuses.confirmed || next === BookingStatuses.cancelled;
+  }
+  if (current === BookingStatuses.confirmed) {
+    return next === BookingStatuses.cancelled || next === BookingStatuses.noShow || next === BookingStatuses.completed;
+  }
+  if (current === BookingStatuses.completed) {
+    return false;
+  }
+  if (current === BookingStatuses.cancelled) {
+    return false;
+  }
+  if (current === BookingStatuses.noShow) {
+    return false;
+  }
+  return false;
+}
+
+export const updateBookingStatus = onCall({ region: "us-central1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Authentication required.");
+  }
+  const uid = request.auth.uid;
+  const data = request.data as Record<string, unknown>;
+  const salonId = requireString(data, "salonId");
+  const bookingId = requireString(data, "bookingId");
+  const nextStatusRaw = requireString(data, "nextStatus");
+  const reason = isNonEmptyString(data.reason) ? data.reason.trim() : "";
+
+  const nextStatus = normalizeBookingStatus(nextStatusRaw);
+  const user = await loadUserProfile(uid);
+  assertOwnerOrAdminRole(user, salonId);
+
+  const bookingRef = db.collection("salons").doc(salonId).collection("bookings").doc(bookingId);
+  const now = FieldValue.serverTimestamp();
+  const actor = await auditActorProfile(db, uid);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(bookingRef);
+    if (!snap.exists) {
+      throw new HttpsError("not-found", "Booking not found.");
+    }
+    const d = snap.data() as Record<string, unknown>;
+    const currentStatus = normalizeBookingStatus((d as any).status);
+
+    if (!transitionAllowed(currentStatus, nextStatus)) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Invalid status transition.",
+        { currentStatus, nextStatus },
+      );
+    }
+
+    const timelineEvent = {
+      status: nextStatus,
+      actorType: user.role === "owner" || user.role === "admin" ? user.role : "system",
+      actorUid: uid,
+      reason: reason || null,
+      at: now,
+    };
+
+    const patch: Record<string, unknown> = {
+      updatedAt: now,
+      timeline: FieldValue.arrayUnion(timelineEvent),
+    };
+
+    // `checkedIn` is stored as operationalState for now.
+    if (nextStatus === "checkedIn") {
+      patch.operationalState = OperationalStates.customerArrived;
+      patch.checkedInAt = now;
+    } else {
+      patch.status = nextStatus;
+      if (nextStatus === BookingStatuses.confirmed) {
+        patch.confirmedAt = now;
+        patch.confirmedActorType = user.role;
+      }
+      if (nextStatus === BookingStatuses.cancelled) {
+        patch.cancelledAt = now;
+        patch.cancelledActorType = user.role;
+        if (reason) patch.cancelReason = reason;
+      }
+      if (nextStatus === BookingStatuses.noShow) {
+        patch.noShowAt = now;
+        patch.noShowActorType = user.role;
+        if (reason) patch.noShowReason = reason;
+      }
+      if (nextStatus === BookingStatuses.completed) {
+        patch.serviceCompletedAt = now;
+        patch.completedActorType = user.role;
+      }
+    }
+
+    tx.set(bookingRef, patch, { merge: true });
+
+    const bookingLabel =
+      `${String((d as any).bookingCode ?? (d as any).bookingNumber ?? "").trim() ||
+        String((d as any).customerName ?? "").trim() ||
+        bookingId}`;
+    writeAuditLogInTransaction(tx, db, {
+      salonId,
+      actionType: bookingAuditActionType(nextStatusRaw, nextStatus),
+      module: "bookings",
+      actorUid: uid,
+      actorName: actor.name,
+      actorRole: actor.role,
+      targetType: "booking",
+      targetId: bookingId,
+      targetLabel: bookingLabel,
+      summary: "Booking status updated",
+      before: { status: currentStatus },
+      after: {
+        status: patch.status != null ? nextStatus : currentStatus,
+        operationalState: patch.operationalState ?? (d as any).operationalState ?? null,
+      },
+      metadata: {
+        reason: reason || null,
+        nextStatusRaw: nextStatusRaw.trim(),
+      },
+    });
+  });
+
+  return { ok: true };
+});
+
+export const completeBookingAndCreateSale = onCall({ region: "us-central1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Authentication required.");
+  }
+  const uid = request.auth.uid;
+  const data = request.data as Record<string, unknown>;
+  const salonId = requireString(data, "salonId");
+  const bookingId = requireString(data, "bookingId");
+
+  const paymentMethod = requireString(data, "paymentMethod").trim();
+  const paidAmountRaw = data.paidAmount;
+  const paidAmount = typeof paidAmountRaw === "number" ? paidAmountRaw : Number(paidAmountRaw) || 0;
+
+  const user = await loadUserProfile(uid);
+  assertOwnerOrAdminRole(user, salonId);
+
+  const bookingRef = db.collection("salons").doc(salonId).collection("bookings").doc(bookingId);
+  const salesCol = db.collection("salons").doc(salonId).collection("sales");
+  const now = FieldValue.serverTimestamp();
+  const actor = await auditActorProfile(db, uid);
+
+  const result = await db.runTransaction(async (tx) => {
+    const bookingSnap = await tx.get(bookingRef);
+    if (!bookingSnap.exists) {
+      throw new HttpsError("not-found", "Booking not found.");
+    }
+    const b = bookingSnap.data() as Record<string, unknown>;
+    const currentStatus = normalizeBookingStatus((b as any).status);
+
+    if (currentStatus !== BookingStatuses.confirmed) {
+      // We accept `checkedIn` as operational state while status remains confirmed.
+      // If a future model introduces a dedicated status, normalizeBookingStatus can include it.
+      throw new HttpsError("failed-precondition", "Booking must be confirmed/checked-in before completion.");
+    }
+
+    const saleCreated = Boolean((b as any).saleCreated);
+    const existingSaleId = isNonEmptyString((b as any).saleId) ? String((b as any).saleId).trim() : "";
+    if (saleCreated && existingSaleId.length > 0) {
+      return { saleId: existingSaleId, alreadyExisted: true };
+    }
+
+    const totalAmount = typeof (b as any).totalAmount === "number"
+      ? (b as any).totalAmount
+      : Number((b as any).totalAmount) || 0;
+
+    const safePaid = Math.max(0, roundMoney(paidAmount));
+    const safeTotal = Math.max(0, roundMoney(totalAmount));
+    const balanceAmount = roundMoney(Math.max(0, safeTotal - safePaid));
+
+    const paymentStatus =
+      safePaid <= 0
+        ? "unpaid"
+        : safePaid + 1e-9 < safeTotal
+          ? "partial"
+          : "paid";
+
+    const bookingCode = `${(b as any).bookingCode ?? (b as any).bookingNumber ?? ""}`.trim();
+    const customerId = `${(b as any).customerId ?? ""}`.trim();
+    const customerName = `${(b as any).customerName ?? ""}`.trim();
+    const employeeId = `${(b as any).employeeId ?? (b as any).barberId ?? ""}`.trim();
+    const employeeName = `${(b as any).employeeName ?? (b as any).barberName ?? ""}`.trim();
+
+    const services = Array.isArray((b as any).services) ? (b as any).services : [];
+    const subtotal = typeof (b as any).subtotal === "number" ? (b as any).subtotal : Number((b as any).subtotal) || safeTotal;
+    const discountAmount = typeof (b as any).discountAmount === "number" ? (b as any).discountAmount : Number((b as any).discountAmount) || 0;
+
+    const saleRef = salesCol.doc();
+    const soldAt = new Date();
+    const reportYear = soldAt.getUTCFullYear();
+    const reportMonth = soldAt.getUTCMonth() + 1;
+    const reportPeriodKey = `${reportYear}-${String(reportMonth).padStart(2, "0")}`;
+
+    const normalizedPaymentMethod = (() => {
+      const raw = (paymentMethod || "").trim().toLowerCase();
+      if (raw === "online") return "digital_wallet";
+      if (raw === "cash" || raw === "card" || raw === "digital_wallet" || raw === "other") return raw;
+      return "not_selected";
+    })();
+
+    const saleWrite: Record<string, unknown> = {
+      id: saleRef.id,
+      salonId,
+      source: "booking",
+      bookingId,
+      bookingCode,
+      customerId,
+      customerName,
+      employeeId,
+      employeeName,
+      // Align with existing Sale model fields used across the app.
+      lineItems: Array.isArray((b as any).lineItems) ? (b as any).lineItems : [],
+      serviceNames: Array.isArray((b as any).serviceNames)
+        ? (b as any).serviceNames
+        : (Array.isArray(services) ? services.map((s: any) => String(s?.serviceName ?? s?.name ?? "").trim()).filter(Boolean) : []),
+      // keep legacy/compat fields
+      services,
+      subtotal: roundMoney(subtotal),
+      subtotalAmount: roundMoney(subtotal),
+      tax: 0,
+      discount: roundMoney(discountAmount),
+      discountAmount: roundMoney(discountAmount),
+      total: safeTotal,
+      totalAmountAfterDiscount: safeTotal,
+      paymentStatus,
+      paymentMethod: normalizedPaymentMethod,
+      paidAmount: safePaid,
+      balanceAmount,
+      status: "completed",
+      soldAt,
+      saleDate: soldAt,
+      reportYear,
+      reportMonth,
+      reportPeriodKey,
+      commissionEligible: true,
+      commissionBaseAmount: safeTotal,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    tx.set(saleRef, saleWrite);
+
+    const timelineEvent = {
+      status: BookingStatuses.completed,
+      actorType: user.role,
+      actorUid: uid,
+      reason: null,
+      at: now,
+    };
+
+    tx.set(bookingRef, {
+      status: BookingStatuses.completed,
+      serviceCompletedAt: now,
+      saleCreated: true,
+      saleId: saleRef.id,
+      completedAt: now,
+      updatedAt: now,
+      timeline: FieldValue.arrayUnion(timelineEvent),
+      paymentStatus,
+      paymentMethod: paymentMethod || "not_selected",
+      paidAmount: safePaid,
+      balanceAmount,
+    }, { merge: true });
+
+    writeAuditLogInTransaction(tx, db, {
+      salonId,
+      actionType: "sales.created",
+      module: "sales",
+      actorUid: uid,
+      actorName: actor.name,
+      actorRole: actor.role,
+      targetType: "sale",
+      targetId: saleRef.id,
+      targetLabel: bookingCode || saleRef.id,
+      summary: "Sale created from booking",
+      after: {
+        total: safeTotal,
+        paymentMethod: normalizedPaymentMethod,
+        bookingId,
+      },
+      metadata: { source: "booking_complete_callable" },
+    });
+    writeAuditLogInTransaction(tx, db, {
+      salonId,
+      actionType: "bookings.completed",
+      module: "bookings",
+      actorUid: uid,
+      actorName: actor.name,
+      actorRole: actor.role,
+      targetType: "booking",
+      targetId: bookingId,
+      targetLabel: bookingCode || bookingId,
+      summary: "Booking completed with sale",
+      before: { status: currentStatus },
+      after: { status: BookingStatuses.completed, saleId: saleRef.id },
+      metadata: { saleId: saleRef.id },
+    });
+
+    return { saleId: saleRef.id, alreadyExisted: false };
+  });
+
+  return { ok: true, ...result };
 });
 
 export const bookingStartService = onCall({ region: "us-central1" }, async (request) => {

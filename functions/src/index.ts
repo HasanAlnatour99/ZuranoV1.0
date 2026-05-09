@@ -28,6 +28,8 @@ export {
   bookingMarkArrived,
   bookingMarkNoShow,
   bookingStartService,
+  updateBookingStatus,
+  completeBookingAndCreateSale,
   violationReview,
 } from "./bookingOperationsCallables";
 export { bookingDayBusyMask } from "./bookingDayBusyMask";
@@ -68,6 +70,12 @@ export {
   markPayslipPaid,
 } from "./payrollCallables";
 export {
+  approveAttendanceViolation,
+  calculateAttendanceViolationsForPeriod,
+  postAttendanceViolationsToPayroll,
+  waiveAttendanceViolation,
+} from "./attendance/attendancePayrollDeductionsCallables";
+export {
   applyAbsenceViolationsForEndedShifts,
   onAttendanceDayViolationAutomation,
 } from "./attendanceViolationAutomation";
@@ -77,7 +85,37 @@ export {
 } from "./notifications/salonInAppNotificationService";
 
 export {
+  generateMonthlyAnalytics,
+} from "./analytics/analyticsCallables";
+
+export {
+  generateOwnerDashboardSnapshot,
+} from "./dashboard/dashboardCallables";
+
+export {
+  assignRolePresetToStaff,
+  bootstrapSalonStaffForOwner,
+  createRolePreset,
+  provisionSalonStaffMember,
+  setStaffActiveStatus,
+  syncUserClaimsForStaff,
+  updateRolePreset,
+  updateStaffPermissions,
+} from "./permissions/permissionsCallables";
+
+export {
   syncSalonSearchIndex,
   syncServiceSearchIndex,
   syncEmployeeSearchIndex,
 } from "./customerSearchIndex";
+
+export {
+  auditSalonExpenseWrite,
+  auditSalonSettingsWrite,
+} from "./audit/salonAuditTriggers";
+
+export {
+  requestReportExport,
+  generatePayslipPdf,
+  getExportDownloadUrl,
+} from "./reports/reportCallables";

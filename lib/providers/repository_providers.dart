@@ -30,6 +30,7 @@ import '../features/payroll/data/repositories/payslip_repository.dart';
 import '../features/payroll/data/payroll_service.dart';
 import '../features/payroll/logic/payroll_run_usecase.dart';
 import '../features/payroll/logic/quickpay_usecase.dart';
+import '../features/analytics/data/analytics_repository.dart';
 import '../features/sales/data/repositories/add_sale_repository.dart';
 import '../features/sales/data/sales_repository.dart';
 import '../features/sales/data/salon_sales_settings_repository.dart';
@@ -40,6 +41,8 @@ import '../features/notifications/data/notification_repository.dart';
 import '../features/customer_profile/data/guest_identity_repository.dart';
 import '../features/users/data/user_repository.dart';
 import '../features/violations/data/violation_repository.dart';
+import '../features/owner/dashboard_v2/data/owner_dashboard_repository.dart';
+import '../features/permissions/data/permissions_repository.dart';
 import 'firebase_providers.dart';
 
 final appLoggerProvider = Provider<AppLogger>((ref) {
@@ -154,6 +157,19 @@ final violationRepositoryProvider = Provider<ViolationRepository>((ref) {
 
 final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
   return PayrollRepository(firestore: ref.read(firestoreProvider));
+});
+
+final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
+  return AnalyticsRepository(
+    firestore: ref.read(firestoreProvider),
+  );
+});
+
+final ownerDashboardRepositoryProvider = Provider<OwnerDashboardRepository>((ref) {
+  return OwnerDashboardRepository(
+    firestore: ref.read(firestoreProvider),
+    functions: ref.read(firebaseFunctionsProvider),
+  );
 });
 
 final payslipRepositoryProvider = Provider<PayslipRepository>((ref) {
@@ -296,3 +312,10 @@ final teamMemberCardsRepositoryProvider =
     Provider<TeamMemberCardsRepository>((ref) {
       return TeamMemberCardsRepository(ref.read(firestoreProvider));
     });
+
+final permissionsRepositoryProvider = Provider<PermissionsRepository>((ref) {
+  return PermissionsRepository(
+    firestore: ref.read(firestoreProvider),
+    functions: ref.read(firebaseFunctionsProvider),
+  );
+});

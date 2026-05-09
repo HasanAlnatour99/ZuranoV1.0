@@ -344,6 +344,16 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     throw new HttpsError("failed-precondition", "Online booking is disabled.");
   }
 
+  const salonNamePublic =
+    `${(pub as any)?.salonName ?? (pub as any)?.name ?? ""}`.trim() || salonId;
+  const salonAreaPublic = `${(pub as any)?.area ?? ""}`.trim();
+  const salonPhonePublic = `${(pub as any)?.phone ?? ""}`.trim();
+  const salonWhatsappPublic = `${(pub as any)?.whatsapp ?? ""}`.trim();
+  const salonLatitudePublic =
+    typeof (pub as any)?.latitude === "number" ? (pub as any).latitude : null;
+  const salonLongitudePublic =
+    typeof (pub as any)?.longitude === "number" ? (pub as any).longitude : null;
+
   const services = draft.selectedServices;
   if (!Array.isArray(services) || services.length === 0) {
     throw new HttpsError("invalid-argument", "Select at least one service.");
@@ -362,6 +372,12 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     clientRequestIdRaw.length > 0 && clientRequestIdRaw.length <= 120
       ? clientRequestIdRaw
       : "";
+  if (callerAuthUid.length === 0) {
+    throw new HttpsError("unauthenticated", "Auth is required.");
+  }
+  if (clientRequestId.length === 0) {
+    throw new HttpsError("invalid-argument", "clientRequestId is required.");
+  }
 
   const customerName = `${draft.customerName ?? ""}`.trim();
   const phoneNorm = `${draft.customerPhoneNormalized ?? ""}`.trim();
@@ -375,23 +391,26 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
     throw new HttpsError("invalid-argument", "Customer phone is required.");
   }
 
-  // Idempotency: if the client retries/double-taps, return existing booking.
-  if (callerAuthUid.length > 0 && clientRequestId.length > 0) {
-    const existing = await db
-      .collection(`salons/${salonId}/bookings`)
-      .where("createdByAuthUid", "==", callerAuthUid)
-      .where("clientRequestId", "==", clientRequestId)
-      .limit(1)
-      .get();
-    const first = existing.docs[0];
-    if (first != null) {
-      const d = first.data() as Record<string, any>;
+  const lockId = `${callerAuthUid}_${clientRequestId}`.replace(/\//g, "_");
+  const lockRef = db.doc(`salons/${salonId}/bookingRequestLocks/${lockId}`);
+
+  async function readExistingFromLock(lockSnap: FirebaseFirestore.DocumentSnapshot) {
+    const lock = lockSnap.data() as Record<string, unknown> | undefined;
+    if (!lock) return null;
+    const st = `${lock.status ?? ""}`.trim();
+    const bookingId = `${lock.bookingId ?? ""}`.trim();
+    if (st === "completed" && bookingId.length > 0) {
+      const existingSnap = await db.doc(`salons/${salonId}/bookings/${bookingId}`).get();
+      if (!existingSnap.exists) {
+        return null;
+      }
+      const d = existingSnap.data() as Record<string, any>;
       const startAtExisting: Date =
         d.startAt instanceof Timestamp ? d.startAt.toDate() : new Date(d.startAt);
       const endAtExisting: Date =
         d.endAt instanceof Timestamp ? d.endAt.toDate() : new Date(d.endAt);
       return {
-        bookingId: first.id,
+        bookingId,
         salonId,
         customerId: `${d.customerId ?? ""}`,
         bookingCode: `${d.bookingCode ?? d.bookingNumber ?? ""}`,
@@ -401,6 +420,37 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
         idempotent: true,
       };
     }
+    if (st === "processing") {
+      throw new HttpsError("aborted", "booking_request_processing", {
+        code: "booking_request_processing",
+      });
+    }
+    return null;
+  }
+
+  // Try to create a processing lock (observable + race-safe).
+  const expiresAt = Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000);
+  try {
+    await lockRef.create({
+      salonId,
+      authUid: callerAuthUid,
+      clientRequestId,
+      status: "processing",
+      bookingId: "",
+      bookingCode: "",
+      errorCode: null,
+      expiresAt,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  } catch (e: any) {
+    // Lock already exists: check status.
+    const snap = await lockRef.get();
+    const existing = await readExistingFromLock(snap);
+    if (existing) {
+      return existing;
+    }
+    // If it still exists but isn't completed/processing, allow retry.
   }
 
   const dayStart = new Date(
@@ -460,7 +510,41 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
 
   let bookingCode = "";
   let bookingSearchKey = "";
-  await db.runTransaction(async (tx) => {
+  try {
+    const txResult = await db.runTransaction(async (tx) => {
+      const lockSnap = await tx.get(lockRef);
+      if (lockSnap.exists) {
+        const lock = lockSnap.data() as Record<string, unknown>;
+        const st = `${lock.status ?? ""}`.trim();
+        const bid = `${lock.bookingId ?? ""}`.trim();
+        if (st === "completed" && bid.length > 0) {
+          const existing = await tx.get(db.doc(`salons/${salonId}/bookings/${bid}`));
+          if (existing.exists) {
+            const d = existing.data() as Record<string, any>;
+            const startAtExisting: Date =
+              d.startAt instanceof Timestamp ? d.startAt.toDate() : new Date(d.startAt);
+            const endAtExisting: Date =
+              d.endAt instanceof Timestamp ? d.endAt.toDate() : new Date(d.endAt);
+            return {
+              bookingId: bid,
+              salonId,
+              customerId: `${d.customerId ?? ""}`,
+              bookingCode: `${d.bookingCode ?? d.bookingNumber ?? ""}`,
+              status: `${d.status ?? ""}`,
+              startAtMs: startAtExisting.getTime(),
+              endAtMs: endAtExisting.getTime(),
+              idempotent: true,
+            };
+          }
+        }
+        if (st === "processing") {
+          // If another worker is already processing, abort.
+          throw new HttpsError("aborted", "booking_request_processing", {
+            code: "booking_request_processing",
+          });
+        }
+      }
+
     for (const ref of candidateRefs) {
       const snap = await tx.get(ref);
       if (!snap.exists) {
@@ -583,29 +667,82 @@ export const createCustomerBooking = onCall(CALL, async (request) => {
       bookingWrite.guestUid = callerAuthUid;
     }
     tx.set(bookingRef, bookingWrite);
+
+    tx.update(lockRef, {
+      status: "completed",
+      bookingId: bookingRef.id,
+      bookingCode,
+      completedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return null;
   });
+    if (txResult) {
+      return txResult;
+    }
+  } catch (e: any) {
+    try {
+      await lockRef.set(
+        {
+          status: "failed",
+          errorCode: e?.message ?? e?.code ?? "unknown",
+          failedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (_) {}
+    throw e;
+  }
 
   // Non-critical: notification docs for in-app inbox (best-effort).
   try {
-    const notificationBase = {
-      type: "booking_created",
+    const ownerUid = `${(pub as any)?.ownerUid ?? ""}`.trim();
+    const title = "New booking";
+    const body = `${customerName} • ${bookingCode}`;
+    const commonData = {
       salonId,
       bookingId: bookingRef.id,
       bookingCode,
       customerName,
       startAt: Timestamp.fromDate(startAt),
       status,
-      isRead: false,
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
     } as Record<string, unknown>;
 
     const notifId = db.collection("_").doc().id;
-    await db.doc(`salons/${salonId}/notifications/${notifId}`).set(notificationBase);
 
-    const ownerUid = `${(pub as any)?.ownerUid ?? ""}`.trim();
+    // Salon inbox (role screens). Keep schema aligned with FirestoreNotificationRepository:
+    // `status: active` + `recipientUserId` + `readBy` map.
     if (ownerUid.length > 0) {
-      await db.doc(`users/${ownerUid}/notifications/${notifId}`).set(notificationBase);
+      await db.doc(`salons/${salonId}/notifications/${notifId}`).set({
+        ...commonData,
+        type: "booking_created",
+        title,
+        body,
+        status: "active",
+        recipientUserId: ownerUid,
+        isRead: false,
+        readBy: {},
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        actionRoute: `/owner/bookings/${bookingRef.id}`,
+        entityType: "booking",
+        entityId: bookingRef.id,
+      } as Record<string, unknown>);
+
+      // Legacy per-user inbox (users/{uid}/notifications).
+      await db.doc(`users/${ownerUid}/notifications/${notifId}`).set({
+        ...commonData,
+        type: "booking_created",
+        title,
+        body,
+        status: "unread",
+        isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+        deepLinkRoute: `/owner/bookings/${bookingRef.id}`,
+        data: commonData,
+      } as Record<string, unknown>);
     }
   } catch (_) {}
 
@@ -646,6 +783,41 @@ export const lookupCustomerBookings = onCall(CALL, async (request) => {
     return snap.empty ? null : (snap.docs[0] ?? null);
   }
 
+  // Legacy fallback: older bookings may not have `customerPhoneNormalized`.
+  // We still require phone+code, but we query by code then verify the phone match
+  // against `customerPhoneNormalized` when present, otherwise against digits in `customerPhone`.
+  async function legacyMatchByCodeOnly(
+    field: "bookingNumber" | "bookingCode",
+    value: string,
+  ): Promise<QueryDocumentSnapshot<DocumentData> | null> {
+    const snap = await db
+      .collectionGroup("bookings")
+      .where(field, "==", value)
+      .limit(5)
+      .get();
+    if (snap.empty) {
+      return null;
+    }
+    const enteredDigits = phoneNormalized.replace(/\D/g, "");
+    for (const doc of snap.docs) {
+      const d = doc.data() as Record<string, unknown>;
+      const norm = `${d.customerPhoneNormalized ?? ""}`.trim();
+      if (norm.length > 0) {
+        if (norm === phoneNormalized) {
+          return doc;
+        }
+        continue;
+      }
+      const rawPhoneDigits = `${d.customerPhone ?? ""}`.replace(/\D/g, "");
+      if (rawPhoneDigits.length > 0 && enteredDigits.length > 0) {
+        if (rawPhoneDigits === enteredDigits || rawPhoneDigits.endsWith(enteredDigits) || enteredDigits.endsWith(rawPhoneDigits)) {
+          return doc;
+        }
+      }
+    }
+    return null;
+  }
+
   let doc: QueryDocumentSnapshot<DocumentData> | null = await firstMatch(
     "bookingNumber",
     bookingCodeUp,
@@ -665,19 +837,26 @@ export const lookupCustomerBookings = onCall(CALL, async (request) => {
   }
 
   if (!doc) {
-    return { bookings: [] };
+    doc = await legacyMatchByCodeOnly("bookingNumber", bookingCodeUp);
+    if (!doc) {
+      doc = await legacyMatchByCodeOnly("bookingCode", bookingCodeUp);
+    }
+  }
+
+  if (!doc) {
+    throw new HttpsError("not-found", "wrong_phone_or_code");
   }
 
   const d = doc.data();
   const src = `${d.source ?? ""}`.trim();
   if (src !== "customer_app") {
-    return { bookings: [] };
+    throw new HttpsError("not-found", "wrong_phone_or_code");
   }
   if (d.publicLookupEnabled === false) {
-    return { bookings: [] };
+    throw new HttpsError("not-found", "wrong_phone_or_code");
   }
   if (!publicBookingCodesMatch(d as Record<string, unknown>, bookingCodeRaw)) {
-    return { bookings: [] };
+    throw new HttpsError("not-found", "wrong_phone_or_code");
   }
 
   const salonId = `${d.salonId ?? ""}`.trim();

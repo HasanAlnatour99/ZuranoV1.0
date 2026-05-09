@@ -1392,6 +1392,440 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerBookingDetailsTitle => 'تفاصيل الحجز';
 
   @override
+  String get ownerBookingManageStatus => 'إدارة الحجز';
+
+  @override
+  String get ownerBookingMarkCheckedIn => 'تسجيل حضور العميل';
+
+  @override
+  String get ownerBookingMarkCompleted => 'تعيين كمكتمل';
+
+  @override
+  String get ownerBookingMarkNoShow => 'تعيين كعدم حضور';
+
+  @override
+  String get ownerBookingsFilterAll => 'الكل';
+
+  @override
+  String get ownerBookingsEmpty => 'لا توجد حجوزات لهذا اليوم.';
+
+  @override
+  String get bookingCodeLabel => 'رمز الحجز';
+
+  @override
+  String get bookingTotalAmountLabel => 'الإجمالي';
+
+  @override
+  String get customerNameLabel => 'العميل';
+
+  @override
+  String get ownerAnalyticsTitle => 'التحليلات';
+
+  @override
+  String ownerAnalyticsSubtitle(String monthLabel) {
+    return 'أداء شهري لـ $monthLabel';
+  }
+
+  @override
+  String get ownerAnalyticsGenerate => 'إنشاء / تحديث التحليلات';
+
+  @override
+  String get ownerAnalyticsEmptyTitle => 'لا توجد تحليلات بعد';
+
+  @override
+  String get ownerAnalyticsEmptyMessage =>
+      'قم بإنشاء تحليلات هذا الشهر لعرض الإيرادات والمصاريف وتكلفة الرواتب وصافي الربح.';
+
+  @override
+  String get ownerAnalyticsErrorTitle => 'تعذر تحميل التحليلات';
+
+  @override
+  String get ownerAnalyticsErrorMessage => 'يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get ownerAnalyticsRetry => 'إعادة المحاولة';
+
+  @override
+  String get ownerAnalyticsTopEmployees => 'أفضل الموظفين';
+
+  @override
+  String get ownerAnalyticsTopServices => 'أفضل الخدمات';
+
+  @override
+  String get ownerAnalyticsNoTopEmployees => 'لا توجد نتائج للموظفين بعد.';
+
+  @override
+  String get ownerAnalyticsNoTopServices => 'لا توجد نتائج للخدمات بعد.';
+
+  @override
+  String get ownerAnalyticsSalesCountLabel => 'المبيعات';
+
+  @override
+  String get ownerAnalyticsBookingsCountLabel => 'الحجوزات';
+
+  @override
+  String get ownerAnalyticsCompletedBookingsLabel => 'الحجوزات المكتملة';
+
+  @override
+  String get ownerAnalyticsAverageTicketLabel => 'متوسط الفاتورة';
+
+  @override
+  String get ownerAnalyticsGrossRevenueLabel => 'إجمالي الإيرادات';
+
+  @override
+  String get ownerAnalyticsPayrollCostLabel => 'تكلفة الرواتب';
+
+  @override
+  String get ownerAnalyticsExpensesLabel => 'المصاريف';
+
+  @override
+  String get ownerAnalyticsNetProfitLabel => 'صافي الربح';
+
+  @override
+  String get ownerDashboardV2Title => 'لوحة التحكم';
+
+  @override
+  String get ownerDashboardV2ErrorTitle => 'تعذر تحميل لوحة التحكم';
+
+  @override
+  String get ownerDashboardV2ErrorMessage => 'يرجى التحديث والمحاولة مرة أخرى.';
+
+  @override
+  String get ownerDashboardRefresh => 'تحديث';
+
+  @override
+  String get ownerDashboardV2TodayLabel => 'اليوم';
+
+  @override
+  String get ownerDashboardV2OpenBookings => 'فتح الحجوزات';
+
+  @override
+  String get ownerDashboardV2RevenueTodayLabel => 'إيراد اليوم';
+
+  @override
+  String get ownerDashboardV2BookingsLabel => 'الحجوزات';
+
+  @override
+  String get ownerDashboardV2PendingLabel => 'قيد الانتظار';
+
+  @override
+  String get ownerDashboardV2MonthlyRevenueLabel => 'إيراد الشهر';
+
+  @override
+  String get ownerDashboardV2MonthlyNetProfitLabel => 'صافي الربح';
+
+  @override
+  String get ownerDashboardV2MonthlyPayrollCostLabel => 'تكلفة الرواتب';
+
+  @override
+  String get ownerDashboardV2MonthlyExpensesLabel => 'المصاريف';
+
+  @override
+  String get ownerDashboardV2TopPerformersTitle => 'أفضل الأداء';
+
+  @override
+  String get ownerDashboardV2TopBarberLabel => 'أفضل حلاق';
+
+  @override
+  String get ownerDashboardV2TopServiceLabel => 'أفضل خدمة';
+
+  @override
+  String get ownerDashboardV2ConversionLabel => 'الحجوزات → المبيعات';
+
+  @override
+  String get ownerDashboardV2QuickActionsTitle => 'إجراءات سريعة';
+
+  @override
+  String get ownerDashboardV2QuickBookings => 'الحجوزات';
+
+  @override
+  String get ownerDashboardV2QuickSales => 'المبيعات';
+
+  @override
+  String get ownerDashboardV2QuickAttendance => 'الحضور';
+
+  @override
+  String get ownerDashboardV2QuickPayroll => 'الرواتب';
+
+  @override
+  String get ownerDashboardV2QuickExpenses => 'المصاريف';
+
+  @override
+  String get ownerDashboardV2QuickAnalytics => 'التحليلات';
+
+  @override
+  String get ownerDashboardV2QuickTeam => 'الفريق';
+
+  @override
+  String get ownerDashboardV2QuickServices => 'الخدمات';
+
+  @override
+  String get ownerDashboardV2EmptyTitle => 'لقطات لوحة التحكم';
+
+  @override
+  String get ownerDashboardV2EmptyMessage =>
+      'حدّث لإنشاء لوحة اليوم من بيانات الصالون.';
+
+  @override
+  String get ownerDashboardV2AlertsTitle => 'تنبيهات تشغيلية';
+
+  @override
+  String get ownerDashboardV2AlertsAllClear => 'لا توجد تنبيهات عاجلة الآن.';
+
+  @override
+  String get ownerDashboardV2AlertPendingBookings => 'حجوزات قيد التأكيد';
+
+  @override
+  String get ownerDashboardV2AlertMissingCheckout =>
+      'نواقص تسجيل خروج / مشاكل حضور';
+
+  @override
+  String get ownerDashboardV2AlertUnpaidCompleted => 'حجوزات مكتملة غير مدفوعة';
+
+  @override
+  String get ownerDashboardV2AlertPayrollApproval =>
+      'مسودة رواتب تحتاج اعتمادًا';
+
+  @override
+  String get ownerDashboardV2AlertLowConversion => 'تحويل حجوزات منخفض';
+
+  @override
+  String get activityCenterTitle => 'مركز النشاط';
+
+  @override
+  String get activityCenterSubtitle => 'تتبع التغييرات المهمة في صالونك.';
+
+  @override
+  String get activityCenterSearchLabel => 'بحث';
+
+  @override
+  String get activityCenterSearchHint => 'رمز الحجز، العميل، الموظف، الملخص…';
+
+  @override
+  String get activityCenterEmpty => 'لا يوجد نشاط';
+
+  @override
+  String get activityCenterRetry => 'إعادة المحاولة';
+
+  @override
+  String get activityCenterDateFilter => 'نطاق التاريخ';
+
+  @override
+  String get activityCenterClearDate => 'مسح التواريخ';
+
+  @override
+  String get activityCenterError => 'تعذر تحميل النشاط';
+
+  @override
+  String get auditFilterAll => 'الكل';
+
+  @override
+  String get auditModuleBookings => 'الحجوزات';
+
+  @override
+  String get auditModuleSales => 'المبيعات';
+
+  @override
+  String get auditModulePayroll => 'الرواتب';
+
+  @override
+  String get auditModuleAttendance => 'الحضور';
+
+  @override
+  String get auditModulePermissions => 'الصلاحيات';
+
+  @override
+  String get auditModuleExpenses => 'المصاريف';
+
+  @override
+  String get auditModuleSettings => 'الإعدادات';
+
+  @override
+  String get auditModuleAnalytics => 'التحليلات';
+
+  @override
+  String get auditModuleCustomers => 'العملاء';
+
+  @override
+  String get auditModuleTeam => 'الفريق';
+
+  @override
+  String get auditModuleAuth => 'المصادقة';
+
+  @override
+  String get auditTimestampUnknown => 'وقت غير معروف';
+
+  @override
+  String get auditDetailsTitle => 'تفاصيل السجل';
+
+  @override
+  String get auditSectionSummary => 'الملخص';
+
+  @override
+  String get auditSectionActor => 'المُنفِّذ';
+
+  @override
+  String get auditSectionTarget => 'الهدف';
+
+  @override
+  String get auditSectionChanges => 'التغييرات';
+
+  @override
+  String get auditSectionMetadata => 'البيانات الوصفية';
+
+  @override
+  String get auditSectionTimestamp => 'الوقت';
+
+  @override
+  String get auditDiffBefore => 'قبل';
+
+  @override
+  String get auditDiffAfter => 'بعد';
+
+  @override
+  String get auditDiffEmpty => 'لا توجد تغييرات على مستوى الحقول';
+
+  @override
+  String get auditLabelActionType => 'الإجراء';
+
+  @override
+  String get auditLabelModule => 'الوحدة';
+
+  @override
+  String get auditLabelRole => 'الدور';
+
+  @override
+  String get auditLabelTargetType => 'نوع الهدف';
+
+  @override
+  String get auditLabelTargetId => 'معرّف الهدف';
+
+  @override
+  String get auditLabelActorName => 'الاسم';
+
+  @override
+  String get auditLabelActorUid => 'معرّف المستخدم';
+
+  @override
+  String get auditLabelTargetLabel => 'التسمية';
+
+  @override
+  String get auditValueNotApplicable => '—';
+
+  @override
+  String get settingsActivityCenterTileTitle => 'مركز النشاط';
+
+  @override
+  String get settingsActivityCenterTileSubtitle =>
+      'من غيّر الحجوزات والرواتب والصلاحيات وغيرها';
+
+  @override
+  String get permissionsViewAuditHistory => 'سجل التدقيق';
+
+  @override
+  String get ownerDashboardActivityCenterTooltip => 'مركز النشاط';
+
+  @override
+  String get reportsCenterTitle => 'التقارير';
+
+  @override
+  String get reportsCenterSubtitle =>
+      'صدّر بيانات الصالون للمحاسبة ومراجعة الرواتب والسجلات.';
+
+  @override
+  String get reportsSectionExports => 'التصدير';
+
+  @override
+  String get reportsExportHistoryAction => 'السجل';
+
+  @override
+  String get reportsExportHistoryTitle => 'سجل التصدير';
+
+  @override
+  String get reportsExportCsvTitle => 'تصدير CSV';
+
+  @override
+  String get reportsPeriodLabel => 'الفترة (YYYY-MM)';
+
+  @override
+  String get reportsPeriodInvalid => 'أدخل الفترة بصيغة YYYY-MM.';
+
+  @override
+  String get reportsEmployeeIdLabel => 'معرّف الموظف';
+
+  @override
+  String get reportsEmployeeIdRequired => 'معرّف الموظف مطلوب.';
+
+  @override
+  String get reportsGenerateButton => 'إنشاء';
+
+  @override
+  String get reportTypeSales => 'تقرير المبيعات';
+
+  @override
+  String get reportTypeSalesSubtitle => 'CSV للمبيعات المكتملة في الفترة';
+
+  @override
+  String get reportTypePayroll => 'تقرير الرواتب';
+
+  @override
+  String get reportTypePayrollSubtitle => 'CSV لقسائم الرواتب في الفترة';
+
+  @override
+  String get reportTypeAttendance => 'تقرير الحضور';
+
+  @override
+  String get reportTypeAttendanceSubtitle => 'CSV لسجلات الحضور في الفترة';
+
+  @override
+  String get reportTypeExpenses => 'تقرير المصاريف';
+
+  @override
+  String get reportTypeExpensesSubtitle => 'CSV للمصاريف في الفترة';
+
+  @override
+  String get reportTypeAudit => 'تقرير نشاط التدقيق';
+
+  @override
+  String get reportTypeAuditSubtitle => 'CSV لأحداث مركز النشاط';
+
+  @override
+  String get reportTypePayslipPdf => 'قسيمة راتب PDF';
+
+  @override
+  String get reportTypePayslipSubtitle => 'تنزيل قسيمة راتب موظف واحد كملف PDF';
+
+  @override
+  String get exportJobStatusCompleted => 'مكتمل';
+
+  @override
+  String get exportJobStatusFailed => 'فشل';
+
+  @override
+  String get exportJobStatusProcessing => 'قيد المعالجة';
+
+  @override
+  String get exportJobDownload => 'تنزيل';
+
+  @override
+  String get exportJobRetry => 'إعادة المحاولة';
+
+  @override
+  String get exportJobRetryHint => 'ابدأ تصديرًا جديدًا من التقارير.';
+
+  @override
+  String get exportJobOpenFailed => 'تعذر فتح رابط الملف.';
+
+  @override
+  String get exportJobsEmpty => 'لا توجد عمليات تصدير بعد';
+
+  @override
+  String get ownerDashboardQuickReports => 'التقارير';
+
+  @override
+  String get auditExportAuditAction => 'تصدير التدقيق CSV';
+
+  @override
   String get ownerBookingSaveNotes => 'حفظ الملاحظات';
 
   @override
@@ -3124,6 +3558,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get customerBookingReviewSlotUnavailable =>
       'هذا الموعد لم يعد متاحاً. يرجى اختيار وقت آخر.';
+
+  @override
+  String get customerBookingReviewProcessing =>
+      'نقوم بتأكيد حجزك. يرجى الانتظار.';
 
   @override
   String get customerBookingReviewChooseSpecialistAgain =>
@@ -8258,6 +8696,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customersInsightsLoadError => 'تعذّر تحميل الإحصاءات.';
 
   @override
+  String get customersInsightsEmpty => 'ستظهر الإحصاءات هنا عند توفرها.';
+
+  @override
   String customersLastServiceLine(String serviceName) {
     return 'آخر خدمة: $serviceName';
   }
@@ -8280,6 +8721,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get customersListFooterSubtitle =>
       'أضف زبائن الحضور، اربط الحجوزات، وتتبّع الولاء تلقائياً.';
+
+  @override
+  String get customersLoadMore => 'تحميل المزيد';
 
   @override
   String get customersFilterEmptyTitle => 'لا نتائج';
@@ -8314,6 +8758,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customersGenericLoadError => 'تعذّر تحميل العملاء. حاول مرة أخرى.';
+
+  @override
+  String get customersDuplicatePhone => 'يوجد عميل مسجّل بهذا الرقم بالفعل.';
 
   @override
   String get customersCategoryNewBadge => 'جديد';
@@ -11218,4 +11665,233 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get placeCardLocationUnavailable => 'الموقع غير متاح';
+
+  @override
+  String get accessDeniedTitle => 'تم رفض الوصول';
+
+  @override
+  String get accessDeniedMessage => 'ليست لديك صلاحية لعرض هذه الصفحة.';
+
+  @override
+  String get accessDeniedBack => 'رجوع';
+
+  @override
+  String get settingsStaffPermissionsTileTitle => 'الطاقم والصلاحيات';
+
+  @override
+  String get settingsStaffPermissionsTileSubtitle =>
+      'تحكم في ما يمكن للمسؤولين والحلاقين الوصول إليه';
+
+  @override
+  String get staffPermissionsScreenTitle => 'الطاقم والصلاحيات';
+
+  @override
+  String get staffPermissionsScreenSubtitle => 'اضغط على عضو لتعديل الوصول.';
+
+  @override
+  String get staffPermissionsRolePresetsButton => 'قوالب الأدوار';
+
+  @override
+  String get staffPermissionsBootstrapButton => 'تهيئة سجلات الوصول للصالون';
+
+  @override
+  String get staffPermissionsEmpty =>
+      'لا توجد سجلات طاقم بعد. تهيئة لإدارة الوصول.';
+
+  @override
+  String get staffPermissionsActive => 'نشط';
+
+  @override
+  String get staffPermissionsFrozen => 'مجمّد';
+
+  @override
+  String get staffPermissionsRoleOwner => 'مالك';
+
+  @override
+  String get staffPermissionsRoleAdmin => 'مسؤول';
+
+  @override
+  String get staffPermissionsRoleBarber => 'حلّاق';
+
+  @override
+  String get editStaffPermissionsTitle => 'تعديل الوصول';
+
+  @override
+  String get editStaffPermissionsPresetLabel => 'قالب الدور';
+
+  @override
+  String get editStaffPermissionsPresetNone => 'مخصّص';
+
+  @override
+  String get editStaffPermissionsSave => 'حفظ التغييرات';
+
+  @override
+  String get editStaffPermissionsFreeze => 'تجميد الحساب';
+
+  @override
+  String get editStaffPermissionsUnfreeze => 'إلغاء التجميد';
+
+  @override
+  String get editStaffPermissionsOwnerNote =>
+      'صلاحيات المالك كاملة ولا يمكن تغييرها هنا.';
+
+  @override
+  String get editStaffPermissionsLoadError => 'تعذّر تحميل هذا العضو.';
+
+  @override
+  String get editStaffPermissionsSaved => 'تم تحديث الصلاحيات';
+
+  @override
+  String get permissionGroupBookings => 'الحجوزات';
+
+  @override
+  String get permissionGroupSales => 'المبيعات';
+
+  @override
+  String get permissionGroupCustomers => 'العملاء';
+
+  @override
+  String get permissionGroupTeam => 'الفريق';
+
+  @override
+  String get permissionGroupAttendance => 'الحضور';
+
+  @override
+  String get permissionGroupPayroll => 'الرواتب';
+
+  @override
+  String get permissionGroupExpenses => 'المصروفات';
+
+  @override
+  String get permissionGroupAnalytics => 'التحليلات';
+
+  @override
+  String get permissionGroupSettings => 'الإعدادات';
+
+  @override
+  String get permissionGroupPermissions => 'الصلاحيات';
+
+  @override
+  String get permissionBookingsViewTitle => 'عرض الحجوزات';
+
+  @override
+  String get permissionBookingsViewDescription =>
+      'عرض التقويم وقوائم الحجوزات.';
+
+  @override
+  String get permissionBookingsManageTitle => 'إدارة الحجوزات';
+
+  @override
+  String get permissionBookingsManageDescription =>
+      'إنشاء الحجوزات وتعديلها وتحديث حالتها.';
+
+  @override
+  String get permissionSalesViewTitle => 'عرض المبيعات';
+
+  @override
+  String get permissionSalesViewDescription =>
+      'عرض الإيرادات والمبيعات المكتملة.';
+
+  @override
+  String get permissionSalesManageTitle => 'إدارة المبيعات';
+
+  @override
+  String get permissionSalesManageDescription => 'تسجيل وتعديل المبيعات.';
+
+  @override
+  String get permissionCustomersViewTitle => 'عرض العملاء';
+
+  @override
+  String get permissionCustomersViewDescription =>
+      'استعراض ملفات العملاء والسجل.';
+
+  @override
+  String get permissionCustomersManageTitle => 'إدارة العملاء';
+
+  @override
+  String get permissionCustomersManageDescription =>
+      'إنشاء وتعديل سجلات العملاء.';
+
+  @override
+  String get permissionTeamViewTitle => 'عرض الفريق';
+
+  @override
+  String get permissionTeamViewDescription => 'عرض الموظفين وجداول العمل.';
+
+  @override
+  String get permissionTeamManageTitle => 'إدارة الفريق';
+
+  @override
+  String get permissionTeamManageDescription => 'دعوة الموظفين وتعديل الأدوار.';
+
+  @override
+  String get permissionAttendanceViewTitle => 'عرض الحضور';
+
+  @override
+  String get permissionAttendanceViewDescription =>
+      'عرض سجلات الحضور والطلبات.';
+
+  @override
+  String get permissionAttendanceManageTitle => 'إدارة الحضور';
+
+  @override
+  String get permissionAttendanceManageDescription =>
+      'الموافقة على التصحيحات وتعديل الحضور.';
+
+  @override
+  String get permissionPayrollViewTitle => 'عرض الرواتب';
+
+  @override
+  String get permissionPayrollViewDescription =>
+      'عرض دورات الرواتب وكشوف الأجور.';
+
+  @override
+  String get permissionPayrollManageTitle => 'إدارة الرواتب';
+
+  @override
+  String get permissionPayrollManageDescription =>
+      'تشغيل الرواتب والموافقة على الدفع.';
+
+  @override
+  String get permissionExpensesViewTitle => 'عرض المصروفات';
+
+  @override
+  String get permissionExpensesViewDescription => 'عرض مصروفات الصالون.';
+
+  @override
+  String get permissionExpensesManageTitle => 'إدارة المصروفات';
+
+  @override
+  String get permissionExpensesManageDescription => 'إضافة وتعديل المصروفات.';
+
+  @override
+  String get permissionAnalyticsViewTitle => 'عرض التحليلات';
+
+  @override
+  String get permissionAnalyticsViewDescription =>
+      'عرض الإيرادات ومؤشرات الأداء.';
+
+  @override
+  String get permissionSettingsManageTitle => 'إدارة الإعدادات';
+
+  @override
+  String get permissionSettingsManageDescription =>
+      'تغيير إعدادات الصالون والسياسات.';
+
+  @override
+  String get permissionPermissionsManageTitle => 'إدارة الصلاحيات';
+
+  @override
+  String get permissionPermissionsManageDescription =>
+      'تعيين وصول المسؤولين والحلاقين.';
+
+  @override
+  String get rolePresetsSheetTitle => 'قوالب الأدوار';
+
+  @override
+  String get rolePresetsClose => 'إغلاق';
+
+  @override
+  String get rolePresetsEmpty =>
+      'لا توجد قوالب بعد. أنشئ واحدة من شاشة عضو الطاقم.';
 }

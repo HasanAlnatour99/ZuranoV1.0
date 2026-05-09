@@ -8,7 +8,9 @@ import '../../../../providers/repository_providers.dart';
 import '../../../../providers/session_provider.dart';
 import '../../data/models/customer.dart';
 import '../../logic/customer_providers.dart';
+import '../../logic/customer_permissions_provider.dart';
 import '../../../owner/presentation/widgets/add_barber/add_barber_header.dart';
+import '../../data/customer_repository.dart';
 
 class EditCustomerScreen extends ConsumerStatefulWidget {
   const EditCustomerScreen({super.key, required this.customerId});
@@ -92,7 +94,10 @@ class _EditCustomerScreenState extends ConsumerState<EditCustomerScreen> {
       context.pop(true);
     } on Object catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      final msg = e is DuplicateCustomerPhoneException
+          ? l10n.customersDuplicatePhone
+          : l10n.customersGenericLoadError;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -101,6 +106,27 @@ class _EditCustomerScreenState extends ConsumerState<EditCustomerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final perms = ref.watch(customerPermissionsProvider);
+    if (!perms.canEditCustomer) {
+      return Scaffold(
+        backgroundColor: FinanceDashboardColors.background,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                l10n.customersPermissionErrorTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: FinanceDashboardColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final user = ref.watch(sessionUserProvider).asData?.value;
     final salonId = user?.salonId?.trim() ?? '';
     final customerAsync = salonId.isEmpty

@@ -7,6 +7,7 @@ import {
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { DateTime } from "luxon";
 
+import { auditActorProfile, writeAuditLog } from "./audit/auditLogger";
 import {
   assertSalonOwnerOrAdmin,
   asNumber,
@@ -121,7 +122,7 @@ export const generateMonthlyPayroll = onCall(
       const baseSalaryApplied = salaryProration.appliedAmount;
       const commissionPercent = asNumber(emp.commissionPercentage ?? emp.commissionRate, 0);
 
-      let serviceRevenue = 0;
+      let commissionBaseAmount = 0;
       let servicesCount = 0;
       let last: QueryDocumentSnapshot | undefined;
       // eslint-disable-next-line no-constant-condition
@@ -142,7 +143,14 @@ export const generateMonthlyPayroll = onCall(
         }
         for (const s of salesSnap.docs) {
           const d = s.data() as Record<string, unknown>;
-          serviceRevenue += asNumber(d.total ?? d.subtotal, 0);
+          if (d.commissionEligible === false) {
+            continue;
+          }
+          const base = asNumber(
+            d.commissionBaseAmount ?? d.total ?? d.totalAmountAfterDiscount ?? d.subtotal ?? d.subtotalAmount,
+            0,
+          );
+          commissionBaseAmount += base;
           servicesCount += 1;
         }
         last = salesSnap.docs[salesSnap.docs.length - 1];
@@ -151,7 +159,7 @@ export const generateMonthlyPayroll = onCall(
         }
       }
 
-      const commissionAmount = (serviceRevenue * commissionPercent) / 100;
+      const commissionAmount = (commissionBaseAmount * commissionPercent) / 100;
 
       const daysSnap = await db
         .collection(`salons/${salonId}/attendanceDays`)
@@ -299,7 +307,7 @@ export const generateMonthlyPayroll = onCall(
         baseSalary: baseSalaryApplied,
         baseSalaryNominal: monthlyContractBase,
         baseSalaryProrationRatio: salaryProration.ratio,
-        serviceRevenue,
+        commissionBaseAmount,
         commissionPercent,
         commissionAmount,
         totalEarnings,
@@ -416,6 +424,18 @@ export const generateMonthlyPayroll = onCall(
       await batch.commit();
     }
 
+    const genActor = await auditActorProfile(db, request.auth!.uid);
+    await writeAuditLog(db, {
+      salonId,
+      actionType: "payroll.generated",
+      module: "payroll",
+      actorUid: request.auth!.uid,
+      actorName: genActor.name,
+      actorRole: genActor.role,
+      summary: `Generated payroll for ${year}-${String(month).padStart(2, "0")}`,
+      metadata: { year, month, source: "generateMonthlyPayroll" },
+    });
+
     return { success: true, salonId, year, month };
   },
 );
@@ -442,6 +462,8 @@ export const approvePayslip = onCall(
     if (String(data.status) === PAYROLL_PAID) {
       throw new HttpsError("failed-precondition", "Paid payslip cannot change");
     }
+    const beforeStatus = String(data.status);
+    const employeeName = String(data.employeeName ?? "").trim() || String(data.employeeId ?? payslipId);
     await ref.set(
       {
         status: PAYROLL_APPROVED,
@@ -452,6 +474,22 @@ export const approvePayslip = onCall(
       },
       { merge: true },
     );
+    const apActor = await auditActorProfile(db, request.auth!.uid);
+    await writeAuditLog(db, {
+      salonId,
+      actionType: "payroll.approved",
+      module: "payroll",
+      actorUid: request.auth!.uid,
+      actorName: apActor.name,
+      actorRole: apActor.role,
+      targetType: "payslip",
+      targetId: payslipId,
+      targetLabel: employeeName,
+      summary: "Payslip approved",
+      before: { status: beforeStatus },
+      after: { status: PAYROLL_APPROVED },
+      metadata: { source: "approvePayslip" },
+    });
     return { success: true };
   },
 );
@@ -478,6 +516,7 @@ export const markPayslipPaid = onCall(
     if (String(cur.status) !== PAYROLL_APPROVED) {
       throw new HttpsError("failed-precondition", "Approve payslip before marking paid");
     }
+    const paidEmployeeName = String(cur.employeeName ?? "").trim() || String(cur.employeeId ?? payslipId);
     await ref.set(
       {
         status: PAYROLL_PAID,
@@ -488,6 +527,22 @@ export const markPayslipPaid = onCall(
       },
       { merge: true },
     );
+    const paidActor = await auditActorProfile(db, request.auth!.uid);
+    await writeAuditLog(db, {
+      salonId,
+      actionType: "payroll.paid",
+      module: "payroll",
+      actorUid: request.auth!.uid,
+      actorName: paidActor.name,
+      actorRole: paidActor.role,
+      targetType: "payslip",
+      targetId: payslipId,
+      targetLabel: paidEmployeeName,
+      summary: "Payslip marked paid",
+      before: { status: PAYROLL_APPROVED },
+      after: { status: PAYROLL_PAID },
+      metadata: { source: "markPayslipPaid" },
+    });
     return { success: true };
   },
 );

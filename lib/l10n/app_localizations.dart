@@ -2540,6 +2540,858 @@ abstract class AppLocalizations {
   /// **'Booking details'**
   String get ownerBookingDetailsTitle;
 
+  /// No description provided for @ownerBookingManageStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage booking'**
+  String get ownerBookingManageStatus;
+
+  /// No description provided for @ownerBookingMarkCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark checked-in'**
+  String get ownerBookingMarkCheckedIn;
+
+  /// No description provided for @ownerBookingMarkCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark completed'**
+  String get ownerBookingMarkCompleted;
+
+  /// No description provided for @ownerBookingMarkNoShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark no-show'**
+  String get ownerBookingMarkNoShow;
+
+  /// No description provided for @ownerBookingsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ownerBookingsFilterAll;
+
+  /// No description provided for @ownerBookingsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookings for this day.'**
+  String get ownerBookingsEmpty;
+
+  /// No description provided for @bookingCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code'**
+  String get bookingCodeLabel;
+
+  /// No description provided for @bookingTotalAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get bookingTotalAmountLabel;
+
+  /// No description provided for @customerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerNameLabel;
+
+  /// No description provided for @ownerAnalyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get ownerAnalyticsTitle;
+
+  /// No description provided for @ownerAnalyticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly performance for {monthLabel}'**
+  String ownerAnalyticsSubtitle(String monthLabel);
+
+  /// No description provided for @ownerAnalyticsGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate / Refresh analytics'**
+  String get ownerAnalyticsGenerate;
+
+  /// No description provided for @ownerAnalyticsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No analytics yet'**
+  String get ownerAnalyticsEmptyTitle;
+
+  /// No description provided for @ownerAnalyticsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate this month\'s analytics to view revenue, expenses, payroll cost, and profit.'**
+  String get ownerAnalyticsEmptyMessage;
+
+  /// No description provided for @ownerAnalyticsErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load analytics'**
+  String get ownerAnalyticsErrorTitle;
+
+  /// No description provided for @ownerAnalyticsErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again.'**
+  String get ownerAnalyticsErrorMessage;
+
+  /// No description provided for @ownerAnalyticsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get ownerAnalyticsRetry;
+
+  /// No description provided for @ownerAnalyticsTopEmployees.
+  ///
+  /// In en, this message translates to:
+  /// **'Top employees'**
+  String get ownerAnalyticsTopEmployees;
+
+  /// No description provided for @ownerAnalyticsTopServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Top services'**
+  String get ownerAnalyticsTopServices;
+
+  /// No description provided for @ownerAnalyticsNoTopEmployees.
+  ///
+  /// In en, this message translates to:
+  /// **'No employee results yet.'**
+  String get ownerAnalyticsNoTopEmployees;
+
+  /// No description provided for @ownerAnalyticsNoTopServices.
+  ///
+  /// In en, this message translates to:
+  /// **'No service results yet.'**
+  String get ownerAnalyticsNoTopServices;
+
+  /// No description provided for @ownerAnalyticsSalesCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get ownerAnalyticsSalesCountLabel;
+
+  /// No description provided for @ownerAnalyticsBookingsCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get ownerAnalyticsBookingsCountLabel;
+
+  /// No description provided for @ownerAnalyticsCompletedBookingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed bookings'**
+  String get ownerAnalyticsCompletedBookingsLabel;
+
+  /// No description provided for @ownerAnalyticsAverageTicketLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average ticket'**
+  String get ownerAnalyticsAverageTicketLabel;
+
+  /// No description provided for @ownerAnalyticsGrossRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross revenue'**
+  String get ownerAnalyticsGrossRevenueLabel;
+
+  /// No description provided for @ownerAnalyticsPayrollCostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll cost'**
+  String get ownerAnalyticsPayrollCostLabel;
+
+  /// No description provided for @ownerAnalyticsExpensesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get ownerAnalyticsExpensesLabel;
+
+  /// No description provided for @ownerAnalyticsNetProfitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net profit'**
+  String get ownerAnalyticsNetProfitLabel;
+
+  /// No description provided for @ownerDashboardV2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get ownerDashboardV2Title;
+
+  /// No description provided for @ownerDashboardV2ErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load dashboard'**
+  String get ownerDashboardV2ErrorTitle;
+
+  /// No description provided for @ownerDashboardV2ErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please refresh to try again.'**
+  String get ownerDashboardV2ErrorMessage;
+
+  /// No description provided for @ownerDashboardRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get ownerDashboardRefresh;
+
+  /// No description provided for @ownerDashboardV2TodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get ownerDashboardV2TodayLabel;
+
+  /// No description provided for @ownerDashboardV2OpenBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open bookings'**
+  String get ownerDashboardV2OpenBookings;
+
+  /// No description provided for @ownerDashboardV2RevenueTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue today'**
+  String get ownerDashboardV2RevenueTodayLabel;
+
+  /// No description provided for @ownerDashboardV2BookingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get ownerDashboardV2BookingsLabel;
+
+  /// No description provided for @ownerDashboardV2PendingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get ownerDashboardV2PendingLabel;
+
+  /// No description provided for @ownerDashboardV2MonthlyRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly revenue'**
+  String get ownerDashboardV2MonthlyRevenueLabel;
+
+  /// No description provided for @ownerDashboardV2MonthlyNetProfitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net profit'**
+  String get ownerDashboardV2MonthlyNetProfitLabel;
+
+  /// No description provided for @ownerDashboardV2MonthlyPayrollCostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll cost'**
+  String get ownerDashboardV2MonthlyPayrollCostLabel;
+
+  /// No description provided for @ownerDashboardV2MonthlyExpensesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get ownerDashboardV2MonthlyExpensesLabel;
+
+  /// No description provided for @ownerDashboardV2TopPerformersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Top performers'**
+  String get ownerDashboardV2TopPerformersTitle;
+
+  /// No description provided for @ownerDashboardV2TopBarberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Top barber'**
+  String get ownerDashboardV2TopBarberLabel;
+
+  /// No description provided for @ownerDashboardV2TopServiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Top service'**
+  String get ownerDashboardV2TopServiceLabel;
+
+  /// No description provided for @ownerDashboardV2ConversionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings → Sales'**
+  String get ownerDashboardV2ConversionLabel;
+
+  /// No description provided for @ownerDashboardV2QuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get ownerDashboardV2QuickActionsTitle;
+
+  /// No description provided for @ownerDashboardV2QuickBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get ownerDashboardV2QuickBookings;
+
+  /// No description provided for @ownerDashboardV2QuickSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get ownerDashboardV2QuickSales;
+
+  /// No description provided for @ownerDashboardV2QuickAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get ownerDashboardV2QuickAttendance;
+
+  /// No description provided for @ownerDashboardV2QuickPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get ownerDashboardV2QuickPayroll;
+
+  /// No description provided for @ownerDashboardV2QuickExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get ownerDashboardV2QuickExpenses;
+
+  /// No description provided for @ownerDashboardV2QuickAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get ownerDashboardV2QuickAnalytics;
+
+  /// No description provided for @ownerDashboardV2QuickTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get ownerDashboardV2QuickTeam;
+
+  /// No description provided for @ownerDashboardV2QuickServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get ownerDashboardV2QuickServices;
+
+  /// No description provided for @ownerDashboardV2EmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard snapshots'**
+  String get ownerDashboardV2EmptyTitle;
+
+  /// No description provided for @ownerDashboardV2EmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh to generate today’s dashboard from your salon data.'**
+  String get ownerDashboardV2EmptyMessage;
+
+  /// No description provided for @ownerDashboardV2AlertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operational alerts'**
+  String get ownerDashboardV2AlertsTitle;
+
+  /// No description provided for @ownerDashboardV2AlertsAllClear.
+  ///
+  /// In en, this message translates to:
+  /// **'No urgent alerts right now.'**
+  String get ownerDashboardV2AlertsAllClear;
+
+  /// No description provided for @ownerDashboardV2AlertPendingBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending bookings need confirmation'**
+  String get ownerDashboardV2AlertPendingBookings;
+
+  /// No description provided for @ownerDashboardV2AlertMissingCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing checkouts / attendance issues'**
+  String get ownerDashboardV2AlertMissingCheckout;
+
+  /// No description provided for @ownerDashboardV2AlertUnpaidCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid completed bookings'**
+  String get ownerDashboardV2AlertUnpaidCompleted;
+
+  /// No description provided for @ownerDashboardV2AlertPayrollApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll draft needs approval'**
+  String get ownerDashboardV2AlertPayrollApproval;
+
+  /// No description provided for @ownerDashboardV2AlertLowConversion.
+  ///
+  /// In en, this message translates to:
+  /// **'Low booking conversion'**
+  String get ownerDashboardV2AlertLowConversion;
+
+  /// No description provided for @activityCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Center'**
+  String get activityCenterTitle;
+
+  /// No description provided for @activityCenterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track important changes in your salon.'**
+  String get activityCenterSubtitle;
+
+  /// No description provided for @activityCenterSearchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get activityCenterSearchLabel;
+
+  /// No description provided for @activityCenterSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking code, customer, staff, summary…'**
+  String get activityCenterSearchHint;
+
+  /// No description provided for @activityCenterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity found'**
+  String get activityCenterEmpty;
+
+  /// No description provided for @activityCenterRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get activityCenterRetry;
+
+  /// No description provided for @activityCenterDateFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get activityCenterDateFilter;
+
+  /// No description provided for @activityCenterClearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear dates'**
+  String get activityCenterClearDate;
+
+  /// No description provided for @activityCenterError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load activity'**
+  String get activityCenterError;
+
+  /// No description provided for @auditFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get auditFilterAll;
+
+  /// No description provided for @auditModuleBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get auditModuleBookings;
+
+  /// No description provided for @auditModuleSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get auditModuleSales;
+
+  /// No description provided for @auditModulePayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get auditModulePayroll;
+
+  /// No description provided for @auditModuleAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get auditModuleAttendance;
+
+  /// No description provided for @auditModulePermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get auditModulePermissions;
+
+  /// No description provided for @auditModuleExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get auditModuleExpenses;
+
+  /// No description provided for @auditModuleSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get auditModuleSettings;
+
+  /// No description provided for @auditModuleAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get auditModuleAnalytics;
+
+  /// No description provided for @auditModuleCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get auditModuleCustomers;
+
+  /// No description provided for @auditModuleTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get auditModuleTeam;
+
+  /// No description provided for @auditModuleAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Auth'**
+  String get auditModuleAuth;
+
+  /// No description provided for @auditTimestampUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown time'**
+  String get auditTimestampUnknown;
+
+  /// No description provided for @auditDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit details'**
+  String get auditDetailsTitle;
+
+  /// No description provided for @auditSectionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get auditSectionSummary;
+
+  /// No description provided for @auditSectionActor.
+  ///
+  /// In en, this message translates to:
+  /// **'Actor'**
+  String get auditSectionActor;
+
+  /// No description provided for @auditSectionTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get auditSectionTarget;
+
+  /// No description provided for @auditSectionChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get auditSectionChanges;
+
+  /// No description provided for @auditSectionMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata'**
+  String get auditSectionMetadata;
+
+  /// No description provided for @auditSectionTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get auditSectionTimestamp;
+
+  /// No description provided for @auditDiffBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get auditDiffBefore;
+
+  /// No description provided for @auditDiffAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get auditDiffAfter;
+
+  /// No description provided for @auditDiffEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No field-level changes recorded'**
+  String get auditDiffEmpty;
+
+  /// No description provided for @auditLabelActionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get auditLabelActionType;
+
+  /// No description provided for @auditLabelModule.
+  ///
+  /// In en, this message translates to:
+  /// **'Module'**
+  String get auditLabelModule;
+
+  /// No description provided for @auditLabelRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get auditLabelRole;
+
+  /// No description provided for @auditLabelTargetType.
+  ///
+  /// In en, this message translates to:
+  /// **'Target type'**
+  String get auditLabelTargetType;
+
+  /// No description provided for @auditLabelTargetId.
+  ///
+  /// In en, this message translates to:
+  /// **'Target ID'**
+  String get auditLabelTargetId;
+
+  /// No description provided for @auditLabelActorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get auditLabelActorName;
+
+  /// No description provided for @auditLabelActorUid.
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get auditLabelActorUid;
+
+  /// No description provided for @auditLabelTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get auditLabelTargetLabel;
+
+  /// No description provided for @auditValueNotApplicable.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get auditValueNotApplicable;
+
+  /// No description provided for @settingsActivityCenterTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Center'**
+  String get settingsActivityCenterTileTitle;
+
+  /// No description provided for @settingsActivityCenterTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who changed bookings, payroll, permissions, and more'**
+  String get settingsActivityCenterTileSubtitle;
+
+  /// No description provided for @permissionsViewAuditHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit history'**
+  String get permissionsViewAuditHistory;
+
+  /// No description provided for @ownerDashboardActivityCenterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Center'**
+  String get ownerDashboardActivityCenterTooltip;
+
+  /// No description provided for @reportsCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reportsCenterTitle;
+
+  /// No description provided for @reportsCenterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export salon data for accounting, payroll review, and records.'**
+  String get reportsCenterSubtitle;
+
+  /// No description provided for @reportsSectionExports.
+  ///
+  /// In en, this message translates to:
+  /// **'Exports'**
+  String get reportsSectionExports;
+
+  /// No description provided for @reportsExportHistoryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get reportsExportHistoryAction;
+
+  /// No description provided for @reportsExportHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export history'**
+  String get reportsExportHistoryTitle;
+
+  /// No description provided for @reportsExportCsvTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV export'**
+  String get reportsExportCsvTitle;
+
+  /// No description provided for @reportsPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period (YYYY-MM)'**
+  String get reportsPeriodLabel;
+
+  /// No description provided for @reportsPeriodInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter period as YYYY-MM.'**
+  String get reportsPeriodInvalid;
+
+  /// No description provided for @reportsEmployeeIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID'**
+  String get reportsEmployeeIdLabel;
+
+  /// No description provided for @reportsEmployeeIdRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID is required.'**
+  String get reportsEmployeeIdRequired;
+
+  /// No description provided for @reportsGenerateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate'**
+  String get reportsGenerateButton;
+
+  /// No description provided for @reportTypeSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales report'**
+  String get reportTypeSales;
+
+  /// No description provided for @reportTypeSalesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV of completed sales in the period'**
+  String get reportTypeSalesSubtitle;
+
+  /// No description provided for @reportTypePayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll report'**
+  String get reportTypePayroll;
+
+  /// No description provided for @reportTypePayrollSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV of payslips in the period'**
+  String get reportTypePayrollSubtitle;
+
+  /// No description provided for @reportTypeAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance report'**
+  String get reportTypeAttendance;
+
+  /// No description provided for @reportTypeAttendanceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV of attendance rows in the period'**
+  String get reportTypeAttendanceSubtitle;
+
+  /// No description provided for @reportTypeExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses report'**
+  String get reportTypeExpenses;
+
+  /// No description provided for @reportTypeExpensesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV of expenses in the period'**
+  String get reportTypeExpensesSubtitle;
+
+  /// No description provided for @reportTypeAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit activity report'**
+  String get reportTypeAudit;
+
+  /// No description provided for @reportTypeAuditSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV of Activity Center audit events'**
+  String get reportTypeAuditSubtitle;
+
+  /// No description provided for @reportTypePayslipPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Payslip PDF'**
+  String get reportTypePayslipPdf;
+
+  /// No description provided for @reportTypePayslipSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a single employee payslip as PDF'**
+  String get reportTypePayslipSubtitle;
+
+  /// No description provided for @exportJobStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get exportJobStatusCompleted;
+
+  /// No description provided for @exportJobStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get exportJobStatusFailed;
+
+  /// No description provided for @exportJobStatusProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get exportJobStatusProcessing;
+
+  /// No description provided for @exportJobDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get exportJobDownload;
+
+  /// No description provided for @exportJobRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get exportJobRetry;
+
+  /// No description provided for @exportJobRetryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a new export from Reports.'**
+  String get exportJobRetryHint;
+
+  /// No description provided for @exportJobOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the file link.'**
+  String get exportJobOpenFailed;
+
+  /// No description provided for @exportJobsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No exports yet'**
+  String get exportJobsEmpty;
+
+  /// No description provided for @ownerDashboardQuickReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get ownerDashboardQuickReports;
+
+  /// No description provided for @auditExportAuditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Export audit CSV'**
+  String get auditExportAuditAction;
+
   /// No description provided for @ownerBookingSaveNotes.
   ///
   /// In en, this message translates to:
@@ -5647,6 +6499,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This time slot is no longer available. Please choose another time.'**
   String get customerBookingReviewSlotUnavailable;
+
+  /// No description provided for @customerBookingReviewProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'We’re confirming your booking. Please wait.'**
+  String get customerBookingReviewProcessing;
 
   /// No description provided for @customerBookingReviewChooseSpecialistAgain.
   ///
@@ -14500,6 +15358,12 @@ abstract class AppLocalizations {
   /// **'Could not load insights.'**
   String get customersInsightsLoadError;
 
+  /// No description provided for @customersInsightsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights will appear here once available.'**
+  String get customersInsightsEmpty;
+
   /// No description provided for @customersLastServiceLine.
   ///
   /// In en, this message translates to:
@@ -14541,6 +15405,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add walk-in customers, link bookings, and track loyalty automatically.'**
   String get customersListFooterSubtitle;
+
+  /// No description provided for @customersLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get customersLoadMore;
 
   /// No description provided for @customersFilterEmptyTitle.
   ///
@@ -14601,6 +15471,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn’t load customers. Please try again.'**
   String get customersGenericLoadError;
+
+  /// No description provided for @customersDuplicatePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'A customer with this phone number already exists.'**
+  String get customersDuplicatePhone;
 
   /// No description provided for @customersCategoryNewBadge.
   ///
@@ -19743,6 +20619,432 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location not available'**
   String get placeCardLocationUnavailable;
+
+  /// No description provided for @accessDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied'**
+  String get accessDeniedTitle;
+
+  /// No description provided for @accessDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to view this page.'**
+  String get accessDeniedMessage;
+
+  /// No description provided for @accessDeniedBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get accessDeniedBack;
+
+  /// No description provided for @settingsStaffPermissionsTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff & permissions'**
+  String get settingsStaffPermissionsTileTitle;
+
+  /// No description provided for @settingsStaffPermissionsTileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Control what admins and barbers can access'**
+  String get settingsStaffPermissionsTileSubtitle;
+
+  /// No description provided for @staffPermissionsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff & permissions'**
+  String get staffPermissionsScreenTitle;
+
+  /// No description provided for @staffPermissionsScreenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a team member to edit access.'**
+  String get staffPermissionsScreenSubtitle;
+
+  /// No description provided for @staffPermissionsRolePresetsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Role presets'**
+  String get staffPermissionsRolePresetsButton;
+
+  /// No description provided for @staffPermissionsBootstrapButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialize salon access records'**
+  String get staffPermissionsBootstrapButton;
+
+  /// No description provided for @staffPermissionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No staff records yet. Initialize to manage access.'**
+  String get staffPermissionsEmpty;
+
+  /// No description provided for @staffPermissionsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get staffPermissionsActive;
+
+  /// No description provided for @staffPermissionsFrozen.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen'**
+  String get staffPermissionsFrozen;
+
+  /// No description provided for @staffPermissionsRoleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get staffPermissionsRoleOwner;
+
+  /// No description provided for @staffPermissionsRoleAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get staffPermissionsRoleAdmin;
+
+  /// No description provided for @staffPermissionsRoleBarber.
+  ///
+  /// In en, this message translates to:
+  /// **'Barber'**
+  String get staffPermissionsRoleBarber;
+
+  /// No description provided for @editStaffPermissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit access'**
+  String get editStaffPermissionsTitle;
+
+  /// No description provided for @editStaffPermissionsPresetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role preset'**
+  String get editStaffPermissionsPresetLabel;
+
+  /// No description provided for @editStaffPermissionsPresetNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get editStaffPermissionsPresetNone;
+
+  /// No description provided for @editStaffPermissionsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get editStaffPermissionsSave;
+
+  /// No description provided for @editStaffPermissionsFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze account'**
+  String get editStaffPermissionsFreeze;
+
+  /// No description provided for @editStaffPermissionsUnfreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfreeze account'**
+  String get editStaffPermissionsUnfreeze;
+
+  /// No description provided for @editStaffPermissionsOwnerNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner access is full and cannot be changed here.'**
+  String get editStaffPermissionsOwnerNote;
+
+  /// No description provided for @editStaffPermissionsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load this staff member.'**
+  String get editStaffPermissionsLoadError;
+
+  /// No description provided for @editStaffPermissionsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions updated'**
+  String get editStaffPermissionsSaved;
+
+  /// No description provided for @permissionGroupBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get permissionGroupBookings;
+
+  /// No description provided for @permissionGroupSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get permissionGroupSales;
+
+  /// No description provided for @permissionGroupCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers'**
+  String get permissionGroupCustomers;
+
+  /// No description provided for @permissionGroupTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get permissionGroupTeam;
+
+  /// No description provided for @permissionGroupAttendance.
+  ///
+  /// In en, this message translates to:
+  /// **'Attendance'**
+  String get permissionGroupAttendance;
+
+  /// No description provided for @permissionGroupPayroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Payroll'**
+  String get permissionGroupPayroll;
+
+  /// No description provided for @permissionGroupExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get permissionGroupExpenses;
+
+  /// No description provided for @permissionGroupAnalytics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get permissionGroupAnalytics;
+
+  /// No description provided for @permissionGroupSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get permissionGroupSettings;
+
+  /// No description provided for @permissionGroupPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get permissionGroupPermissions;
+
+  /// No description provided for @permissionBookingsViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View bookings'**
+  String get permissionBookingsViewTitle;
+
+  /// No description provided for @permissionBookingsViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See the salon booking calendar and lists.'**
+  String get permissionBookingsViewDescription;
+
+  /// No description provided for @permissionBookingsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage bookings'**
+  String get permissionBookingsManageTitle;
+
+  /// No description provided for @permissionBookingsManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create, reschedule, and update booking status.'**
+  String get permissionBookingsManageDescription;
+
+  /// No description provided for @permissionSalesViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View sales'**
+  String get permissionSalesViewTitle;
+
+  /// No description provided for @permissionSalesViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See revenue and completed sales.'**
+  String get permissionSalesViewDescription;
+
+  /// No description provided for @permissionSalesManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage sales'**
+  String get permissionSalesManageTitle;
+
+  /// No description provided for @permissionSalesManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Record and edit sales.'**
+  String get permissionSalesManageDescription;
+
+  /// No description provided for @permissionCustomersViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View customers'**
+  String get permissionCustomersViewTitle;
+
+  /// No description provided for @permissionCustomersViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse customer profiles and history.'**
+  String get permissionCustomersViewDescription;
+
+  /// No description provided for @permissionCustomersManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage customers'**
+  String get permissionCustomersManageTitle;
+
+  /// No description provided for @permissionCustomersManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and edit customer records.'**
+  String get permissionCustomersManageDescription;
+
+  /// No description provided for @permissionTeamViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View team'**
+  String get permissionTeamViewTitle;
+
+  /// No description provided for @permissionTeamViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See employees and schedules overview.'**
+  String get permissionTeamViewDescription;
+
+  /// No description provided for @permissionTeamManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage team'**
+  String get permissionTeamManageTitle;
+
+  /// No description provided for @permissionTeamManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite or edit employees and roles.'**
+  String get permissionTeamManageDescription;
+
+  /// No description provided for @permissionAttendanceViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View attendance'**
+  String get permissionAttendanceViewTitle;
+
+  /// No description provided for @permissionAttendanceViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See attendance records and requests.'**
+  String get permissionAttendanceViewDescription;
+
+  /// No description provided for @permissionAttendanceManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage attendance'**
+  String get permissionAttendanceManageTitle;
+
+  /// No description provided for @permissionAttendanceManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve corrections and adjust attendance.'**
+  String get permissionAttendanceManageDescription;
+
+  /// No description provided for @permissionPayrollViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View payroll'**
+  String get permissionPayrollViewTitle;
+
+  /// No description provided for @permissionPayrollViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See payroll runs and payslips.'**
+  String get permissionPayrollViewDescription;
+
+  /// No description provided for @permissionPayrollManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage payroll'**
+  String get permissionPayrollManageTitle;
+
+  /// No description provided for @permissionPayrollManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Run payroll and approve payouts.'**
+  String get permissionPayrollManageDescription;
+
+  /// No description provided for @permissionExpensesViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View expenses'**
+  String get permissionExpensesViewTitle;
+
+  /// No description provided for @permissionExpensesViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See salon expenses.'**
+  String get permissionExpensesViewDescription;
+
+  /// No description provided for @permissionExpensesManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage expenses'**
+  String get permissionExpensesManageTitle;
+
+  /// No description provided for @permissionExpensesManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or edit expenses.'**
+  String get permissionExpensesManageDescription;
+
+  /// No description provided for @permissionAnalyticsViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View analytics'**
+  String get permissionAnalyticsViewTitle;
+
+  /// No description provided for @permissionAnalyticsViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See revenue and performance insights.'**
+  String get permissionAnalyticsViewDescription;
+
+  /// No description provided for @permissionSettingsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage settings'**
+  String get permissionSettingsManageTitle;
+
+  /// No description provided for @permissionSettingsManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Change salon configuration and policies.'**
+  String get permissionSettingsManageDescription;
+
+  /// No description provided for @permissionPermissionsManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage permissions'**
+  String get permissionPermissionsManageTitle;
+
+  /// No description provided for @permissionPermissionsManageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign access for admins and barbers.'**
+  String get permissionPermissionsManageDescription;
+
+  /// No description provided for @rolePresetsSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Role presets'**
+  String get rolePresetsSheetTitle;
+
+  /// No description provided for @rolePresetsClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get rolePresetsClose;
+
+  /// No description provided for @rolePresetsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No presets yet. Create one from the staff list when editing a member.'**
+  String get rolePresetsEmpty;
 }
 
 class _AppLocalizationsDelegate

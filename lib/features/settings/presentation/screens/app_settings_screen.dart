@@ -21,6 +21,10 @@ import '../../../../providers/repository_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../../providers/firebase_providers.dart';
+import '../../../audit/application/audit_providers.dart';
+import '../../../reports/application/reports_providers.dart';
+import '../../../permissions/application/permissions_providers.dart';
+import '../../../permissions/data/models/permission_key.dart';
 import '../widgets/zurano/app_settings_actions_card.dart';
 import '../widgets/zurano/country_dropdown_card.dart';
 import '../widgets/zurano/language_option_tile.dart';
@@ -688,8 +692,82 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       orElse: () => null,
     );
 
+    final staffPermissionsTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        if (!salonOk) {
+          return null;
+        }
+        final manageGate =
+            ref.watch(hasSalonPermissionProvider(PermissionKey.permissionsManage));
+        final ownerOk = u.role == UserRoles.owner;
+        if (!ownerOk && !manageGate) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.admin_panel_settings_outlined,
+          title: l10n.settingsStaffPermissionsTileTitle,
+          subtitle: l10n.settingsStaffPermissionsTileSubtitle,
+          onTap: () => context.push(AppRoutes.ownerStaffPermissions),
+        );
+      },
+      orElse: () => null,
+    );
+
+    final reportsCenterTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        if (!salonOk) {
+          return null;
+        }
+        final can = ref.watch(canAccessReportsCenterProvider);
+        if (!can) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.insert_drive_file_outlined,
+          title: l10n.reportsCenterTitle,
+          subtitle: l10n.reportsCenterSubtitle,
+          onTap: () => context.push(AppRoutes.ownerReportsCenter),
+        );
+      },
+      orElse: () => null,
+    );
+
+    final activityCenterTile = sessionAsync.maybeWhen(
+      data: (AppUser? u) {
+        if (u == null) {
+          return null;
+        }
+        final salonOk = u.salonId != null && u.salonId!.trim().isNotEmpty;
+        if (!salonOk) {
+          return null;
+        }
+        final can = ref.watch(canReadSalonActivityAuditProvider);
+        if (!can) {
+          return null;
+        }
+        return SettingsOptionTile(
+          icon: Icons.manage_history_outlined,
+          title: l10n.settingsActivityCenterTileTitle,
+          subtitle: l10n.settingsActivityCenterTileSubtitle,
+          onTap: () => context.push(AppRoutes.ownerActivityCenter),
+        );
+      },
+      orElse: () => null,
+    );
+
     final ownerSettingsTiles = <Widget>[
       ?salonProfileTile,
+      ?reportsCenterTile,
+      ?activityCenterTile,
+      ?staffPermissionsTile,
       ?customerBookingTile,
       ?attendanceSettingsTile,
       ?ownerShiftsTile,

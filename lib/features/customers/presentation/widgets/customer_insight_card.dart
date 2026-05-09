@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
 import '../../logic/customer_insights_providers.dart';
-import '../../logic/customer_salon_insights.dart';
+import '../../data/models/customer_monthly_stats.dart';
 
 /// Compact “this month” CRM metrics above the customer list.
 class CustomerInsightCard extends ConsumerWidget {
@@ -19,7 +19,7 @@ class CustomerInsightCard extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context);
     final currency = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
-    final async = ref.watch(customerSalonInsightsProvider(salonId));
+    final async = ref.watch(customerMonthlyStatsProvider(salonId));
 
     return async.when(
       loading: () => _InsightShell(
@@ -52,78 +52,90 @@ class CustomerInsightCard extends ConsumerWidget {
               ),
             ),
             IconButton(
-              onPressed: () => ref.invalidate(
-                salonMonthlyCompletedSalesStreamProvider(salonId),
-              ),
+              onPressed: () =>
+                  ref.invalidate(customerMonthlyStatsProvider(salonId)),
               icon: const Icon(Icons.refresh_rounded),
             ),
           ],
         ),
       ),
-      data: (CustomerSalonInsights data) => _InsightShell(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.customersInsightsThisMonth,
-                    style: const TextStyle(
-                      color: FinanceDashboardColors.textPrimary,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: FinanceDashboardColors.lightPurple.withValues(
-                      alpha: 0.85,
-                    ),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: FinanceDashboardColors.primaryPurple.withValues(
-                        alpha: 0.12,
+      data: (CustomerMonthlyStats? data) {
+        if (data == null) {
+          return _InsightShell(
+            child: Text(
+              l10n.customersInsightsEmpty,
+              style: const TextStyle(
+                color: FinanceDashboardColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          );
+        }
+        return _InsightShell(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.customersInsightsThisMonth,
+                      style: const TextStyle(
+                        color: FinanceDashboardColors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        letterSpacing: -0.2,
                       ),
                     ),
                   ),
-                  child: const Icon(
-                    Icons.insights_rounded,
-                    size: 20,
-                    color: FinanceDashboardColors.primaryPurple,
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: FinanceDashboardColors.lightPurple.withValues(
+                        alpha: 0.85,
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: FinanceDashboardColors.primaryPurple.withValues(
+                          alpha: 0.12,
+                        ),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.insights_rounded,
+                      size: 20,
+                      color: FinanceDashboardColors.primaryPurple,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _MetricRow(
-              label: l10n.customersInsightsNewThisMonth,
-              value: '${data.newCustomersThisMonth}',
-            ),
-            _MetricRow(
-              label: l10n.customersInsightsReturningThisMonth,
-              value: '${data.returningCustomersThisMonth}',
-            ),
-            _MetricRow(
-              label: l10n.customersInsightsTotalCustomers,
-              value: '${data.totalActiveCustomers}',
-            ),
-            _MetricRow(
-              label: l10n.customersInsightsTotalSpent,
-              value: formatSalonMoneyWithCode(
-                data.totalSpentThisMonth,
-                currency,
-                locale,
+                ],
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(height: 14),
+              _MetricRow(
+                label: l10n.customersInsightsNewThisMonth,
+                value: '${data.newCustomers}',
+              ),
+              _MetricRow(
+                label: l10n.customersInsightsReturningThisMonth,
+                value: '${data.returningCustomers}',
+              ),
+              _MetricRow(
+                label: l10n.customersInsightsTotalCustomers,
+                value: '${data.activeCustomers}',
+              ),
+              _MetricRow(
+                label: l10n.customersInsightsTotalSpent,
+                value: formatSalonMoneyWithCode(
+                  data.totalSpent,
+                  currency,
+                  locale,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

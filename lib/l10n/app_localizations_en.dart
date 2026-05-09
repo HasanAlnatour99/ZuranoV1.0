@@ -1383,6 +1383,445 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerBookingDetailsTitle => 'Booking details';
 
   @override
+  String get ownerBookingManageStatus => 'Manage booking';
+
+  @override
+  String get ownerBookingMarkCheckedIn => 'Mark checked-in';
+
+  @override
+  String get ownerBookingMarkCompleted => 'Mark completed';
+
+  @override
+  String get ownerBookingMarkNoShow => 'Mark no-show';
+
+  @override
+  String get ownerBookingsFilterAll => 'All';
+
+  @override
+  String get ownerBookingsEmpty => 'No bookings for this day.';
+
+  @override
+  String get bookingCodeLabel => 'Booking code';
+
+  @override
+  String get bookingTotalAmountLabel => 'Total';
+
+  @override
+  String get customerNameLabel => 'Customer';
+
+  @override
+  String get ownerAnalyticsTitle => 'Analytics';
+
+  @override
+  String ownerAnalyticsSubtitle(String monthLabel) {
+    return 'Monthly performance for $monthLabel';
+  }
+
+  @override
+  String get ownerAnalyticsGenerate => 'Generate / Refresh analytics';
+
+  @override
+  String get ownerAnalyticsEmptyTitle => 'No analytics yet';
+
+  @override
+  String get ownerAnalyticsEmptyMessage =>
+      'Generate this month\'s analytics to view revenue, expenses, payroll cost, and profit.';
+
+  @override
+  String get ownerAnalyticsErrorTitle => 'Couldn\'t load analytics';
+
+  @override
+  String get ownerAnalyticsErrorMessage => 'Please try again.';
+
+  @override
+  String get ownerAnalyticsRetry => 'Retry';
+
+  @override
+  String get ownerAnalyticsTopEmployees => 'Top employees';
+
+  @override
+  String get ownerAnalyticsTopServices => 'Top services';
+
+  @override
+  String get ownerAnalyticsNoTopEmployees => 'No employee results yet.';
+
+  @override
+  String get ownerAnalyticsNoTopServices => 'No service results yet.';
+
+  @override
+  String get ownerAnalyticsSalesCountLabel => 'Sales';
+
+  @override
+  String get ownerAnalyticsBookingsCountLabel => 'Bookings';
+
+  @override
+  String get ownerAnalyticsCompletedBookingsLabel => 'Completed bookings';
+
+  @override
+  String get ownerAnalyticsAverageTicketLabel => 'Average ticket';
+
+  @override
+  String get ownerAnalyticsGrossRevenueLabel => 'Gross revenue';
+
+  @override
+  String get ownerAnalyticsPayrollCostLabel => 'Payroll cost';
+
+  @override
+  String get ownerAnalyticsExpensesLabel => 'Expenses';
+
+  @override
+  String get ownerAnalyticsNetProfitLabel => 'Net profit';
+
+  @override
+  String get ownerDashboardV2Title => 'Dashboard';
+
+  @override
+  String get ownerDashboardV2ErrorTitle => 'Couldn\'t load dashboard';
+
+  @override
+  String get ownerDashboardV2ErrorMessage => 'Please refresh to try again.';
+
+  @override
+  String get ownerDashboardRefresh => 'Refresh';
+
+  @override
+  String get ownerDashboardV2TodayLabel => 'Today';
+
+  @override
+  String get ownerDashboardV2OpenBookings => 'Open bookings';
+
+  @override
+  String get ownerDashboardV2RevenueTodayLabel => 'Revenue today';
+
+  @override
+  String get ownerDashboardV2BookingsLabel => 'Bookings';
+
+  @override
+  String get ownerDashboardV2PendingLabel => 'Pending';
+
+  @override
+  String get ownerDashboardV2MonthlyRevenueLabel => 'Monthly revenue';
+
+  @override
+  String get ownerDashboardV2MonthlyNetProfitLabel => 'Net profit';
+
+  @override
+  String get ownerDashboardV2MonthlyPayrollCostLabel => 'Payroll cost';
+
+  @override
+  String get ownerDashboardV2MonthlyExpensesLabel => 'Expenses';
+
+  @override
+  String get ownerDashboardV2TopPerformersTitle => 'Top performers';
+
+  @override
+  String get ownerDashboardV2TopBarberLabel => 'Top barber';
+
+  @override
+  String get ownerDashboardV2TopServiceLabel => 'Top service';
+
+  @override
+  String get ownerDashboardV2ConversionLabel => 'Bookings → Sales';
+
+  @override
+  String get ownerDashboardV2QuickActionsTitle => 'Quick actions';
+
+  @override
+  String get ownerDashboardV2QuickBookings => 'Bookings';
+
+  @override
+  String get ownerDashboardV2QuickSales => 'Sales';
+
+  @override
+  String get ownerDashboardV2QuickAttendance => 'Attendance';
+
+  @override
+  String get ownerDashboardV2QuickPayroll => 'Payroll';
+
+  @override
+  String get ownerDashboardV2QuickExpenses => 'Expenses';
+
+  @override
+  String get ownerDashboardV2QuickAnalytics => 'Analytics';
+
+  @override
+  String get ownerDashboardV2QuickTeam => 'Team';
+
+  @override
+  String get ownerDashboardV2QuickServices => 'Services';
+
+  @override
+  String get ownerDashboardV2EmptyTitle => 'Dashboard snapshots';
+
+  @override
+  String get ownerDashboardV2EmptyMessage =>
+      'Refresh to generate today’s dashboard from your salon data.';
+
+  @override
+  String get ownerDashboardV2AlertsTitle => 'Operational alerts';
+
+  @override
+  String get ownerDashboardV2AlertsAllClear => 'No urgent alerts right now.';
+
+  @override
+  String get ownerDashboardV2AlertPendingBookings =>
+      'Pending bookings need confirmation';
+
+  @override
+  String get ownerDashboardV2AlertMissingCheckout =>
+      'Missing checkouts / attendance issues';
+
+  @override
+  String get ownerDashboardV2AlertUnpaidCompleted =>
+      'Unpaid completed bookings';
+
+  @override
+  String get ownerDashboardV2AlertPayrollApproval =>
+      'Payroll draft needs approval';
+
+  @override
+  String get ownerDashboardV2AlertLowConversion => 'Low booking conversion';
+
+  @override
+  String get activityCenterTitle => 'Activity Center';
+
+  @override
+  String get activityCenterSubtitle => 'Track important changes in your salon.';
+
+  @override
+  String get activityCenterSearchLabel => 'Search';
+
+  @override
+  String get activityCenterSearchHint =>
+      'Booking code, customer, staff, summary…';
+
+  @override
+  String get activityCenterEmpty => 'No activity found';
+
+  @override
+  String get activityCenterRetry => 'Retry';
+
+  @override
+  String get activityCenterDateFilter => 'Date range';
+
+  @override
+  String get activityCenterClearDate => 'Clear dates';
+
+  @override
+  String get activityCenterError => 'Could not load activity';
+
+  @override
+  String get auditFilterAll => 'All';
+
+  @override
+  String get auditModuleBookings => 'Bookings';
+
+  @override
+  String get auditModuleSales => 'Sales';
+
+  @override
+  String get auditModulePayroll => 'Payroll';
+
+  @override
+  String get auditModuleAttendance => 'Attendance';
+
+  @override
+  String get auditModulePermissions => 'Permissions';
+
+  @override
+  String get auditModuleExpenses => 'Expenses';
+
+  @override
+  String get auditModuleSettings => 'Settings';
+
+  @override
+  String get auditModuleAnalytics => 'Analytics';
+
+  @override
+  String get auditModuleCustomers => 'Customers';
+
+  @override
+  String get auditModuleTeam => 'Team';
+
+  @override
+  String get auditModuleAuth => 'Auth';
+
+  @override
+  String get auditTimestampUnknown => 'Unknown time';
+
+  @override
+  String get auditDetailsTitle => 'Audit details';
+
+  @override
+  String get auditSectionSummary => 'Summary';
+
+  @override
+  String get auditSectionActor => 'Actor';
+
+  @override
+  String get auditSectionTarget => 'Target';
+
+  @override
+  String get auditSectionChanges => 'Changes';
+
+  @override
+  String get auditSectionMetadata => 'Metadata';
+
+  @override
+  String get auditSectionTimestamp => 'Timestamp';
+
+  @override
+  String get auditDiffBefore => 'Before';
+
+  @override
+  String get auditDiffAfter => 'After';
+
+  @override
+  String get auditDiffEmpty => 'No field-level changes recorded';
+
+  @override
+  String get auditLabelActionType => 'Action';
+
+  @override
+  String get auditLabelModule => 'Module';
+
+  @override
+  String get auditLabelRole => 'Role';
+
+  @override
+  String get auditLabelTargetType => 'Target type';
+
+  @override
+  String get auditLabelTargetId => 'Target ID';
+
+  @override
+  String get auditLabelActorName => 'Name';
+
+  @override
+  String get auditLabelActorUid => 'User ID';
+
+  @override
+  String get auditLabelTargetLabel => 'Label';
+
+  @override
+  String get auditValueNotApplicable => '—';
+
+  @override
+  String get settingsActivityCenterTileTitle => 'Activity Center';
+
+  @override
+  String get settingsActivityCenterTileSubtitle =>
+      'Who changed bookings, payroll, permissions, and more';
+
+  @override
+  String get permissionsViewAuditHistory => 'Audit history';
+
+  @override
+  String get ownerDashboardActivityCenterTooltip => 'Activity Center';
+
+  @override
+  String get reportsCenterTitle => 'Reports';
+
+  @override
+  String get reportsCenterSubtitle =>
+      'Export salon data for accounting, payroll review, and records.';
+
+  @override
+  String get reportsSectionExports => 'Exports';
+
+  @override
+  String get reportsExportHistoryAction => 'History';
+
+  @override
+  String get reportsExportHistoryTitle => 'Export history';
+
+  @override
+  String get reportsExportCsvTitle => 'CSV export';
+
+  @override
+  String get reportsPeriodLabel => 'Period (YYYY-MM)';
+
+  @override
+  String get reportsPeriodInvalid => 'Enter period as YYYY-MM.';
+
+  @override
+  String get reportsEmployeeIdLabel => 'Employee ID';
+
+  @override
+  String get reportsEmployeeIdRequired => 'Employee ID is required.';
+
+  @override
+  String get reportsGenerateButton => 'Generate';
+
+  @override
+  String get reportTypeSales => 'Sales report';
+
+  @override
+  String get reportTypeSalesSubtitle => 'CSV of completed sales in the period';
+
+  @override
+  String get reportTypePayroll => 'Payroll report';
+
+  @override
+  String get reportTypePayrollSubtitle => 'CSV of payslips in the period';
+
+  @override
+  String get reportTypeAttendance => 'Attendance report';
+
+  @override
+  String get reportTypeAttendanceSubtitle =>
+      'CSV of attendance rows in the period';
+
+  @override
+  String get reportTypeExpenses => 'Expenses report';
+
+  @override
+  String get reportTypeExpensesSubtitle => 'CSV of expenses in the period';
+
+  @override
+  String get reportTypeAudit => 'Audit activity report';
+
+  @override
+  String get reportTypeAuditSubtitle => 'CSV of Activity Center audit events';
+
+  @override
+  String get reportTypePayslipPdf => 'Payslip PDF';
+
+  @override
+  String get reportTypePayslipSubtitle =>
+      'Download a single employee payslip as PDF';
+
+  @override
+  String get exportJobStatusCompleted => 'Completed';
+
+  @override
+  String get exportJobStatusFailed => 'Failed';
+
+  @override
+  String get exportJobStatusProcessing => 'Processing';
+
+  @override
+  String get exportJobDownload => 'Download';
+
+  @override
+  String get exportJobRetry => 'Retry';
+
+  @override
+  String get exportJobRetryHint => 'Start a new export from Reports.';
+
+  @override
+  String get exportJobOpenFailed => 'Could not open the file link.';
+
+  @override
+  String get exportJobsEmpty => 'No exports yet';
+
+  @override
+  String get ownerDashboardQuickReports => 'Reports';
+
+  @override
+  String get auditExportAuditAction => 'Export audit CSV';
+
+  @override
   String get ownerBookingSaveNotes => 'Save notes';
 
   @override
@@ -3129,6 +3568,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get customerBookingReviewSlotUnavailable =>
       'This time slot is no longer available. Please choose another time.';
+
+  @override
+  String get customerBookingReviewProcessing =>
+      'We’re confirming your booking. Please wait.';
 
   @override
   String get customerBookingReviewChooseSpecialistAgain =>
@@ -8272,6 +8715,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customersInsightsLoadError => 'Could not load insights.';
 
   @override
+  String get customersInsightsEmpty =>
+      'Insights will appear here once available.';
+
+  @override
   String customersLastServiceLine(String serviceName) {
     return 'Last service: $serviceName';
   }
@@ -8294,6 +8741,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get customersListFooterSubtitle =>
       'Add walk-in customers, link bookings, and track loyalty automatically.';
+
+  @override
+  String get customersLoadMore => 'Load more';
 
   @override
   String get customersFilterEmptyTitle => 'No matches';
@@ -8329,6 +8779,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get customersGenericLoadError =>
       'We couldn’t load customers. Please try again.';
+
+  @override
+  String get customersDuplicatePhone =>
+      'A customer with this phone number already exists.';
 
   @override
   String get customersCategoryNewBadge => 'New';
@@ -11249,4 +11703,239 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get placeCardLocationUnavailable => 'Location not available';
+
+  @override
+  String get accessDeniedTitle => 'Access denied';
+
+  @override
+  String get accessDeniedMessage =>
+      'You do not have permission to view this page.';
+
+  @override
+  String get accessDeniedBack => 'Go back';
+
+  @override
+  String get settingsStaffPermissionsTileTitle => 'Staff & permissions';
+
+  @override
+  String get settingsStaffPermissionsTileSubtitle =>
+      'Control what admins and barbers can access';
+
+  @override
+  String get staffPermissionsScreenTitle => 'Staff & permissions';
+
+  @override
+  String get staffPermissionsScreenSubtitle =>
+      'Tap a team member to edit access.';
+
+  @override
+  String get staffPermissionsRolePresetsButton => 'Role presets';
+
+  @override
+  String get staffPermissionsBootstrapButton =>
+      'Initialize salon access records';
+
+  @override
+  String get staffPermissionsEmpty =>
+      'No staff records yet. Initialize to manage access.';
+
+  @override
+  String get staffPermissionsActive => 'Active';
+
+  @override
+  String get staffPermissionsFrozen => 'Frozen';
+
+  @override
+  String get staffPermissionsRoleOwner => 'Owner';
+
+  @override
+  String get staffPermissionsRoleAdmin => 'Admin';
+
+  @override
+  String get staffPermissionsRoleBarber => 'Barber';
+
+  @override
+  String get editStaffPermissionsTitle => 'Edit access';
+
+  @override
+  String get editStaffPermissionsPresetLabel => 'Role preset';
+
+  @override
+  String get editStaffPermissionsPresetNone => 'Custom';
+
+  @override
+  String get editStaffPermissionsSave => 'Save changes';
+
+  @override
+  String get editStaffPermissionsFreeze => 'Freeze account';
+
+  @override
+  String get editStaffPermissionsUnfreeze => 'Unfreeze account';
+
+  @override
+  String get editStaffPermissionsOwnerNote =>
+      'Owner access is full and cannot be changed here.';
+
+  @override
+  String get editStaffPermissionsLoadError =>
+      'Could not load this staff member.';
+
+  @override
+  String get editStaffPermissionsSaved => 'Permissions updated';
+
+  @override
+  String get permissionGroupBookings => 'Bookings';
+
+  @override
+  String get permissionGroupSales => 'Sales';
+
+  @override
+  String get permissionGroupCustomers => 'Customers';
+
+  @override
+  String get permissionGroupTeam => 'Team';
+
+  @override
+  String get permissionGroupAttendance => 'Attendance';
+
+  @override
+  String get permissionGroupPayroll => 'Payroll';
+
+  @override
+  String get permissionGroupExpenses => 'Expenses';
+
+  @override
+  String get permissionGroupAnalytics => 'Analytics';
+
+  @override
+  String get permissionGroupSettings => 'Settings';
+
+  @override
+  String get permissionGroupPermissions => 'Permissions';
+
+  @override
+  String get permissionBookingsViewTitle => 'View bookings';
+
+  @override
+  String get permissionBookingsViewDescription =>
+      'See the salon booking calendar and lists.';
+
+  @override
+  String get permissionBookingsManageTitle => 'Manage bookings';
+
+  @override
+  String get permissionBookingsManageDescription =>
+      'Create, reschedule, and update booking status.';
+
+  @override
+  String get permissionSalesViewTitle => 'View sales';
+
+  @override
+  String get permissionSalesViewDescription =>
+      'See revenue and completed sales.';
+
+  @override
+  String get permissionSalesManageTitle => 'Manage sales';
+
+  @override
+  String get permissionSalesManageDescription => 'Record and edit sales.';
+
+  @override
+  String get permissionCustomersViewTitle => 'View customers';
+
+  @override
+  String get permissionCustomersViewDescription =>
+      'Browse customer profiles and history.';
+
+  @override
+  String get permissionCustomersManageTitle => 'Manage customers';
+
+  @override
+  String get permissionCustomersManageDescription =>
+      'Create and edit customer records.';
+
+  @override
+  String get permissionTeamViewTitle => 'View team';
+
+  @override
+  String get permissionTeamViewDescription =>
+      'See employees and schedules overview.';
+
+  @override
+  String get permissionTeamManageTitle => 'Manage team';
+
+  @override
+  String get permissionTeamManageDescription =>
+      'Invite or edit employees and roles.';
+
+  @override
+  String get permissionAttendanceViewTitle => 'View attendance';
+
+  @override
+  String get permissionAttendanceViewDescription =>
+      'See attendance records and requests.';
+
+  @override
+  String get permissionAttendanceManageTitle => 'Manage attendance';
+
+  @override
+  String get permissionAttendanceManageDescription =>
+      'Approve corrections and adjust attendance.';
+
+  @override
+  String get permissionPayrollViewTitle => 'View payroll';
+
+  @override
+  String get permissionPayrollViewDescription =>
+      'See payroll runs and payslips.';
+
+  @override
+  String get permissionPayrollManageTitle => 'Manage payroll';
+
+  @override
+  String get permissionPayrollManageDescription =>
+      'Run payroll and approve payouts.';
+
+  @override
+  String get permissionExpensesViewTitle => 'View expenses';
+
+  @override
+  String get permissionExpensesViewDescription => 'See salon expenses.';
+
+  @override
+  String get permissionExpensesManageTitle => 'Manage expenses';
+
+  @override
+  String get permissionExpensesManageDescription => 'Add or edit expenses.';
+
+  @override
+  String get permissionAnalyticsViewTitle => 'View analytics';
+
+  @override
+  String get permissionAnalyticsViewDescription =>
+      'See revenue and performance insights.';
+
+  @override
+  String get permissionSettingsManageTitle => 'Manage settings';
+
+  @override
+  String get permissionSettingsManageDescription =>
+      'Change salon configuration and policies.';
+
+  @override
+  String get permissionPermissionsManageTitle => 'Manage permissions';
+
+  @override
+  String get permissionPermissionsManageDescription =>
+      'Assign access for admins and barbers.';
+
+  @override
+  String get rolePresetsSheetTitle => 'Role presets';
+
+  @override
+  String get rolePresetsClose => 'Close';
+
+  @override
+  String get rolePresetsEmpty =>
+      'No presets yet. Create one from the staff list when editing a member.';
 }

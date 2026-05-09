@@ -291,6 +291,12 @@ class _MoneyDashboardLoadedBody extends StatelessWidget {
           onSales: () => context.push(AppRoutes.ownerSales),
           onExpenses: () => context.push(AppRoutes.ownerExpenses),
         ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => context.push(AppRoutes.ownerDashboardV2),
+          icon: const Icon(AppIcons.query_stats_rounded),
+          label: Text(l10n.ownerDashboardV2Title),
+        ),
       ],
     );
   }

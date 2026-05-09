@@ -43,6 +43,11 @@ class CustomerBookingCreateService {
     } on CustomerBookingValidationException catch (error) {
       throw CustomerBookingCreateException(error.message);
     } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'aborted' &&
+          ('${e.message}'.contains('booking_request_processing') ||
+              '${e.details}'.contains('booking_request_processing'))) {
+        throw const CustomerBookingCreateException('booking_request_processing');
+      }
       if (e.code == 'failed-precondition' &&
           '${e.message}'.contains('slot_unavailable')) {
         throw const CustomerBookingCreateException('slot_unavailable');

@@ -9,6 +9,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/session_provider.dart';
 import '../../../owner/presentation/widgets/add_barber/add_barber_header.dart';
 import '../../logic/create_customer_controller.dart';
+import '../../logic/customer_permissions_provider.dart';
+import '../../data/customer_repository.dart';
 
 class AddCustomerScreen extends ConsumerStatefulWidget {
   const AddCustomerScreen({super.key});
@@ -80,9 +82,10 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      final msg = error is DuplicateCustomerPhoneException
+          ? l10n.customersDuplicatePhone
+          : l10n.customersGenericLoadError;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -93,6 +96,35 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final perms = ref.watch(customerPermissionsProvider);
+    if (!perms.canCreateCustomer) {
+      return Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SafeArea(
+              bottom: false,
+              child: AddBarberHeader(
+                title: l10n.addCustomerTitle,
+                subtitle: l10n.customersPermissionErrorSubtitle,
+                onBack: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.large),
+                  child: Text(
+                    l10n.customersPermissionErrorTitle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

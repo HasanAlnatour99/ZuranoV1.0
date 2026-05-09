@@ -1,11 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import '../../../core/firestore/firestore_paths.dart';
 import '../../bookings/data/models/booking.dart';
 import '../../sales/data/models/sale.dart';
 import 'models/customer.dart';
 import 'models/customer_note.dart';
+import 'models/customer_page.dart';
+import 'models/customer_monthly_stats.dart';
+
+class DuplicateCustomerPhoneException implements Exception {
+  const DuplicateCustomerPhoneException();
+}
 
 class CustomerRepository {
   CustomerRepository({required FirebaseFirestore firestore})
@@ -34,6 +42,47 @@ class CustomerRepository {
     );
   }
 
+  DocumentReference<Map<String, dynamic>> _customerMonthlyStatsRef({
+    required String salonId,
+    required String yyyyMM,
+  }) {
+    return _firestore.doc(
+      '${FirestorePaths.salon(salonId)}/customer_monthly_stats/$yyyyMM',
+    );
+  }
+
+  Stream<CustomerMonthlyStats?> watchCustomerMonthlyStats({
+    required String salonId,
+    required String yyyyMM,
+  }) {
+    final sid = salonId.trim();
+    final period = yyyyMM.trim();
+    if (sid.isEmpty || period.isEmpty) {
+      return Stream.value(null);
+    }
+    return _customerMonthlyStatsRef(salonId: sid, yyyyMM: period)
+        .snapshots()
+        .map((snap) {
+      final data = snap.data();
+      if (!snap.exists || data == null) return null;
+      return CustomerMonthlyStats.fromJson(data);
+    });
+  }
+
+  CollectionReference<Map<String, dynamic>> _customerPhoneLocksRef(
+    String salonId,
+  ) {
+    return _firestore.collection(
+      '${FirestorePaths.salon(salonId)}/customer_phone_locks',
+    );
+  }
+
+  @visibleForTesting
+  static String customerPhoneLockId(String normalizedPhone) {
+    final bytes = utf8.encode(normalizedPhone.trim());
+    return sha256.convert(bytes).toString();
+  }
+
   /// Real-time list ordered by [createdAt] (newest first).
   ///
   /// When [includeInactive] is false, applies `where('isActive', isEqualTo: true)`
@@ -59,6 +108,76 @@ class CustomerRepository {
             }),
           )
           .toList(),
+    );
+  }
+
+  Future<CustomerPage> fetchCustomersPage({
+    required String salonId,
+    String? searchTerm,
+    String selectedTag = 'All',
+    bool includeInactive = false,
+    DocumentSnapshot<Map<String, dynamic>>? startAfterDocument,
+    int limit = 25,
+  }) async {
+    final sid = salonId.trim();
+    if (sid.isEmpty) {
+      return CustomerPage.empty;
+    }
+
+    final trimmedSearch = searchTerm?.trim() ?? '';
+    final normalizedSearch = normalizeCustomerName(trimmedSearch).trim();
+    final keyword =
+        normalizedSearch.isEmpty ? '' : normalizedSearch.split(' ').first;
+
+    Query<Map<String, dynamic>> query = _customersRef(sid);
+
+    final tag = selectedTag.trim();
+    if (includeInactive) {
+      query = query.where('isActive', isEqualTo: false);
+    } else {
+      query = query.where('isActive', isEqualTo: true);
+    }
+
+    if (!includeInactive) {
+      final tagLower = tag.toLowerCase();
+      if (tagLower == 'vip') {
+        query = query.where('isVip', isEqualTo: true);
+      } else if (tagLower != 'all' && tagLower.isNotEmpty) {
+        // Matches existing Firestore usage: category is 'new' | 'regular' | 'vip'.
+        query = query.where('category', isEqualTo: tagLower);
+      }
+    }
+
+    if (!includeInactive && keyword.isNotEmpty) {
+      query = query.where('searchKeywords', arrayContains: keyword);
+    }
+
+    query = query.orderBy('fullNameLower');
+
+    if (startAfterDocument != null) {
+      query = query.startAfterDocument(startAfterDocument);
+    }
+
+    final bounded = limit.clamp(1, 100);
+    query = query.limit(bounded);
+
+    final snap = await query.get();
+    final customers = snap.docs
+        .map(
+          (doc) => Customer.fromJson(<String, dynamic>{
+            ...doc.data(),
+            'id': doc.id,
+          }),
+        )
+        .toList(growable: false);
+
+    final hasMore = snap.docs.length == bounded;
+    final last = snap.docs.isEmpty ? null : snap.docs.last;
+
+    return CustomerPage(
+      customers: customers,
+      lastDocument: last,
+      hasMore: hasMore,
     );
   }
 
@@ -279,12 +398,13 @@ class CustomerRepository {
     if (salonId.trim().isEmpty) {
       throw StateError('salonId is required to create a customer.');
     }
-    final docRef = _customersRef(salonId).doc();
+    final sid = salonId.trim();
+    final docRef = _customersRef(sid).doc();
     final now = FieldValue.serverTimestamp();
     final payload = customer.toJson()
       ..remove('id')
       ..['id'] = docRef.id
-      ..['salonId'] = salonId
+      ..['salonId'] = sid
       ..['isActive'] = true
       // New customers start as "new" (VIP must be enabled manually later).
       ..['isVip'] = false
@@ -295,6 +415,7 @@ class CustomerRepository {
         fullName: customer.fullName,
         phoneNumber: customer.phone,
       )
+      ..['fullNameLower'] = normalizeCustomerName(customer.fullName)
       ..['category'] = 'new'
       ..['status'] ??= 'active'
       ..['visitsCount'] = customer.visitCount
@@ -302,35 +423,45 @@ class CustomerRepository {
 
     final normalizedPhone = normalizeCustomerPhone(customer.phone);
     payload['normalizedPhoneNumber'] = normalizedPhone;
-    if (normalizedPhone != null && normalizedPhone.isNotEmpty) {
-      final duplicate = await _customersRef(salonId)
-          .where('normalizedPhoneNumber', isEqualTo: normalizedPhone)
-          .limit(1)
-          .get();
-      if (duplicate.docs.isNotEmpty) {
-        throw StateError('A customer with this phone already exists.');
-      }
+
+    if (normalizedPhone == null || normalizedPhone.isEmpty) {
+      await docRef.set(payload);
+      return docRef.id;
     }
-    await docRef.set(payload);
-    return docRef.id;
+
+    final lockId = customerPhoneLockId(normalizedPhone);
+    final lockRef = _customerPhoneLocksRef(sid).doc(lockId);
+
+    try {
+      await _firestore.runTransaction((tx) async {
+        final lockSnap = await tx.get(lockRef);
+        if (lockSnap.exists) {
+          throw const DuplicateCustomerPhoneException();
+        }
+
+        tx.set(docRef, payload);
+        tx.set(lockRef, <String, dynamic>{
+          'customerId': docRef.id,
+          'phoneNormalized': normalizedPhone,
+          'createdAt': FieldValue.serverTimestamp(),
+          'createdBy': customer.createdBy,
+        });
+      });
+      return docRef.id;
+    } catch (e, st) {
+      if (e is DuplicateCustomerPhoneException) {
+        Error.throwWithStackTrace(e, st);
+      }
+      rethrow;
+    }
   }
 
   Future<void> updateCustomer(String salonId, Customer customer) async {
-    if (salonId.trim().isEmpty) {
+    final sid = salonId.trim();
+    if (sid.isEmpty) {
       throw StateError('salonId is required to update a customer.');
     }
     final normalizedPhone = normalizeCustomerPhone(customer.phone);
-    if (normalizedPhone != null && normalizedPhone.isNotEmpty) {
-      final duplicate = await _customersRef(salonId)
-          .where('normalizedPhoneNumber', isEqualTo: normalizedPhone)
-          .limit(2)
-          .get();
-      for (final doc in duplicate.docs) {
-        if (doc.id != customer.id) {
-          throw StateError('A customer with this phone already exists.');
-        }
-      }
-    }
     final payload = customer.toJson()
       ..remove('id')
       ..['updatedAt'] = FieldValue.serverTimestamp()
@@ -339,10 +470,64 @@ class CustomerRepository {
         fullName: customer.fullName,
         phoneNumber: customer.phone,
       )
+      ..['fullNameLower'] = normalizeCustomerName(customer.fullName)
       ..['visitsCount'] = customer.visitCount;
-    await _customersRef(
-      salonId,
-    ).doc(customer.id).set(payload, SetOptions(merge: true));
+
+    final customerRef = _customersRef(sid).doc(customer.id);
+    final existingSnap = await customerRef.get();
+    final existingData = existingSnap.data();
+    final existingNormalizedPhone = (existingData == null)
+        ? null
+        : (existingData['normalizedPhoneNumber'] as String?)?.trim();
+
+    final nextPhone = normalizedPhone?.trim();
+    final prevPhone = existingNormalizedPhone?.trim();
+
+    final samePhone = (prevPhone ?? '') == (nextPhone ?? '');
+    final prevLockId =
+        (prevPhone != null && prevPhone.isNotEmpty) ? customerPhoneLockId(prevPhone) : null;
+    final nextLockId =
+        (nextPhone != null && nextPhone.isNotEmpty) ? customerPhoneLockId(nextPhone) : null;
+
+    if (samePhone || nextLockId == null) {
+      await customerRef.set(payload, SetOptions(merge: true));
+      return;
+    }
+
+    final nextLockRef = _customerPhoneLocksRef(sid).doc(nextLockId);
+    final prevLockRef = prevLockId == null
+        ? null
+        : _customerPhoneLocksRef(sid).doc(prevLockId);
+
+    try {
+      await _firestore.runTransaction((tx) async {
+        final lockSnap = await tx.get(nextLockRef);
+        if (lockSnap.exists) {
+          final lockData = lockSnap.data();
+          final lockedCustomerId =
+              (lockData == null) ? null : (lockData['customerId'] as String?)?.trim();
+          if (lockedCustomerId != null && lockedCustomerId != customer.id) {
+            throw const DuplicateCustomerPhoneException();
+          }
+        }
+
+        tx.set(customerRef, payload, SetOptions(merge: true));
+        tx.set(nextLockRef, <String, dynamic>{
+          'customerId': customer.id,
+          'phoneNormalized': nextPhone,
+          'createdAt': FieldValue.serverTimestamp(),
+          'createdBy': customer.updatedBy ?? customer.createdBy,
+        });
+        if (prevLockRef != null) {
+          tx.delete(prevLockRef);
+        }
+      });
+    } catch (e, st) {
+      if (e is DuplicateCustomerPhoneException) {
+        Error.throwWithStackTrace(e, st);
+      }
+      rethrow;
+    }
   }
 
   Future<void> archiveCustomer(String salonId, String customerId) {

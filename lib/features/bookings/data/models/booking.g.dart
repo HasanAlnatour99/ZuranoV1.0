@@ -18,6 +18,21 @@ _Booking _$BookingFromJson(Map<String, dynamic> json) => _Booking(
   customerName: nullableLooseStringFromJson(json['customerName']),
   serviceId: nullableLooseStringFromJson(json['serviceId']),
   serviceName: nullableLooseStringFromJson(json['serviceName']),
+  serviceNames: json['serviceNames'] == null
+      ? const <String>[]
+      : stringListFromJson(json['serviceNames']),
+  bookingCode: nullableLooseStringFromJson(json['bookingCode']),
+  totalAmount: json['totalAmount'] == null
+      ? 0
+      : looseDoubleFromJson(json['totalAmount']),
+  paymentStatus: nullableLooseStringFromJson(json['paymentStatus']),
+  paymentMethod: nullableLooseStringFromJson(json['paymentMethod']),
+  paidAmount: json['paidAmount'] == null
+      ? 0
+      : looseDoubleFromJson(json['paidAmount']),
+  balanceAmount: json['balanceAmount'] == null
+      ? 0
+      : looseDoubleFromJson(json['balanceAmount']),
   notes: nullableLooseStringFromJson(json['notes']),
   reportYear: json['reportYear'] == null
       ? 0
@@ -70,6 +85,13 @@ Map<String, dynamic> _$BookingToJson(_Booking instance) => <String, dynamic>{
   'customerName': instance.customerName,
   'serviceId': instance.serviceId,
   'serviceName': instance.serviceName,
+  'serviceNames': instance.serviceNames,
+  'bookingCode': instance.bookingCode,
+  'totalAmount': instance.totalAmount,
+  'paymentStatus': instance.paymentStatus,
+  'paymentMethod': instance.paymentMethod,
+  'paidAmount': instance.paidAmount,
+  'balanceAmount': instance.balanceAmount,
   'notes': instance.notes,
   'reportYear': instance.reportYear,
   'reportMonth': instance.reportMonth,

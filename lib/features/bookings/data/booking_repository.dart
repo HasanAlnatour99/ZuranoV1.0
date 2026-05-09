@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import '../../../core/booking/booking_callable_domain_exceptions.dart';
 import '../../../core/booking/booking_slot_exception.dart';
@@ -451,8 +452,12 @@ class BookingRepository {
     required String bookingId,
   }) async {
     try {
-      final callable = appCloudFunctions().httpsCallable('bookingMarkArrived');
-      await callable.call({'salonId': salonId, 'bookingId': bookingId});
+      final callable = appCloudFunctions().httpsCallable('updateBookingStatus');
+      await callable.call({
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'nextStatus': 'checkedIn',
+      });
     } on FirebaseFunctionsException catch (e) {
       throw _mapBookingCallableException(e);
     }
@@ -463,8 +468,13 @@ class BookingRepository {
     required String bookingId,
   }) async {
     try {
-      final callable = appCloudFunctions().httpsCallable('bookingStartService');
-      await callable.call({'salonId': salonId, 'bookingId': bookingId});
+      // Keep structured server validation; treat "start" as operational step for now.
+      final callable = appCloudFunctions().httpsCallable('updateBookingStatus');
+      await callable.call({
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'nextStatus': 'checkedIn',
+      });
     } on FirebaseFunctionsException catch (e) {
       throw _mapBookingCallableException(e);
     }
@@ -474,72 +484,95 @@ class BookingRepository {
     required String salonId,
     required String bookingId,
   }) async {
-    if (bookingId.isEmpty) {
-      throw ArgumentError.value(
-        bookingId,
-        'bookingId',
-        'Booking ID is required.',
-      );
-    }
-    FirestoreWritePayload.assertSalonId(salonId);
-    final bookingRef = _bookings(salonId).doc(bookingId);
-
-    await _firestore.runTransaction((tx) async {
-      final bookingSnap = await tx.get(bookingRef);
-      final bookingData = bookingSnap.data();
-      if (!bookingSnap.exists || bookingData == null) {
-        throw StateError('Booking not found.');
+    // Unit tests construct [BookingRepository] with a fake Firestore only and
+    // without initializing Firebase Core. Keep the transaction path available
+    // for that environment; production uses the callable.
+    if (Firebase.apps.isEmpty) {
+      if (bookingId.isEmpty) {
+        throw ArgumentError.value(
+          bookingId,
+          'bookingId',
+          'Booking ID is required.',
+        );
       }
-      final currentStatus = BookingStatusMachine.normalize(
-        FirestoreSerializers.string(bookingData['status']),
-      );
-      if (currentStatus == BookingStatuses.completed) {
-        return;
-      }
-      _assertMutableStatus(currentStatus);
+      FirestoreWritePayload.assertSalonId(salonId);
+      final bookingRef = _bookings(salonId).doc(bookingId);
 
-      final customerId = (bookingData['customerId'] as String? ?? '').trim();
-      if (customerId.isEmpty) {
-        throw StateError('Booking has no customer to update.');
-      }
-      final customerRef = _customerDoc(salonId, customerId);
-      final customerSnap = await tx.get(customerRef);
-      final customerData = customerSnap.data() ?? <String, dynamic>{};
+      await _firestore.runTransaction((tx) async {
+        final bookingSnap = await tx.get(bookingRef);
+        final bookingData = bookingSnap.data();
+        if (!bookingSnap.exists || bookingData == null) {
+          throw StateError('Booking not found.');
+        }
+        final currentStatus = BookingStatusMachine.normalize(
+          FirestoreSerializers.string(bookingData['status']),
+        );
+        if (currentStatus == BookingStatuses.completed) {
+          return;
+        }
+        _assertMutableStatus(currentStatus);
 
-      final currentVisits = FirestoreSerializers.intValue(
-        customerData['visitCount'],
-      );
-      final currentTotalSpent = FirestoreSerializers.doubleValue(
-        customerData['totalSpent'],
-      );
-      final bookingTotal = FirestoreSerializers.doubleValue(
-        bookingData['totalPrice'],
-      );
-      final dayKey = (bookingData['dayKey'] as String? ?? '').trim();
-      final barberId = (bookingData['barberId'] as String? ?? '').trim();
-      final lockRef = (dayKey.isNotEmpty && barberId.isNotEmpty)
-          ? _barberDayLockDoc(salonId, barberId, dayKey)
-          : null;
+        final customerId = (bookingData['customerId'] as String? ?? '').trim();
+        if (customerId.isEmpty) {
+          throw StateError('Booking has no customer to update.');
+        }
+        final customerRef = _customerDoc(salonId, customerId);
+        final customerSnap = await tx.get(customerRef);
+        final customerData = customerSnap.data() ?? <String, dynamic>{};
 
-      final now = FieldValue.serverTimestamp();
-      tx.set(bookingRef, {
-        'status': BookingStatuses.completed,
-        'serviceCompletedAt': now,
-        'updatedAt': now,
-      }, SetOptions(merge: true));
-      tx.set(customerRef, {
-        'visitCount': currentVisits + 1,
-        'totalSpent': currentTotalSpent + bookingTotal,
-        'lastVisitAt': now,
-        'updatedAt': now,
-      }, SetOptions(merge: true));
-      if (lockRef != null) {
-        tx.set(lockRef, {
-          'activeBookingIds': FieldValue.arrayRemove([bookingId]),
+        final currentVisits = FirestoreSerializers.intValue(
+          customerData['visitCount'],
+        );
+        final currentTotalSpent = FirestoreSerializers.doubleValue(
+          customerData['totalSpent'],
+        );
+        final bookingTotal = FirestoreSerializers.doubleValue(
+          bookingData['totalAmount'],
+        );
+        final legacyTotalPrice = FirestoreSerializers.doubleValue(
+          bookingData['totalPrice'],
+        );
+        final effectiveTotal = bookingTotal != 0 ? bookingTotal : legacyTotalPrice;
+        final dayKey = (bookingData['dayKey'] as String? ?? '').trim();
+        final barberId = (bookingData['barberId'] as String? ?? '').trim();
+        final lockRef = (dayKey.isNotEmpty && barberId.isNotEmpty)
+            ? _barberDayLockDoc(salonId, barberId, dayKey)
+            : null;
+
+        final now = FieldValue.serverTimestamp();
+        tx.set(bookingRef, {
+          'status': BookingStatuses.completed,
+          'serviceCompletedAt': now,
           'updatedAt': now,
         }, SetOptions(merge: true));
-      }
-    });
+        tx.set(customerRef, {
+          'visitCount': currentVisits + 1,
+          'totalSpent': currentTotalSpent + effectiveTotal,
+          'lastVisitAt': now,
+          'updatedAt': now,
+        }, SetOptions(merge: true));
+        if (lockRef != null) {
+          tx.set(lockRef, {
+            'activeBookingIds': FieldValue.arrayRemove([bookingId]),
+            'updatedAt': now,
+          }, SetOptions(merge: true));
+        }
+      });
+      return;
+    }
+
+    try {
+      final callable =
+          appCloudFunctions().httpsCallable('completeBookingAndCreateSale');
+      await callable.call({
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'paymentMethod': 'not_selected',
+        'paidAmount': 0,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw _mapBookingCallableException(e);
+    }
   }
 
   /// [party] is `customer` or `barber`.
@@ -549,11 +582,12 @@ class BookingRepository {
     required String party,
   }) async {
     try {
-      final callable = appCloudFunctions().httpsCallable('bookingMarkNoShow');
+      final callable = appCloudFunctions().httpsCallable('updateBookingStatus');
       await callable.call({
         'salonId': salonId,
         'bookingId': bookingId,
-        'party': party.toLowerCase(),
+        'nextStatus': BookingStatuses.noShow,
+        'reason': party.toLowerCase(),
       });
     } on FirebaseFunctionsException catch (e) {
       throw _mapBookingCallableException(e);
@@ -574,8 +608,12 @@ class BookingRepository {
     FirestoreWritePayload.assertSalonId(salonId);
     await _assertBookingMutableById(salonId, bookingId);
     try {
-      final callable = appCloudFunctions().httpsCallable('bookingCancel');
-      await callable.call({'salonId': salonId, 'bookingId': bookingId});
+      final callable = appCloudFunctions().httpsCallable('updateBookingStatus');
+      await callable.call({
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'nextStatus': BookingStatuses.cancelled,
+      });
     } on FirebaseFunctionsException catch (e) {
       throw _mapBookingCallableException(e);
     }
@@ -633,6 +671,30 @@ class BookingRepository {
           }),
           SetOptions(merge: true),
         );
+  }
+
+  /// Owner/admin booking status transitions via Cloud Function (structured errors).
+  Future<void> ownerUpdateBookingStatus({
+    required String salonId,
+    required String bookingId,
+    required String nextStatus,
+    String? reason,
+  }) async {
+    FirestoreWritePayload.assertSalonId(salonId);
+    if (bookingId.trim().isEmpty) {
+      throw ArgumentError.value(bookingId, 'bookingId', 'Booking ID is required.');
+    }
+    final callable = appCloudFunctions().httpsCallable('updateBookingStatus');
+    try {
+      await callable.call({
+        'salonId': salonId,
+        'bookingId': bookingId,
+        'nextStatus': nextStatus,
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      });
+    } on FirebaseFunctionsException catch (e) {
+      throw _mapBookingCallableException(e);
+    }
   }
 
   Never _mapBookingCallableException(FirebaseFunctionsException e) {

@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +16,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../application/customer_booking_draft_provider.dart';
 import '../../application/customer_salon_profile_providers.dart';
 import '../../data/models/customer_booking_create_result.dart';
+import '../../data/models/salon_public_model.dart';
 import '../../../customer_home/presentation/controllers/customer_home_providers.dart'
     show customerRecentActivityRepositoryProvider, lastBookedProvider;
 import '../../../customer_home/data/models/last_booked_model.dart';
@@ -58,6 +61,82 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
         ref.read(customerBookingDraftProvider.notifier).reset();
       }
     });
+  }
+
+  Future<void> _copyBookingCodeToClipboard({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String bookingCode,
+  }) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: bookingCode));
+    } catch (_) {
+      return;
+    }
+    if (!mounted) return;
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.customerBookingSuccessCodeCopied)),
+    );
+  }
+
+  Future<void> _addBookingToCalendar({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required CustomerBookingCreateResult result,
+    required String bookingCode,
+    required String status,
+    required String salonName,
+    required SalonPublicModel? salon,
+  }) async {
+    try {
+      final serviceName =
+          (_draftServiceName?.trim().isNotEmpty == true)
+              ? _draftServiceName!.trim()
+              : l10n.customerBookingReviewServices;
+      final name =
+          salon?.salonName.trim().isNotEmpty == true
+              ? salon!.salonName.trim()
+              : salonName.trim();
+      final title =
+          '$serviceName at ${name.isEmpty ? widget.salonId : name}';
+
+      final locationParts = <String>[
+        if (salon?.formattedAddress?.trim().isNotEmpty == true)
+          salon!.formattedAddress!.trim(),
+        if (salon?.area.trim().isNotEmpty == true) salon!.area.trim(),
+      ];
+      final location = locationParts.toSet().join(' · ');
+
+      final contactParts = <String>[
+        if (salon?.phone?.trim().isNotEmpty == true)
+          'Phone: ${salon!.phone!.trim()}',
+        if (salon?.whatsapp?.trim().isNotEmpty == true)
+          'WhatsApp: ${salon!.whatsapp!.trim()}',
+      ];
+
+      final description = [
+        'Booking code: $bookingCode',
+        'Status: $status',
+        if (contactParts.isNotEmpty) ...contactParts,
+      ].join('\n');
+
+      final event = Event(
+        title: title,
+        description: description,
+        location: location.isEmpty ? null : location,
+        startDate: result.startAt.toLocal(),
+        endDate: result.endAt.toLocal(),
+      );
+
+      await Add2Calendar.addEvent2Cal(event);
+    } catch (_) {
+      if (!mounted) return;
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.customerBookingSuccessCalendarFailed)),
+      );
+    }
   }
 
   @override
@@ -167,17 +246,13 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
                     BookingSuccessActionButton(
                       label: l10n.customerBookingSuccessCopyCode,
                       icon: Icons.copy_rounded,
-                      onPressed: () async {
-                        await Clipboard.setData(
-                          ClipboardData(text: bookingCode),
-                        );
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.customerBookingSuccessCodeCopied),
-                          ),
-                        );
-                      },
+                      onPressed: () => unawaited(
+                        _copyBookingCodeToClipboard(
+                          context: context,
+                          l10n: l10n,
+                          bookingCode: bookingCode,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.small),
                     BookingSuccessActionButton(
@@ -197,62 +272,20 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
                     BookingSuccessActionButton(
                       label: l10n.customerBookingSuccessAddToCalendar,
                       icon: Icons.event_available_outlined,
-                      onPressed: result == null
-                          ? null
-                          : () async {
-                              try {
-                                final serviceName =
-                                    (_draftServiceName?.trim().isNotEmpty == true)
-                                        ? _draftServiceName!.trim()
-                                        : l10n.customerBookingReviewServices;
-                                final salon = salonAsync.asData?.value;
-                                final name = salon?.salonName.trim().isNotEmpty == true
-                                    ? salon!.salonName.trim()
-                                    : salonName.trim();
-                                final title = '$serviceName at ${name.isEmpty ? widget.salonId : name}';
-
-                                final locationParts = <String>[
-                                  if (salon?.formattedAddress?.trim().isNotEmpty ==
-                                      true)
-                                    salon!.formattedAddress!.trim(),
-                                  if (salon?.area.trim().isNotEmpty == true)
-                                    salon!.area.trim(),
-                                ];
-                                final location = locationParts.toSet().join(' · ');
-
-                                final contactParts = <String>[
-                                  if (salon?.phone?.trim().isNotEmpty == true)
-                                    'Phone: ${salon!.phone!.trim()}',
-                                  if (salon?.whatsapp?.trim().isNotEmpty == true)
-                                    'WhatsApp: ${salon!.whatsapp!.trim()}',
-                                ];
-
-                                final description = [
-                                  'Booking code: $bookingCode',
-                                  'Status: $status',
-                                  if (contactParts.isNotEmpty) ...contactParts,
-                                ].join('\n');
-
-                                final event = Event(
-                                  title: title,
-                                  description: description,
-                                  location: location.isEmpty ? null : location,
-                                  startDate: result.startAt.toLocal(),
-                                  endDate: result.endAt.toLocal(),
-                                );
-
-                                await Add2Calendar.addEvent2Cal(event);
-                              } catch (_) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      l10n.customerBookingSuccessCalendarFailed,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
+                      onPressed: () {
+                        if (result == null) return;
+                        unawaited(
+                          _addBookingToCalendar(
+                            context: context,
+                            l10n: l10n,
+                            result: result,
+                            bookingCode: bookingCode,
+                            status: status,
+                            salonName: salonName,
+                            salon: salonAsync.asData?.value,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: AppSpacing.small),
                     BookingSuccessActionButton(

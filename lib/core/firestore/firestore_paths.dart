@@ -57,6 +57,12 @@ class FirestorePaths {
   static const attendanceCorrectionRequests = 'attendanceCorrectionRequests';
   static const attendancePolicyReadableDocId = 'attendancePolicyReadable';
   static const auditLogs = 'audit_logs';
+
+  /// Immutable Activity Center history (`salons/{salonId}/auditLogs`).
+  static const activityCenterAuditLogs = 'auditLogs';
+
+  /// Export jobs for CSV/PDF reports (`salons/{salonId}/exportJobs`).
+  static const exportJobs = 'exportJobs';
   static const violations = 'violations';
   static const payroll = 'payroll';
   static const payrollElements = 'payroll_elements';
@@ -65,11 +71,18 @@ class FirestorePaths {
   static const payrollRunResults = 'results';
   static const expenses = 'expenses';
   static const bookings = 'bookings';
+  static const dashboardSnapshots = 'dashboardSnapshots';
+  /// Salon RBAC: staff rows keyed by Firebase Auth uid (`staff/{uid}`).
+  static const staff = 'staff';
+  static const roles = 'roles';
+  static const permissionAudit = 'permissionAudit';
   static const reviews = 'reviews';
   static const barberMetrics = 'barberMetrics';
   /// Monthly per-employee performance summaries (`{yyyyMM}_{employeeId}`).
   static const performance = 'performance';
   static const insights = 'insights';
+  static const analytics = 'analytics';
+  static const analyticsMonthly = 'monthly';
 
   /// Owner/admin cached text snippets (e.g. team sales digest). Distinct from [insights].
   static const aiInsights = 'aiInsights';
@@ -130,6 +143,33 @@ class FirestorePaths {
       '${user(uid)}/$notificationSettings/$userNotificationSettingsMainDocId';
 
   static String salon(String salonId) => '$salons/$salonId';
+
+  static String salonDashboardSnapshots(String salonId) =>
+      '${salon(salonId)}/$dashboardSnapshots';
+
+  static String salonDashboardSnapshot(String salonId, String snapshotId) =>
+      '${salonDashboardSnapshots(salonId)}/$snapshotId';
+
+  static String salonStaffCollection(String salonId) =>
+      '${salon(salonId)}/$staff';
+
+  static String salonStaffMember(String salonId, String uid) =>
+      '${salonStaffCollection(salonId)}/$uid';
+
+  static String salonRolesCollection(String salonId) =>
+      '${salon(salonId)}/$roles';
+
+  static String salonRolePreset(String salonId, String roleId) =>
+      '${salonRolesCollection(salonId)}/$roleId';
+
+  static String salonPermissionAuditCollection(String salonId) =>
+      '${salon(salonId)}/$permissionAudit';
+
+  static String salonAnalyticsMonthlyCollection(String salonId) =>
+      '${salon(salonId)}/$analytics/$analyticsMonthly';
+
+  static String salonAnalyticsMonthlyDoc(String salonId, String periodId) =>
+      '${salonAnalyticsMonthlyCollection(salonId)}/$periodId';
 
   static String publicSalon(String salonId) => '$publicSalons/$salonId';
 
@@ -338,6 +378,9 @@ class FirestorePaths {
   static String salonAuditLogs(String salonId) =>
       '${salon(salonId)}/$auditLogs';
 
+  static String salonActivityCenterAuditLogs(String salonId) =>
+      '${salon(salonId)}/$activityCenterAuditLogs';
+
   static String salonViolations(String salonId) =>
       '${salon(salonId)}/$violations';
 
@@ -478,4 +521,7 @@ class FirestorePaths {
     String periodYm,
     String employeeId,
   ) => '${salonPayrollPeriodEmployeeSummaries(salonId, periodYm)}/$employeeId';
+
+  static String salonExportJobs(String salonId) =>
+      '${salon(salonId)}/$exportJobs';
 }

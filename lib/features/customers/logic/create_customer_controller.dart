@@ -60,6 +60,7 @@ class CreateCustomerController {
           salonId: salonId,
           authUid: null,
           fullName: fullName,
+          fullNameLower: normalizeCustomerName(fullName),
           phone: input.phoneNumber?.trim().isEmpty == true
               ? ''
               : input.phoneNumber?.trim() ?? '',
@@ -71,6 +72,13 @@ class CreateCustomerController {
           preferredBarberName: input.preferredBarberName,
           email: null,
           notes: input.notes,
+          gender: input.gender,
+          birthDate: input.birthDate,
+          source: input.source,
+          tags: input.tags,
+          address: (input.address?.trim().isNotEmpty == true)
+              ? <String, dynamic>{'line1': input.address!.trim()}
+              : null,
           isVip: false,
           category: 'new',
           createdBy: createdBy,

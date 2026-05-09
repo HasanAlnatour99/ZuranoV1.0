@@ -29,27 +29,35 @@ class CallableBookingLookupRepository implements BookingLookupRepository {
       return const [];
     }
 
-    final callable = _functions.httpsCallable('lookupCustomerBookings');
-    final response = await callable.call(<String, dynamic>{
-      'phoneNormalized': trimmedPhone,
-      'bookingCode': code,
-    });
+    try {
+      final callable = _functions.httpsCallable('lookupCustomerBookings');
+      final response = await callable.call(<String, dynamic>{
+        'phoneNormalized': trimmedPhone,
+        'bookingCode': code,
+      });
 
-    final raw = response.data;
-    if (raw is! Map) {
-      return const [];
-    }
-    final map = Map<String, dynamic>.from(raw);
-    final list = map['bookings'];
-    if (list is! List) {
-      return const [];
-    }
+      final raw = response.data;
+      if (raw is! Map) {
+        return const [];
+      }
+      final map = Map<String, dynamic>.from(raw);
+      final list = map['bookings'];
+      if (list is! List) {
+        return const [];
+      }
 
-    return list
-        .whereType<Map>()
-        .map((e) => CustomerBookingLookupModel.fromLookupCallableJson(
-              Map<String, dynamic>.from(e),
-            ))
-        .toList(growable: false);
+      return list
+          .whereType<Map>()
+          .map((e) => CustomerBookingLookupModel.fromLookupCallableJson(
+                Map<String, dynamic>.from(e),
+              ))
+          .toList(growable: false);
+    } on FirebaseFunctionsException catch (e) {
+      // Wrong phone/code should behave like "not found" (no leaks).
+      if (e.code == 'not-found') {
+        return const [];
+      }
+      rethrow;
+    }
   }
 }

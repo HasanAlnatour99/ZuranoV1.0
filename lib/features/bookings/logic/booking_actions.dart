@@ -101,6 +101,19 @@ class BookingActions {
     );
   }
 
+  Future<void> updateBookingStatus({
+    required String bookingId,
+    required String nextStatus,
+    String? reason,
+  }) {
+    return _repository.ownerUpdateBookingStatus(
+      salonId: _requireSalonId(),
+      bookingId: bookingId,
+      nextStatus: nextStatus,
+      reason: reason,
+    );
+  }
+
   Future<void> _dedupe(String key, Future<void> Function() run) {
     final pending = _inFlight[key];
     if (pending != null) {

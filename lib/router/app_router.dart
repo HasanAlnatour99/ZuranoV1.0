@@ -63,13 +63,16 @@ import '../features/salon/presentation/screens/account_profile_bootstrap_screen.
 import '../features/salon/presentation/screens/create_salon_screen.dart';
 import '../features/settings/presentation/screens/app_settings_screen.dart';
 import '../features/splash/presentation/screens/splash_screen.dart';
+import '../features/permissions/application/permissions_providers.dart';
 import '../providers/firebase_providers.dart';
 import '../providers/onboarding_providers.dart';
 import '../providers/session_provider.dart';
+import '../shared/screens/access_denied_screen.dart';
 import 'owner_routes.dart';
 import 'router_guards.dart';
 import 'router_navigation_keys.dart';
 import 'router_page_key.dart';
+import 'salon_route_permissions.dart';
 
 /// Drives [GoRouter.refreshListenable] so [redirect] re-runs when auth, session,
 /// or onboarding prefs change — without replacing the [GoRouter] instance.
@@ -89,6 +92,10 @@ final appRouterRefreshProvider = Provider<ValueNotifier<int>>((ref) {
   );
   ref.listen<OnboardingPrefsState>(
     onboardingPrefsProvider,
+    (prev, next) => bump(),
+  );
+  ref.listen(
+    currentSalonStaffPermissionProvider,
     (prev, next) => bump(),
   );
 
@@ -749,6 +756,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: const AdminDashboardScreen(),
         ),
       ),
+      GoRoute(
+        path: AppRoutes.accessDenied,
+        pageBuilder: (context, state) => appFadeThroughPage(
+          key: goRouterPageKey(state),
+          child: const AccessDeniedScreen(),
+        ),
+      ),
     ],
     redirect: (_, state) {
       final loc = state.matchedLocation;
@@ -803,12 +817,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final onboarding = ref.read(onboardingPrefsProvider);
-      return resolveRedirect(
+      final resolved = resolveRedirect(
         location: loc,
         fullUri: state.uri,
         sessionState: sessionState,
         onboarding: onboarding,
       );
+      if (resolved != null) return resolved;
+
+      final permissionRedirect = salonRoutePermissionRedirect(ref, loc);
+      if (permissionRedirect != null) return permissionRedirect;
+
+      return null;
     },
   );
 });

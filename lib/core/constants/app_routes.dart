@@ -256,6 +256,8 @@ class AppRoutes {
 
   /// Full salon bookings list (owner / admin).
   static const ownerBookings = '/owner/bookings';
+  static String ownerBookingDetails(String bookingId) =>
+      '$ownerBookings/$bookingId';
 
   static String ownerCustomerDetails(String customerId) =>
       '$ownerCustomers/$customerId';
@@ -263,7 +265,22 @@ class AppRoutes {
   static String ownerCustomerEdit(String customerId) =>
       '$ownerCustomers/$customerId/edit';
   static const ownerMoney = '/owner/money';
+  static const ownerAnalytics = '/owner/analytics';
+  static const ownerDashboardV2 = '/owner/v2';
   static const ownerSettings = '/owner/settings';
+  static const ownerStaffPermissions = '$ownerSettings/staff-permissions';
+  static String ownerStaffPermissionsEdit(String uid) =>
+      '$ownerStaffPermissions/${Uri.encodeComponent(uid)}';
+  static const accessDenied = '/access-denied';
+
+  /// Owner Activity Center (immutable audit timeline).
+  static const ownerActivityCenter = '/owner/activity';
+  static String ownerAuditLogDetails(String auditId) =>
+      '$ownerActivityCenter/${Uri.encodeComponent(auditId)}';
+
+  /// Data export & CSV/PDF reports (`/owner/reports`, `/owner/reports/jobs`).
+  static const ownerReportsCenter = '/owner/reports';
+  static const ownerExportJobs = '/owner/reports/jobs';
   static const ownerShiftsSettings = '/owner/settings/shifts';
   static const ownerCreateShiftTemplate = '/owner/settings/shifts/create';
   static const ownerEditShiftTemplateBase = '/owner/settings/shifts';
