@@ -79,7 +79,7 @@ class _SalonOwnerSignupScreenState
             .read(salonOwnerSignupControllerProvider.notifier)
             .updatePhoneNational(_phoneNationalController.text),
       );
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _signupSubscription = ref.listenManual<SalonOwnerSignupState>(
         salonOwnerSignupControllerProvider,

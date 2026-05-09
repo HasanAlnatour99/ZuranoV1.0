@@ -87,7 +87,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen>
             .updateConfirmPassword(_confirmPasswordController.text),
       );
 
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final onboarding = ref.read(onboardingPrefsProvider);
       if (onboarding.isStaffLoginFlow) {
