@@ -370,13 +370,19 @@ service cloud.firestore {
 
     /// Public salon mirror for customer discovery; owner/admin may upsert safe fields.
     ///
-    /// Customer reads MUST match the home query: `isActive && isPublished && isPublic`.
-    /// Owner/admin keep full read access for management surfaces.
+    /// Anonymous discovery queries require `isActive && isPublished && isPublic`.
+    /// Signed-in users (including anonymous auth) may also read **active** mirrors by
+    /// document id — needed for booking flows / currency when the mirror is not fully
+    /// published yet (fields still syncing), without opening inactive salons.
     match /publicSalons/{salonId} {
       allow read: if (
           resource.data.get('isActive', false) == true &&
           resource.data.get('isPublished', false) == true &&
           resource.data.get('isPublic', false) == true
+        ) ||
+        (
+          signedIn() &&
+          resource.data.get('isActive', false) == true
         ) ||
         (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId));
       // TODO DEV ONLY: remove debug-seed branch before production.
