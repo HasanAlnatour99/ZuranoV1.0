@@ -67,9 +67,20 @@ class CustomerListController extends AsyncNotifier<CustomerListState> {
 
   @override
   FutureOr<CustomerListState> build() {
+    ref.keepAlive();
     ref.onDispose(() => _debounce?.cancel());
-    ref.watch(sessionUserProvider);
-    // Keep initial state; screen triggers load explicitly.
+    // Only invalidate when [salonId] changes. Watching [sessionUserProvider]
+    // directly re-ran build on every Firestore user tick and reset list state,
+    // leaving the Customers tab stuck loading / endlessly refetching.
+    final salonId = ref.watch(
+      sessionUserProvider.select((async) {
+        final sid = async.asData?.value?.salonId?.trim();
+        return sid ?? '';
+      }),
+    );
+    if (salonId.isNotEmpty) {
+      Future.microtask(() => unawaited(loadInitial()));
+    }
     return CustomerListState.initial();
   }
 
@@ -101,6 +112,11 @@ class CustomerListController extends AsyncNotifier<CustomerListState> {
             includeInactive: includeInactiveFromTag(afterStart.selectedTag),
             startAfterDocument: null,
           );
+      final sidNow =
+          ref.read(sessionUserProvider).asData?.value?.salonId?.trim() ?? '';
+      if (sidNow != sid) {
+        return;
+      }
       state = AsyncData(
         afterStart.copyWith(
           isLoadingInitial: false,
@@ -111,6 +127,11 @@ class CustomerListController extends AsyncNotifier<CustomerListState> {
         ),
       );
     } catch (_) {
+      final sidNow =
+          ref.read(sessionUserProvider).asData?.value?.salonId?.trim() ?? '';
+      if (sidNow != sid) {
+        return;
+      }
       final afterStart = state.asData?.value ?? current;
       state = AsyncData(
         afterStart.copyWith(isLoadingInitial: false, errorMessage: 'failed'),
@@ -138,6 +159,11 @@ class CustomerListController extends AsyncNotifier<CustomerListState> {
             startAfterDocument: startAfter,
           );
 
+      final sidNow =
+          ref.read(sessionUserProvider).asData?.value?.salonId?.trim() ?? '';
+      if (sidNow != sid) {
+        return;
+      }
       state = AsyncData(
         current.copyWith(
           isLoadingMore: false,
@@ -148,6 +174,11 @@ class CustomerListController extends AsyncNotifier<CustomerListState> {
         ),
       );
     } catch (_) {
+      final sidNow =
+          ref.read(sessionUserProvider).asData?.value?.salonId?.trim() ?? '';
+      if (sidNow != sid) {
+        return;
+      }
       state = AsyncData(current.copyWith(isLoadingMore: false, errorMessage: 'failed'));
     }
   }

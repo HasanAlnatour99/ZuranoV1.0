@@ -1,5 +1,6 @@
 import 'package:barber_shop_app/features/customers/data/customer_repository.dart';
 import 'package:barber_shop_app/features/customers/data/models/customer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -85,6 +86,7 @@ void main() {
         'phone': '111',
         'isActive': true,
         'createdBy': 'u-1',
+        'createdAt': Timestamp.fromDate(DateTime(2020)),
         'searchKeywords': ['a', 'al', 'ali'],
       });
       await col.doc('c-2').set({
@@ -95,6 +97,7 @@ void main() {
         'phone': '222',
         'isActive': true,
         'createdBy': 'u-1',
+        'createdAt': Timestamp.fromDate(DateTime(2021)),
         'searchKeywords': ['b', 'ba', 'bad'],
       });
       await col.doc('c-3').set({
@@ -105,6 +108,7 @@ void main() {
         'phone': '333',
         'isActive': true,
         'createdBy': 'u-1',
+        'createdAt': Timestamp.fromDate(DateTime(2022)),
         'searchKeywords': ['c', 'ce', 'cem'],
       });
 
@@ -122,6 +126,7 @@ void main() {
       final repository = CustomerRepository(firestore: firestore);
       final col = firestore.collection('salons').doc('salon-1').collection('customers');
 
+      var year = 2020;
       for (final c in [
         ('c-1', 'ali'),
         ('c-2', 'bader'),
@@ -135,8 +140,10 @@ void main() {
           'phone': '0',
           'isActive': true,
           'createdBy': 'u-1',
+          'createdAt': Timestamp.fromDate(DateTime(year)),
           'searchKeywords': [c.$2.substring(0, 1)],
         });
+        year++;
       }
 
       final first = await repository.fetchCustomersPage(salonId: 'salon-1', limit: 2);
@@ -145,9 +152,31 @@ void main() {
         limit: 2,
         startAfterDocument: first.lastDocument,
       );
-      expect(first.customers.map((c) => c.id).toList(), ['c-1', 'c-2']);
-      expect(second.customers.map((c) => c.id).toList(), ['c-3']);
+      expect(first.customers.map((c) => c.id).toList(), ['c-3', 'c-2']);
+      expect(second.customers.map((c) => c.id).toList(), ['c-1']);
     });
+
+    test(
+      'fetchCustomersPage returns legacy rows without fullNameLower',
+      () async {
+        final firestore = FakeFirebaseFirestore();
+        final repository = CustomerRepository(firestore: firestore);
+        final col =
+            firestore.collection('salons').doc('salon-1').collection('customers');
+        await col.doc('legacy').set({
+          'id': 'legacy',
+          'salonId': 'salon-1',
+          'fullName': 'Imported Row',
+          'phone': '1',
+          'isActive': true,
+          'createdBy': 'u-1',
+          'createdAt': Timestamp.fromDate(DateTime(2024)),
+        });
+
+        final page = await repository.fetchCustomersPage(salonId: 'salon-1');
+        expect(page.customers.map((c) => c.id), contains('legacy'));
+      },
+    );
 
     test('fetchCustomersPage search uses searchKeywords', () async {
       final firestore = FakeFirebaseFirestore();
@@ -161,6 +190,7 @@ void main() {
         'phone': '0',
         'isActive': true,
         'createdBy': 'u-1',
+        'createdAt': Timestamp.now(),
         'searchKeywords': ['ali', 'hassan'],
       });
 

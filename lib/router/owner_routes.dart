@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/constants/app_routes.dart';
+import '../core/feature_flags/owner_finance_ui.dart';
 import '../l10n/app_localizations.dart';
 import '../core/motion/app_page_transitions.dart';
 import '../features/attendance_admin/presentation/screens/attendance_requests_admin_screen.dart';
@@ -28,6 +29,7 @@ import '../features/reports/presentation/screens/reports_center_screen.dart';
 import '../features/audit/presentation/screens/audit_log_details_screen.dart';
 import '../features/owner/dashboard_v2/presentation/screens/owner_dashboard_v2_screen.dart';
 import '../features/owner/presentation/widgets/owner_overview_section.dart';
+import '../features/owner/presentation/widgets/owner_workspace_modules.dart';
 import '../features/owner/presentation/widgets/overview/owner_dashboard_hero_header.dart';
 import '../features/owner/presentation/widgets/team_operations_module.dart';
 import '../features/payroll/presentation/screens/employee_payroll_setup_screen.dart';
@@ -142,9 +144,11 @@ final List<RouteBase> ownerRoutes = [
                     enableBodyOverlap: false,
                     bodyScaffoldBackgroundColor:
                         FinanceDashboardColors.background,
-                    body: const MoneyDashboardModule(
-                      ownerShellHeroEmbedded: true,
-                    ),
+                    body: kOwnerFinanceLegacyUiEnabled
+                        ? const OwnerMoneyModule()
+                        : const MoneyDashboardModule(
+                            ownerShellHeroEmbedded: true,
+                          ),
                   );
                 },
               ),
