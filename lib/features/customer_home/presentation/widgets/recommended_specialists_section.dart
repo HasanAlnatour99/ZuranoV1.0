@@ -12,9 +12,9 @@ import 'specialist_card.dart';
 
 /// Customer home "Recommended specialists" section.
 ///
-/// Reads from the canonical [recommendedSpecialistsProvider] which is a
-/// customer-safe view (`customerDiscovery/specialists/items`). Never joins
-/// payroll, attendance, commission, or other private employee data.
+/// Reads from the canonical [recommendedSpecialistsProvider] (`customerSearchIndex`,
+/// same specialist rows as search). Never joins payroll, attendance, commission,
+/// or other private employee data.
 class RecommendedSpecialistsSection extends ConsumerWidget {
   const RecommendedSpecialistsSection({super.key});
 

@@ -363,29 +363,17 @@ class _SalonProfileScreenState extends ConsumerState<SalonProfileScreen>
             onFavoriteTap: () {
               setState(() => _favoriteLocal = !_favoriteLocal);
             },
-            onShareTap: share,
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.medium),
-            child: _PremiumQuickActionsRow(
-              callLabel: l10n.customerProfileActionCall,
-              whatsappLabel: l10n.customerProfileActionWhatsApp,
-              mapLabel: l10n.customerProfileActionMap,
-              shareLabel: l10n.customerProfileActionShare,
-              onCall: () => repo.openPhone(salon.phone),
-              onWhatsApp: () =>
-                  repo.openWhatsApp(salon.whatsapp ?? salon.phone),
-              onMap: () {
-                final lat = salon.latitude;
-                final lng = salon.longitude;
-                if (lat != null && lng != null) {
-                  repo.openMap(lat, lng);
-                }
-              },
-              onShare: share,
-            ),
+            onCall: () => repo.openPhone(salon.phone),
+            onWhatsApp: () =>
+                repo.openWhatsApp(salon.whatsapp ?? salon.phone),
+            onMap: () {
+              final lat = salon.latitude;
+              final lng = salon.longitude;
+              if (lat != null && lng != null) {
+                repo.openMap(lat, lng);
+              }
+            },
+            onShare: share,
           ),
         ),
         SliverPersistentHeader(
@@ -542,7 +530,10 @@ class _PremiumHeroSection extends StatelessWidget {
     required this.favoriteSelected,
     required this.onBack,
     required this.onFavoriteTap,
-    required this.onShareTap,
+    required this.onCall,
+    required this.onWhatsApp,
+    required this.onMap,
+    required this.onShare,
   });
 
   final SalonPublicModel salon;
@@ -553,11 +544,17 @@ class _PremiumHeroSection extends StatelessWidget {
   final bool favoriteSelected;
   final VoidCallback onBack;
   final VoidCallback onFavoriteTap;
-  final VoidCallback onShareTap;
+  final VoidCallback onCall;
+  final VoidCallback onWhatsApp;
+  final VoidCallback onMap;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final topInset = MediaQuery.paddingOf(context).top;
+    final hasMapLocation =
+        salon.latitude != null && salon.longitude != null;
     return SizedBox(
       height: topInset + 410,
       child: Stack(
@@ -596,9 +593,109 @@ class _PremiumHeroSection extends StatelessWidget {
                         onPressed: onFavoriteTap,
                       ),
                       const SizedBox(width: AppSpacing.small),
-                      _RoundHeroButton(
-                        icon: Icons.share_rounded,
-                        onPressed: onShareTap,
+                      PopupMenuButton<String>(
+                        tooltip: l10n.customerSalonProfileMoreActionsTooltip,
+                        offset: const Offset(0, 44),
+                        child: SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: Material(
+                            color: Colors.white.withValues(alpha: 0.92),
+                            shape: const CircleBorder(),
+                            elevation: 2,
+                            shadowColor: Colors.black26,
+                            child: Icon(
+                              Icons.more_vert_rounded,
+                              size: 22,
+                              color: AppColorsLight.textPrimary,
+                            ),
+                          ),
+                        ),
+                        itemBuilder: (context) => <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'call',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.phone_in_talk_rounded,
+                                  color: scheme.primary,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: AppSpacing.small),
+                                Expanded(
+                                  child: Text(l10n.customerProfileActionCall),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'whatsapp',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.chat_rounded,
+                                  color: scheme.primary,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: AppSpacing.small),
+                                Expanded(
+                                  child: Text(
+                                    l10n.customerProfileActionWhatsApp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'map',
+                            enabled: hasMapLocation,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  color: scheme.primary,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: AppSpacing.small),
+                                Expanded(
+                                  child: Text(l10n.customerProfileActionMap),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'share',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.share_rounded,
+                                  color: scheme.primary,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: AppSpacing.small),
+                                Expanded(
+                                  child: Text(l10n.customerProfileActionShare),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'call':
+                              onCall();
+                              break;
+                            case 'whatsapp':
+                              onWhatsApp();
+                              break;
+                            case 'map':
+                              onMap();
+                              break;
+                            case 'share':
+                              onShare();
+                              break;
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -833,133 +930,6 @@ class _StatusChip extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w600,
           color: open ? const Color(0xFF166534) : AppColorsLight.textSecondary,
-        ),
-      ),
-    );
-  }
-}
-
-// --- Quick actions ----------------------------------------------------------
-
-class _PremiumQuickActionsRow extends StatelessWidget {
-  const _PremiumQuickActionsRow({
-    required this.callLabel,
-    required this.whatsappLabel,
-    required this.mapLabel,
-    required this.shareLabel,
-    required this.onCall,
-    required this.onWhatsApp,
-    required this.onMap,
-    required this.onShare,
-  });
-
-  final String callLabel;
-  final String whatsappLabel;
-  final String mapLabel;
-  final String shareLabel;
-  final VoidCallback onCall;
-  final VoidCallback onWhatsApp;
-  final VoidCallback onMap;
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _QuickAction(
-            icon: Icons.phone_in_talk_rounded,
-            label: callLabel,
-            onTap: onCall,
-          ),
-          _QuickAction(
-            icon: Icons.chat_rounded,
-            label: whatsappLabel,
-            onTap: onWhatsApp,
-          ),
-          _QuickAction(
-            icon: Icons.location_on_rounded,
-            label: mapLabel,
-            onTap: onMap,
-          ),
-          _QuickAction(
-            icon: Icons.share_rounded,
-            label: shareLabel,
-            onTap: onShare,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.large),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppBrandColors.secondary,
-                    AppBrandColors.secondary.withValues(alpha: 0.82),
-                  ],
-                ),
-                border: Border.all(
-                  color: AppBrandColors.primary.withValues(alpha: 0.2),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppBrandColors.primary.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                icon,
-                color: AppBrandColors.primary,
-                size: 26,
-                weight: 600,
-                grade: 25,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColorsLight.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
         ),
       ),
     );

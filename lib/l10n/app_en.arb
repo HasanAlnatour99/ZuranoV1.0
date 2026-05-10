@@ -1210,6 +1210,10 @@
   "customerProfileActionWhatsApp": "WhatsApp",
   "customerProfileActionMap": "Map",
   "customerProfileActionShare": "Share",
+  "customerSalonProfileMoreActionsTooltip": "More actions",
+  "@customerSalonProfileMoreActionsTooltip": {
+    "description": "Tooltip for the salon profile overflow menu (call, WhatsApp, map, share)."
+  },
   "customerProfileEmptyServices": "No services available yet.",
   "customerProfileEmptyTeam": "No specialists available yet.",
   "customerProfileEmptyReviews": "No reviews yet.",
@@ -2199,6 +2203,18 @@
   "@ownerOverviewTeamCheckedInShort": {
     "placeholders": {
       "count": {"type": "int"}
+    }
+  },
+  "ownerPremiumOverviewBusinessTitle": "Business overview",
+  "ownerPremiumOverviewTeamOnDutyTitle": "Team on duty",
+  "ownerPremiumOverviewSmartInsightTitle": "Smart insight",
+  "ownerPremiumOverviewViewInsight": "View insight",
+  "ownerPremiumOverviewNewBooking": "New booking",
+  "ownerPremiumOverviewTeamMembersCount": "{checkedIn} of {total} members",
+  "@ownerPremiumOverviewTeamMembersCount": {
+    "placeholders": {
+      "checkedIn": {"type": "int"},
+      "total": {"type": "int"}
     }
   },
   "ownerOverviewTeamEmptyTitle": "No team members added yet.",
@@ -4380,6 +4396,41 @@
   "zuranoHomeHeadlineLine1": "Where self-care",
   "zuranoHomeHeadlineLine2Prefix": "meets ",
   "zuranoHomeHeadlineHighlight": "style",
+  "zuranoHomeHeroFindYour": "Find your",
+  "zuranoHomeHeroPerfectStyle": "perfect style",
+  "zuranoHomeHeroSubtitle": "Book barber, salon, or spa near you",
+  "zuranoHomeSearchBarHint": "Search barber, salon, service...",
+  "zuranoQuickFilterNearbyTitle": "Nearby",
+  "zuranoQuickFilterNearbySubtitle": "Around you",
+  "zuranoQuickFilterOpenNowTitle": "Open now",
+  "zuranoQuickFilterOpenNowSubtitle": "Shops open",
+  "zuranoQuickFilterAvailableTodayTitle": "Available today",
+  "zuranoQuickFilterAvailableTodaySubtitle": "Book today",
+  "zuranoCategoriesViewAll": "View all",
+  "zuranoCategoriesEmptyHome": "No categories yet",
+  "zuranoAvailableTodayBannerSubtitle": "Find salons with open slots book instantly.",
+  "zuranoNearbyOpenNow": "Open now",
+  "zuranoNearbyClosed": "Closed",
+  "zuranoNearbyRatingLine": "★ {rating} ({reviews})",
+  "@zuranoNearbyRatingLine": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "reviews": {
+        "type": "int"
+      }
+    }
+  },
+  "zuranoSpecialistYearsExperience": "{years} years exp.",
+  "@zuranoSpecialistYearsExperience": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "zuranoRecentActivityViewAll": "View all",
   "zuranoHomeLocationLoading": "Finding location…",
   "zuranoHomeLocationUnavailable": "Location unavailable",
   "zuranoHomeLocationNearYou": "Near you",

@@ -12,9 +12,8 @@ import 'today_available_card.dart';
 
 /// Customer home "Available today" section.
 ///
-/// Reads from the canonical [availableTodayProvider]
-/// (`customerDiscovery/specialists/items` filtered by `isActive`,
-/// `visibleToCustomers`, `acceptsBookings`, `availableToday`).
+/// Reads from the canonical [availableTodayProvider] — specialists from
+/// `customerSearchIndex` with `availableToday` (same index as search).
 ///
 /// Loading state is a skeleton; the empty state only renders after the stream
 /// emits an empty list (no flicker between loading and empty).

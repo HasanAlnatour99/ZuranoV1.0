@@ -1137,6 +1137,7 @@
   "customerProfileActionWhatsApp": "واتساب",
   "customerProfileActionMap": "الخريطة",
   "customerProfileActionShare": "مشاركة",
+  "customerSalonProfileMoreActionsTooltip": "المزيد من الإجراءات",
   "customerProfileEmptyServices": "لا توجد خدمات متاحة بعد.",
   "customerProfileEmptyTeam": "لا يوجد أخصائيون متاحون بعد.",
   "customerProfileEmptyReviews": "لا توجد تقييمات بعد.",
@@ -2126,6 +2127,18 @@
   "@ownerOverviewTeamCheckedInShort": {
     "placeholders": {
       "count": {"type": "int"}
+    }
+  },
+  "ownerPremiumOverviewBusinessTitle": "نظرة عامة على النشاط",
+  "ownerPremiumOverviewTeamOnDutyTitle": "الفريق في الخدمة",
+  "ownerPremiumOverviewSmartInsightTitle": "رؤية ذكية",
+  "ownerPremiumOverviewViewInsight": "عرض الرؤية",
+  "ownerPremiumOverviewNewBooking": "حجز جديد",
+  "ownerPremiumOverviewTeamMembersCount": "{checkedIn} من {total} أعضاء",
+  "@ownerPremiumOverviewTeamMembersCount": {
+    "placeholders": {
+      "checkedIn": {"type": "int"},
+      "total": {"type": "int"}
     }
   },
   "ownerOverviewTeamEmptyTitle": "لم تُضف أي عضو فريق بعد.",
@@ -4246,6 +4259,41 @@
   "zuranoHomeHeadlineLine1": "حيث العناية الذاتية",
   "zuranoHomeHeadlineLine2Prefix": "تلتقي ",
   "zuranoHomeHeadlineHighlight": "الأناقة",
+  "zuranoHomeHeroFindYour": "اعثر على",
+  "zuranoHomeHeroPerfectStyle": "أسلوبك المثالي",
+  "zuranoHomeHeroSubtitle": "احجز حلاقًا أو صالونًا أو سبا بالقرب منك",
+  "zuranoHomeSearchBarHint": "ابحث عن حلاق أو صالون أو خدمة...",
+  "zuranoQuickFilterNearbyTitle": "بالقرب",
+  "zuranoQuickFilterNearbySubtitle": "حولك",
+  "zuranoQuickFilterOpenNowTitle": "مفتوح الآن",
+  "zuranoQuickFilterOpenNowSubtitle": "محلات مفتوحة",
+  "zuranoQuickFilterAvailableTodayTitle": "متاح اليوم",
+  "zuranoQuickFilterAvailableTodaySubtitle": "احجز اليوم",
+  "zuranoCategoriesViewAll": "عرض الكل",
+  "zuranoCategoriesEmptyHome": "لا توجد فئات بعد",
+  "zuranoAvailableTodayBannerSubtitle": "اعثر على صالونات لديها أوقات متاحة واحجز فورًا.",
+  "zuranoNearbyOpenNow": "مفتوح الآن",
+  "zuranoNearbyClosed": "مغلق",
+  "zuranoNearbyRatingLine": "★ {rating} ({reviews})",
+  "@zuranoNearbyRatingLine": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "reviews": {
+        "type": "int"
+      }
+    }
+  },
+  "zuranoSpecialistYearsExperience": "{years} سنة خبرة",
+  "@zuranoSpecialistYearsExperience": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "zuranoRecentActivityViewAll": "عرض الكل",
   "zuranoHomeLocationLoading": "جاري تحديد الموقع…",
   "zuranoHomeLocationUnavailable": "الموقع غير متاح",
   "zuranoHomeLocationNearYou": "بالقرب منك",
