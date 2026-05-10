@@ -3289,6 +3289,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerProfileActionShare => 'مشاركة';
 
   @override
+  String get customerSalonProfileMoreActionsTooltip => 'المزيد من الإجراءات';
+
+  @override
   String get customerProfileEmptyServices => 'لا توجد خدمات متاحة بعد.';
 
   @override
@@ -5600,6 +5603,26 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String ownerOverviewTeamCheckedInShort(int count) {
     return '$count سجّلوا حضورهم';
+  }
+
+  @override
+  String get ownerPremiumOverviewBusinessTitle => 'نظرة عامة على النشاط';
+
+  @override
+  String get ownerPremiumOverviewTeamOnDutyTitle => 'الفريق في الخدمة';
+
+  @override
+  String get ownerPremiumOverviewSmartInsightTitle => 'رؤية ذكية';
+
+  @override
+  String get ownerPremiumOverviewViewInsight => 'عرض الرؤية';
+
+  @override
+  String get ownerPremiumOverviewNewBooking => 'حجز جديد';
+
+  @override
+  String ownerPremiumOverviewTeamMembersCount(int checkedIn, int total) {
+    return '$checkedIn من $total أعضاء';
   }
 
   @override
@@ -10834,6 +10857,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get zuranoHomeHeadlineHighlight => 'الأناقة';
+
+  @override
+  String get zuranoHomeHeroFindYour => 'اعثر على';
+
+  @override
+  String get zuranoHomeHeroPerfectStyle => 'أسلوبك المثالي';
+
+  @override
+  String get zuranoHomeHeroSubtitle =>
+      'احجز حلاقًا أو صالونًا أو سبا بالقرب منك';
+
+  @override
+  String get zuranoHomeSearchBarHint => 'ابحث عن حلاق أو صالون أو خدمة...';
+
+  @override
+  String get zuranoQuickFilterNearbyTitle => 'بالقرب';
+
+  @override
+  String get zuranoQuickFilterNearbySubtitle => 'حولك';
+
+  @override
+  String get zuranoQuickFilterOpenNowTitle => 'مفتوح الآن';
+
+  @override
+  String get zuranoQuickFilterOpenNowSubtitle => 'محلات مفتوحة';
+
+  @override
+  String get zuranoQuickFilterAvailableTodayTitle => 'متاح اليوم';
+
+  @override
+  String get zuranoQuickFilterAvailableTodaySubtitle => 'احجز اليوم';
+
+  @override
+  String get zuranoCategoriesViewAll => 'عرض الكل';
+
+  @override
+  String get zuranoCategoriesEmptyHome => 'لا توجد فئات بعد';
+
+  @override
+  String get zuranoAvailableTodayBannerSubtitle =>
+      'اعثر على صالونات لديها أوقات متاحة واحجز فورًا.';
+
+  @override
+  String get zuranoNearbyOpenNow => 'مفتوح الآن';
+
+  @override
+  String get zuranoNearbyClosed => 'مغلق';
+
+  @override
+  String zuranoNearbyRatingLine(String rating, int reviews) {
+    return '★ $rating ($reviews)';
+  }
+
+  @override
+  String zuranoSpecialistYearsExperience(int years) {
+    return '$years سنة خبرة';
+  }
+
+  @override
+  String get zuranoRecentActivityViewAll => 'عرض الكل';
 
   @override
   String get zuranoHomeLocationLoading => 'جاري تحديد الموقع…';

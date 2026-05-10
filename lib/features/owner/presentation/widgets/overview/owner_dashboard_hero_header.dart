@@ -10,7 +10,6 @@ import '../../../../../core/widgets/app_notification_badge.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../../providers/notification_providers.dart';
 import '../../../../../providers/salon_streams_provider.dart';
-import '../../../../../shared/widgets/zurano_header_icon_button.dart';
 import '../../../../users/data/models/app_user.dart';
 import '../../../logic/owner_overview_controller.dart';
 import '../../../logic/owner_overview_state.dart';
@@ -18,6 +17,9 @@ import 'overview_design_tokens.dart';
 
 /// Matches overview body canvas (light purple-gray).
 const Color kOwnerDashboardHeroCanvas = Color(0xFFF7F4FF);
+
+/// Accent for icons on white header action pills (matches premium body purple).
+const Color _kOwnerHeroActionIconPurple = Color(0xFF7B3FF2);
 
 String _heroUserInitials(String name) {
   final parts = name.trim().split(RegExp(r'\s+'));
@@ -36,34 +38,54 @@ String _resolveDisplayName(AppUser user, OwnerOverviewState state) {
   return (state.ownerName ?? '').trim();
 }
 
-Widget _buildAiHeroButton(BuildContext context, AppLocalizations l10n) {
-  const size = 46.0;
-  const iconSize = 21.0;
+Widget _buildWhitePillActionButton({
+  required String tooltip,
+  required VoidCallback onTap,
+  required Widget child,
+  required double diameter,
+}) {
   return Tooltip(
-    message: l10n.ownerAiAssistantTooltip,
-    child: InkWell(
-      onTap: () => context.push(AppRoutes.ownerDashboardAssistant),
-      borderRadius: BorderRadius.circular(size / 2),
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.14),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Icon(
-          Icons.auto_awesome_rounded,
-          color: const Color(0xFF7B3FF2),
-          size: iconSize,
+    message: tooltip,
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(diameter / 2),
+        child: Container(
+          width: diameter,
+          height: diameter,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Center(child: child),
         ),
       ),
+    ),
+  );
+}
+
+Widget _buildAiHeroButton(
+  BuildContext context,
+  AppLocalizations l10n, {
+  required double size,
+  required double iconSize,
+}) {
+  return _buildWhitePillActionButton(
+    tooltip: l10n.ownerAiAssistantTooltip,
+    onTap: () => context.push(AppRoutes.ownerDashboardAssistant),
+    diameter: size,
+    child: Icon(
+      Icons.auto_awesome_rounded,
+      color: _kOwnerHeroActionIconPurple,
+      size: iconSize,
     ),
   );
 }
@@ -117,33 +139,42 @@ Widget _buildOwnerHeroHeader({
       ? trimmedSalon
       : l10n.ownerDashboardTitle;
   final initials = _heroUserInitials(user.name);
+  final photo = user.photoUrl?.trim();
   final salonCover = ref
       .watch(sessionSalonStreamProvider)
       .asData
       ?.value
       ?.coverImageUrl
       ?.trim();
-  final photo = user.photoUrl?.trim();
-  final avatarImage = (salonCover != null && salonCover.isNotEmpty)
-      ? salonCover
-      : (photo != null && photo.isNotEmpty)
+  final avatarImage = (photo != null && photo.isNotEmpty)
       ? photo
-      : null;
+      : (salonCover != null && salonCover.isNotEmpty)
+          ? salonCover
+          : null;
   final canOpenOwnerSettings =
       user.role == UserRoles.owner || user.role == UserRoles.admin;
   final unread = ref.watch(unreadNotificationCountProvider);
-  final iconSize = compact ? 19.0 : 21.0;
+
+  final mq = MediaQuery.sizeOf(context);
+  final narrow = mq.width < 360;
+  final tight = mq.width < 340;
+  final actionDiameter = compact || tight ? 40.0 : (narrow ? 42.0 : 46.0);
+  final actionIconSize = compact || tight ? 18.0 : (narrow ? 19.0 : 21.0);
+  final iconSize = actionIconSize;
 
   final startAlign = isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start;
   final textAlign = isRtl ? TextAlign.right : TextAlign.left;
 
   final heroTop = compact ? 6.0 : 10.0;
   final heroBottom = compact ? 18.0 : 26.0;
-  final avatarRadius = compact ? 18.0 : 22.0;
+  final avatarRadius = compact ? 18.0 : (tight ? 20.0 : 22.0);
+  final horizontalPad = tight ? 14.0 : 18.0;
+  final actionGap = tight ? 4.0 : (narrow ? 5.0 : 6.0);
+  final midGap = tight ? 10.0 : 14.0;
 
   return Container(
     width: double.infinity,
-    padding: EdgeInsets.fromLTRB(18, heroTop, 18, heroBottom),
+    padding: EdgeInsets.fromLTRB(horizontalPad, heroTop, horizontalPad, heroBottom),
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         colors: [Color(0xFF5B2BE0), Color(0xFF7B3FF2), Color(0xFFA77BFF)],
@@ -191,7 +222,7 @@ Widget _buildOwnerHeroHeader({
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: midGap),
               Expanded(
                 child: Column(
                   crossAxisAlignment: startAlign,
@@ -239,31 +270,36 @@ Widget _buildOwnerHeroHeader({
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              _buildAiHeroButton(context, l10n),
-              const SizedBox(width: 6),
-              ZuranoHeaderIconButton(
+              SizedBox(width: tight ? 6 : 10),
+              _buildAiHeroButton(
+                context,
+                l10n,
+                size: actionDiameter,
+                iconSize: actionIconSize,
+              ),
+              SizedBox(width: actionGap),
+              _buildWhitePillActionButton(
                 tooltip: l10n.notificationsInboxTooltip,
-                compact: true,
                 onTap: () => context.push(AppRoutes.notifications),
-                icon: AppNotificationBadge(
+                diameter: actionDiameter,
+                child: AppNotificationBadge(
                   count: unread,
                   child: Icon(
                     Icons.notifications_none_rounded,
-                    color: Colors.white,
+                    color: _kOwnerHeroActionIconPurple,
                     size: iconSize,
                   ),
                 ),
               ),
               if (canOpenOwnerSettings) ...[
-                const SizedBox(width: 6),
-                ZuranoHeaderIconButton(
+                SizedBox(width: actionGap),
+                _buildWhitePillActionButton(
                   tooltip: l10n.ownerDashboardSettingsTooltip,
-                  compact: true,
                   onTap: () => context.push(AppRoutes.ownerSettings),
-                  icon: Icon(
+                  diameter: actionDiameter,
+                  child: Icon(
                     Icons.settings_rounded,
-                    color: Colors.white,
+                    color: _kOwnerHeroActionIconPurple,
                     size: iconSize,
                   ),
                 ),

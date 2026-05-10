@@ -360,12 +360,23 @@ service cloud.firestore {
         request.resource.data.role in ['owner', 'customer'];
     }
 
-    /// Guest-safe: salon is listed in the public browse index.
-    function salonListedForPublicBrowsing(salonId) {
+    /// Same policy as **reading** [publicSalons/{salonId}]: anonymous discovery needs
+    /// published+public+active; signed-in users (incl. anonymous auth) may read **active**
+    /// mirrors for nested customer data (`services`, `team`) and [salons/.../reviews].
+    function customerCanReadPublicSalonMirrorSubtree(salonId) {
       return salonId is string && salonId.size() > 0 &&
         exists(/databases/$(database)/documents/publicSalons/$(salonId)) &&
-        get(/databases/$(database)/documents/publicSalons/$(salonId)).data.isPublic == true &&
-        get(/databases/$(database)/documents/publicSalons/$(salonId)).data.isActive == true;
+        (
+          (
+            get(/databases/$(database)/documents/publicSalons/$(salonId)).data.get('isActive', false) == true &&
+            get(/databases/$(database)/documents/publicSalons/$(salonId)).data.get('isPublished', false) == true &&
+            get(/databases/$(database)/documents/publicSalons/$(salonId)).data.get('isPublic', false) == true
+          ) ||
+          (
+            signedIn() &&
+            get(/databases/$(database)/documents/publicSalons/$(salonId)).data.get('isActive', false) == true
+          )
+        );
     }
 
     /// Public salon mirror for customer discovery; owner/admin may upsert safe fields.
@@ -392,7 +403,7 @@ service cloud.firestore {
 
       /// Customer-safe team rows (synced from private employees via Cloud Functions).
       match /team/{employeeId} {
-        allow read: if salonListedForPublicBrowsing(salonId) &&
+        allow read: if customerCanReadPublicSalonMirrorSubtree(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('allowCustomerBooking', false) == true;
         // TODO DEV ONLY: remove before production.
@@ -404,7 +415,7 @@ service cloud.firestore {
 
       /// Customer-safe service catalog (synced from private services via Cloud Functions).
       match /services/{serviceId} {
-        allow read: if salonListedForPublicBrowsing(salonId) &&
+        allow read: if customerCanReadPublicSalonMirrorSubtree(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('isCustomerVisible', true) == true;
         // TODO DEV ONLY: remove before production.
@@ -675,7 +686,7 @@ service cloud.firestore {
 
       match /reviews/{reviewId} {
         allow read: if isOwnerOrStaffOfSalon(salonId) ||
-          salonListedForPublicBrowsing(salonId);
+          customerCanReadPublicSalonMirrorSubtree(salonId);
         allow create: if isOwnerOrStaffOfSalon(salonId);
         allow update, delete: if isOwnerOrStaffOfSalon(salonId);
       }

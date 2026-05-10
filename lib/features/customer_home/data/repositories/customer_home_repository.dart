@@ -183,6 +183,40 @@ class CustomerHomeRepository {
         );
   }
 
+  /// Specialists for home carousels — **same collection as customer search**
+  /// (`customerSearchIndex`). Filters to `type == specialist` in memory so rows
+  /// match search results even when `customerDiscovery/specialists/items` is empty.
+  Stream<List<PublicSpecialistDiscoveryModel>> watchSpecialistsFromCustomerSearchIndex({
+    required String countryCode,
+    int scanLimit = 80,
+  }) {
+    final cc = countryCode.trim().toUpperCase();
+    return _db
+        .collection(FirestorePaths.customerSearchIndex)
+        .where('countryCode', isEqualTo: cc)
+        .where('isActive', isEqualTo: true)
+        .where('isPublic', isEqualTo: true)
+        .limit(scanLimit)
+        .snapshots()
+        .map((snapshot) {
+          final out = <PublicSpecialistDiscoveryModel>[];
+          for (final doc in snapshot.docs) {
+            final type =
+                (doc.data()['type'] as String?)?.trim().toLowerCase() ?? '';
+            if (type != 'specialist') {
+              continue;
+            }
+            try {
+              out.add(PublicSpecialistDiscoveryModel.fromCustomerSearchIndex(doc));
+            } on Object {
+              continue;
+            }
+          }
+          out.sort((a, b) => b.ratingAvg.compareTo(a.ratingAvg));
+          return out;
+        });
+  }
+
   Stream<List<CustomerCategoryModel>> watchCategories() {
     return _categoriesItems
         .where('isActive', isEqualTo: true)

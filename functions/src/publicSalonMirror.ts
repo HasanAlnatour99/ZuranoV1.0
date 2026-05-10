@@ -124,7 +124,13 @@ export function salonToPublicSalonPayload(
   }
 
   const isActive = s.isActive !== false;
-  const isPublic = s.isPublic === true && isActive;
+  const isPublishedFlag =
+    typeof s.isPublished === "boolean" ? s.isPublished : true;
+  // Customer clients query `publicSalons` with `isPublic == true`. The mobile
+  // app sets `isPublished` on `salons/{id}` (there is no separate owner toggle
+  // wired to `isPublic`). Mirror discovery visibility from `isPublished`, with
+  // optional legacy `isPublic === true` on the private doc as an extra opt-in.
+  const isPublic = isActive && (isPublishedFlag || s.isPublic === true);
 
   const rootGeo = geoFromSalonDoc(s);
   const latitude = resolvedGeo?.latitude ?? rootGeo.latitude;
@@ -191,8 +197,7 @@ export function salonToPublicSalonPayload(
       : {}),
     isPublic,
     isActive,
-    // Legacy mirror — do not use for rules/queries; visibility is `isActive && isPublic`.
-    ...(typeof s.isPublished === "boolean" ? { isPublished: s.isPublished } : {}),
+    isPublished: isPublishedFlag,
     isOpen: s.isOpen === true,
     isPromoted: s.isPromoted === true,
     ratingAverage: ratingAverageRaw != null ? Math.min(5, Math.max(0, ratingAverageRaw)) : 0,
