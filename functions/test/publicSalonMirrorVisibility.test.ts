@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { salonToPublicSalonPayload } from "./publicSalonMirror";
+import { salonToPublicSalonPayload } from "../src/publicSalonMirror";
 
 describe("salonToPublicSalonPayload visibility", () => {
   it("keeps legacy isPublished-only salons visible in the public mirror", () => {
