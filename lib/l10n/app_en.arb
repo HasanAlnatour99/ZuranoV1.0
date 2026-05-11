@@ -299,6 +299,7 @@
   "ownerMoneyPayrollEmptyTitle": "No payroll",
   "ownerMoneyExpensesEmptyTitle": "No expenses",
   "ownerDashboardTitle": "Workspace",
+  "ownerDashboardHeroProBadge": "Pro",
   "ownerAiAssistantTooltip": "Open dashboard assistant",
   "aiAssistantTitle": "Dashboard assistant",
   "aiAssistantInputLabel": "Ask the assistant",

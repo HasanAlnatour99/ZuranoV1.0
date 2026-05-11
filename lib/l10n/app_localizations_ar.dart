@@ -833,6 +833,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerDashboardTitle => 'مساحة العمل';
 
   @override
+  String get ownerDashboardHeroProBadge => 'Pro';
+
+  @override
   String get ownerAiAssistantTooltip => 'افتح مساعد لوحة التحكم';
 
   @override
