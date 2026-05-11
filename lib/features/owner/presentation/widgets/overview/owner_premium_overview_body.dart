@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -22,6 +22,8 @@ import '../owner_zurano_bottom_nav.dart';
 
 String _salonIdForInsights(AppUser user) => (user.salonId ?? '').trim();
 
+const double _kOwnerPremiumOverviewHorizontalPadding = 30;
+
 class _OwnerPremiumColors {
   static const background = Color(0xFFF7F4FF);
   static const purple = Color(0xFF7B2FF7);
@@ -37,16 +39,10 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
   const OwnerPremiumOverviewBody({
     super.key,
     required this.user,
-
-    /// When true (Owner Overview + [OwnerOverviewGradientBackdrop]), body canvas is
-    /// transparent so the top gradient shows through; first card uses a larger radius.
-    this.embedOnOwnerOverviewGradient = false,
   });
 
   /// Wired for hero/header parity and future personalization; overview data is provider-driven.
   final AppUser user;
-
-  final bool embedOnOwnerOverviewGradient;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,13 +55,9 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     final monthly = monthlyAsync.asData?.value;
 
     if (overview.isLoading) {
-      return ColoredBox(
-        color: embedOnOwnerOverviewGradient
-            ? Colors.transparent
-            : _OwnerPremiumColors.background,
-        child: _PremiumOverviewSkeleton(
-          embedOnOwnerOverviewGradient: embedOnOwnerOverviewGradient,
-        ),
+      return const ColoredBox(
+        color: _OwnerPremiumColors.background,
+        child: _PremiumOverviewSkeleton(),
       );
     }
 
@@ -94,28 +86,9 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
         ? l10n.ownerOverviewInsightTopServiceWeek(monthly!.topServiceName!.trim())
         : null;
 
-    final embed = embedOnOwnerOverviewGradient;
-    final listTopPadding = embed ? 20.0 : 18.0;
-
-    Widget businessOverview = _BusinessOverviewCard(
-      overview: overview,
-      revenueToday: revenueToday,
-      hourly: overview.todayHourlyRevenue,
-      locale: locale,
-      l10n: l10n,
-      cardRadius: embed ? 30 : 20,
-      elevatedOnHeroGradient: embed,
-    );
-    if (embed) {
-      businessOverview = Transform.translate(
-        offset: const Offset(0, -8),
-        child: businessOverview,
-      );
-    }
-
     return ColoredBox(
       key: ValueKey<String>(user.uid),
-      color: embed ? Colors.transparent : _OwnerPremiumColors.background,
+      color: _OwnerPremiumColors.background,
       child: Stack(
         children: [
           RefreshIndicator(
@@ -124,19 +97,24 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
                 .read(ownerDashboardActionsControllerProvider.notifier)
                 .refresh(),
             child: ListView(
-              clipBehavior: embed ? Clip.none : Clip.hardEdge,
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              padding: EdgeInsets.fromLTRB(
-                18,
-                listTopPadding,
-                18,
+              padding: EdgeInsetsDirectional.fromSTEB(
+                _kOwnerPremiumOverviewHorizontalPadding,
+                6,
+                _kOwnerPremiumOverviewHorizontalPadding,
                 OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
               ),
               children: [
                 if (overview.hasError) _ErrorHintCard(message: l10n.genericError),
-                businessOverview,
+                _BusinessOverviewCard(
+                  overview: overview,
+                  revenueToday: revenueToday,
+                  hourly: overview.todayHourlyRevenue,
+                  locale: locale,
+                  l10n: l10n,
+                ),
                 const Gap(16),
                 _QuickActionsRow(l10n: l10n),
                 const Gap(18),
@@ -197,22 +175,16 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
 }
 
 class _PremiumOverviewSkeleton extends StatelessWidget {
-  const _PremiumOverviewSkeleton({
-    this.embedOnOwnerOverviewGradient = false,
-  });
-
-  final bool embedOnOwnerOverviewGradient;
+  const _PremiumOverviewSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final embed = embedOnOwnerOverviewGradient;
     return ListView(
-      clipBehavior: embed ? Clip.none : Clip.hardEdge,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(
-        18,
-        embed ? 20.0 : 18.0,
-        18,
+      padding: EdgeInsetsDirectional.fromSTEB(
+        _kOwnerPremiumOverviewHorizontalPadding,
+        6,
+        _kOwnerPremiumOverviewHorizontalPadding,
         OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
       ),
       children: [
@@ -279,8 +251,6 @@ class _BusinessOverviewCard extends StatelessWidget {
     required this.hourly,
     required this.locale,
     required this.l10n,
-    this.cardRadius = 20,
-    this.elevatedOnHeroGradient = false,
   });
 
   final OwnerOverviewState overview;
@@ -288,8 +258,6 @@ class _BusinessOverviewCard extends StatelessWidget {
   final List<double> hourly;
   final Locale locale;
   final AppLocalizations l10n;
-  final double cardRadius;
-  final bool elevatedOnHeroGradient;
 
   @override
   Widget build(BuildContext context) {
@@ -319,14 +287,12 @@ class _BusinessOverviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(cardRadius),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(
-              alpha: elevatedOnHeroGradient ? 0.08 : 0.06,
-            ),
-            blurRadius: elevatedOnHeroGradient ? 28 : 24,
-            offset: Offset(0, elevatedOnHeroGradient ? 12 : 10),
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
           ),
         ],
       ),

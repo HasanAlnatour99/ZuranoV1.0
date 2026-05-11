@@ -17,39 +17,6 @@ import '../../../logic/owner_overview_state.dart';
 /// Matches overview body canvas (light purple-gray).
 const Color kOwnerDashboardHeroCanvas = Color(0xFFF7F4FF);
 
-/// Full-width top fade: deep purple → brand purple → soft violet → canvas.
-/// Used under the owner overview header + first cards (not a hard rounded header block).
-class OwnerOverviewGradientBackdrop extends StatelessWidget {
-  const OwnerOverviewGradientBackdrop({super.key});
-
-  static const double preferredHeight = 320;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: SizedBox(
-        height: preferredHeight,
-        width: double.infinity,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: const [0.0, 0.42, 0.70, 1.0],
-              colors: [
-                const Color(0xFF4C18D8),
-                const Color(0xFF6D28F6),
-                Color(0xFF9D6CFF).withValues(alpha: 0.55),
-                kOwnerDashboardHeroCanvas,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 String _heroUserInitials(String name) {
   final parts = name.trim().split(RegExp(r'\s+'));
   if (parts.isEmpty) return '?';
@@ -105,19 +72,12 @@ class OwnerDashboardHeroHeader extends ConsumerWidget {
     super.key,
     required this.user,
     this.compact = false,
-
-    /// When true (Owner Overview with [OwnerOverviewGradientBackdrop]), no purple
-    /// rounded [Container] — content only, drawn on the shared top gradient.
-    this.overGradientBackdrop = false,
   });
 
   final AppUser user;
 
-  /// When true (e.g. Team tab), tighter padding and slightly smaller type.
+  /// When true (e.g. Team tab), shorter band, tighter padding and slightly smaller type.
   final bool compact;
-
-  /// Overview tab: transparent row on the stack gradient (no hard header block).
-  final bool overGradientBackdrop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -132,7 +92,6 @@ class OwnerDashboardHeroHeader extends ConsumerWidget {
       l10n: l10n,
       salonLabel: salonLabel,
       compact: compact,
-      overGradientBackdrop: overGradientBackdrop,
     );
   }
 }
@@ -145,7 +104,6 @@ Widget _buildOwnerHeroHeader({
   required AppLocalizations l10n,
   required String salonLabel,
   bool compact = false,
-  bool overGradientBackdrop = false,
 }) {
   final isRtl = Directionality.of(context) == TextDirection.rtl;
   final displayName = _resolveDisplayName(user, state);
@@ -180,19 +138,15 @@ Widget _buildOwnerHeroHeader({
   final narrow = mq.width < 360;
 
   final heroPadding = compact
-      ? EdgeInsets.fromLTRB(
+      ? EdgeInsetsDirectional.fromSTEB(
           narrow ? 16.0 : 18.0,
           8,
           narrow ? 16.0 : 18.0,
-          18,
+          14,
         )
-      : overGradientBackdrop
-          ? const EdgeInsets.fromLTRB(28, 12, 28, 18)
-          : const EdgeInsets.fromLTRB(22, 14, 22, 28);
+      : const EdgeInsetsDirectional.fromSTEB(30, 16, 30, 12);
 
-  final avatarRadius = compact
-      ? 20.0
-      : (overGradientBackdrop ? 28.0 : 27.0);
+  final avatarRadius = compact ? 20.0 : 28.0;
   final actionSize = compact ? 46.0 : 52.0;
   final actionIconSize = compact ? 22.0 : 24.0;
   final avatarTextGap = compact ? 12.0 : 14.0;
@@ -343,45 +297,87 @@ Widget _buildOwnerHeroHeader({
     ],
   );
 
-  if (overGradientBackdrop) {
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: heroPadding,
-        child: heroRow,
-      ),
-    );
-  }
+  /// Dark purple band: quick fade to [kOwnerDashboardHeroCanvas] (no wide pale band).
+  final headerHeight = compact ? 148.0 : 184.0;
 
-  return Container(
+  return SizedBox(
     width: double.infinity,
-    padding: heroPadding,
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Color(0xFF5B2BE0), Color(0xFF7B3FF2), Color(0xFFA77BFF)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+    height: headerHeight,
+    child: ClipRect(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.52, 0.78, 1.0],
+                colors: [
+                  const Color(0xFF3F13C8),
+                  const Color(0xFF5B22E8),
+                  const Color(0xFF7B3FF2).withValues(alpha: 0.92),
+                  kOwnerDashboardHeroCanvas,
+                ],
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.08),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.05),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (!compact)
+            PositionedDirectional(
+              end: -80,
+              top: -70,
+              child: IgnorePointer(
+                child: Container(
+                  width: 220,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: heroPadding,
+              child: heroRow,
+            ),
+          ),
+        ],
       ),
-      borderRadius: BorderRadius.only(
-        bottomLeft: Radius.circular(34),
-        bottomRight: Radius.circular(34),
-      ),
-    ),
-    child: SafeArea(
-      bottom: false,
-      child: heroRow,
     ),
   );
 }
 
-/// Owner shell tab layout: hero + overlapping scroll body (same as overview).
+/// Owner shell tab layout: fixed-height hero band + scroll body (no body overlap).
 class OwnerDashboardHeroTabScaffold extends StatelessWidget {
   const OwnerDashboardHeroTabScaffold({
     super.key,
     required this.user,
     required this.body,
     this.bodyScaffoldBackgroundColor,
-    this.enableBodyOverlap = true,
+    this.enableBodyOverlap = false,
     this.compactHero = false,
   });
 
@@ -408,13 +404,12 @@ class OwnerDashboardHeroTabScaffold extends StatelessWidget {
             compact: compactHero,
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(top: enableBodyOverlap ? 0 : 16),
-              child: Transform.translate(
-                offset: Offset(0, enableBodyOverlap ? -18 : 0),
-                child: body,
-              ),
-            ),
+            child: enableBodyOverlap
+                ? Transform.translate(
+                    offset: const Offset(0, -18),
+                    child: body,
+                  )
+                : body,
           ),
         ],
       ),
