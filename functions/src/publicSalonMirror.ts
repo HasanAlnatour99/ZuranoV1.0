@@ -83,6 +83,29 @@ export function geoFromAttendanceDoc(a: DocumentData): { latitude: number; longi
   return null;
 }
 
+function publicVisibilityFromSalonDoc(s: DocumentData, isActive: boolean): {
+  isPublic: boolean;
+  isPublished: boolean;
+} {
+  const rootHasIsPublic = typeof s.isPublic === "boolean";
+  const rootHasIsPublished = typeof s.isPublished === "boolean";
+  const publicFlag = rootHasIsPublic
+    ? s.isPublic === true
+    : rootHasIsPublished
+      ? s.isPublished === true
+      : false;
+  const publishedFlag = rootHasIsPublished
+    ? s.isPublished === true
+    : rootHasIsPublic
+      ? s.isPublic === true
+      : false;
+
+  return {
+    isPublic: publicFlag && isActive,
+    isPublished: publishedFlag && isActive,
+  };
+}
+
 /**
  * Prefer coordinates on `salons/{salonId}`; if missing, use punch zone under
  * `salons/{salonId}/settings/attendance`.
@@ -124,7 +147,7 @@ export function salonToPublicSalonPayload(
   }
 
   const isActive = s.isActive !== false;
-  const isPublic = s.isPublic === true && isActive;
+  const visibility = publicVisibilityFromSalonDoc(s, isActive);
 
   const rootGeo = geoFromSalonDoc(s);
   const latitude = resolvedGeo?.latitude ?? rootGeo.latitude;
@@ -189,10 +212,9 @@ export function salonToPublicSalonPayload(
           ...(geoHashValue != null && geoHashValue.length > 0 ? { geohash: geoHashValue } : {}),
         }
       : {}),
-    isPublic,
+    isPublic: visibility.isPublic,
     isActive,
-    // Legacy mirror — do not use for rules/queries; visibility is `isActive && isPublic`.
-    ...(typeof s.isPublished === "boolean" ? { isPublished: s.isPublished } : {}),
+    isPublished: visibility.isPublished,
     isOpen: s.isOpen === true,
     isPromoted: s.isPromoted === true,
     ratingAverage: ratingAverageRaw != null ? Math.min(5, Math.max(0, ratingAverageRaw)) : 0,
