@@ -119,7 +119,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
     Widget content() {
       final listState = listAsync.asData?.value ?? CustomerListState.initial();
-      if (listAsync.isLoading || listState.isLoadingInitial) {
+      // Match team pattern: ignore transient [AsyncLoading] once we have data.
+      // Otherwise brief notifier reloads full-screen block the whole tab.
+      final blockingListLoad = listState.isLoadingInitial ||
+          (listAsync.isLoading && !listAsync.hasValue);
+      if (blockingListLoad) {
         return const Center(
           child: CircularProgressIndicator(
             color: FinanceDashboardColors.primaryPurple,
@@ -352,16 +356,6 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 ),
             ],
           );
-    }
-
-    final controller = ref.read(customerListControllerProvider.notifier);
-    final listState = listAsync.asData?.value ?? CustomerListState.initial();
-    if (salonId.isNotEmpty &&
-        listState.customers.isEmpty &&
-        !listState.isLoadingInitial) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.loadInitial();
-      });
     }
 
     final bodyChild = salonId.isEmpty ? const SizedBox.shrink() : content();

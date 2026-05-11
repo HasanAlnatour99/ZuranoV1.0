@@ -1634,6 +1634,12 @@ abstract class AppLocalizations {
   /// **'Workspace'**
   String get ownerDashboardTitle;
 
+  /// No description provided for @ownerDashboardHeroProBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get ownerDashboardHeroProBadge;
+
   /// No description provided for @ownerAiAssistantTooltip.
   ///
   /// In en, this message translates to:
@@ -6020,6 +6026,12 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get customerProfileActionShare;
 
+  /// Tooltip for the salon profile overflow menu (call, WhatsApp, map, share).
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get customerSalonProfileMoreActionsTooltip;
+
   /// No description provided for @customerProfileEmptyServices.
   ///
   /// In en, this message translates to:
@@ -9845,6 +9857,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} checked in'**
   String ownerOverviewTeamCheckedInShort(int count);
+
+  /// No description provided for @ownerPremiumOverviewBusinessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business overview'**
+  String get ownerPremiumOverviewBusinessTitle;
+
+  /// No description provided for @ownerPremiumOverviewTeamOnDutyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team on duty'**
+  String get ownerPremiumOverviewTeamOnDutyTitle;
+
+  /// No description provided for @ownerPremiumOverviewSmartInsightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart insight'**
+  String get ownerPremiumOverviewSmartInsightTitle;
+
+  /// No description provided for @ownerPremiumOverviewViewInsight.
+  ///
+  /// In en, this message translates to:
+  /// **'View insight'**
+  String get ownerPremiumOverviewViewInsight;
+
+  /// No description provided for @ownerPremiumOverviewNewBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'New booking'**
+  String get ownerPremiumOverviewNewBooking;
+
+  /// No description provided for @ownerPremiumOverviewTeamMembersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{checkedIn} of {total} members'**
+  String ownerPremiumOverviewTeamMembersCount(int checkedIn, int total);
 
   /// No description provided for @ownerOverviewTeamEmptyTitle.
   ///
@@ -19107,6 +19155,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'style'**
   String get zuranoHomeHeadlineHighlight;
+
+  /// No description provided for @zuranoHomeHeroFindYour.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your'**
+  String get zuranoHomeHeroFindYour;
+
+  /// No description provided for @zuranoHomeHeroPerfectStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'perfect style'**
+  String get zuranoHomeHeroPerfectStyle;
+
+  /// No description provided for @zuranoHomeHeroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book barber, salon, or spa near you'**
+  String get zuranoHomeHeroSubtitle;
+
+  /// No description provided for @zuranoHomeSearchBarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search barber, salon, service...'**
+  String get zuranoHomeSearchBarHint;
+
+  /// No description provided for @zuranoQuickFilterNearbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get zuranoQuickFilterNearbyTitle;
+
+  /// No description provided for @zuranoQuickFilterNearbySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Around you'**
+  String get zuranoQuickFilterNearbySubtitle;
+
+  /// No description provided for @zuranoQuickFilterOpenNowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get zuranoQuickFilterOpenNowTitle;
+
+  /// No description provided for @zuranoQuickFilterOpenNowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops open'**
+  String get zuranoQuickFilterOpenNowSubtitle;
+
+  /// No description provided for @zuranoQuickFilterAvailableTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Available today'**
+  String get zuranoQuickFilterAvailableTodayTitle;
+
+  /// No description provided for @zuranoQuickFilterAvailableTodaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Book today'**
+  String get zuranoQuickFilterAvailableTodaySubtitle;
+
+  /// No description provided for @zuranoCategoriesViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get zuranoCategoriesViewAll;
+
+  /// No description provided for @zuranoCategoriesEmptyHome.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet'**
+  String get zuranoCategoriesEmptyHome;
+
+  /// No description provided for @zuranoAvailableTodayBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find salons with open slots book instantly.'**
+  String get zuranoAvailableTodayBannerSubtitle;
+
+  /// No description provided for @zuranoNearbyOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get zuranoNearbyOpenNow;
+
+  /// No description provided for @zuranoNearbyClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get zuranoNearbyClosed;
+
+  /// No description provided for @zuranoNearbyRatingLine.
+  ///
+  /// In en, this message translates to:
+  /// **'★ {rating} ({reviews})'**
+  String zuranoNearbyRatingLine(String rating, int reviews);
+
+  /// No description provided for @zuranoSpecialistYearsExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} years exp.'**
+  String zuranoSpecialistYearsExperience(int years);
+
+  /// No description provided for @zuranoRecentActivityViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get zuranoRecentActivityViewAll;
 
   /// No description provided for @zuranoHomeLocationLoading.
   ///

@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/firestore/firestore_serializers.dart';
+
 /// Customer-safe specialist row from `customerDiscovery/specialists/items/{specialistId}`.
 ///
 /// Maintained by Cloud Functions from private `salons/{salonId}/employees/{employeeId}`.
-/// The customer app MUST NOT read the private employee doc; this is the only
-/// specialist surface for customer discovery.
+///
+/// Home/search parity: [fromCustomerSearchIndex] maps the same `customerSearchIndex`
+/// documents as search (`functions/src/customerSearchIndex.ts`) when the discovery
+/// collection is empty or not mirrored yet.
 ///
 /// Privacy contract: this model intentionally has no payroll, attendance,
 /// commission, salary, hours-worked, or any private HR fields.
@@ -116,6 +120,60 @@ class PublicSpecialistDiscoveryModel {
       nextAvailableSlotText: trimmed(data['nextAvailableSlotText']).isEmpty
           ? null
           : trimmed(data['nextAvailableSlotText']),
+    );
+  }
+
+  /// Maps `customerSearchIndex/{docId}` specialist rows (same pipeline as search).
+  factory PublicSpecialistDiscoveryModel.fromCustomerSearchIndex(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data() ?? const <String, dynamic>{};
+    final title = (FirestoreSerializers.string(data['title']) ?? '').trim();
+    final subtitle = (FirestoreSerializers.string(data['subtitle']) ?? '').trim();
+    final parts = subtitle
+        .split(RegExp(r'\s*•\s*'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final roleTitle = parts.isNotEmpty ? parts[0] : '';
+    final salonName =
+        parts.length > 1 ? parts.sublist(1).join(' • ') : '';
+
+    final targetRaw = FirestoreSerializers.string(data['targetId'])?.trim();
+    final salonId =
+        (FirestoreSerializers.string(data['salonId']) ?? '').trim();
+
+    final photo = (FirestoreSerializers.string(data['imageUrl']) ?? '').trim();
+    final cc =
+        (FirestoreSerializers.string(data['countryCode']) ?? '').trim().toUpperCase();
+    final city = (FirestoreSerializers.string(data['city']) ?? '').trim();
+
+    var ratingAvg = FirestoreSerializers.doubleValue(data['ratingAvg']);
+    ratingAvg = ratingAvg.clamp(0.0, 5.0);
+    final ratingCount = FirestoreSerializers.intValue(data['ratingCount']);
+
+    final specialistId = (targetRaw != null && targetRaw.isNotEmpty)
+        ? targetRaw
+        : doc.id;
+
+    return PublicSpecialistDiscoveryModel(
+      specialistId: specialistId,
+      salonId: salonId,
+      salonName: salonName.isNotEmpty ? salonName : '—',
+      displayName: title.isNotEmpty ? title : '—',
+      roleTitle: roleTitle.isNotEmpty ? roleTitle : '—',
+      photoUrl: photo,
+      ratingAvg: ratingAvg,
+      ratingCount: ratingCount,
+      serviceCategoryIds: const [],
+      isActive: data['isActive'] != false,
+      visibleToCustomers: true,
+      acceptsBookings: true,
+      availableToday: data['availableToday'] == true,
+      countryCode: cc,
+      city: city,
+      sortOrder: 0,
+      nextAvailableSlotText: null,
     );
   }
 }

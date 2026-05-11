@@ -23,8 +23,11 @@ final bookingLookupRepositoryProvider = Provider<BookingLookupRepository>((ref) 
 /// Find Booking tab: first three account bookings + whether to show **View all**.
 final customerAccountBookingsForFindProvider =
     FutureProvider.autoDispose<CustomerAccountBookingsPreview>((ref) async {
-      final uid =
-          (ref.watch(sessionUserProvider).asData?.value?.uid ?? '').trim();
+      final uid = ref.watch(
+        sessionUserProvider.select(
+          (async) => async.asData?.value?.uid.trim() ?? '',
+        ),
+      );
       if (uid.isEmpty) {
         return const CustomerAccountBookingsPreview(
           items: [],

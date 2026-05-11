@@ -131,6 +131,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/customer_home_hero.png
     - assets/images/zurano_icon.png
     - assets/images/zurano_icon_nav.png
     - assets/images/onboarding_0.png

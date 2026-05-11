@@ -29,104 +29,6 @@ Future<void> _toggleDashboardLocale(WidgetRef ref) async {
   await ref.read(appLocalePreferenceProvider.notifier).setLocale(next);
 }
 
-class _OwnerAiAssistantAppBarButton extends StatefulWidget {
-  const _OwnerAiAssistantAppBarButton({required this.tooltip});
-
-  final String tooltip;
-
-  @override
-  State<_OwnerAiAssistantAppBarButton> createState() =>
-      _OwnerAiAssistantAppBarButtonState();
-}
-
-class _OwnerAiAssistantAppBarButtonState
-    extends State<_OwnerAiAssistantAppBarButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _scaleController = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 220),
-  );
-
-  late final Animation<double> _scale = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween<double>(
-        begin: 1,
-        end: 0.95,
-      ).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 42,
-    ),
-    TweenSequenceItem(
-      tween: Tween<double>(
-        begin: 0.95,
-        end: 1,
-      ).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 58,
-    ),
-  ]).animate(_scaleController);
-
-  @override
-  void dispose() {
-    _scaleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onTap(BuildContext context) async {
-    await _scaleController.forward(from: 0);
-    if (!context.mounted) return;
-    await context.push(AppRoutes.ownerDashboardAssistant);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: widget.tooltip,
-      child: ListenableBuilder(
-        listenable: _scaleController,
-        builder: (context, _) {
-          return Transform.scale(
-            scale: _scale.value,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7B61FF), Color(0xFF9F7BFF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF7B61FF).withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  splashColor: Colors.white.withValues(alpha: 0.2),
-                  highlightColor: Colors.white.withValues(alpha: 0.08),
-                  onTap: () => _onTap(context),
-                  child: const Center(
-                    child: Icon(
-                      Icons.auto_awesome,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 class OwnerDashboardScreen extends ConsumerStatefulWidget {
   const OwnerDashboardScreen({
     super.key,
@@ -247,7 +149,6 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
 
     final appBarActions = <Widget>[
       _NotificationsButton(l10n: l10n),
-      _OwnerAiAssistantAppBarButton(tooltip: l10n.ownerAiAssistantTooltip),
       IconButton(
         tooltip: l10n.ownerTooltipLanguageShort,
         onPressed: () => _toggleDashboardLocale(ref),
@@ -260,12 +161,9 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
       ),
     ];
 
+    /// No AI/sparkle in shell chrome — matches premium purple hero (notification + settings only there).
+    /// Dashboard assistant: center FAB quick sheet (see [_showOwnerShellQuickActions]).
     final railActions = <AdaptiveShellRailAction>[
-      AdaptiveShellRailAction(
-        icon: const Icon(AppIcons.auto_awesome_outlined),
-        tooltip: l10n.ownerAiAssistantTooltip,
-        onTap: () => context.push(AppRoutes.ownerDashboardAssistant),
-      ),
       AdaptiveShellRailAction(
         icon: _NotificationsBadgeIcon(),
         tooltip: l10n.notificationsInboxTooltip,
@@ -371,6 +269,11 @@ Future<void> _showOwnerShellQuickActions(BuildContext context) async {
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSpacing.small),
+              _OwnerQuickActionTile(
+                icon: AppIcons.auto_awesome_outlined,
+                label: l10n.aiAssistantTitle,
+                onTap: () => popAndPush(AppRoutes.ownerDashboardAssistant),
+              ),
               _OwnerQuickActionTile(
                 icon: AppIcons.badge_outlined,
                 label: l10n.teamAddBarberAction,

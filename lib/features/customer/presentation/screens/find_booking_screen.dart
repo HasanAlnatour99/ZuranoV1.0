@@ -775,6 +775,7 @@ class UpperCaseTextFormatter extends TextInputFormatter {
 class _RecentGuestBookingRow {
   const _RecentGuestBookingRow({
     required this.salonId,
+    required this.salonName,
     required this.bookingId,
     required this.bookingCode,
     required this.startAt,
@@ -782,6 +783,8 @@ class _RecentGuestBookingRow {
   });
 
   final String salonId;
+  /// Denormalized on booking docs — avoids `publicSalons/{salonId}` reads on guests.
+  final String salonName;
   final String bookingId;
   final String bookingCode;
   final DateTime startAt;
@@ -792,6 +795,8 @@ class _RecentGuestBookingRow {
     String documentId,
   ) {
     final sid = (json['salonId'] as String?)?.trim() ?? '';
+    final nameRaw = json['salonName'];
+    final name = nameRaw is String ? nameRaw.trim() : '';
     final storedId = (json['id'] as String?)?.trim() ?? '';
     final bid = storedId.isNotEmpty ? storedId : documentId;
     final code = (json['bookingCode'] as String?)?.trim() ?? '';
@@ -804,6 +809,7 @@ class _RecentGuestBookingRow {
     final st = (json['status'] as String?)?.trim() ?? '';
     return _RecentGuestBookingRow(
       salonId: sid,
+      salonName: name,
       bookingId: bid,
       bookingCode: code,
       startAt: startAt,
@@ -812,13 +818,13 @@ class _RecentGuestBookingRow {
   }
 }
 
-class _GuestRecentBookingCard extends ConsumerWidget {
+class _GuestRecentBookingCard extends StatelessWidget {
   const _GuestRecentBookingCard({required this.row});
 
   final _RecentGuestBookingRow row;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -826,9 +832,11 @@ class _GuestRecentBookingCard extends ConsumerWidget {
     final dateFmt = DateFormat.yMMMd(locale.toString());
     final timeFmt = DateFormat.jm(locale.toString());
 
-    final publicSalonRef = ref
-        .watch(firestoreProvider)
-        .doc('publicSalons/${row.salonId}');
+    final salonTitle = row.salonName.trim().isNotEmpty
+        ? row.salonName.trim()
+        : (row.salonId.trim().isNotEmpty
+            ? row.salonId
+            : l10n.customerBookingReviewSalon);
 
     return Material(
       color: scheme.surface,
@@ -866,43 +874,30 @@ class _GuestRecentBookingCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: FutureBuilder<String>(
-                      future: publicSalonRef.get().then((snap) {
-                        final raw = snap.data()?['name'];
-                        final name = raw is String ? raw.trim() : '';
-                        return name.isEmpty ? row.salonId : name;
-                      }),
-                      builder: (context, snap) {
-                        final salonName =
-                            (snap.data ?? row.salonId).trim().isEmpty
-                                ? l10n.customerBookingReviewSalon
-                                : (snap.data ?? row.salonId);
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              salonName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: AppColorsLight.textPrimary,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              row.bookingCode.isEmpty
-                                  ? row.bookingId
-                                  : row.bookingCode,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppBrandColors.primary,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          salonTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: AppColorsLight.textPrimary,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          row.bookingCode.isEmpty
+                              ? row.bookingId
+                              : row.bookingCode,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppBrandColors.primary,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   _CompactStatusPill(status: row.status),

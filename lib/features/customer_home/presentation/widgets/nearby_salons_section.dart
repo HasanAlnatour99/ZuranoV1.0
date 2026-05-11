@@ -26,9 +26,10 @@ const int _kNearbyDisplayLimit = 5;
 
 /// Customer home "Nearby salons" section.
 ///
-/// Reads from the canonical [nearbySalonsProvider] (`publicSalons` filtered by
-/// active/published/public + valid `location`). The "View map" action is
-/// guarded — if no salon has a valid `GeoPoint`, we surface a SnackBar instead
+/// Reads from the canonical [nearbySalonsProvider] (`publicSalons`, discovery-
+/// visible rows). Salons may omit `location` on the mirror; list cards hide
+/// distance until coordinates exist. The "View map" action is guarded — if no
+/// salon has a valid `GeoPoint`, we surface a SnackBar instead
 /// of pushing the map route with empty markers (avoids iOS Google Maps crash
 /// when bounds collapse to a single null point).
 class NearbySalonsSection extends ConsumerWidget {

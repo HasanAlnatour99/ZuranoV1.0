@@ -838,6 +838,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerDashboardTitle => 'Workspace';
 
   @override
+  String get ownerDashboardHeroProBadge => 'Pro';
+
+  @override
   String get ownerAiAssistantTooltip => 'Open dashboard assistant';
 
   @override
@@ -3294,6 +3297,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerProfileActionShare => 'Share';
 
   @override
+  String get customerSalonProfileMoreActionsTooltip => 'More actions';
+
+  @override
   String get customerProfileEmptyServices => 'No services available yet.';
 
   @override
@@ -5588,6 +5594,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String ownerOverviewTeamCheckedInShort(int count) {
     return '$count checked in';
+  }
+
+  @override
+  String get ownerPremiumOverviewBusinessTitle => 'Business overview';
+
+  @override
+  String get ownerPremiumOverviewTeamOnDutyTitle => 'Team on duty';
+
+  @override
+  String get ownerPremiumOverviewSmartInsightTitle => 'Smart insight';
+
+  @override
+  String get ownerPremiumOverviewViewInsight => 'View insight';
+
+  @override
+  String get ownerPremiumOverviewNewBooking => 'New booking';
+
+  @override
+  String ownerPremiumOverviewTeamMembersCount(int checkedIn, int total) {
+    return '$checkedIn of $total members';
   }
 
   @override
@@ -10868,6 +10894,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zuranoHomeHeadlineHighlight => 'style';
+
+  @override
+  String get zuranoHomeHeroFindYour => 'Find your';
+
+  @override
+  String get zuranoHomeHeroPerfectStyle => 'perfect style';
+
+  @override
+  String get zuranoHomeHeroSubtitle => 'Book barber, salon, or spa near you';
+
+  @override
+  String get zuranoHomeSearchBarHint => 'Search barber, salon, service...';
+
+  @override
+  String get zuranoQuickFilterNearbyTitle => 'Nearby';
+
+  @override
+  String get zuranoQuickFilterNearbySubtitle => 'Around you';
+
+  @override
+  String get zuranoQuickFilterOpenNowTitle => 'Open now';
+
+  @override
+  String get zuranoQuickFilterOpenNowSubtitle => 'Shops open';
+
+  @override
+  String get zuranoQuickFilterAvailableTodayTitle => 'Available today';
+
+  @override
+  String get zuranoQuickFilterAvailableTodaySubtitle => 'Book today';
+
+  @override
+  String get zuranoCategoriesViewAll => 'View all';
+
+  @override
+  String get zuranoCategoriesEmptyHome => 'No categories yet';
+
+  @override
+  String get zuranoAvailableTodayBannerSubtitle =>
+      'Find salons with open slots book instantly.';
+
+  @override
+  String get zuranoNearbyOpenNow => 'Open now';
+
+  @override
+  String get zuranoNearbyClosed => 'Closed';
+
+  @override
+  String zuranoNearbyRatingLine(String rating, int reviews) {
+    return '★ $rating ($reviews)';
+  }
+
+  @override
+  String zuranoSpecialistYearsExperience(int years) {
+    return '$years years exp.';
+  }
+
+  @override
+  String get zuranoRecentActivityViewAll => 'View all';
 
   @override
   String get zuranoHomeLocationLoading => 'Finding location…';
