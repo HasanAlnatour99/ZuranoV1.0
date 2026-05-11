@@ -39,10 +39,16 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
   const OwnerPremiumOverviewBody({
     super.key,
     required this.user,
+
+    /// When true (Owner Overview + shared top backdrop), body canvas is transparent so
+    /// the parent gradient shows behind the first card and chart area.
+    this.sharedTopBackdrop = false,
   });
 
   /// Wired for hero/header parity and future personalization; overview data is provider-driven.
   final AppUser user;
+
+  final bool sharedTopBackdrop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,9 +61,11 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     final monthly = monthlyAsync.asData?.value;
 
     if (overview.isLoading) {
-      return const ColoredBox(
-        color: _OwnerPremiumColors.background,
-        child: _PremiumOverviewSkeleton(),
+      return ColoredBox(
+        color: sharedTopBackdrop
+            ? Colors.transparent
+            : _OwnerPremiumColors.background,
+        child: _PremiumOverviewSkeleton(sharedTopBackdrop: sharedTopBackdrop),
       );
     }
 
@@ -86,9 +94,13 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
         ? l10n.ownerOverviewInsightTopServiceWeek(monthly!.topServiceName!.trim())
         : null;
 
+    final listTop = sharedTopBackdrop ? 4.0 : 6.0;
+
     return ColoredBox(
       key: ValueKey<String>(user.uid),
-      color: _OwnerPremiumColors.background,
+      color: sharedTopBackdrop
+          ? Colors.transparent
+          : _OwnerPremiumColors.background,
       child: Stack(
         children: [
           RefreshIndicator(
@@ -102,7 +114,7 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
               ),
               padding: EdgeInsetsDirectional.fromSTEB(
                 _kOwnerPremiumOverviewHorizontalPadding,
-                6,
+                listTop,
                 _kOwnerPremiumOverviewHorizontalPadding,
                 OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
               ),
@@ -175,7 +187,9 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
 }
 
 class _PremiumOverviewSkeleton extends StatelessWidget {
-  const _PremiumOverviewSkeleton();
+  const _PremiumOverviewSkeleton({this.sharedTopBackdrop = false});
+
+  final bool sharedTopBackdrop;
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +197,7 @@ class _PremiumOverviewSkeleton extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsetsDirectional.fromSTEB(
         _kOwnerPremiumOverviewHorizontalPadding,
-        6,
+        sharedTopBackdrop ? 4.0 : 6.0,
         _kOwnerPremiumOverviewHorizontalPadding,
         OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
       ),

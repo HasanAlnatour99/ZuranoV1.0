@@ -72,12 +72,18 @@ class OwnerDashboardHeroHeader extends ConsumerWidget {
     super.key,
     required this.user,
     this.compact = false,
+
+    /// Owner Overview: no local purple paint — row sits on [OwnerOverviewSection] backdrop.
+    this.transparentOnSharedBackdrop = false,
   });
 
   final AppUser user;
 
   /// When true (e.g. Team tab), shorter band, tighter padding and slightly smaller type.
   final bool compact;
+
+  /// When true, header is content-only (no gradient / rounded purple block).
+  final bool transparentOnSharedBackdrop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -92,6 +98,7 @@ class OwnerDashboardHeroHeader extends ConsumerWidget {
       l10n: l10n,
       salonLabel: salonLabel,
       compact: compact,
+      transparentOnSharedBackdrop: transparentOnSharedBackdrop,
     );
   }
 }
@@ -104,6 +111,7 @@ Widget _buildOwnerHeroHeader({
   required AppLocalizations l10n,
   required String salonLabel,
   bool compact = false,
+  bool transparentOnSharedBackdrop = false,
 }) {
   final isRtl = Directionality.of(context) == TextDirection.rtl;
   final displayName = _resolveDisplayName(user, state);
@@ -144,7 +152,9 @@ Widget _buildOwnerHeroHeader({
           narrow ? 16.0 : 18.0,
           14,
         )
-      : const EdgeInsetsDirectional.fromSTEB(30, 16, 30, 12);
+      : transparentOnSharedBackdrop
+          ? const EdgeInsetsDirectional.fromSTEB(30, 12, 30, 14)
+          : const EdgeInsetsDirectional.fromSTEB(30, 16, 30, 12);
 
   final avatarRadius = compact ? 20.0 : 28.0;
   final actionSize = compact ? 46.0 : 52.0;
@@ -297,7 +307,22 @@ Widget _buildOwnerHeroHeader({
     ],
   );
 
-  /// Dark purple band: quick fade to [kOwnerDashboardHeroCanvas] (no wide pale band).
+  if (transparentOnSharedBackdrop) {
+    final headerHeight = compact ? 142.0 : 160.0;
+    return SizedBox(
+      width: double.infinity,
+      height: headerHeight,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: heroPadding,
+          child: heroRow,
+        ),
+      ),
+    );
+  }
+
+  /// Tab shell: self-contained purple band (Owner Overview uses shared backdrop instead).
   final headerHeight = compact ? 148.0 : 184.0;
 
   return SizedBox(
