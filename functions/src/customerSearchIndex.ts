@@ -1,9 +1,11 @@
 import { FieldValue, GeoPoint, Timestamp, type DocumentData } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import * as ngeohash from "ngeohash";
 
 import { db } from "./bookingShared";
 
 const REGION = "us-central1" as const;
+const CUSTOMER_SEARCH_GEOHASH_PRECISION = 10;
 
 function str(data: DocumentData, key: string): string {
   const v = data[key];
@@ -140,6 +142,31 @@ function geoFromDoc(d: DocumentData): GeoPoint | null {
   return null;
 }
 
+export function serviceIndexGeoPayload(
+  latitude: number,
+  longitude: number,
+): Record<string, unknown> {
+  return {
+    latitude,
+    longitude,
+    location: new GeoPoint(latitude, longitude),
+    geohash: ngeohash.encode(latitude, longitude, CUSTOMER_SEARCH_GEOHASH_PRECISION),
+  };
+}
+
+function geoPayloadFromDoc(d: DocumentData): Record<string, unknown> {
+  const point = geoFromDoc(d);
+  if (!point) {
+    return {
+      latitude: null,
+      longitude: null,
+      location: null,
+      geohash: null,
+    };
+  }
+  return serviceIndexGeoPayload(point.latitude, point.longitude);
+}
+
 function truthyBool(v: unknown, fallback: boolean): boolean {
   return typeof v === "boolean" ? v : fallback;
 }
@@ -240,7 +267,7 @@ export async function upsertSalonSearchIndexFromFirestore(salonId: string): Prom
     searchPrefixes: buildSearchPrefixes(derivedKeywords),
     availableToday: availability.availableToday,
     nextAvailableAt: availability.nextAvailableAt,
-    location: geoFromDoc(s),
+    ...geoPayloadFromDoc(s),
     serviceCount,
     teamCount,
     updatedAt: FieldValue.serverTimestamp(),
@@ -311,7 +338,7 @@ export async function upsertServiceSearchIndexFromFirestore(
     searchPrefixes: buildSearchPrefixes(derivedKeywords),
     availableToday: availability.availableToday,
     nextAvailableAt: availability.nextAvailableAt,
-    location: geoFromDoc(salon),
+    ...geoPayloadFromDoc(salon),
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),
   };
@@ -398,7 +425,7 @@ export async function upsertEmployeeSearchIndexFromFirestore(
     searchPrefixes: buildSearchPrefixes(derivedKeywords),
     availableToday: availability.availableToday,
     nextAvailableAt: availability.nextAvailableAt,
-    location: geoFromDoc(salon),
+    ...geoPayloadFromDoc(salon),
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),
   };
