@@ -37,10 +37,16 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
   const OwnerPremiumOverviewBody({
     super.key,
     required this.user,
+
+    /// When true (Owner Overview + [OwnerOverviewGradientBackdrop]), body canvas is
+    /// transparent so the top gradient shows through; first card uses a larger radius.
+    this.embedOnOwnerOverviewGradient = false,
   });
 
   /// Wired for hero/header parity and future personalization; overview data is provider-driven.
   final AppUser user;
+
+  final bool embedOnOwnerOverviewGradient;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,9 +59,13 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     final monthly = monthlyAsync.asData?.value;
 
     if (overview.isLoading) {
-      return const ColoredBox(
-        color: _OwnerPremiumColors.background,
-        child: _PremiumOverviewSkeleton(),
+      return ColoredBox(
+        color: embedOnOwnerOverviewGradient
+            ? Colors.transparent
+            : _OwnerPremiumColors.background,
+        child: _PremiumOverviewSkeleton(
+          embedOnOwnerOverviewGradient: embedOnOwnerOverviewGradient,
+        ),
       );
     }
 
@@ -84,9 +94,28 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
         ? l10n.ownerOverviewInsightTopServiceWeek(monthly!.topServiceName!.trim())
         : null;
 
+    final embed = embedOnOwnerOverviewGradient;
+    final listTopPadding = embed ? 20.0 : 18.0;
+
+    Widget businessOverview = _BusinessOverviewCard(
+      overview: overview,
+      revenueToday: revenueToday,
+      hourly: overview.todayHourlyRevenue,
+      locale: locale,
+      l10n: l10n,
+      cardRadius: embed ? 30 : 20,
+      elevatedOnHeroGradient: embed,
+    );
+    if (embed) {
+      businessOverview = Transform.translate(
+        offset: const Offset(0, -8),
+        child: businessOverview,
+      );
+    }
+
     return ColoredBox(
       key: ValueKey<String>(user.uid),
-      color: _OwnerPremiumColors.background,
+      color: embed ? Colors.transparent : _OwnerPremiumColors.background,
       child: Stack(
         children: [
           RefreshIndicator(
@@ -95,24 +124,19 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
                 .read(ownerDashboardActionsControllerProvider.notifier)
                 .refresh(),
             child: ListView(
+              clipBehavior: embed ? Clip.none : Clip.hardEdge,
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
               padding: EdgeInsets.fromLTRB(
                 18,
-                18,
+                listTopPadding,
                 18,
                 OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
               ),
               children: [
                 if (overview.hasError) _ErrorHintCard(message: l10n.genericError),
-                _BusinessOverviewCard(
-                  overview: overview,
-                  revenueToday: revenueToday,
-                  hourly: overview.todayHourlyRevenue,
-                  locale: locale,
-                  l10n: l10n,
-                ),
+                businessOverview,
                 const Gap(16),
                 _QuickActionsRow(l10n: l10n),
                 const Gap(18),
@@ -173,15 +197,21 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
 }
 
 class _PremiumOverviewSkeleton extends StatelessWidget {
-  const _PremiumOverviewSkeleton();
+  const _PremiumOverviewSkeleton({
+    this.embedOnOwnerOverviewGradient = false,
+  });
+
+  final bool embedOnOwnerOverviewGradient;
 
   @override
   Widget build(BuildContext context) {
+    final embed = embedOnOwnerOverviewGradient;
     return ListView(
+      clipBehavior: embed ? Clip.none : Clip.hardEdge,
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
         18,
-        18,
+        embed ? 20.0 : 18.0,
         18,
         OwnerZuranoBottomNav.ownerShellScrollBottomPadding(context),
       ),
@@ -249,6 +279,8 @@ class _BusinessOverviewCard extends StatelessWidget {
     required this.hourly,
     required this.locale,
     required this.l10n,
+    this.cardRadius = 20,
+    this.elevatedOnHeroGradient = false,
   });
 
   final OwnerOverviewState overview;
@@ -256,6 +288,8 @@ class _BusinessOverviewCard extends StatelessWidget {
   final List<double> hourly;
   final Locale locale;
   final AppLocalizations l10n;
+  final double cardRadius;
+  final bool elevatedOnHeroGradient;
 
   @override
   Widget build(BuildContext context) {
@@ -285,12 +319,14 @@ class _BusinessOverviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(
+              alpha: elevatedOnHeroGradient ? 0.08 : 0.06,
+            ),
+            blurRadius: elevatedOnHeroGradient ? 28 : 24,
+            offset: Offset(0, elevatedOnHeroGradient ? 12 : 10),
           ),
         ],
       ),

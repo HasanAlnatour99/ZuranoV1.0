@@ -1634,6 +1634,12 @@ abstract class AppLocalizations {
   /// **'Workspace'**
   String get ownerDashboardTitle;
 
+  /// No description provided for @ownerDashboardHeroProBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get ownerDashboardHeroProBadge;
+
   /// No description provided for @ownerAiAssistantTooltip.
   ///
   /// In en, this message translates to:

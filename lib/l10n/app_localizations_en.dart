@@ -838,6 +838,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownerDashboardTitle => 'Workspace';
 
   @override
+  String get ownerDashboardHeroProBadge => 'Pro';
+
+  @override
   String get ownerAiAssistantTooltip => 'Open dashboard assistant';
 
   @override

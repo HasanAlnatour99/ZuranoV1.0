@@ -18,12 +18,25 @@ class OwnerOverviewSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kOwnerDashboardHeroCanvas,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          OwnerDashboardHeroHeader(user: user),
-          Expanded(
-            child: OwnerPremiumOverviewBody(user: user),
+          const OwnerOverviewGradientBackdrop(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OwnerDashboardHeroHeader(
+                key: ValueKey<String>('owner_hero_${user.uid}'),
+                user: user,
+                overGradientBackdrop: true,
+              ),
+              Expanded(
+                child: OwnerPremiumOverviewBody(
+                  user: user,
+                  embedOnOwnerOverviewGradient: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),

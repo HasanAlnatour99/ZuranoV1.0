@@ -13,13 +13,42 @@ import '../../../../../providers/salon_streams_provider.dart';
 import '../../../../users/data/models/app_user.dart';
 import '../../../logic/owner_overview_controller.dart';
 import '../../../logic/owner_overview_state.dart';
-import 'overview_design_tokens.dart';
 
 /// Matches overview body canvas (light purple-gray).
 const Color kOwnerDashboardHeroCanvas = Color(0xFFF7F4FF);
 
-/// Accent for icons on white header action pills (matches premium body purple).
-const Color _kOwnerHeroActionIconPurple = Color(0xFF7B3FF2);
+/// Full-width top fade: deep purple → brand purple → soft violet → canvas.
+/// Used under the owner overview header + first cards (not a hard rounded header block).
+class OwnerOverviewGradientBackdrop extends StatelessWidget {
+  const OwnerOverviewGradientBackdrop({super.key});
+
+  static const double preferredHeight = 320;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: SizedBox(
+        height: preferredHeight,
+        width: double.infinity,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: const [0.0, 0.42, 0.70, 1.0],
+              colors: [
+                const Color(0xFF4C18D8),
+                const Color(0xFF6D28F6),
+                Color(0xFF9D6CFF).withValues(alpha: 0.55),
+                kOwnerDashboardHeroCanvas,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 String _heroUserInitials(String name) {
   final parts = name.trim().split(RegExp(r'\s+'));
@@ -38,11 +67,12 @@ String _resolveDisplayName(AppUser user, OwnerOverviewState state) {
   return (state.ownerName ?? '').trim();
 }
 
-Widget _buildWhitePillActionButton({
+/// Translucent circular control (reference header — no AI button).
+Widget _buildHeroTranslucentIconButton({
   required String tooltip,
   required VoidCallback onTap,
   required Widget child,
-  required double diameter,
+  double size = 52,
 }) {
   return Tooltip(
     message: tooltip,
@@ -50,20 +80,16 @@ Widget _buildWhitePillActionButton({
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(diameter / 2),
+        borderRadius: BorderRadius.circular(size / 2),
         child: Container(
-          width: diameter,
-          height: diameter,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: Colors.white.withValues(alpha: 0.12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.10),
+            ),
           ),
           child: Center(child: child),
         ),
@@ -72,37 +98,26 @@ Widget _buildWhitePillActionButton({
   );
 }
 
-Widget _buildAiHeroButton(
-  BuildContext context,
-  AppLocalizations l10n, {
-  required double size,
-  required double iconSize,
-}) {
-  return _buildWhitePillActionButton(
-    tooltip: l10n.ownerAiAssistantTooltip,
-    onTap: () => context.push(AppRoutes.ownerDashboardAssistant),
-    diameter: size,
-    child: Icon(
-      Icons.auto_awesome_rounded,
-      color: _kOwnerHeroActionIconPurple,
-      size: iconSize,
-    ),
-  );
-}
-
-/// Purple gradient hero (greeting, salon, AI, notifications) used on owner overview
-/// and other owner shell tabs (Team, Customers, Finance).
+/// Purple gradient hero (greeting, salon + Pro, notifications, settings).
+/// Does not include the dashboard AI assistant button — access remains via routes/shell elsewhere.
 class OwnerDashboardHeroHeader extends ConsumerWidget {
   const OwnerDashboardHeroHeader({
     super.key,
     required this.user,
     this.compact = false,
+
+    /// When true (Owner Overview with [OwnerOverviewGradientBackdrop]), no purple
+    /// rounded [Container] — content only, drawn on the shared top gradient.
+    this.overGradientBackdrop = false,
   });
 
   final AppUser user;
 
-  /// When true (e.g. Team tab), reduces vertical padding and avatar size ~20%.
+  /// When true (e.g. Team tab), tighter padding and slightly smaller type.
   final bool compact;
+
+  /// Overview tab: transparent row on the stack gradient (no hard header block).
+  final bool overGradientBackdrop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,6 +132,7 @@ class OwnerDashboardHeroHeader extends ConsumerWidget {
       l10n: l10n,
       salonLabel: salonLabel,
       compact: compact,
+      overGradientBackdrop: overGradientBackdrop,
     );
   }
 }
@@ -129,6 +145,7 @@ Widget _buildOwnerHeroHeader({
   required AppLocalizations l10n,
   required String salonLabel,
   bool compact = false,
+  bool overGradientBackdrop = false,
 }) {
   final isRtl = Directionality.of(context) == TextDirection.rtl;
   final displayName = _resolveDisplayName(user, state);
@@ -138,7 +155,10 @@ Widget _buildOwnerHeroHeader({
   final salonTitle = trimmedSalon.isNotEmpty
       ? trimmedSalon
       : l10n.ownerDashboardTitle;
-  final initials = _heroUserInitials(user.name);
+  final initialsName =
+      displayName.isNotEmpty ? displayName : user.name;
+  final initials = _heroUserInitials(initialsName);
+
   final photo = user.photoUrl?.trim();
   final salonCover = ref
       .watch(sessionSalonStreamProvider)
@@ -151,30 +171,191 @@ Widget _buildOwnerHeroHeader({
       : (salonCover != null && salonCover.isNotEmpty)
           ? salonCover
           : null;
+
   final canOpenOwnerSettings =
       user.role == UserRoles.owner || user.role == UserRoles.admin;
   final unread = ref.watch(unreadNotificationCountProvider);
 
   final mq = MediaQuery.sizeOf(context);
   final narrow = mq.width < 360;
-  final tight = mq.width < 340;
-  final actionDiameter = compact || tight ? 40.0 : (narrow ? 42.0 : 46.0);
-  final actionIconSize = compact || tight ? 18.0 : (narrow ? 19.0 : 21.0);
-  final iconSize = actionIconSize;
+
+  final heroPadding = compact
+      ? EdgeInsets.fromLTRB(
+          narrow ? 16.0 : 18.0,
+          8,
+          narrow ? 16.0 : 18.0,
+          18,
+        )
+      : overGradientBackdrop
+          ? const EdgeInsets.fromLTRB(28, 12, 28, 18)
+          : const EdgeInsets.fromLTRB(22, 14, 22, 28);
+
+  final avatarRadius = compact
+      ? 20.0
+      : (overGradientBackdrop ? 28.0 : 27.0);
+  final actionSize = compact ? 46.0 : 52.0;
+  final actionIconSize = compact ? 22.0 : 24.0;
+  final avatarTextGap = compact ? 12.0 : 14.0;
+  final actionsGap = 10.0;
+
+  final greetingSize = compact ? 14.0 : 16.0;
+  final nameSize = compact ? 17.0 : 22.0;
+  final salonSize = compact ? 13.0 : 15.0;
 
   final startAlign = isRtl ? CrossAxisAlignment.end : CrossAxisAlignment.start;
   final textAlign = isRtl ? TextAlign.right : TextAlign.left;
 
-  final heroTop = compact ? 6.0 : 10.0;
-  final heroBottom = compact ? 18.0 : 26.0;
-  final avatarRadius = compact ? 18.0 : (tight ? 20.0 : 22.0);
-  final horizontalPad = tight ? 14.0 : 18.0;
-  final actionGap = tight ? 4.0 : (narrow ? 5.0 : 6.0);
-  final midGap = tight ? 10.0 : 14.0;
+  void onSettingsTap() {
+    context.push(
+      canOpenOwnerSettings ? AppRoutes.ownerSettings : AppRoutes.settings,
+    );
+  }
+
+  final heroRow = Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onSettingsTap,
+          customBorder: const CircleBorder(),
+          child: CircleAvatar(
+            radius: avatarRadius,
+            backgroundColor: Colors.white.withValues(alpha: 0.22),
+            backgroundImage: avatarImage != null
+                ? CachedNetworkImageProvider(avatarImage)
+                : null,
+            child: avatarImage == null
+                ? Text(
+                    initials,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: avatarRadius * 0.45,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ),
+      SizedBox(width: avatarTextGap),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: startAlign,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              greeting,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: textAlign,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.90),
+                fontSize: greetingSize,
+                fontWeight: FontWeight.w600,
+                height: 1.15,
+              ),
+            ),
+            if (formattedName.isNotEmpty) ...[
+              SizedBox(height: compact ? 3 : 4),
+              Text(
+                formattedName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: textAlign,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: nameSize,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ),
+              ),
+            ],
+            SizedBox(height: compact ? 4 : 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    salonTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: textAlign,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: salonSize,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.ownerDashboardHeroProBadge,
+                    style: TextStyle(
+                      fontSize: compact ? 10 : 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white.withValues(alpha: 0.95),
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      _buildHeroTranslucentIconButton(
+        tooltip: l10n.notificationsInboxTooltip,
+        onTap: () => context.push(AppRoutes.notifications),
+        size: actionSize,
+        child: AppNotificationBadge(
+          count: unread,
+          child: Icon(
+            Icons.notifications_none_rounded,
+            color: Colors.white,
+            size: actionIconSize,
+          ),
+        ),
+      ),
+      SizedBox(width: actionsGap),
+      _buildHeroTranslucentIconButton(
+        tooltip: l10n.ownerDashboardSettingsTooltip,
+        onTap: onSettingsTap,
+        size: actionSize,
+        child: Icon(
+          Icons.settings_rounded,
+          color: Colors.white,
+          size: actionIconSize,
+        ),
+      ),
+    ],
+  );
+
+  if (overGradientBackdrop) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: heroPadding,
+        child: heroRow,
+      ),
+    );
+  }
 
   return Container(
     width: double.infinity,
-    padding: EdgeInsets.fromLTRB(horizontalPad, heroTop, horizontalPad, heroBottom),
+    padding: heroPadding,
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         colors: [Color(0xFF5B2BE0), Color(0xFF7B3FF2), Color(0xFFA77BFF)],
@@ -188,126 +369,7 @@ Widget _buildOwnerHeroHeader({
     ),
     child: SafeArea(
       bottom: false,
-      child: Column(
-        crossAxisAlignment: startAlign,
-        children: [
-          Row(
-            children: [
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => context.push(
-                    canOpenOwnerSettings
-                        ? AppRoutes.ownerSettings
-                        : AppRoutes.settings,
-                  ),
-                  customBorder: const CircleBorder(),
-                  child: CircleAvatar(
-                    radius: avatarRadius,
-                    backgroundColor: Colors.white.withValues(alpha: 0.22),
-                    backgroundImage: avatarImage != null
-                        ? CachedNetworkImageProvider(avatarImage)
-                        : null,
-                    child: avatarImage == null
-                        ? Text(
-                            initials,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize:
-                                  OwnerOverviewTypography.heroAvatarInitials,
-                            ),
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-              SizedBox(width: midGap),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: startAlign,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      greeting,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: textAlign,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        fontSize: OwnerOverviewTypography.heroGreeting,
-                        fontWeight: FontWeight.w600,
-                        height: 1.1,
-                      ),
-                    ),
-                    if (formattedName.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        formattedName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: textAlign,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: OwnerOverviewTypography.heroName,
-                          fontWeight: FontWeight.w800,
-                          height: 1.05,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 5),
-                    Text(
-                      salonTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: textAlign,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.75),
-                        fontSize: OwnerOverviewTypography.heroSalon,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: tight ? 6 : 10),
-              _buildAiHeroButton(
-                context,
-                l10n,
-                size: actionDiameter,
-                iconSize: actionIconSize,
-              ),
-              SizedBox(width: actionGap),
-              _buildWhitePillActionButton(
-                tooltip: l10n.notificationsInboxTooltip,
-                onTap: () => context.push(AppRoutes.notifications),
-                diameter: actionDiameter,
-                child: AppNotificationBadge(
-                  count: unread,
-                  child: Icon(
-                    Icons.notifications_none_rounded,
-                    color: _kOwnerHeroActionIconPurple,
-                    size: iconSize,
-                  ),
-                ),
-              ),
-              if (canOpenOwnerSettings) ...[
-                SizedBox(width: actionGap),
-                _buildWhitePillActionButton(
-                  tooltip: l10n.ownerDashboardSettingsTooltip,
-                  onTap: () => context.push(AppRoutes.ownerSettings),
-                  diameter: actionDiameter,
-                  child: Icon(
-                    Icons.settings_rounded,
-                    color: _kOwnerHeroActionIconPurple,
-                    size: iconSize,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
+      child: heroRow,
     ),
   );
 }
@@ -340,7 +402,11 @@ class OwnerDashboardHeroTabScaffold extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          OwnerDashboardHeroHeader(user: user, compact: compactHero),
+          OwnerDashboardHeroHeader(
+            key: ValueKey<String>('owner_hero_tab_${user.uid}'),
+            user: user,
+            compact: compactHero,
+          ),
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(top: enableBodyOverlap ? 0 : 16),

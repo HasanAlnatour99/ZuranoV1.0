@@ -285,6 +285,7 @@
   "ownerMoneyPayrollEmptyTitle": "لا رواتب",
   "ownerMoneyExpensesEmptyTitle": "لا مصروفات",
   "ownerDashboardTitle": "مساحة العمل",
+  "ownerDashboardHeroProBadge": "Pro",
   "ownerAiAssistantTooltip": "افتح مساعد لوحة التحكم",
   "aiAssistantTitle": "مساعد لوحة التحكم",
   "aiAssistantInputLabel": "اسأل المساعد",
