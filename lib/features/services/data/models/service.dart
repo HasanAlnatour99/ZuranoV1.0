@@ -40,6 +40,21 @@ abstract class SalonService with _$SalonService {
     /// Optional override key for service tile icon (same vocabulary as [categoryKey]).
     @JsonKey(fromJson: nullableLooseStringFromJson) String? iconKey,
 
+    /// Discovery catalogue id (e.g. `beard`, `haircut`) — mirrors customer home categories.
+    @JsonKey(fromJson: nullableLooseStringFromJson) String? categoryId,
+
+    /// English category label at save time (customer discovery / search index).
+    @JsonKey(fromJson: nullableLooseStringFromJson) String? categoryName,
+
+    /// Arabic category label for discovery (`customerDiscovery/*/items`).
+    @JsonKey(fromJson: nullableLooseStringFromJson) String? categoryNameAr,
+
+    /// Icon key for discovery tiles (often same as [categoryId]).
+    @JsonKey(fromJson: nullableLooseStringFromJson) String? categoryIconKey,
+
+    /// Listed to customers when true (with salon `isPublic` and active catalog rules).
+    @Default(true) @JsonKey(fromJson: trueBoolFromJson) bool isPublic,
+
     /// Optional marketing image URL (owner catalog / future customer UI).
     @JsonKey(fromJson: nullableLooseStringFromJson) String? imageUrl,
 
