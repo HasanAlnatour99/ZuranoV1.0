@@ -124,7 +124,9 @@ export function salonToPublicSalonPayload(
   }
 
   const isActive = s.isActive !== false;
-  const isPublic = s.isPublic === true && isActive;
+  const isPublished =
+    typeof s.isPublished === "boolean" ? s.isPublished : s.isPublic === true;
+  const isPublic = isPublished && isActive;
 
   const rootGeo = geoFromSalonDoc(s);
   const latitude = resolvedGeo?.latitude ?? rootGeo.latitude;
@@ -191,8 +193,7 @@ export function salonToPublicSalonPayload(
       : {}),
     isPublic,
     isActive,
-    // Legacy mirror — do not use for rules/queries; visibility is `isActive && isPublic`.
-    ...(typeof s.isPublished === "boolean" ? { isPublished: s.isPublished } : {}),
+    isPublished,
     isOpen: s.isOpen === true,
     isPromoted: s.isPromoted === true,
     ratingAverage: ratingAverageRaw != null ? Math.min(5, Math.max(0, ratingAverageRaw)) : 0,

@@ -1,9 +1,11 @@
 import { FieldValue, GeoPoint, Timestamp, type DocumentData } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import * as ngeohash from "ngeohash";
 
 import { db } from "./bookingShared";
 
 const REGION = "us-central1" as const;
+const SEARCH_INDEX_GEOHASH_PRECISION = 10;
 
 function str(data: DocumentData, key: string): string {
   const v = data[key];
@@ -138,6 +140,18 @@ function geoFromDoc(d: DocumentData): GeoPoint | null {
     return new GeoPoint(lat, lng);
   }
   return null;
+}
+
+export function serviceIndexGeoPayload(latitude: number, longitude: number): Record<string, unknown> {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return {};
+  }
+  return {
+    latitude,
+    longitude,
+    location: new GeoPoint(latitude, longitude),
+    geohash: ngeohash.encode(latitude, longitude, SEARCH_INDEX_GEOHASH_PRECISION),
+  };
 }
 
 function truthyBool(v: unknown, fallback: boolean): boolean {
@@ -287,6 +301,7 @@ export async function upsertServiceSearchIndexFromFirestore(
   ]);
 
   const availability = resolveAvailability(salon);
+  const geo = geoFromDoc(salon);
 
   const payload: Record<string, unknown> = {
     type: "service",
@@ -311,7 +326,7 @@ export async function upsertServiceSearchIndexFromFirestore(
     searchPrefixes: buildSearchPrefixes(derivedKeywords),
     availableToday: availability.availableToday,
     nextAvailableAt: availability.nextAvailableAt,
-    location: geoFromDoc(salon),
+    ...(geo != null ? serviceIndexGeoPayload(geo.latitude, geo.longitude) : {}),
     updatedAt: FieldValue.serverTimestamp(),
     createdAt: FieldValue.serverTimestamp(),
   };
