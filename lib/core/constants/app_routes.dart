@@ -504,6 +504,9 @@ class AppRoutes {
   /// Nested under [customerHome].
   static String customerSalon(String salonId) => '$customerHome/salon/$salonId';
 
+  /// Legacy nested booking route. New bookings should use
+  /// [customerBookServicesPath]; this route remains for reschedule flows that
+  /// pass the existing booking in GoRouter `extra`.
   static String customerSalonBook(String salonId) =>
       '$customerHome/salon/$salonId/book';
 

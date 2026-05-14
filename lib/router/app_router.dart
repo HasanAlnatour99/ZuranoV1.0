@@ -564,6 +564,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'book',
+                redirect: (context, state) {
+                  final extra = state.extra;
+                  if (extra is Booking) {
+                    return null;
+                  }
+                  final id = state.pathParameters['salonId'] ?? '';
+                  return AppRoutes.customerBookServicesPath(id);
+                },
                 pageBuilder: (context, state) {
                   final id = state.pathParameters['salonId'] ?? '';
                   final extra = state.extra;

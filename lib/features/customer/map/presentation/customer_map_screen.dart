@@ -149,7 +149,7 @@ class _CustomerMapScreenState extends ConsumerState<CustomerMapScreen> {
   }
 
   void _bookSalon(String salonId) {
-    context.push(AppRoutes.customerSalonBook(salonId));
+    context.push(AppRoutes.customerBookServicesPath(salonId));
   }
 
   Future<void> _goToMyLocation() async {
