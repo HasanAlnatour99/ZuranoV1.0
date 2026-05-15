@@ -31,6 +31,10 @@ const BLOCKING = new Set([
   "checked_in",
 ]);
 
+export function isCustomerBlockingBookingStatus(raw: unknown): boolean {
+  return BLOCKING.has(normalizeBookingStatus(`${raw ?? ""}`));
+}
+
 type ParsedBookingSettings = {
   enabled: boolean;
   autoConfirmBookings: boolean;
@@ -206,8 +210,7 @@ function blocksSlot(
   endAt: Date,
   bufferMinutes: number,
 ): boolean {
-  const status = `${data.status ?? ""}`.trim();
-  if (!BLOCKING.has(status)) {
+  if (!isCustomerBlockingBookingStatus(data.status)) {
     return false;
   }
   const bid =
@@ -273,8 +276,8 @@ export const getCustomerAvailability = onCall(CALL, async (request) => {
   const busyBlocks = snap.docs
     .map((doc) => {
       const d = doc.data();
-      const st = `${d.status ?? ""}`.trim();
-      if (!BLOCKING.has(st)) {
+      const st = normalizeBookingStatus(`${d.status ?? ""}`);
+      if (!isCustomerBlockingBookingStatus(st)) {
         return null;
       }
       const s = tsToDate(d.startAt);
