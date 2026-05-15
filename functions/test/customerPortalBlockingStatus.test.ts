@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { isCustomerBlockingBookingStatus } from "../customerPortalCallables";
+import { isCustomerBlockingBookingStatus } from "../src/customer/customerPortalCallables";
 
 describe("customer booking blocking statuses", () => {
   test("treats legacy scheduled bookings as blocking", () => {
