@@ -18,6 +18,7 @@ import 'package:barber_shop_app/features/owner_dashboard/presentation/widgets/te
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
 
+import 'owner_dashboard_hero_header.dart' show kOwnerDashboardHeroCanvas;
 import '../owner_zurano_bottom_nav.dart';
 
 String _salonIdForInsights(AppUser user) => (user.salonId ?? '').trim();
@@ -40,8 +41,8 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     super.key,
     required this.user,
 
-    /// When true (Owner Overview + shared top backdrop), body canvas is transparent so
-    /// the parent gradient shows behind the first card and chart area.
+    /// When true (Owner Overview), body uses [kOwnerDashboardHeroCanvas] — never
+    /// transparent/purple full-area fills (purple is only the parent top band + mask).
     this.sharedTopBackdrop = false,
   });
 
@@ -63,7 +64,7 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     if (overview.isLoading) {
       return ColoredBox(
         color: sharedTopBackdrop
-            ? Colors.transparent
+            ? kOwnerDashboardHeroCanvas
             : _OwnerPremiumColors.background,
         child: _PremiumOverviewSkeleton(sharedTopBackdrop: sharedTopBackdrop),
       );
@@ -99,7 +100,7 @@ class OwnerPremiumOverviewBody extends ConsumerWidget {
     return ColoredBox(
       key: ValueKey<String>(user.uid),
       color: sharedTopBackdrop
-          ? Colors.transparent
+          ? kOwnerDashboardHeroCanvas
           : _OwnerPremiumColors.background,
       child: Stack(
         children: [
