@@ -270,6 +270,9 @@ export const assignRolePresetToStaff = onCall(
     }
 
     const { targetStaff: st, role } = await loadStaffClaimsTarget(salonId, targetUid);
+    if (st.isActive === false) {
+      throw new HttpsError("failed-precondition", "target_frozen");
+    }
     const beforeRoleId = String(st.roleId ?? "").trim();
     const beforePerm = sanitizePermissionsInput(st.permissions);
 

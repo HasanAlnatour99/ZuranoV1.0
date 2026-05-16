@@ -1,10 +1,14 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { describe, expect, it } from "vitest";
 
-import { assertSalonPermissionKey } from "./exportPermissions";
+import { assertSalonPermissionKey, type StaffPermissionsRow } from "./exportPermissions";
 
-function staff(permissions: Record<string, boolean>, exists = true) {
-  return { exists, permissions };
+function staff(
+  permissions: Record<string, boolean>,
+  exists = true,
+  isActive = true,
+): StaffPermissionsRow {
+  return { exists, isActive, permissions };
 }
 
 describe("assertSalonPermissionKey", () => {
@@ -44,6 +48,17 @@ describe("assertSalonPermissionKey", () => {
         "salon_1",
         "attendance.manage",
         staff({}),
+      ),
+    ).toThrowError(HttpsError);
+  });
+
+  it("denies frozen staff even when the permission flag remains enabled", () => {
+    expect(() =>
+      assertSalonPermissionKey(
+        { role: "admin", salonId: "salon_1", isActive: true },
+        "salon_1",
+        "payroll.manage",
+        staff({ "payroll.manage": true }, true, false),
       ),
     ).toThrowError(HttpsError);
   });
