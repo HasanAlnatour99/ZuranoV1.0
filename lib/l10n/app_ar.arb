@@ -1361,6 +1361,7 @@
   "customerBookingSuccessCopyCode": "نسخ رمز الحجز",
   "customerBookingSuccessShareBooking": "مشاركة الحجز",
   "customerBookingSuccessAddToCalendar": "إضافة إلى التقويم",
+  "customerBookingSuccessCalendarUnavailableOnIos": "تذكير التقويم غير متاح مؤقتاً على iOS.",
   "customerBookingSuccessCalendarFailed": "تعذّرت الإضافة إلى التقويم. يرجى المحاولة مرة أخرى.",
   "customerBookingSuccessBookAnother": "حجز موعد آخر",
   "customerBookingSuccessBackToSalon": "العودة إلى الصالون",

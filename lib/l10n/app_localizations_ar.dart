@@ -3721,6 +3721,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customerBookingSuccessAddToCalendar => 'إضافة إلى التقويم';
 
   @override
+  String get customerBookingSuccessCalendarUnavailableOnIos =>
+      'تذكير التقويم غير متاح مؤقتاً على iOS.';
+
+  @override
   String get customerBookingSuccessCalendarFailed =>
       'تعذّرت الإضافة إلى التقويم. يرجى المحاولة مرة أخرى.';
 

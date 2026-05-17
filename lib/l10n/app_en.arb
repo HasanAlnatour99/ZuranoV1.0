@@ -1437,6 +1437,7 @@
   "customerBookingSuccessCopyCode": "Copy booking code",
   "customerBookingSuccessShareBooking": "Share booking",
   "customerBookingSuccessAddToCalendar": "Add to calendar",
+  "customerBookingSuccessCalendarUnavailableOnIos": "Calendar reminder is temporarily unavailable on iOS.",
   "customerBookingSuccessCalendarFailed": "Couldn’t add to calendar. Please try again.",
   "customerBookingSuccessBookAnother": "Book another appointment",
   "customerBookingSuccessBackToSalon": "Back to salon",

@@ -9,13 +9,13 @@ class BookingSuccessActionButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.icon,
-    required this.onPressed,
+    this.onPressed,
     this.isPrimary = false,
   });
 
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isPrimary;
 
   @override

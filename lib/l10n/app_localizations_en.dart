@@ -3733,6 +3733,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerBookingSuccessAddToCalendar => 'Add to calendar';
 
   @override
+  String get customerBookingSuccessCalendarUnavailableOnIos =>
+      'Calendar reminder is temporarily unavailable on iOS.';
+
+  @override
   String get customerBookingSuccessCalendarFailed =>
       'Couldn’t add to calendar. Please try again.';
 

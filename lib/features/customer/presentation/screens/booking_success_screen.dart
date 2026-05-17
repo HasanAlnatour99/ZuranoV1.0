@@ -1,7 +1,6 @@
 import 'dart:async' show unawaited;
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,11 +80,7 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     );
   }
 
-  /// add_2_calendar native plugin crashes on iOS launch (TestFlight); use ICS share
-  /// on Android only. Hide the action on iOS release builds.
-  bool get _showAddToCalendarAction =>
-      !(Platform.isIOS && kReleaseMode);
-
+  /// add_2_calendar removed — native plugin crashed on iOS launch. ICS share on Android only.
   Future<void> _shareBookingCalendarInvite({
     required BuildContext context,
     required AppLocalizations l10n,
@@ -318,27 +313,28 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
                         );
                       },
                     ),
-                    if (_showAddToCalendarAction) ...[
-                      const SizedBox(height: AppSpacing.small),
-                      BookingSuccessActionButton(
-                        label: l10n.customerBookingSuccessAddToCalendar,
-                        icon: Icons.event_available_outlined,
-                        onPressed: () {
-                          if (result == null) return;
-                          unawaited(
-                            _shareBookingCalendarInvite(
-                              context: context,
-                              l10n: l10n,
-                              result: result,
-                              bookingCode: bookingCode,
-                              status: status,
-                              salonName: salonName,
-                              salon: salonAsync.asData?.value,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                    const SizedBox(height: AppSpacing.small),
+                    BookingSuccessActionButton(
+                      label: Platform.isIOS
+                          ? l10n.customerBookingSuccessCalendarUnavailableOnIos
+                          : l10n.customerBookingSuccessAddToCalendar,
+                      icon: Icons.event_available_outlined,
+                      onPressed: Platform.isIOS || result == null
+                          ? null
+                          : () {
+                              unawaited(
+                                _shareBookingCalendarInvite(
+                                  context: context,
+                                  l10n: l10n,
+                                  result: result,
+                                  bookingCode: bookingCode,
+                                  status: status,
+                                  salonName: salonName,
+                                  salon: salonAsync.asData?.value,
+                                ),
+                              );
+                            },
+                    ),
                     const SizedBox(height: AppSpacing.small),
                     BookingSuccessActionButton(
                       label: l10n.customerBookingSuccessBookAnother,

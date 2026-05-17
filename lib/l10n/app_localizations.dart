@@ -6782,6 +6782,12 @@ abstract class AppLocalizations {
   /// **'Add to calendar'**
   String get customerBookingSuccessAddToCalendar;
 
+  /// No description provided for @customerBookingSuccessCalendarUnavailableOnIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar reminder is temporarily unavailable on iOS.'**
+  String get customerBookingSuccessCalendarUnavailableOnIos;
+
   /// No description provided for @customerBookingSuccessCalendarFailed.
   ///
   /// In en, this message translates to:
