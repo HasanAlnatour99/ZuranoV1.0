@@ -42,3 +42,42 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 end
+
+def sync_pods_manifest_lock_script
+  <<-'SCRIPT'
+PODFILE_LOCK="${PODS_PODFILE_DIR_PATH}/Podfile.lock"
+MANIFEST_LOCK="${PODS_ROOT}/Manifest.lock"
+
+if [ ! -f "$PODFILE_LOCK" ] ; then
+    echo "error: Podfile.lock is missing. Run 'pod install' before building." >&2
+    exit 1
+fi
+
+if [ ! -f "$MANIFEST_LOCK" ] || ! diff "$PODFILE_LOCK" "$MANIFEST_LOCK" > /dev/null ; then
+    mkdir -p "${PODS_ROOT}"
+    cp "$PODFILE_LOCK" "$MANIFEST_LOCK"
+fi
+
+if ! diff "$PODFILE_LOCK" "$MANIFEST_LOCK" > /dev/null ; then
+    echo "error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation." >&2
+    exit 1
+fi
+
+echo "SUCCESS" > "${SCRIPT_OUTPUT_FILE_0}"
+SCRIPT
+end
+
+post_integrate do |_installer|
+  project_path = File.join(__dir__, 'Runner.xcodeproj')
+  project = Xcodeproj::Project.open(project_path)
+
+  project.targets.each do |target|
+    target.shell_script_build_phases.each do |phase|
+      next unless phase.name == '[CP] Check Pods Manifest.lock'
+
+      phase.shell_script = sync_pods_manifest_lock_script
+    end
+  end
+
+  project.save
+end

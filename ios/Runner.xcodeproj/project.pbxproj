@@ -302,7 +302,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "PODFILE_LOCK=\"${PODS_PODFILE_DIR_PATH}/Podfile.lock\"\nMANIFEST_LOCK=\"${PODS_ROOT}/Manifest.lock\"\n\nif [ ! -f \"$PODFILE_LOCK\" ] ; then\n    echo \"error: Podfile.lock is missing. Run 'pod install' before building.\" >&2\n    exit 1\nfi\n\nif [ ! -f \"$MANIFEST_LOCK\" ] || ! diff \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\" > /dev/null ; then\n    mkdir -p \"${PODS_ROOT}\"\n    cp \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\"\nfi\n\nif ! diff \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\" > /dev/null ; then\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
@@ -389,7 +389,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "PODFILE_LOCK=\"${PODS_PODFILE_DIR_PATH}/Podfile.lock\"\nMANIFEST_LOCK=\"${PODS_ROOT}/Manifest.lock\"\n\nif [ ! -f \"$PODFILE_LOCK\" ] ; then\n    echo \"error: Podfile.lock is missing. Run 'pod install' before building.\" >&2\n    exit 1\nfi\n\nif [ ! -f \"$MANIFEST_LOCK\" ] || ! diff \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\" > /dev/null ; then\n    mkdir -p \"${PODS_ROOT}\"\n    cp \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\"\nfi\n\nif ! diff \"$PODFILE_LOCK\" \"$MANIFEST_LOCK\" > /dev/null ; then\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
