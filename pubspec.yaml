@@ -80,7 +80,6 @@ dependencies:
   connectivity_plus: ^7.1.1
   url_launcher: ^6.3.2
   share_plus: ^11.0.0
-  add_2_calendar: ^3.0.1
   cached_network_image: ^3.4.1
   image_picker: ^1.2.1
   flutter_secure_storage: ^10.0.0

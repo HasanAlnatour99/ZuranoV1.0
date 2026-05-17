@@ -55,10 +55,6 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Zurano may access calendar data only when you choose to add or manage booking reminders.</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>Zurano may access calendar data only when you choose to add or manage booking reminders.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Zurano needs camera access to take a team member profile photo.</string>
 	<key>NSContactsUsageDescription</key>

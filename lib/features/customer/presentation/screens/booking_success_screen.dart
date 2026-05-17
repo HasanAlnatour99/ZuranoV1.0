@@ -1,11 +1,12 @@
 import 'dart:async' show unawaited;
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_routes.dart';
@@ -80,7 +81,12 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     );
   }
 
-  Future<void> _addBookingToCalendar({
+  /// add_2_calendar native plugin crashes on iOS launch (TestFlight); use ICS share
+  /// on Android only. Hide the action on iOS release builds.
+  bool get _showAddToCalendarAction =>
+      !(Platform.isIOS && kReleaseMode);
+
+  Future<void> _shareBookingCalendarInvite({
     required BuildContext context,
     required AppLocalizations l10n,
     required CustomerBookingCreateResult result,
@@ -121,15 +127,18 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
         if (contactParts.isNotEmpty) ...contactParts,
       ].join('\n');
 
-      final event = Event(
+      final ics = _buildBookingIcs(
         title: title,
         description: description,
-        location: location.isEmpty ? null : location,
-        startDate: result.startAt.toLocal(),
-        endDate: result.endAt.toLocal(),
+        location: location,
+        startAt: result.startAt.toLocal(),
+        endAt: result.endAt.toLocal(),
+        uid: '${widget.bookingId}@zurano.app',
       );
 
-      await Add2Calendar.addEvent2Cal(event);
+      await SharePlus.instance.share(
+        ShareParams(text: ics, subject: title),
+      );
     } catch (_) {
       if (!mounted) return;
       if (!context.mounted) return;
@@ -137,6 +146,47 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
         SnackBar(content: Text(l10n.customerBookingSuccessCalendarFailed)),
       );
     }
+  }
+
+  String _buildBookingIcs({
+    required String title,
+    required String description,
+    required String location,
+    required DateTime startAt,
+    required DateTime endAt,
+    required String uid,
+  }) {
+    String escape(String value) =>
+        value.replaceAll('\\', r'\\').replaceAll('\n', r'\n').replaceAll(',', r'\,');
+
+    final buffer = StringBuffer()
+      ..writeln('BEGIN:VCALENDAR')
+      ..writeln('VERSION:2.0')
+      ..writeln('PRODID:-//Zurano//Booking//EN')
+      ..writeln('CALSCALE:GREGORIAN')
+      ..writeln('METHOD:PUBLISH')
+      ..writeln('BEGIN:VEVENT')
+      ..writeln('UID:$uid')
+      ..writeln('DTSTAMP:${_icsUtcTimestamp(DateTime.now().toUtc())}')
+      ..writeln('DTSTART:${_icsUtcTimestamp(startAt.toUtc())}')
+      ..writeln('DTEND:${_icsUtcTimestamp(endAt.toUtc())}')
+      ..writeln('SUMMARY:${escape(title)}');
+
+    if (location.isNotEmpty) {
+      buffer.writeln('LOCATION:${escape(location)}');
+    }
+    buffer
+      ..writeln('DESCRIPTION:${escape(description)}')
+      ..writeln('END:VEVENT')
+      ..writeln('END:VCALENDAR');
+
+    return buffer.toString();
+  }
+
+  String _icsUtcTimestamp(DateTime utc) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${utc.year}${two(utc.month)}${two(utc.day)}T'
+        '${two(utc.hour)}${two(utc.minute)}${two(utc.second)}Z';
   }
 
   @override
@@ -268,25 +318,27 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: AppSpacing.small),
-                    BookingSuccessActionButton(
-                      label: l10n.customerBookingSuccessAddToCalendar,
-                      icon: Icons.event_available_outlined,
-                      onPressed: () {
-                        if (result == null) return;
-                        unawaited(
-                          _addBookingToCalendar(
-                            context: context,
-                            l10n: l10n,
-                            result: result,
-                            bookingCode: bookingCode,
-                            status: status,
-                            salonName: salonName,
-                            salon: salonAsync.asData?.value,
-                          ),
-                        );
-                      },
-                    ),
+                    if (_showAddToCalendarAction) ...[
+                      const SizedBox(height: AppSpacing.small),
+                      BookingSuccessActionButton(
+                        label: l10n.customerBookingSuccessAddToCalendar,
+                        icon: Icons.event_available_outlined,
+                        onPressed: () {
+                          if (result == null) return;
+                          unawaited(
+                            _shareBookingCalendarInvite(
+                              context: context,
+                              l10n: l10n,
+                              result: result,
+                              bookingCode: bookingCode,
+                              status: status,
+                              salonName: salonName,
+                              salon: salonAsync.asData?.value,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.small),
                     BookingSuccessActionButton(
                       label: l10n.customerBookingSuccessBookAnother,
