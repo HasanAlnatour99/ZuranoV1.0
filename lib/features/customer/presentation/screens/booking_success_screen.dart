@@ -80,7 +80,7 @@ class _BookingSuccessScreenState extends ConsumerState<BookingSuccessScreen> {
     );
   }
 
-  /// add_2_calendar removed — native plugin crashed on iOS launch. ICS share on Android only.
+  /// Native calendar plugin removed after iOS launch crashes; ICS share is Android only.
   Future<void> _shareBookingCalendarInvite({
     required BuildContext context,
     required AppLocalizations l10n,
