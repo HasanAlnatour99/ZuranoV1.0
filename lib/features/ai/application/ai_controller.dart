@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:genui/genui.dart' show generateId;
 
+import '../../../core/utils/id_generator.dart';
 import '../../../providers/firebase_providers.dart';
 import '../data/ai_tool_registry.dart';
 import '../data/firestore_owner_dashboard_ai_repository.dart';
