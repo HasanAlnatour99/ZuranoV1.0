@@ -31,40 +31,48 @@ class _BarberShopAppState extends ConsumerState<BarberShopApp> {
 
   Future<void> _bootstrapFcm() async {
     if (!kFirebasePushMessagingEnabled) {
+      debugPrint('[APP_BOOT] notification_init_skipped');
       return;
     }
-    final fcm = ref.read(fcmRegistrationServiceProvider);
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
-    await fcm.initializeLocalNotifications(
-      onNotificationTap: _navigateFromNotificationData,
-    );
-    await fcm.requestPermissionIfSupported();
-
-    if (!_fcmListenersAttached) {
-      _fcmListenersAttached = true;
-      FirebaseMessaging.onMessage.listen(fcm.showForegroundNotification);
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleOpenedMessage);
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-        final user = ref.read(sessionUserProvider).asData?.value;
-        if (user == null) {
-          return;
-        }
-        final locale = ref.read(appLocalePreferenceProvider);
-        await fcm.registerWithExplicitToken(
-          user: user,
-          token: newToken,
-          localeName: locale.languageCode,
-        );
-      });
-    }
-
-    final initial = await FirebaseMessaging.instance.getInitialMessage();
-    if (initial != null && mounted) {
-      _handleOpenedMessage(initial);
-    } else if (mounted) {
-      await fcm.consumeLaunchNotificationTap(
-        onTap: _navigateFromNotificationData,
+    try {
+      debugPrint('[APP_BOOT] notification_init_begin');
+      final fcm = ref.read(fcmRegistrationServiceProvider);
+      await FirebaseMessaging.instance.setAutoInitEnabled(true);
+      await fcm.initializeLocalNotifications(
+        onNotificationTap: _navigateFromNotificationData,
       );
+      await fcm.requestPermissionIfSupported();
+
+      if (!_fcmListenersAttached) {
+        _fcmListenersAttached = true;
+        FirebaseMessaging.onMessage.listen(fcm.showForegroundNotification);
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleOpenedMessage);
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+          final user = ref.read(sessionUserProvider).asData?.value;
+          if (user == null) {
+            return;
+          }
+          final locale = ref.read(appLocalePreferenceProvider);
+          await fcm.registerWithExplicitToken(
+            user: user,
+            token: newToken,
+            localeName: locale.languageCode,
+          );
+        });
+      }
+
+      final initial = await FirebaseMessaging.instance.getInitialMessage();
+      if (initial != null && mounted) {
+        _handleOpenedMessage(initial);
+      } else if (mounted) {
+        await fcm.consumeLaunchNotificationTap(
+          onTap: _navigateFromNotificationData,
+        );
+      }
+      debugPrint('[APP_BOOT] notification_init_complete');
+    } catch (error, stackTrace) {
+      debugPrint('[APP_BOOT][ERROR][notification_init] $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 

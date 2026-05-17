@@ -13,7 +13,7 @@ import '../../firebase_options.dart';
 /// Register the device debug token from Xcode / `flutter run` logs in Firebase Console
 /// → App Check → your app → Manage debug tokens. Tokens are never hardcoded here.
 ///
-/// **Release:** Play Integrity (Android) and App Attest with Device Check fallback (iOS).
+/// **Release:** Play Integrity (Android) and DeviceCheck (iOS).
 ///
 /// **Web:** optional `FIREBASE_APP_CHECK_WEB_RECAPTCHA_KEY` for release; debug web uses
 /// [WebDebugProvider].
@@ -44,7 +44,7 @@ final class FirebaseBootstrap {
       // ignore: deprecated_member_use
       final appleProvider = kDebugMode
           ? AppleProvider.debug
-          : AppleProvider.appAttestWithDeviceCheckFallback;
+          : AppleProvider.deviceCheck;
 
       if (!kReleaseMode) {
         debugPrint(

@@ -103,6 +103,7 @@ final appRouterRefreshProvider = Provider<ValueNotifier<int>>((ref) {
 });
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  debugPrint('[APP_BOOT] router_init_begin');
   final refreshListenable = ref.watch(appRouterRefreshProvider);
 
   return GoRouter(

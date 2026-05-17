@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -55,30 +58,74 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseBootstrap.initialize();
+  await runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    _installStartupErrorHandlers();
+    _logStartupStep('widgets_binding_initialized');
 
-  await FirebaseBootstrap.initializeCore();
-  if (!kFirebasePushMessagingEnabled) {
-    await FirebaseMessaging.instance.setAutoInitEnabled(false);
-  } else {
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  }
-  final appCheckFuture = FirebaseBootstrap.activateAppCheck();
-  final prefs = await SharedPreferences.getInstance();
-  await _migrateOnboardingPrefs(prefs);
-  await appCheckFuture;
+    _logStartupStep('supabase_init_begin');
+    await SupabaseBootstrap.initialize();
+    _logStartupStep('supabase_init_complete');
 
-  runApp(
-    ScreenUtilInit(
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) => ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const BarberShopApp(),
+    _logStartupStep('firebase_init_begin');
+    await FirebaseBootstrap.initializeCore();
+    _logStartupStep('firebase_init_complete');
+
+    _logStartupStep('app_check_init_begin');
+    await FirebaseBootstrap.activateAppCheck();
+    _logStartupStep('app_check_init_complete');
+
+    if (!kFirebasePushMessagingEnabled) {
+      _logStartupStep('firebase_messaging_disabled');
+    } else {
+      _logStartupStep('firebase_messaging_background_handler_register_begin');
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      _logStartupStep('firebase_messaging_background_handler_register_complete');
+    }
+
+    _logStartupStep('shared_preferences_begin');
+    final prefs = await SharedPreferences.getInstance();
+    await _migrateOnboardingPrefs(prefs);
+    _logStartupStep('shared_preferences_complete');
+
+    _logStartupStep('run_app_begin');
+    runApp(
+      ScreenUtilInit(
+        designSize: const Size(375, 812),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) => ProviderScope(
+          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          child: const BarberShopApp(),
+        ),
       ),
-    ),
-  );
+    );
+    _logStartupStep('run_app_complete');
+  }, (error, stackTrace) {
+    _logStartupError('run_zoned_guarded', error, stackTrace);
+  });
+}
+
+void _installStartupErrorHandlers() {
+  FlutterError.onError = (details) {
+    _logStartupError(
+      'flutter_error',
+      details.exception,
+      details.stack ?? StackTrace.current,
+    );
+    FlutterError.presentError(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    _logStartupError('platform_dispatcher_error', error, stackTrace);
+    return true;
+  };
+}
+
+void _logStartupStep(String step) {
+  debugPrint('[APP_BOOT] $step');
+}
+
+void _logStartupError(String source, Object error, StackTrace stackTrace) {
+  debugPrint('[APP_BOOT][ERROR][$source] $error');
+  debugPrintStack(stackTrace: stackTrace);
 }
