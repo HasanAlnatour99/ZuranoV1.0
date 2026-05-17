@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:genui/genui.dart' show generateId;
 
+import '../../../core/utils/app_id_generator.dart';
 import '../../../providers/firebase_providers.dart';
 import '../../../providers/repository_providers.dart';
 import '../data/firestore_smart_workspace_repository.dart';

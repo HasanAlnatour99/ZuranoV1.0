@@ -1,4 +1,4 @@
-import 'package:genui/genui.dart' show generateId;
+import '../../../../core/utils/app_id_generator.dart';
 
 enum AiComponentType {
   sectionHeader('section_header'),

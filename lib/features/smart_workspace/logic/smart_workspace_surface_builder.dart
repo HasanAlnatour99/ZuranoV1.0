@@ -1,11 +1,11 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter/material.dart' show DateTimeRange;
-import 'package:genui/genui.dart' show generateId;
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/formatting/app_money_format.dart';
 import '../../../core/text/team_member_name.dart';
+import '../../../core/utils/app_id_generator.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../payroll/data/models/payroll_result_model.dart';
 import '../../payroll/data/payroll_constants.dart';
