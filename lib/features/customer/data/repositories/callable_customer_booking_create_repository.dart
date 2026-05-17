@@ -92,12 +92,17 @@ class CallableCustomerBookingCreateRepository
         endAt: DateTime.fromMillisecondsSinceEpoch(endMs, isUtc: true),
       );
 
-      await _writeGuestBookingMirrorIfNeeded(
-        salonId: sid,
-        draft: draft,
-        result: result,
-        customerUiLanguageCode: customerUiLanguageCode,
-      );
+      try {
+        await _writeGuestBookingMirrorIfNeeded(
+          salonId: sid,
+          draft: draft,
+          result: result,
+          customerUiLanguageCode: customerUiLanguageCode,
+        );
+      } catch (_) {
+        // The callable has already committed the booking. Guest lookup mirrors
+        // are best-effort and must not turn a successful booking into a retry.
+      }
 
       return result;
     } on FirebaseFunctionsException catch (e) {
