@@ -185,6 +185,67 @@ test("cross-salon write attempts should fail", async () => {
   );
 });
 
+test("debug seed flags do not grant client write access", async () => {
+  const attackerDb = testEnv.authenticatedContext("attacker-1").firestore();
+
+  await assertFails(
+    setDoc(doc(attackerDb, "publicSalons/evil-public"), {
+      salonId: "evil-public",
+      isActive: true,
+      isPublished: true,
+      isPublic: true,
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(attackerDb, "customerDiscovery/categories/items/evil-category"), {
+      title: "Injected category",
+      isActive: true,
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(attackerDb, "salons/evil-salon"), {
+      ownerUid: "attacker-1",
+      isActive: true,
+      isPublished: true,
+      isPublic: true,
+      debugSeed: true,
+    }),
+  );
+
+  await testEnv.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, "publicSalons/debug-root"), {
+      salonId: "debug-root",
+      debugSeed: true,
+      isActive: true,
+    });
+    await setDoc(doc(db, "salons/debug-root"), {
+      ownerUid: "someone-else",
+      debugSeed: true,
+      isActive: true,
+    });
+  });
+
+  await assertFails(
+    setDoc(doc(attackerDb, "publicSalons/debug-root/services/evil-service"), {
+      serviceId: "evil-service",
+      isActive: true,
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(attackerDb, "salons/debug-root/services/evil-service"), {
+      id: "evil-service",
+      salonId: "debug-root",
+      name: "Injected service",
+      price: 1,
+      debugSeed: true,
+    }),
+  );
+});
+
 test("emulator concurrency: parallel booking writes allow only one success", async () => {
   await testEnv.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
