@@ -110,6 +110,8 @@ class _ShiftsSettingsScreenState extends ConsumerState<ShiftsSettingsScreen> {
                       child: ReorderableListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                         itemCount: ordered.length,
+                        // Keep onReorder until the minimum Flutter SDK includes onReorderItem.
+                        // ignore: deprecated_member_use
                         onReorder: (oldIndex, newIndex) {
                           setSheetState(() {
                             if (newIndex > oldIndex) {
