@@ -17,6 +17,7 @@ const ownerUid = "owner-1";
 const adminUid = "admin-1";
 const adminNoPermUid = "admin-no-perm";
 const barberUid = "barber-1";
+const customerUid = "customer-1";
 const salonA = "salon-a";
 const salonB = "salon-b";
 
@@ -58,6 +59,12 @@ before(async () => {
       isActive: true,
       permissions: { canViewCustomers: false },
     });
+    await setDoc(doc(db, `users/${customerUid}`), {
+      uid: customerUid,
+      role: "customer",
+      salonId: null,
+      isActive: true,
+    });
     await setDoc(doc(db, `salons/${salonA}/employees/${ownerUid}`), {
       id: ownerUid,
       uid: ownerUid,
@@ -88,6 +95,13 @@ before(async () => {
       fullName: "Ali",
       normalizedFullName: "ali",
       isActive: true,
+    });
+    await setDoc(doc(db, `publicSalons/${salonA}`), {
+      salonId: salonA,
+      name: "Salon A",
+      isActive: true,
+      isPublished: true,
+      isPublic: true,
     });
   });
 });
@@ -181,6 +195,42 @@ test("cross-salon write attempts should fail", async () => {
       fullName: "Cross Salon",
       normalizedFullName: "cross salon",
       isActive: true,
+    }),
+  );
+});
+
+test("signed-in clients cannot use debugSeed discovery writes", async () => {
+  const db = testEnv.authenticatedContext(customerUid).firestore();
+
+  await assertFails(
+    setDoc(doc(db, "publicSalons/evil-salon"), {
+      salonId: "evil-salon",
+      name: "Defaced Salon",
+      isActive: true,
+      isPublished: true,
+      isPublic: true,
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    updateDoc(doc(db, `publicSalons/${salonA}`), {
+      name: "Defaced Salon",
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, "customerDiscovery/categories/items/evil-category"), {
+      title: "Injected Category",
+      isActive: true,
+      debugSeed: true,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, "salons/evil-salon"), {
+      ownerUid: customerUid,
+      name: "Injected Salon",
+      isActive: true,
+      debugSeed: true,
     }),
   );
 });
