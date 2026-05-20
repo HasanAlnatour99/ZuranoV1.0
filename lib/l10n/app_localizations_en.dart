@@ -8792,6 +8792,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String customersPremiumGreetingLine(String greeting) {
+    return '$greeting,';
+  }
+
+  @override
   String customersSalonOnlyBannerTitle(String salonName) {
     return '$salonName customers only';
   }
@@ -8893,6 +8898,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customersClearSearch => 'Clear search';
+
+  @override
+  String get customersFilterTooltip => 'Filter customers';
 
   @override
   String get customersAddCustomerFab => 'Add customer';

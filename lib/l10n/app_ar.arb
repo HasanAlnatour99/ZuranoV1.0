@@ -3454,6 +3454,12 @@
       "name": {"type": "String"}
     }
   },
+  "customersPremiumGreetingLine": "{greeting}،",
+  "@customersPremiumGreetingLine": {
+    "placeholders": {
+      "greeting": {"type": "String"}
+    }
+  },
   "customersSalonOnlyBannerTitle": "عملاء {salonName} فقط",
   "@customersSalonOnlyBannerTitle": {
     "placeholders": {
@@ -3497,6 +3503,7 @@
   "customersSearchEmptyTitle": "لا نتائج للبحث",
   "customersSearchEmptySubtitle": "جرّب اسماً أو هاتفاً مختلفاً، أو امسح البحث.",
   "customersClearSearch": "مسح البحث",
+  "customersFilterTooltip": "تصفية العملاء",
   "customersAddCustomerFab": "إضافة عميل",
   "customersPermissionErrorTitle": "لا يمكنك الوصول إلى هؤلاء العملاء.",
   "customersPermissionErrorSubtitle": "تحقّق من عضوية الصالون أو الصلاحيات.",

@@ -6,28 +6,30 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
+import '../../../../providers/notification_providers.dart';
 import '../../../../providers/salon_streams_provider.dart';
 import '../../../../providers/session_provider.dart';
-import '../../../bookings/presentation/widgets/bookings_preview_container.dart';
 import '../../data/models/customer.dart';
 import '../../domain/customer_model.dart';
 import '../../logic/customer_list_controller.dart';
 import '../widgets/customer_card.dart';
 import '../widgets/customer_empty_state.dart';
 import '../widgets/customer_filter_chips.dart';
-import '../widgets/customer_info_banner.dart';
-import '../widgets/customer_insight_card.dart';
+import '../widgets/customer_insight_empty_card.dart';
 import '../widgets/customer_list_footer.dart';
+import '../widgets/customer_premium_header.dart';
 import '../widgets/customer_search_bar.dart';
+import '../widgets/customers_section_header.dart';
 import '../widgets/customers_filter_empty_state.dart';
-import '../widgets/customers_header.dart';
 import '../widgets/customers_search_empty_state.dart';
-import '../widgets/customers_premium_header.dart';
+import '../widgets/golden_customers_card.dart';
+
+const _customersPremiumBg = Color(0xFFFAF8FF);
 
 class CustomersScreen extends ConsumerStatefulWidget {
   const CustomersScreen({super.key, this.ownerShellHeroEmbedded = false});
 
-  /// When true, shown under [OwnerDashboardHeroTabScaffold] (shared hero + light canvas).
+  /// When true, rendered inside the owner shell without adding another Scaffold.
   final bool ownerShellHeroEmbedded;
 
   @override
@@ -102,11 +104,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     final user = ref.watch(sessionUserProvider).asData?.value;
     final salonId = user?.salonId?.trim() ?? '';
     final salonAsync = ref.watch(sessionSalonStreamProvider);
-    final salonName = salonAsync.asData?.value?.name ?? '';
+    final salon = salonAsync.asData?.value;
+    final salonName = salon?.name ?? '';
+    final showProBadge =
+        (salon?.subscriptionPlan ?? '').trim().toLowerCase() == 'pro';
+    final unreadNotifications = ref.watch(unreadNotificationCountProvider);
     final currencyCode = ref.watch(sessionSalonMoneyCurrencyCodeProvider);
 
     final listAsync = ref.watch(customerListControllerProvider);
-    final bookingsAsync = ref.watch(bookingsStreamProvider);
 
     final canCreate =
         user != null && (user.role == 'owner' || user.role == 'admin');
@@ -150,251 +155,245 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
       final customers = listState.customers;
       final filtered = _applyFilters(customers);
-          final searchQuery = _searchController.text.trim();
-          final filterEmpty =
-              customers.isNotEmpty && filtered.isEmpty && salonId.isNotEmpty;
-          final showListFooter =
-              filtered.isNotEmpty && filtered.length < 5 && salonId.isNotEmpty;
-          final showLoadMore =
-              salonId.isNotEmpty && listState.hasMore && filtered.isNotEmpty;
+      final searchQuery = _searchController.text.trim();
+      final filterEmpty =
+          customers.isNotEmpty && filtered.isEmpty && salonId.isNotEmpty;
+      final showListFooter =
+          filtered.isNotEmpty && filtered.length < 5 && salonId.isNotEmpty;
+      final showLoadMore =
+          salonId.isNotEmpty && listState.hasMore && filtered.isNotEmpty;
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, embedded ? 36 : 0, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (salonId.isEmpty) ...[
-                        Text(
-                          l10n.ownerServicesWaitingForSalon,
-                          style: const TextStyle(
-                            color: FinanceDashboardColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ] else ...[
-                        const CustomerInfoBanner(),
-                        const SizedBox(height: 16),
-                      ],
-                      CustomersHeader(
-                        count: filtered.length,
-                        onFilterTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.customersScreenTitle)),
-                          );
-                        },
+      return CustomScrollView(
+        slivers: [
+          if (user != null)
+            SliverToBoxAdapter(
+              child: _CustomerHeaderStack(
+                ownerName: user.name,
+                salonName: salonName,
+                showProBadge: showProBadge,
+                unreadNotifications: unreadNotifications,
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (salonId.isEmpty) ...[
+                    Text(
+                      l10n.ownerServicesWaitingForSalon,
+                      style: const TextStyle(
+                        color: FinanceDashboardColors.textSecondary,
                       ),
-                      if (salonId.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        CustomerInsightCard(salonId: salonId),
-                      ],
-                      if (salonId.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        bookingsAsync.when(
-                          data: (allBookings) {
-                            final upcoming =
-                                filterUpcomingBookings(allBookings).take(3).toList();
-                            return BookingsPreviewContainer(
-                              title: l10n.bookingsPreviewSectionTitle,
-                              bookings: upcoming,
-                              l10n: l10n,
-                              localeName: localeName,
-                              maxVisible: 3,
-                              onViewAll: () =>
-                                  context.push(AppRoutes.ownerBookings),
-                            );
-                          },
-                          loading: () => const SizedBox.shrink(),
-                          error: (error, stackTrace) =>
-                              const SizedBox.shrink(),
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      CustomerSearchBar(
-                        controller: _searchController,
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 14),
-                      CustomerFilterChips(
-                        selectedKey: _selectedTag,
-                        onSelected: (v) {
-                          setState(() => _selectedTag = v);
-                          ref
-                              .read(customerListControllerProvider.notifier)
-                              .updateFilter(
-                                switch (v) {
-                                  'All' => 'All',
-                                  'New' => 'new',
-                                  'Regular' => 'regular',
-                                  'VIP' => 'vip',
-                                  'Inactive' => 'Inactive',
-                                  _ => 'All',
-                                },
-                              );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  CustomersSectionHeader(
+                    count: customers.length,
+                    onFilterTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.customersScreenTitle)),
+                      );
+                    },
                   ),
+                  if (salonId.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const CustomerInsightEmptyCard(),
+                  ],
+                  const SizedBox(height: 16),
+                  CustomerSearchBar(
+                    controller: _searchController,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 14),
+                  CustomerFilterChips(
+                    selectedKey: _selectedTag,
+                    onSelected: (v) {
+                      setState(() => _selectedTag = v);
+                      ref
+                          .read(customerListControllerProvider.notifier)
+                          .updateFilter(
+                            switch (v) {
+                              'All' => 'All',
+                              'New' => 'new',
+                              'Regular' => 'regular',
+                              'VIP' => 'vip',
+                              'Inactive' => 'Inactive',
+                              _ => 'All',
+                            },
+                          );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          if (customers.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: clearanceBelowContent),
+                child: searchQuery.isNotEmpty
+                    ? CustomersSearchEmptyState(
+                        onClearSearch: _clearSearchOnly,
+                      )
+                    : CustomerEmptyState(
+                        canCreate: canCreate,
+                        onAddCustomer: canCreate
+                            ? () => context.push(AppRoutes.customerNew)
+                            : null,
+                      ),
+              ),
+            )
+          else if (filterEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: clearanceBelowContent),
+                child: CustomersFilterEmptyState(
+                  onClearFilters: _resetFilters,
                 ),
               ),
-              if (customers.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: clearanceBelowContent),
-                    child: searchQuery.isNotEmpty
-                        ? CustomersSearchEmptyState(
-                            onClearSearch: _clearSearchOnly,
-                          )
-                        : CustomerEmptyState(
-                            canCreate: canCreate,
-                            onAddCustomer: canCreate
-                                ? () => context.push(AppRoutes.customerNew)
-                                : null,
-                          ),
-                  ),
-                )
-              else if (filterEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: clearanceBelowContent),
-                    child: CustomersFilterEmptyState(
-                      onClearFilters: _resetFilters,
-                    ),
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    0,
-                    20,
-                    clearanceBelowContent + (embedded ? 120 : 8),
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final extraCount =
-                            (showListFooter ? 1 : 0) + (showLoadMore ? 1 : 0);
-                        if (index >= filtered.length + extraCount) {
-                          return null;
-                        }
-                        if (showListFooter && index == filtered.length) {
-                          return const CustomerListFooter();
-                        }
-                        if (showLoadMore &&
-                            index == filtered.length + (showListFooter ? 1 : 0)) {
-                          final isLoading = listState.isLoadingMore;
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 8, 0, 12),
-                            child: OutlinedButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => ref
-                                      .read(
-                                        customerListControllerProvider.notifier,
-                                      )
-                                      .loadMore(),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                  color: FinanceDashboardColors.border,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                  horizontal: 12,
-                                ),
-                              ),
-                              child: isLoading
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: FinanceDashboardColors
-                                            .primaryPurple,
-                                      ),
-                                    )
-                                  : Text(l10n.customersLoadMore),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                clearanceBelowContent + (embedded ? 120 : 8),
+              ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final extraCount =
+                        (showListFooter ? 1 : 0) + (showLoadMore ? 1 : 0);
+                    if (index >= filtered.length + extraCount) {
+                      return null;
+                    }
+                    if (showListFooter && index == filtered.length) {
+                      return const CustomerListFooter();
+                    }
+                    if (showLoadMore &&
+                        index == filtered.length +
+                            (showListFooter ? 1 : 0)) {
+                      final isLoading = listState.isLoadingMore;
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 12),
+                        child: OutlinedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => ref
+                                  .read(customerListControllerProvider.notifier)
+                                  .loadMore(),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: FinanceDashboardColors.border,
                             ),
-                          );
-                        }
-                        final c = filtered[index];
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: index == filtered.length - 1 && !showListFooter
-                                ? 0
-                                : 12,
-                          ),
-                          child: CustomerCard(
-                            customer: c,
-                            l10n: l10n,
-                            localeName: localeName,
-                            currencyCode: currencyCode,
-                            listIndex: index,
-                            onTap: () => context.push(
-                              AppRoutes.ownerCustomerDetails(c.id),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
                             ),
-                            onOpenProfile: () => context.push(
-                              AppRoutes.ownerCustomerDetails(c.id),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 12,
                             ),
                           ),
-                        );
-                      },
-                      childCount:
-                          filtered.length +
-                          (showListFooter ? 1 : 0) +
-                          (showLoadMore ? 1 : 0),
-                    ),
-                  ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color:
+                                        FinanceDashboardColors.primaryPurple,
+                                  ),
+                                )
+                              : Text(l10n.customersLoadMore),
+                        ),
+                      );
+                    }
+                    final c = filtered[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index == filtered.length - 1 && !showListFooter
+                            ? 0
+                            : 12,
+                      ),
+                      child: CustomerCard(
+                        customer: c,
+                        l10n: l10n,
+                        localeName: localeName,
+                        currencyCode: currencyCode,
+                        listIndex: index,
+                        onTap: () => context.push(
+                          AppRoutes.ownerCustomerDetails(c.id),
+                        ),
+                        onOpenProfile: () => context.push(
+                          AppRoutes.ownerCustomerDetails(c.id),
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: filtered.length +
+                      (showListFooter ? 1 : 0) +
+                      (showLoadMore ? 1 : 0),
                 ),
-            ],
-          );
+              ),
+            ),
+        ],
+      );
     }
 
-    final bodyChild = salonId.isEmpty ? const SizedBox.shrink() : content();
+    final bodyChild = content();
 
     if (embedded) {
       return ColoredBox(
-        color: FinanceDashboardColors.background,
+        color: _customersPremiumBg,
         child: bodyChild,
       );
     }
 
     return Scaffold(
-      backgroundColor: FinanceDashboardColors.background,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: _customersPremiumBg,
+      body: bodyChild,
+    );
+  }
+}
+
+class _CustomerHeaderStack extends StatelessWidget {
+  const _CustomerHeaderStack({
+    required this.ownerName,
+    required this.salonName,
+    required this.showProBadge,
+    required this.unreadNotifications,
+  });
+
+  final String ownerName;
+  final String salonName;
+  final bool showProBadge;
+  final int unreadNotifications;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 374,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          if (user != null)
-            CustomersPremiumHeader(
-              user: user,
-              salonName: salonName,
-              leading: context.canPop()
-                  ? IconButton(
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                      onPressed: () => context.pop(),
-                      icon: const Icon(
-                        Icons.arrow_back_rounded,
-                        color: Colors.white,
-                      ),
-                      style: IconButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    )
-                  : null,
-            ),
-          const SizedBox(height: 14),
-          Expanded(child: bodyChild),
+          CustomerPremiumHeader(
+            ownerName: ownerName,
+            salonName: salonName,
+            showProBadge: showProBadge,
+            unreadNotifications: unreadNotifications,
+          ),
+          PositionedDirectional(
+            start: 20,
+            end: 20,
+            top: 246,
+            child: GoldenCustomersCard(onTap: () {}),
+          ),
         ],
       ),
     );

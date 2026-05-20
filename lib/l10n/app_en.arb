@@ -3530,6 +3530,12 @@
       "name": {"type": "String"}
     }
   },
+  "customersPremiumGreetingLine": "{greeting},",
+  "@customersPremiumGreetingLine": {
+    "placeholders": {
+      "greeting": {"type": "String"}
+    }
+  },
   "customersSalonOnlyBannerTitle": "{salonName} customers only",
   "@customersSalonOnlyBannerTitle": {
     "placeholders": {
@@ -3573,6 +3579,7 @@
   "customersSearchEmptyTitle": "No search results",
   "customersSearchEmptySubtitle": "Try a different name or phone, or clear the search.",
   "customersClearSearch": "Clear search",
+  "customersFilterTooltip": "Filter customers",
   "customersAddCustomerFab": "Add customer",
   "customersPermissionErrorTitle": "You do not have access to these customers.",
   "customersPermissionErrorSubtitle": "Please check salon membership or permissions.",

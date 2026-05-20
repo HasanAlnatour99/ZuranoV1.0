@@ -15502,6 +15502,12 @@ abstract class AppLocalizations {
   /// **'{greeting}, {name} 👋'**
   String customersHeroGreeting(String greeting, String name);
 
+  /// No description provided for @customersPremiumGreetingLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{greeting},'**
+  String customersPremiumGreetingLine(String greeting);
+
   /// No description provided for @customersSalonOnlyBannerTitle.
   ///
   /// In en, this message translates to:
@@ -15669,6 +15675,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear search'**
   String get customersClearSearch;
+
+  /// No description provided for @customersFilterTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter customers'**
+  String get customersFilterTooltip;
 
   /// No description provided for @customersAddCustomerFab.
   ///

@@ -8772,6 +8772,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String customersPremiumGreetingLine(String greeting) {
+    return '$greeting،';
+  }
+
+  @override
   String customersSalonOnlyBannerTitle(String salonName) {
     return 'عملاء $salonName فقط';
   }
@@ -8872,6 +8877,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get customersClearSearch => 'مسح البحث';
+
+  @override
+  String get customersFilterTooltip => 'تصفية العملاء';
 
   @override
   String get customersAddCustomerFab => 'إضافة عميل';

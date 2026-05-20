@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+
+const _primaryPurple = Color(0xFF7B2FF7);
+const _textSecondary = Color(0xFF7A728C);
 
 class CustomerSearchBar extends StatelessWidget {
   const CustomerSearchBar({
@@ -23,11 +25,12 @@ class CustomerSearchBar extends StatelessWidget {
       decoration: InputDecoration(
         hintText: l10n.customersSearchHint,
         hintStyle: const TextStyle(
-          color: FinanceDashboardColors.textSecondary,
+          color: _textSecondary,
+          fontWeight: FontWeight.w600,
         ),
-        prefixIcon: const Icon(Icons.search_rounded),
+        prefixIcon: const Icon(Icons.search_rounded, color: _primaryPurple),
         filled: true,
-        fillColor: FinanceDashboardColors.surface,
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 18,
@@ -35,6 +38,12 @@ class CustomerSearchBar extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(22),
           borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide(
+            color: _primaryPurple.withValues(alpha: 0.34),
+          ),
         ),
       ),
     );
