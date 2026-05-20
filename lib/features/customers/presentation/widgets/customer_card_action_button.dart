@@ -21,19 +21,29 @@ class CustomerCardActionButton extends StatelessWidget {
       label: semanticLabel,
       button: true,
       child: Material(
-        color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.45),
-        shape: const CircleBorder(),
+        color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
-        child: IconButton(
-          style: IconButton.styleFrom(
-            foregroundColor: FinanceDashboardColors.primaryPurple,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.all(8),
-            minimumSize: const Size(40, 40),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: FinanceDashboardColors.primaryPurple.withValues(
+                alpha: 0.08,
+              ),
+            ),
           ),
-          onPressed: onPressed,
-          icon: Icon(icon, size: 20),
+          child: IconButton(
+            style: IconButton.styleFrom(
+              foregroundColor: FinanceDashboardColors.primaryPurple,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.all(8),
+              minimumSize: const Size(42, 42),
+            ),
+            onPressed: onPressed,
+            icon: Icon(icon, size: 20),
+          ),
         ),
       ),
     );

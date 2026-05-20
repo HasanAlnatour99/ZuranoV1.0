@@ -170,11 +170,7 @@ final List<RouteBase> ownerRoutes = [
                   if (user == null) {
                     return const DashboardSkeleton();
                   }
-                  return OwnerDashboardHeroTabScaffold(
-                    user: user,
-                    enableBodyOverlap: false,
-                    body: const CustomersScreen(ownerShellHeroEmbedded: true),
-                  );
+                  return const CustomersScreen(ownerShellHeroEmbedded: true);
                 },
               ),
             ),

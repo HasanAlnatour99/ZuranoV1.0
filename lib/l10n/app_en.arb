@@ -3530,6 +3530,12 @@
       "name": {"type": "String"}
     }
   },
+  "customersPremiumGreetingLine": "{greeting},",
+  "@customersPremiumGreetingLine": {
+    "placeholders": {
+      "greeting": {"type": "String"}
+    }
+  },
   "customersSalonOnlyBannerTitle": "{salonName} customers only",
   "@customersSalonOnlyBannerTitle": {
     "placeholders": {
@@ -3554,6 +3560,7 @@
   "customersInsightsTotalSpent": "Total spending",
   "customersInsightsLoadError": "Could not load insights.",
   "customersInsightsEmpty": "Insights will appear here once available.",
+  "customersInsightsEmptySubtitle": "Start adding services and tracking visits.",
   "customersLastServiceLine": "Last service: {serviceName}",
   "@customersLastServiceLine": {
     "placeholders": {
@@ -3573,6 +3580,7 @@
   "customersSearchEmptyTitle": "No search results",
   "customersSearchEmptySubtitle": "Try a different name or phone, or clear the search.",
   "customersClearSearch": "Clear search",
+  "customersFilterTooltip": "Filter customers",
   "customersAddCustomerFab": "Add customer",
   "customersPermissionErrorTitle": "You do not have access to these customers.",
   "customersPermissionErrorSubtitle": "Please check salon membership or permissions.",
@@ -3600,6 +3608,15 @@
       "amount": {"type": "String"}
     }
   },
+  "customersCustomerIdLabel": "Customer ID: {id}",
+  "@customersCustomerIdLabel": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "customersLifetimeValueLabel": "Lifetime value",
+  "customersLoyaltyProgressLabel": "Loyalty progress",
+  "customersVisitsMetricLabel": "Visits",
   "customersSearchHint": "Search name or phone",
   "customersTagAll": "All",
   "customersTagNew": "New",

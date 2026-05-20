@@ -3454,6 +3454,12 @@
       "name": {"type": "String"}
     }
   },
+  "customersPremiumGreetingLine": "{greeting}،",
+  "@customersPremiumGreetingLine": {
+    "placeholders": {
+      "greeting": {"type": "String"}
+    }
+  },
   "customersSalonOnlyBannerTitle": "عملاء {salonName} فقط",
   "@customersSalonOnlyBannerTitle": {
     "placeholders": {
@@ -3478,6 +3484,7 @@
   "customersInsightsTotalSpent": "إجمالي الإنفاق",
   "customersInsightsLoadError": "تعذّر تحميل الإحصاءات.",
   "customersInsightsEmpty": "ستظهر الإحصاءات هنا عند توفرها.",
+  "customersInsightsEmptySubtitle": "ابدأ بإضافة الخدمات وتتبع الزيارات.",
   "customersLastServiceLine": "آخر خدمة: {serviceName}",
   "@customersLastServiceLine": {
     "placeholders": {
@@ -3497,6 +3504,7 @@
   "customersSearchEmptyTitle": "لا نتائج للبحث",
   "customersSearchEmptySubtitle": "جرّب اسماً أو هاتفاً مختلفاً، أو امسح البحث.",
   "customersClearSearch": "مسح البحث",
+  "customersFilterTooltip": "تصفية العملاء",
   "customersAddCustomerFab": "إضافة عميل",
   "customersPermissionErrorTitle": "لا يمكنك الوصول إلى هؤلاء العملاء.",
   "customersPermissionErrorSubtitle": "تحقّق من عضوية الصالون أو الصلاحيات.",
@@ -3524,6 +3532,15 @@
       "amount": {"type": "String"}
     }
   },
+  "customersCustomerIdLabel": "معرّف العميل: {id}",
+  "@customersCustomerIdLabel": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "customersLifetimeValueLabel": "القيمة مدى الحياة",
+  "customersLoyaltyProgressLabel": "تقدم الولاء",
+  "customersVisitsMetricLabel": "الزيارات",
   "customersSearchHint": "ابحث بالاسم أو الهاتف",
   "customersTagAll": "الكل",
   "customersTagNew": "جديد",

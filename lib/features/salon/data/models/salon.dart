@@ -32,6 +32,7 @@ class Salon {
     this.weeklyAvailability,
     this.penaltySettings = const PenaltySettings(),
     this.defaultPayrollPeriod = SalonPayrollPeriods.monthly,
+    this.subscriptionPlan,
     this.isPublished = true,
     this.searchKeywords = const [],
     this.tags = const [],
@@ -95,6 +96,9 @@ class Salon {
 
   /// `monthly` (default) | `weekly` — default payroll cadence; staff may override on their profile.
   final String defaultPayrollPeriod;
+
+  /// Optional billing plan slug for presentation-only affordances (e.g. `pro`).
+  final String? subscriptionPlan;
 
   /// Listed on customer discovery when true (Firestore rules + queries align on this flag).
   final bool isPublished;
@@ -195,6 +199,7 @@ class Salon {
       defaultPayrollPeriod: SalonPayrollPeriods.normalize(
         FirestoreSerializers.string(json['defaultPayrollPeriod']),
       ),
+      subscriptionPlan: FirestoreSerializers.string(json['subscriptionPlan']),
       isPublished: FirestoreSerializers.boolValue(
         json['isPublished'],
         fallback: true,
@@ -259,6 +264,8 @@ class Salon {
         },
       'penaltySettings': penaltySettings.toJson(),
       'defaultPayrollPeriod': defaultPayrollPeriod,
+      if (subscriptionPlan != null && subscriptionPlan!.trim().isNotEmpty)
+        'subscriptionPlan': subscriptionPlan!.trim(),
       'isPublished': isPublished,
       'searchKeywords': searchKeywords,
       'tags': tags,
@@ -295,6 +302,7 @@ class Salon {
     Object? weeklyAvailability = _sentinel,
     PenaltySettings? penaltySettings,
     String? defaultPayrollPeriod,
+    Object? subscriptionPlan = _sentinel,
     bool? isPublished,
     List<String>? searchKeywords,
     List<String>? tags,
@@ -350,6 +358,9 @@ class Salon {
       defaultPayrollPeriod: defaultPayrollPeriod != null
           ? SalonPayrollPeriods.normalize(defaultPayrollPeriod)
           : this.defaultPayrollPeriod,
+      subscriptionPlan: identical(subscriptionPlan, _sentinel)
+          ? this.subscriptionPlan
+          : subscriptionPlan as String?,
       isPublished: isPublished ?? this.isPublished,
       searchKeywords: searchKeywords ?? this.searchKeywords,
       tags: tags ?? this.tags,
