@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -264,7 +265,7 @@ class _CustomerCardState extends State<CustomerCard> {
                           ),
                           const SizedBox(height: 6),
                           Icon(
-                            Directionality.of(context) == TextDirection.rtl
+                            Directionality.of(context) == ui.TextDirection.rtl
                                 ? Icons.chevron_left_rounded
                                 : Icons.chevron_right_rounded,
                             color: FinanceDashboardColors.textSecondary
