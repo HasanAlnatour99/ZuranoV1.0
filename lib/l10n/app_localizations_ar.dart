@@ -8832,6 +8832,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get customersInsightsEmpty => 'ستظهر الإحصاءات هنا عند توفرها.';
 
   @override
+  String get customersInsightsEmptySubtitle =>
+      'ابدأ بإضافة الخدمات وتتبع الزيارات.';
+
+  @override
   String customersLastServiceLine(String serviceName) {
     return 'آخر خدمة: $serviceName';
   }
@@ -8924,6 +8928,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String customersSpentShort(String amount) {
     return 'الإنفاق: $amount';
   }
+
+  @override
+  String customersCustomerIdLabel(String id) {
+    return 'معرّف العميل: $id';
+  }
+
+  @override
+  String get customersLifetimeValueLabel => 'القيمة مدى الحياة';
+
+  @override
+  String get customersLoyaltyProgressLabel => 'تقدم الولاء';
+
+  @override
+  String get customersVisitsMetricLabel => 'الزيارات';
 
   @override
   String get customersSearchHint => 'ابحث بالاسم أو الهاتف';

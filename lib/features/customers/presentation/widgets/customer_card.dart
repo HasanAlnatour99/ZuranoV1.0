@@ -25,20 +25,15 @@ LinearGradient _customerCardSurfaceGradient({required bool isInactive}) {
     );
   }
   return LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
     colors: [
-      Color.lerp(
-            FinanceDashboardColors.lightPurple,
-            Colors.white,
-            0.35,
-          ) ??
-          FinanceDashboardColors.lightPurple,
-      FinanceDashboardColors.surface,
+      Colors.white,
+      const Color(0xFFFCF9FF),
       Color.lerp(
             FinanceDashboardColors.headerGradientEnd,
             FinanceDashboardColors.surface,
-            0.92,
+            0.94,
           ) ??
           FinanceDashboardColors.surface,
     ],
@@ -125,10 +120,10 @@ class _CustomerCardState extends State<CustomerCard> {
       curve: Curves.easeOutCubic,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(26),
           splashColor: FinanceDashboardColors.primaryPurple.withValues(
             alpha: 0.12,
           ),
@@ -142,38 +137,62 @@ class _CustomerCardState extends State<CustomerCard> {
           child: Ink(
             decoration: BoxDecoration(
               gradient: _customerCardSurfaceGradient(isInactive: isInactive),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(26),
               border: Border.all(
                 color: FinanceDashboardColors.primaryPurple.withValues(
-                  alpha: isInactive ? 0.06 : 0.12,
+                  alpha: isInactive ? 0.06 : 0.10,
                 ),
               ),
               boxShadow: [
                 BoxShadow(
                   color: FinanceDashboardColors.primaryPurple.withValues(
-                    alpha: 0.08,
+                    alpha: 0.09,
                   ),
-                  blurRadius: 26,
-                  offset: const Offset(0, 12),
+                  blurRadius: 30,
+                  spreadRadius: -8,
+                  offset: const Offset(0, 18),
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withValues(alpha: 0.035),
+                  blurRadius: 16,
+                  spreadRadius: -10,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 26,
-                        backgroundColor: Colors.white.withValues(alpha: 0.72),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              FinanceDashboardColors.lightPurple,
+                              Colors.white.withValues(alpha: 0.92),
+                            ],
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
+                          ),
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: FinanceDashboardColors.primaryPurple
+                                  .withValues(alpha: 0.12),
+                              blurRadius: 18,
+                              spreadRadius: -6,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
                         child: Text(
                           CustomerCard.initialsFor(customer.visibleDisplayName),
                           style: const TextStyle(
@@ -219,15 +238,39 @@ class _CustomerCardState extends State<CustomerCard> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.customersCustomerIdLabel(
+                                _shortCustomerId(customer.id),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: FinanceDashboardColors.textSecondary
+                                    .withValues(alpha: 0.72),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: FinanceDashboardColors.textSecondary.withValues(
-                          alpha: 0.65,
-                        ),
+                      Column(
+                        children: [
+                          _MoreButton(
+                            tooltip: l10n.customersActionViewProfile,
+                            onPressed: widget.onOpenProfile,
+                          ),
+                          const SizedBox(height: 6),
+                          Icon(
+                            Directionality.of(context) == TextDirection.rtl
+                                ? Icons.chevron_left_rounded
+                                : Icons.chevron_right_rounded,
+                            color: FinanceDashboardColors.textSecondary
+                                .withValues(alpha: 0.62),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -242,19 +285,36 @@ class _CustomerCardState extends State<CustomerCard> {
                             ).format(lastVisit.toLocal()),
                           ),
                   ),
-                  const SizedBox(height: 6),
-                  _DetailLine(
-                    icon: Icons.repeat_rounded,
-                    text: l10n.customersVisitsShort(customer.totalVisits),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _MetricTile(
+                          icon: Icons.repeat_rounded,
+                          value: '${customer.totalVisits}',
+                          label: l10n.customersVisitsMetricLabel,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _MetricTile(
+                          icon: Icons.payments_outlined,
+                          value: spentLabel,
+                          label: l10n.customersLifetimeValueLabel,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  _DetailLine(
-                    icon: Icons.payments_outlined,
-                    text: l10n.customersTotalSpentLine(spentLabel),
+                  const SizedBox(height: 12),
+                  _LoyaltyProgress(
+                    label: l10n.customersLoyaltyProgressLabel,
+                    value: (customer.totalVisits / 10)
+                        .clamp(0.0, 1.0)
+                        .toDouble(),
                   ),
                   if (customer.lastServiceName != null &&
                       customer.lastServiceName!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     _DetailLine(
                       icon: Icons.content_cut_rounded,
                       text: l10n.customersLastServiceLine(
@@ -328,6 +388,12 @@ class _CustomerCardState extends State<CustomerCard> {
           curve: Curves.easeOutCubic,
         );
   }
+}
+
+String _shortCustomerId(String id) {
+  final trimmed = id.trim();
+  if (trimmed.length <= 8) return trimmed;
+  return trimmed.substring(0, 8).toUpperCase();
 }
 
 class _CategoryBadge extends StatelessWidget {
@@ -418,6 +484,162 @@ class _StatusPill extends StatelessWidget {
               color: color,
               fontSize: 11,
               fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoreButton extends StatelessWidget {
+  const _MoreButton({required this.tooltip, required this.onPressed});
+
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: const SizedBox(
+            width: 34,
+            height: 34,
+            child: Icon(
+              Icons.more_horiz_rounded,
+              color: FinanceDashboardColors.primaryPurple,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 11, 12, 11),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.74),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: FinanceDashboardColors.primaryPurple.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: FinanceDashboardColors.primaryPurple,
+            ),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: FinanceDashboardColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: FinanceDashboardColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    height: 1.05,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoyaltyProgress extends StatelessWidget {
+  const _LoyaltyProgress({required this.label, required this.value});
+
+  final String label;
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 11, 12, 12),
+      decoration: BoxDecoration(
+        color: FinanceDashboardColors.lightPurple.withValues(alpha: 0.40),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: FinanceDashboardColors.primaryPurple.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: FinanceDashboardColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 9),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: value,
+              minHeight: 7,
+              backgroundColor: Colors.white.withValues(alpha: 0.82),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                FinanceDashboardColors.primaryPurple,
+              ),
             ),
           ),
         ],

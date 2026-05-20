@@ -2,49 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
-import '../../../../core/text/personalized_greeting.dart';
 import '../../../../l10n/app_localizations.dart';
 
 const _primaryPurple = Color(0xFF7B2FF7);
-const _secondaryPurple = Color(0xFF9D6CFF);
-const _deepPurple = Color(0xFF4C1D95);
+const _deepPurple = Color(0xFF5B21FF);
+const _lightPurple = Color(0xFFB388FF);
 
 class CustomerPremiumHeader extends StatelessWidget {
   const CustomerPremiumHeader({
     super.key,
-    required this.ownerName,
     required this.salonName,
     required this.showProBadge,
     required this.unreadNotifications,
+    required this.height,
+    required this.onMenuTap,
   });
 
-  final String ownerName;
   final String salonName;
   final bool showProBadge;
   final int unreadNotifications;
+  final double height;
+  final VoidCallback onMenuTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final greeting = getGreeting(l10n);
-    final displayName = ownerName.trim().isEmpty
-        ? l10n.ownerDashboardTitle
-        : ownerName.trim().toUpperCaseFirst();
     final displaySalon = salonName.trim().isEmpty
         ? l10n.customersScreenTitle
         : salonName.trim();
 
     return SizedBox(
-      height: 300,
+      height: height,
       width: double.infinity,
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(34),
+          bottom: Radius.circular(28),
         ),
         child: DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_deepPurple, _primaryPurple, _secondaryPurple],
+              colors: [_deepPurple, _primaryPurple, _lightPurple],
               begin: AlignmentDirectional.topStart,
               end: AlignmentDirectional.bottomEnd,
             ),
@@ -53,19 +50,19 @@ class CustomerPremiumHeader extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               const PositionedDirectional(
-                top: -52,
-                end: -44,
-                child: _SoftCircle(size: 164, opacity: 0.18),
+                top: -66,
+                end: -36,
+                child: _SoftCircle(size: 138, opacity: 0.20),
               ),
               const PositionedDirectional(
-                top: 138,
-                start: -58,
-                child: _SoftCircle(size: 148, opacity: 0.12),
+                bottom: -62,
+                start: -34,
+                child: _SoftCircle(size: 126, opacity: 0.13),
               ),
               const PositionedDirectional(
-                bottom: -50,
-                end: 44,
-                child: _SoftCircle(size: 128, opacity: 0.10),
+                top: 26,
+                end: 112,
+                child: _SoftCircle(size: 52, opacity: 0.08),
               ),
               CustomPaint(painter: _HeaderWavePainter()),
               SafeArea(
@@ -73,64 +70,65 @@ class CustomerPremiumHeader extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(
                     20,
-                    18,
+                    10,
                     20,
-                    28,
+                    16,
                   ),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _OwnerAvatar(name: displayName),
-                      const SizedBox(width: 14),
+                      _HeaderActionButton(
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).openAppDrawerTooltip,
+                        icon: Icons.menu_rounded,
+                        onTap: onMenuTap,
+                      ),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                l10n.customersPremiumGreetingLine(greeting),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.76),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.2,
-                                ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              l10n.customersScreenTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 23,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.45,
+                                height: 1.02,
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                displayName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
-                                  height: 1.05,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    displaySalon,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.80,
+                                      ),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.1,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                displaySalon,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.86),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.15,
-                                ),
-                              ),
-                              if (showProBadge) ...[
-                                const SizedBox(height: 10),
-                                _ProPill(label: l10n.ownerDashboardHeroProBadge),
+                                if (showProBadge) ...[
+                                  const SizedBox(width: 8),
+                                  _ProPill(
+                                    label: l10n.ownerDashboardHeroProBadge,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -140,7 +138,7 @@ class CustomerPremiumHeader extends StatelessWidget {
                         badgeCount: unreadNotifications,
                         onTap: () => context.push(AppRoutes.notifications),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       _HeaderActionButton(
                         tooltip: l10n.ownerDashboardSettingsTooltip,
                         icon: Icons.settings_rounded,
@@ -158,75 +156,6 @@ class CustomerPremiumHeader extends StatelessWidget {
   }
 }
 
-class _OwnerAvatar extends StatelessWidget {
-  const _OwnerAvatar({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.20),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.40),
-              width: 1.4,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            _initials(name),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
-            ),
-          ),
-        ),
-        PositionedDirectional(
-          end: -2,
-          bottom: -3,
-          child: Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: _primaryPurple, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.workspace_premium_rounded,
-              color: _primaryPurple,
-              size: 14,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static String _initials(String value) {
-    final parts = value.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || value.trim().isEmpty) return '?';
-    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
-    return '${parts.first.characters.first}${parts.last.characters.first}'
-        .toUpperCase();
-  }
-}
-
 class _ProPill extends StatelessWidget {
   const _ProPill({required this.label});
 
@@ -236,13 +165,13 @@ class _ProPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 12,
-        vertical: 6,
+        horizontal: 8,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.32)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
       ),
       child: Text(
         label,
@@ -250,7 +179,7 @@ class _ProPill extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: FontWeight.w900,
           height: 1,
         ),
@@ -277,22 +206,26 @@ class _HeaderActionButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: Colors.white.withValues(alpha: 0.20),
-        shape: const CircleBorder(),
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          child: SizedBox(
-            width: 46,
-            height: 46,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+            ),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                Icon(icon, color: Colors.white, size: 22),
+                Icon(icon, color: Colors.white, size: 21),
                 if (badgeCount > 0)
                   PositionedDirectional(
-                    top: 8,
+                    top: 7,
                     end: 7,
                     child: _NotificationBadge(count: badgeCount),
                   ),
@@ -314,13 +247,13 @@ class _NotificationBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = count > 99 ? '99+' : '$count';
     return Container(
-      constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
       padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: const Color(0xFFFF3B30),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(color: Colors.white, width: 1.4),
       ),
       child: Text(
         label,
@@ -357,25 +290,44 @@ class _SoftCircle extends StatelessWidget {
 class _HeaderWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final wavePaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = Colors.white.withValues(alpha: 0.10);
+      ..strokeWidth = 1.1
+      ..color = Colors.white.withValues(alpha: 0.11);
+    final dotPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = Colors.white.withValues(alpha: 0.18);
 
-    for (var i = 0; i < 4; i += 1) {
-      final y = size.height * (0.36 + i * 0.12);
+    for (var i = 0; i < 3; i += 1) {
+      final y = size.height * (0.35 + i * 0.18);
       final path = Path()
-        ..moveTo(-20, y)
+        ..moveTo(-18, y)
         ..cubicTo(
           size.width * 0.25,
-          y - 36,
-          size.width * 0.56,
-          y + 42,
-          size.width + 24,
-          y - 8,
+          y - 20,
+          size.width * 0.58,
+          y + 24,
+          size.width + 18,
+          y - 10,
         );
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, wavePaint);
     }
+
+    canvas.drawCircle(
+      Offset(size.width * 0.58, size.height * 0.25),
+      1.8,
+      dotPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.78, size.height * 0.68),
+      1.4,
+      dotPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.18, size.height * 0.74),
+      1.2,
+      dotPaint,
+    );
   }
 
   @override

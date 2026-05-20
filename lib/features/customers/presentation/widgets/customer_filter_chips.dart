@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 
 const _primaryPurple = Color(0xFF7B2FF7);
+const _secondaryPurple = Color(0xFF9D6CFF);
 const _textPrimary = Color(0xFF21143D);
 const _textSecondary = Color(0xFF7A728C);
 
@@ -75,7 +76,14 @@ class _AnimatedFilterChip extends StatelessWidget {
             vertical: 11,
           ),
           decoration: BoxDecoration(
-            color: selected ? _primaryPurple : Colors.white,
+            color: selected ? null : Colors.white,
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [_primaryPurple, _secondaryPurple],
+                    begin: AlignmentDirectional.centerStart,
+                    end: AlignmentDirectional.centerEnd,
+                  )
+                : null,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected

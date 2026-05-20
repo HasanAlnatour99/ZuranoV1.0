@@ -3560,6 +3560,7 @@
   "customersInsightsTotalSpent": "Total spending",
   "customersInsightsLoadError": "Could not load insights.",
   "customersInsightsEmpty": "Insights will appear here once available.",
+  "customersInsightsEmptySubtitle": "Start adding services and tracking visits.",
   "customersLastServiceLine": "Last service: {serviceName}",
   "@customersLastServiceLine": {
     "placeholders": {
@@ -3607,6 +3608,15 @@
       "amount": {"type": "String"}
     }
   },
+  "customersCustomerIdLabel": "Customer ID: {id}",
+  "@customersCustomerIdLabel": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "customersLifetimeValueLabel": "Lifetime value",
+  "customersLoyaltyProgressLabel": "Loyalty progress",
+  "customersVisitsMetricLabel": "Visits",
   "customersSearchHint": "Search name or phone",
   "customersTagAll": "All",
   "customersTagNew": "New",

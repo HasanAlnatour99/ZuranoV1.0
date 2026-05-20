@@ -8853,6 +8853,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Insights will appear here once available.';
 
   @override
+  String get customersInsightsEmptySubtitle =>
+      'Start adding services and tracking visits.';
+
+  @override
   String customersLastServiceLine(String serviceName) {
     return 'Last service: $serviceName';
   }
@@ -8947,6 +8951,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String customersSpentShort(String amount) {
     return 'Spent: $amount';
   }
+
+  @override
+  String customersCustomerIdLabel(String id) {
+    return 'Customer ID: $id';
+  }
+
+  @override
+  String get customersLifetimeValueLabel => 'Lifetime value';
+
+  @override
+  String get customersLoyaltyProgressLabel => 'Loyalty progress';
+
+  @override
+  String get customersVisitsMetricLabel => 'Visits';
 
   @override
   String get customersSearchHint => 'Search name or phone';

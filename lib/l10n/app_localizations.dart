@@ -15592,6 +15592,12 @@ abstract class AppLocalizations {
   /// **'Insights will appear here once available.'**
   String get customersInsightsEmpty;
 
+  /// No description provided for @customersInsightsEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start adding services and tracking visits.'**
+  String get customersInsightsEmptySubtitle;
+
   /// No description provided for @customersLastServiceLine.
   ///
   /// In en, this message translates to:
@@ -15753,6 +15759,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spent: {amount}'**
   String customersSpentShort(String amount);
+
+  /// No description provided for @customersCustomerIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer ID: {id}'**
+  String customersCustomerIdLabel(String id);
+
+  /// No description provided for @customersLifetimeValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime value'**
+  String get customersLifetimeValueLabel;
+
+  /// No description provided for @customersLoyaltyProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty progress'**
+  String get customersLoyaltyProgressLabel;
+
+  /// No description provided for @customersVisitsMetricLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits'**
+  String get customersVisitsMetricLabel;
 
   /// No description provided for @customersSearchHint.
   ///

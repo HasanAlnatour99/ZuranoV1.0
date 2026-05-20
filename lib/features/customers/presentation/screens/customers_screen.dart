@@ -167,8 +167,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         slivers: [
           if (user != null)
             SliverToBoxAdapter(
-              child: _CustomerHeaderStack(
-                ownerName: user.name,
+              child: _CustomerHeroSection(
                 salonName: salonName,
                 showProBadge: showProBadge,
                 unreadNotifications: unreadNotifications,
@@ -189,6 +188,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
+                  const SizedBox(height: 2),
                   CustomersSectionHeader(
                     count: customers.length,
                     onFilterTap: () {
@@ -362,36 +362,40 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 }
 
-class _CustomerHeaderStack extends StatelessWidget {
-  const _CustomerHeaderStack({
-    required this.ownerName,
+class _CustomerHeroSection extends StatelessWidget {
+  const _CustomerHeroSection({
     required this.salonName,
     required this.showProBadge,
     required this.unreadNotifications,
   });
 
-  final String ownerName;
   final String salonName;
   final bool showProBadge;
   final int unreadNotifications;
 
   @override
   Widget build(BuildContext context) {
+    final headerHeight = (MediaQuery.paddingOf(context).top + 104)
+        .clamp(128.0, 144.0)
+        .toDouble();
+    const cardOverlap = 18.0;
+    const cardEstimatedHeight = 94.0;
     return SizedBox(
-      height: 374,
+      height: headerHeight + cardEstimatedHeight - cardOverlap + 10,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           CustomerPremiumHeader(
-            ownerName: ownerName,
             salonName: salonName,
             showProBadge: showProBadge,
             unreadNotifications: unreadNotifications,
+            height: headerHeight,
+            onMenuTap: () {},
           ),
           PositionedDirectional(
             start: 20,
             end: 20,
-            top: 246,
+            top: headerHeight - cardOverlap,
             child: GoldenCustomersCard(onTap: () {}),
           ),
         ],

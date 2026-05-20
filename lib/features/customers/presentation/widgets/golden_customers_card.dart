@@ -19,26 +19,29 @@ class GoldenCustomersCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(28),
-      elevation: 0,
-      shadowColor: _primaryPurple.withValues(alpha: 0.12),
-      child: InkWell(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _primaryPurple.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryPurple.withValues(alpha: 0.12),
+            blurRadius: 30,
+            spreadRadius: -8,
+            offset: const Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(28),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
-        child: Container(
+        child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(18, 18, 16, 18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: _primaryPurple.withValues(alpha: 0.10),
-                blurRadius: 30,
-                offset: const Offset(0, 16),
-              ),
-            ],
-          ),
           child: Row(
             children: [
               Container(
@@ -100,6 +103,7 @@ class GoldenCustomersCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

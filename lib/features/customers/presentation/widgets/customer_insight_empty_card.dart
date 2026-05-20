@@ -6,6 +6,7 @@ const _primaryPurple = Color(0xFF7B2FF7);
 const _surfacePurple = Color(0xFFF0E7FF);
 const _textPrimary = Color(0xFF21143D);
 const _textSecondary = Color(0xFF7A728C);
+const _borderPurple = Color(0xFFEDE5FF);
 
 class CustomerInsightEmptyCard extends StatelessWidget {
   const CustomerInsightEmptyCard({super.key});
@@ -16,16 +17,21 @@ class CustomerInsightEmptyCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 16),
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 18, 12, 18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFFCF9FF)],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _primaryPurple.withValues(alpha: 0.08)),
+        border: Border.all(color: _borderPurple),
         boxShadow: [
           BoxShadow(
-            color: _primaryPurple.withValues(alpha: 0.06),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
+            color: _primaryPurple.withValues(alpha: 0.075),
+            blurRadius: 28,
+            spreadRadius: -8,
+            offset: const Offset(0, 16),
           ),
         ],
       ),
@@ -51,7 +57,7 @@ class CustomerInsightEmptyCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.customersInsightsThisMonth,
+                  l10n.customersInsightsEmpty,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -63,7 +69,7 @@ class CustomerInsightEmptyCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  l10n.customersInsightsEmpty,
+                  l10n.customersInsightsEmptySubtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -76,8 +82,71 @@ class CustomerInsightEmptyCard extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 10),
+          const _FadedChartIllustration(),
         ],
       ),
     );
   }
+}
+
+class _FadedChartIllustration extends StatelessWidget {
+  const _FadedChartIllustration();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 82,
+      height: 54,
+      child: CustomPaint(
+        painter: _MiniChartPainter(),
+      ),
+    );
+  }
+}
+
+class _MiniChartPainter extends CustomPainter {
+  const _MiniChartPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = _primaryPurple.withValues(alpha: 0.055);
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = _primaryPurple.withValues(alpha: 0.18);
+
+    for (var i = 1; i < 4; i += 1) {
+      final y = size.height * i / 4;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+
+    final path = Path()
+      ..moveTo(0, size.height * 0.74)
+      ..cubicTo(
+        size.width * 0.22,
+        size.height * 0.42,
+        size.width * 0.38,
+        size.height * 0.80,
+        size.width * 0.58,
+        size.height * 0.48,
+      )
+      ..cubicTo(
+        size.width * 0.72,
+        size.height * 0.24,
+        size.width * 0.86,
+        size.height * 0.36,
+        size.width,
+        size.height * 0.16,
+      );
+    canvas.drawPath(path, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
