@@ -22,9 +22,11 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
 class _FakeCustomerRepository extends CustomerRepository {
-  _FakeCustomerRepository(this.page) : super(firestore: FakeFirebaseFirestore());
+  _FakeCustomerRepository(this.page, {this.monthlyStats})
+      : super(firestore: FakeFirebaseFirestore());
 
   final CustomerPage page;
+  final CustomerMonthlyStats? monthlyStats;
 
   @override
   Future<CustomerPage> fetchCustomersPage({
@@ -43,7 +45,7 @@ class _FakeCustomerRepository extends CustomerRepository {
     required String salonId,
     required String yyyyMM,
   }) {
-    return Stream.value(null);
+    return Stream.value(monthlyStats);
   }
 }
 
@@ -119,6 +121,56 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Customers'), findsWidgets);
     expect(find.text('Ali Hassan'), findsOneWidget);
+  });
+
+  testWidgets('monthly customer insights render when stats exist', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
+          sessionUserProvider.overrideWith(
+            (ref) => Stream.value(_user('owner')),
+          ),
+          customerRepositoryProvider.overrideWithValue(
+            _FakeCustomerRepository(
+              CustomerPage(
+                customers: [_customer()],
+                lastDocument: null,
+                hasMore: false,
+              ),
+              monthlyStats: const CustomerMonthlyStats(
+                newCustomers: 7,
+                returningCustomers: 3,
+                activeCustomers: 10,
+                vipCustomers: 2,
+                totalSpent: 1234.5,
+                updatedAt: null,
+              ),
+            ),
+          ),
+        ],
+        child: _customersTestApp(const CustomersScreen()),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('This month'), findsOneWidget);
+    expect(find.text('New customers'), findsOneWidget);
+    expect(find.text('Returning'), findsOneWidget);
+    expect(find.text('Total active'), findsOneWidget);
+    expect(
+      find.text('Insights will appear here once available.'),
+      findsNothing,
+    );
   });
 
   testWidgets('empty-state add CTA is visible for owner', (tester) async {
