@@ -234,6 +234,7 @@ class AppRoutes {
     return location == customerMyBooking ||
         location == customerSearch ||
         location == customerHome ||
+        location == customerNearbyMap ||
         isPublicCustomerSalonBrowsePath(location) ||
         isPublicCustomerBookPath(location) ||
         isPublicCustomerBookingDetailsPath(location);
