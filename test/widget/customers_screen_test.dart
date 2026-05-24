@@ -6,6 +6,7 @@ import 'package:barber_shop_app/features/customers/data/customer_repository.dart
 import 'package:barber_shop_app/features/customers/data/models/customer_page.dart';
 import 'package:barber_shop_app/features/customers/data/models/customer_monthly_stats.dart';
 import 'package:barber_shop_app/features/customers/presentation/screens/customers_screen.dart';
+import 'package:barber_shop_app/features/customers/presentation/widgets/customer_insight_card.dart';
 import 'package:barber_shop_app/features/users/data/models/app_user.dart';
 import 'package:barber_shop_app/l10n/app_localizations.dart';
 import 'package:barber_shop_app/providers/notification_providers.dart';
@@ -22,9 +23,11 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
 class _FakeCustomerRepository extends CustomerRepository {
-  _FakeCustomerRepository(this.page) : super(firestore: FakeFirebaseFirestore());
+  _FakeCustomerRepository(this.page, {this.monthlyStats})
+      : super(firestore: FakeFirebaseFirestore());
 
   final CustomerPage page;
+  final CustomerMonthlyStats? monthlyStats;
 
   @override
   Future<CustomerPage> fetchCustomersPage({
@@ -43,7 +46,7 @@ class _FakeCustomerRepository extends CustomerRepository {
     required String salonId,
     required String yyyyMM,
   }) {
-    return Stream.value(null);
+    return Stream.value(monthlyStats);
   }
 }
 
@@ -119,6 +122,51 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Customers'), findsWidgets);
     expect(find.text('Ali Hassan'), findsOneWidget);
+  });
+
+  testWidgets('Customers tab renders live monthly insights', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+          unreadNotificationCountProvider.overrideWith((ref) => 0),
+          sessionUserProvider.overrideWith(
+            (ref) => Stream.value(_user('owner')),
+          ),
+          customerRepositoryProvider.overrideWithValue(
+            _FakeCustomerRepository(
+              CustomerPage(
+                customers: [_customer()],
+                lastDocument: null,
+                hasMore: false,
+              ),
+              monthlyStats: const CustomerMonthlyStats(
+                newCustomers: 3,
+                returningCustomers: 4,
+                activeCustomers: 7,
+                vipCustomers: 1,
+                totalSpent: 1250,
+                updatedAt: null,
+              ),
+            ),
+          ),
+        ],
+        child: _customersTestApp(const CustomersScreen()),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(CustomerInsightCard), findsOneWidget);
+    expect(find.text('This month'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('7'), findsOneWidget);
   });
 
   testWidgets('empty-state add CTA is visible for owner', (tester) async {
