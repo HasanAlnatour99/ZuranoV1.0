@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../providers/money_currency_providers.dart';
 import '../../logic/customer_insights_providers.dart';
 import '../../data/models/customer_monthly_stats.dart';
+import 'customer_insight_empty_card.dart';
 
 /// Compact “this month” CRM metrics above the customer list.
 class CustomerInsightCard extends ConsumerWidget {
@@ -62,15 +63,7 @@ class CustomerInsightCard extends ConsumerWidget {
       ),
       data: (CustomerMonthlyStats? data) {
         if (data == null) {
-          return _InsightShell(
-            child: Text(
-              l10n.customersInsightsEmpty,
-              style: const TextStyle(
-                color: FinanceDashboardColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          );
+          return const CustomerInsightEmptyCard();
         }
         return _InsightShell(
           child: Column(
