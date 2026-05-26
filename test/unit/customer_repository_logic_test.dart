@@ -277,5 +277,59 @@ void main() {
       expect((await locksCol.doc(lock1).get()).exists, isFalse);
       expect((await locksCol.doc(lock2).get()).exists, isTrue);
     });
+
+    test('clearing phone releases old lock for reuse', () async {
+      final firestore = FakeFirebaseFirestore();
+      final repository = CustomerRepository(firestore: firestore);
+
+      final id = await repository.createCustomer(
+        salonId: 'salon-1',
+        customer: const Customer(
+          id: '',
+          salonId: 'salon-1',
+          fullName: 'Ali',
+          fullNameLower: 'ali',
+          phone: '111',
+          isActive: true,
+          createdBy: 'u-1',
+        ),
+      );
+
+      final beforeSnap = await firestore
+          .collection('salons')
+          .doc('salon-1')
+          .collection('customers')
+          .doc(id)
+          .get();
+      final existing = Customer.fromJson({...?beforeSnap.data(), 'id': id});
+
+      await repository.updateCustomer(
+        'salon-1',
+        existing.copyWith(phone: '', updatedBy: 'u-1'),
+      );
+
+      final oldLockId = CustomerRepository.customerPhoneLockId('111');
+      final locksCol = firestore
+          .collection('salons')
+          .doc('salon-1')
+          .collection('customer_phone_locks');
+      expect((await locksCol.doc(oldLockId).get()).exists, isFalse);
+
+      await expectLater(
+        repository.createCustomer(
+          salonId: 'salon-1',
+          customer: const Customer(
+            id: '',
+            salonId: 'salon-1',
+            fullName: 'Reuse',
+            fullNameLower: 'reuse',
+            phone: '111',
+            isActive: true,
+            createdBy: 'u-1',
+          ),
+        ),
+        completes,
+      );
+    });
   });
 }
