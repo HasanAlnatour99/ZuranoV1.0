@@ -194,7 +194,12 @@ export function salonToPublicSalonPayload(
           location: new GeoPoint(latitude, longitude),
           ...(geoHashValue != null && geoHashValue.length > 0 ? { geohash: geoHashValue } : {}),
         }
-      : {}),
+      : {
+          latitude: FieldValue.delete(),
+          longitude: FieldValue.delete(),
+          location: FieldValue.delete(),
+          geohash: FieldValue.delete(),
+        }),
     isPublic,
     isActive,
     isPublished: isPublishedFlag,

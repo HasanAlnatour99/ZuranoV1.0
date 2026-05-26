@@ -10,6 +10,12 @@ export type FireUser = {
 
 export type ExportType = "sales" | "payroll" | "attendance" | "expenses" | "audit";
 
+export type StaffPermissionsRow = {
+  exists: boolean;
+  isActive: boolean;
+  permissions: Record<string, boolean>;
+};
+
 function sameSalon(user: FireUser, salonId: string): boolean {
   return String(user.salonId ?? "").trim() === salonId.trim();
 }
@@ -18,11 +24,12 @@ export async function loadStaffPermissionsRow(
   db: Firestore,
   salonId: string,
   uid: string,
-): Promise<{ exists: boolean; permissions: Record<string, boolean> }> {
+): Promise<StaffPermissionsRow> {
   const snap = await db.doc(`salons/${salonId}/staff/${uid}`).get();
   if (!snap.exists) {
-    return { exists: false, permissions: {} };
+    return { exists: false, isActive: true, permissions: {} };
   }
+  const data = snap.data();
   const raw = snap.data()?.permissions;
   const permissions: Record<string, boolean> = {};
   if (raw && typeof raw === "object") {
@@ -30,7 +37,7 @@ export async function loadStaffPermissionsRow(
       permissions[k] = Boolean(v);
     }
   }
-  return { exists: true, permissions };
+  return { exists: true, isActive: data?.isActive !== false, permissions };
 }
 
 export function assertActiveSalonMember(user: FireUser, salonId: string): void {
@@ -47,11 +54,14 @@ export function maySalonPermissionKey(
   user: FireUser,
   salonId: string,
   key: string,
-  staff: { exists: boolean; permissions: Record<string, boolean> },
+  staff: StaffPermissionsRow,
 ): boolean {
   const role = String(user.role ?? "").trim();
   if (role === "owner" && sameSalon(user, salonId)) {
     return true;
+  }
+  if (staff.exists && !staff.isActive) {
+    return false;
   }
   if ((role === "admin" || role === "owner") && sameSalon(user, salonId) && !staff.exists) {
     return true;
@@ -63,7 +73,7 @@ export function assertSalonPermissionKey(
   user: FireUser,
   salonId: string,
   key: string,
-  staff: { exists: boolean; permissions: Record<string, boolean> },
+  staff: StaffPermissionsRow,
 ): void {
   assertActiveSalonMember(user, salonId);
   if (String(user.role ?? "").trim() === "customer") {
@@ -78,7 +88,7 @@ export function assertExportTypeAllowed(
   user: FireUser,
   salonId: string,
   exportType: ExportType,
-  staff: { exists: boolean; permissions: Record<string, boolean> },
+  staff: StaffPermissionsRow,
 ): void {
   assertActiveSalonMember(user, salonId);
   const role = String(user.role ?? "").trim();
@@ -113,7 +123,7 @@ export function assertExportTypeAllowed(
 export function assertPayslipFinanceAccess(
   user: FireUser,
   salonId: string,
-  staff: { exists: boolean; permissions: Record<string, boolean> },
+  staff: StaffPermissionsRow,
 ): void {
   assertActiveSalonMember(user, salonId);
   const role = String(user.role ?? "").trim();
@@ -152,7 +162,7 @@ export function assertCanDownloadExportJob(
   user: FireUser,
   salonId: string,
   job: Record<string, unknown>,
-  staff: { exists: boolean; permissions: Record<string, boolean> },
+  staff: StaffPermissionsRow,
 ): void {
   assertActiveSalonMember(user, salonId);
   const role = String(user.role ?? "").trim();
