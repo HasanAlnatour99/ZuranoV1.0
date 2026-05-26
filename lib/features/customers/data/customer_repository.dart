@@ -492,8 +492,21 @@ class CustomerRepository {
     final nextLockId =
         (nextPhone != null && nextPhone.isNotEmpty) ? customerPhoneLockId(nextPhone) : null;
 
-    if (samePhone || nextLockId == null) {
+    if (samePhone) {
       await customerRef.set(payload, SetOptions(merge: true));
+      return;
+    }
+
+    if (nextLockId == null) {
+      final prevLockRef = prevLockId == null
+          ? null
+          : _customerPhoneLocksRef(sid).doc(prevLockId);
+      await _firestore.runTransaction((tx) async {
+        tx.set(customerRef, payload, SetOptions(merge: true));
+        if (prevLockRef != null) {
+          tx.delete(prevLockRef);
+        }
+      });
       return;
     }
 
