@@ -53,9 +53,9 @@ if [ ! -f "$PODFILE_LOCK" ] ; then
     exit 1
 fi
 
-if [ ! -f "$MANIFEST_LOCK" ] || ! diff "$PODFILE_LOCK" "$MANIFEST_LOCK" > /dev/null ; then
-    mkdir -p "${PODS_ROOT}"
-    cp "$PODFILE_LOCK" "$MANIFEST_LOCK"
+if [ ! -f "$MANIFEST_LOCK" ] ; then
+    echo "error: Pods manifest is missing. Run 'pod install' before building." >&2
+    exit 1
 fi
 
 if ! diff "$PODFILE_LOCK" "$MANIFEST_LOCK" > /dev/null ; then

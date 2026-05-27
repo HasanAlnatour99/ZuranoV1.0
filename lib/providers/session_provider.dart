@@ -129,7 +129,12 @@ Future<void> _debugLogAfterUserLoad({
       'path': FirestorePaths.salon(sid),
       'timeoutMs': _startupSalonReadTimeout.inMilliseconds,
     });
-    rethrow;
+    ref
+        .read(appLoggerProvider)
+        .warn(
+          '[firebase_session] getSalon timed out for salonId=$sid; continuing startup.',
+        );
+    salon = null;
   }
   final salonLabel = salonFetchErrorCode != null
       ? 'error:$salonFetchErrorCode'
