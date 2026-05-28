@@ -47,6 +47,41 @@ class _FakeCustomerRepository extends CustomerRepository {
   }
 }
 
+class _FilterAwareCustomerRepository extends CustomerRepository {
+  _FilterAwareCustomerRepository({
+    required this.allPage,
+    required this.regularCategoryPage,
+  }) : super(firestore: FakeFirebaseFirestore());
+
+  final CustomerPage allPage;
+  final CustomerPage regularCategoryPage;
+  final requestedTags = <String>[];
+
+  @override
+  Future<CustomerPage> fetchCustomersPage({
+    required String salonId,
+    String? searchTerm,
+    String selectedTag = 'All',
+    bool includeInactive = false,
+    DocumentSnapshot<Map<String, dynamic>>? startAfterDocument,
+    int limit = 25,
+  }) async {
+    requestedTags.add(selectedTag);
+    if (selectedTag.toLowerCase() == 'regular') {
+      return regularCategoryPage;
+    }
+    return allPage;
+  }
+
+  @override
+  Stream<CustomerMonthlyStats?> watchCustomerMonthlyStats({
+    required String salonId,
+    required String yyyyMM,
+  }) {
+    return Stream.value(null);
+  }
+}
+
 MaterialApp _customersTestApp(Widget home) {
   final router = GoRouter(
     initialLocation: '/',
@@ -86,6 +121,17 @@ Customer _customer() => const Customer(
   createdBy: 'u-1',
 );
 
+Customer _regularCustomerWithoutCategory() => Customer(
+  id: 'c-regular',
+  salonId: 'salon-1',
+  fullName: 'Regular Client',
+  phone: '5551111',
+  isActive: true,
+  visitCount: 3,
+  createdAt: DateTime(2025),
+  createdBy: 'u-1',
+);
+
 void main() {
   testWidgets('Customers tab rendering shows list item', (tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -120,6 +166,51 @@ void main() {
     expect(find.text('Customers'), findsWidgets);
     expect(find.text('Ali Hassan'), findsOneWidget);
   });
+
+  testWidgets(
+    'Regular filter keeps derived regular customers without category',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final repository = _FilterAwareCustomerRepository(
+        allPage: CustomerPage(
+          customers: [_regularCustomerWithoutCategory()],
+          lastDocument: null,
+          hasMore: false,
+        ),
+        regularCategoryPage: CustomerPage.empty,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            regionalMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+            sessionSalonMoneyCurrencyCodeProvider.overrideWithValue('USD'),
+            unreadNotificationCountProvider.overrideWith((ref) => 0),
+            sessionUserProvider.overrideWith(
+              (ref) => Stream.value(_user('owner')),
+            ),
+            customerRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: _customersTestApp(const CustomersScreen()),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Regular Client'), findsOneWidget);
+
+      await tester.tap(find.text('Regular').first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(repository.requestedTags, isNot(contains('regular')));
+      expect(repository.requestedTags.last, 'All');
+      expect(find.text('Regular Client'), findsOneWidget);
+    },
+  );
 
   testWidgets('empty-state add CTA is visible for owner', (tester) async {
     SharedPreferences.setMockInitialValues({});

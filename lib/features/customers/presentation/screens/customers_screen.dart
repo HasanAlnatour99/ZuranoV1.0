@@ -40,6 +40,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   final _searchController = TextEditingController();
   String _selectedTag = 'All';
 
+  String _serverFilterForTag(String tag) {
+    return tag == 'Inactive' ? 'Inactive' : 'All';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +93,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       _selectedTag = 'All';
       _searchController.clear();
     });
+    ref.read(customerListControllerProvider.notifier).updateFilter('All');
   }
 
   void _clearSearchOnly() {
@@ -213,16 +218,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       setState(() => _selectedTag = v);
                       ref
                           .read(customerListControllerProvider.notifier)
-                          .updateFilter(
-                            switch (v) {
-                              'All' => 'All',
-                              'New' => 'new',
-                              'Regular' => 'regular',
-                              'VIP' => 'vip',
-                              'Inactive' => 'Inactive',
-                              _ => 'All',
-                            },
-                          );
+                          .updateFilter(_serverFilterForTag(v));
                     },
                   ),
                   const SizedBox(height: 16),
