@@ -15,7 +15,7 @@ import '../../logic/customer_list_controller.dart';
 import '../widgets/customer_card.dart';
 import '../widgets/customer_empty_state.dart';
 import '../widgets/customer_filter_chips.dart';
-import '../widgets/customer_insight_empty_card.dart';
+import '../widgets/customer_insight_card.dart';
 import '../widgets/customer_list_footer.dart';
 import '../widgets/customer_premium_header.dart';
 import '../widgets/customer_search_bar.dart';
@@ -199,7 +199,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   ),
                   if (salonId.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const CustomerInsightEmptyCard(),
+                    CustomerInsightCard(salonId: salonId),
                   ],
                   const SizedBox(height: 16),
                   CustomerSearchBar(
