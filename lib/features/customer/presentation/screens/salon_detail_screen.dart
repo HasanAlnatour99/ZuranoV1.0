@@ -109,7 +109,9 @@ class SalonDetailScreen extends ConsumerWidget {
                       AppPrimaryButton(
                         label: l10n.customerBook,
                         onPressed: () =>
-                            context.push(AppRoutes.customerSalonBook(salonId)),
+                            context.push(
+                              AppRoutes.customerBookServicesPath(salonId),
+                            ),
                       ),
                     ],
                   ),
@@ -197,7 +199,7 @@ class SalonDetailScreen extends ConsumerWidget {
                                         .length ??
                                     0,
                                 onBookPressed: () => context.push(
-                                  AppRoutes.customerSalonBook(salonId),
+                                  AppRoutes.customerBookServicesPath(salonId),
                                 ),
                               ),
                             ),
