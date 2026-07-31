@@ -396,9 +396,7 @@ service cloud.firestore {
           resource.data.get('isActive', false) == true
         ) ||
         (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId));
-      // TODO DEV ONLY: remove debug-seed branch before production.
-      allow create, update: if (isSalonOwnerOrAdmin(salonId) && sameSalon(salonId)) ||
-        (request.auth != null && request.resource.data.debugSeed == true);
+      allow create, update: if isSalonOwnerOrAdmin(salonId) && sameSalon(salonId);
       allow delete: if false;
 
       /// Customer-safe team rows (synced from private employees via Cloud Functions).
@@ -406,10 +404,7 @@ service cloud.firestore {
         allow read: if customerCanReadPublicSalonMirrorSubtree(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('allowCustomerBooking', false) == true;
-        // TODO DEV ONLY: remove before production.
-        allow create, update: if request.auth != null &&
-          request.resource.data.debugSeed == true &&
-          get(/databases/$(database)/documents/publicSalons/$(salonId)).data.debugSeed == true;
+        allow create, update: if false;
         allow delete: if false;
       }
 
@@ -418,10 +413,7 @@ service cloud.firestore {
         allow read: if customerCanReadPublicSalonMirrorSubtree(salonId) &&
           resource.data.isActive == true &&
           resource.data.get('isCustomerVisible', true) == true;
-        // TODO DEV ONLY: remove before production.
-        allow create, update: if request.auth != null &&
-          request.resource.data.debugSeed == true &&
-          get(/databases/$(database)/documents/publicSalons/$(salonId)).data.debugSeed == true;
+        allow create, update: if false;
         allow delete: if false;
       }
     }
@@ -495,18 +487,6 @@ service cloud.firestore {
         resource.data.get('isActive', true) == true;
     }
 
-    // TODO DEV ONLY: remove before production — salon doc must already be a demo seed row.
-    function salonDebugSeedExisting(salonId) {
-      return exists(/databases/$(database)/documents/salons/$(salonId)) &&
-        get(/databases/$(database)/documents/salons/$(salonId)).data.debugSeed == true;
-    }
-
-    // TODO DEV ONLY: remove before production — new salon doc must declare itself as demo seed.
-    function salonDebugSeedCreateRequest() {
-      return request.auth != null &&
-        request.resource.data.debugSeed == true;
-    }
-
     /// Customer discovery items live under `customerDiscovery/{segment}/items/{id}`.
     /// Examples:
     ///   - `categories`         — service category tiles
@@ -538,15 +518,9 @@ service cloud.firestore {
             customerHomeQueryLimitBounded()
           );
 
-      /// Customer-safe specialist rows are written by Cloud Functions in
-      /// production (Admin SDK bypasses these rules). Client writes are gated
-      /// by the dev-only `debugSeed` flag — REMOVE these branches for prod.
-      // TODO DEV ONLY: remove before production — client demo seed only (`debugSeed: true`).
-      allow create: if request.auth != null &&
-        request.resource.data.debugSeed == true;
-      // TODO DEV ONLY: remove before production.
-      allow update: if request.auth != null &&
-        request.resource.data.debugSeed == true;
+      /// Customer-safe discovery rows are written by Cloud Functions /
+      /// Admin tooling in production (Admin SDK bypasses these rules).
+      allow create, update: if false;
 
       allow delete: if false;
     }
@@ -574,29 +548,14 @@ service cloud.firestore {
 
       // Collection list queries MUST be bounded (`limit`) and only return docs this rule proves readable.
       // Customer home always filters `isPublished == true`; staff lists use per-doc `salonId` authorization.
-      // TODO DEV ONLY: remove debug-seed list branch before production.
       allow list: if (salonRootPublishedBrowseRow() && customerHomeQueryLimitBounded()) ||
-        isOwnerOrStaffOfSalon(salonId) ||
-        (
-          signedIn() &&
-          resource.data.get('debugSeed', false) == true &&
-          request.query.limit is int &&
-          request.query.limit <= 64
-        );
+        isOwnerOrStaffOfSalon(salonId);
 
-      // TODO DEV ONLY: merge debug-seed branch before production.
       allow create: if (signedIn() &&
           isOwner() &&
-          request.resource.data.ownerUid == request.auth.uid) ||
-        salonDebugSeedCreateRequest();
+          request.resource.data.ownerUid == request.auth.uid);
 
-      // TODO DEV ONLY: merge debug-seed branch before production.
-      allow update: if isSalonOwnerOrAdmin(salonId) ||
-        (
-          request.auth != null &&
-          salonDebugSeedExisting(salonId) &&
-          request.resource.data.debugSeed == true
-        );
+      allow update: if isSalonOwnerOrAdmin(salonId);
       allow delete: if isOwnerOfSalon(salonId);
 
       match /employees/{employeeId} {
@@ -629,13 +588,7 @@ service cloud.firestore {
         allow read: if isOwnerOrStaffOfSalon(salonId) ||
           salonDocIsPublishedForDiscovery(salonId);
 
-        // TODO DEV ONLY: remove debug-seed branch before production.
-        allow create, update: if isOwnerOfSalon(salonId) ||
-          (
-            request.auth != null &&
-            salonDebugSeedExisting(salonId) &&
-            request.resource.data.debugSeed == true
-          );
+        allow create, update: if isOwnerOfSalon(salonId);
         allow delete: if isOwnerOfSalon(salonId);
       }
 
